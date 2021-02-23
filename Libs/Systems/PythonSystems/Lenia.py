@@ -242,11 +242,11 @@ class Lenia(AbstractPythonSystem):
                     values_range=[1, np.inf]),
         AutoDiscParameter(
                     name="m", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
+                    type=ParameterTypesEnum.get('FLOAT'), 
                     values_range=[1, np.inf]),
         AutoDiscParameter(
                     name="s", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
+                    type=ParameterTypesEnum.get('FLOAT'), 
                     values_range=[1, np.inf])
     ]
 
@@ -266,10 +266,18 @@ class Lenia(AbstractPythonSystem):
         return observations
 
     def step(self, action=None):
-        self.automaton.calc_once()
         self.step_idx += 1
+        # observation_0 = self.reset(run_parameters)
 
-        return self.automaton.cells
+        observations = AttrDict()
+        observations.timepoints = list(range(self.config.final_step))
+        observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
+        # observations.states[0] = observation_0
+        for step_idx in range(1, self.config.final_step):
+            self.automaton.calc_once()
+            observations.states[step_idx] = self.automaton.cells
+
+        return observations
 
     def render(self, mode="human"):
         fig = plt.figure(figsize=(10, 10))
@@ -286,17 +294,7 @@ class Lenia(AbstractPythonSystem):
             raise NotImplementedError
 
     def run(self, run_parameters):
-        observation_0 = self.reset(run_parameters)
-
-        observations = AttrDict()
-        observations.timepoints = list(range(self.config.final_step))
-        observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
-        observations.states[0] = observation_0
-        for step_idx in range(1, self.config.final_step):
-            cur_observation = self.step(None)
-            observations.states[step_idx] = cur_observation
-
-        return observations
+        
 
     def close(self):
         pass
