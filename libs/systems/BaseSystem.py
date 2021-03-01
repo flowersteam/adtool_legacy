@@ -1,6 +1,6 @@
-from Libs.Utils.AttrDict import AttrDict
+from libs.utils.AttrDict import AttrDict
 
-class AbstractSystem:
+class BaseSystem():
     """The main AbstractSystem class. It encapsulates an environment with
     arbitrary behind-the-scenes dynamics. An environment can be
     partially or fully observed.

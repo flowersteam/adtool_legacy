@@ -1,5 +1,5 @@
-from Libs.Systems.PythonSystems.Lenia import Lenia
+from libs.systems.python_systems.Lenia import Lenia
 
 Lenia.get_default_config()
 s = Lenia()
-s.config
+print(s.config)

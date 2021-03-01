@@ -1,12 +1,10 @@
-from Libs.Systems.PythonSystems.AbstractPythonSystem import AbstractPythonSystem
-from Libs.Utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum, ParameterBinding
-from Libs.Utils.AttrDict import AttrDict
-from Libs.Utils.torch_utils import SphericPad, roll_n, complex_mult_torch
+from libs.systems.python_systems.BasePythonSystem import BasePythonSystem
+from libs.utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum, ParameterBinding
+from libs.utils.AttrDict import AttrDict
+from libs.utils.torch_utils import SphericPad, roll_n, complex_mult_torch
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-
-
 
 class LeniaStepFFT(torch.nn.Module):
     """ Module pytorch that computes one Lenia Step with the fft version"""
@@ -189,7 +187,7 @@ class AutomatonPytorch:
         self.cells = A_new
 
 
-class Lenia(AbstractPythonSystem):
+class Lenia(BasePythonSystem):
     CONFIG_DEFINITION = [
         AutoDiscParameter(
                     name="version", 
@@ -291,10 +289,7 @@ class Lenia(AbstractPythonSystem):
             im = im_from_array_with_colormap(self.automaton.cells.cpu().detach().numpy(), colormap)
             return im
         else:
-            raise NotImplementedError
-
-    def run(self, run_parameters):
-        
+            raise NotImplementedError  
 
     def close(self):
         pass

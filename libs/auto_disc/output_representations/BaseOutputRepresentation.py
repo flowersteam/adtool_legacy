@@ -1,6 +1,6 @@
-from Libs.Utils.AttrDict import AttrDict
+from libs.utils.AttrDict import AttrDict
 
-class AbstractOutputWrapper ():
+class BaseOutputRepresentation ():
     """ Base class to map the observations of a system to an embedding vector (BC characterization)
     """
 

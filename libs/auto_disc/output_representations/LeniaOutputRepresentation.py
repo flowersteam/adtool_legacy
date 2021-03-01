@@ -1,10 +1,10 @@
-from Libs.AutoDisc.OutputWrappers.AbstractOutputWrapper import AbstractOutputWrapper
-from Libs.Utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum
-from Libs.Utils.torch_utils import roll_n
+from libs.auto_disc.OutputRepresentations.BaseOutputRepresentation import BaseOutputRepresentation
+from libs.utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum
+from libs.utils.torch_utils import roll_n
 import torch
 import numpy as np
 
-class LeniaImageRepresentation(AbstractOutputWrapper):
+class LeniaImageRepresentation(BaseOutputRepresentation):
     CONFIG_DEFINITION = [
         AutoDiscParameter(
                     name="distance_function", 
