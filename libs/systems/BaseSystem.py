@@ -23,6 +23,7 @@ class BaseSystem():
     CONFIG_DEFINITION = []
     INPUT_SPACE_DEFINITION = []
     OUTPUT_SPACE_DEFINITION = []
+    STEP_OUTPUT_SPACE_DEFINITION = []
 
     def __init__(self, **kwargs):
         self.config = get_default_values(self.CONFIG_DEFINITION)
@@ -33,6 +34,9 @@ class BaseSystem():
 
         self.output_space = get_default_values(self.OUTPUT_SPACE_DEFINITION)
         self.output_space.update(kwargs)
+
+        self.step_output_space = get_default_values(self.STEP_OUTPUT_SPACE_DEFINITION)
+        self.step_output_space.update(kwargs)
 
     def reset(self, run_parameters):
         """Resets the environment to an initial state and returns an initial
@@ -56,6 +60,13 @@ class BaseSystem():
             reward (float) : amount of reward returned after previous action
             done (bool): whether the episode has ended, in which case further step() calls will return undefined results
             info (AttrDict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
+        """
+        raise NotImplementedError
+
+    def observe(self):
+        """
+        Returns the overall output of the system according to the last `reset()`.
+        Use this function once the step function has returned `done=True` to give the system's output to the Output Representation (and then the explorer).
         """
         raise NotImplementedError
 

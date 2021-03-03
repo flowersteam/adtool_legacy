@@ -286,14 +286,35 @@ class Lenia(BasePythonSystem):
 
     OUTPUT_SPACE_DEFINITION = [
         AutoDiscParameter(
-                    name="output", 
+                    name="states", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[ParameterBinding("final_step"),
                         ParameterBinding("SX"), 
                         ParameterBinding("SY")],
                         bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
+                    ),
+                    modifiable=False),
+        AutoDiscParameter(
+                    name="timepoints", 
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[ParameterBinding("final_step")],
+                        bounds=[1, ParameterBinding("final_step")],
                         type=ParameterTypesEnum.get('INTEGER')
+                    ),
+                    modifiable=False),
+    ]
+
+    STEP_OUTPUT_SPACE_DEFINITION = [
+        AutoDiscParameter(
+                    name="state", 
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[ParameterBinding("SX"), ParameterBinding("SY")],
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
                     ),
                     modifiable=False)
     ]
@@ -306,25 +327,32 @@ class Lenia(BasePythonSystem):
         else:
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
-        observations = self.automaton.cells
+        self._observations = AttrDict()
+        self._observations.timepoints = list(range(self.config.final_step))
+        self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
+        self._observations.states[0] = self.automaton.cells
 
         self.step_idx = 0
 
-        return observations
+        current_observation = AttrDict()
+        current_observation.state = self._observations.states[0]
+        return current_observation
 
     def step(self, action=None):
+        if self.step_idx >= self.config.final_step:
+            raise Exception("Final step already reached, please reset the system.")
+
         self.step_idx += 1
-        # observation_0 = self.reset(run_parameters)
+        self.automaton.calc_once()
+        self._observations.states[step_idx] = self.automaton.cells
 
-        observations = AttrDict()
-        observations.timepoints = list(range(self.config.final_step))
-        observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
-        # observations.states[0] = observation_0
-        for step_idx in range(1, self.config.final_step):
-            self.automaton.calc_once()
-            observations.states[step_idx] = self.automaton.cells
+        current_observation = AttrDict()
+        current_observation.state = self._observations.states[step_idx]
 
-        return observations
+        return current_observation, 0, self.step_idx < self.config.final_step, None
+
+    def observe(self):
+        return self._observations
 
     def render(self, mode="human"):
         fig = plt.figure(figsize=(10, 10))
