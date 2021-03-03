@@ -1,4 +1,5 @@
 from libs.utils.AttrDict import AttrDict
+from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
 
 class BaseSystem():
     """The main AbstractSystem class. It encapsulates an environment with
@@ -11,7 +12,7 @@ class BaseSystem():
         close
         #TODO: seed
         #TODO: compute_reward
-    The config and input space of the system are defined in CONFIG_DEFINITION and INPUT_SPACE_DEFINITION using:
+    The config and input space of the system are defined in CONFIG_DEFINITION, INPUT_SPACE_DEFINITION and OUTPUT_SPACE_DEFINITION using:
         AutoDiscParameter(
                     name="dummy", 
                     type=int, 
@@ -21,19 +22,17 @@ class BaseSystem():
 
     CONFIG_DEFINITION = []
     INPUT_SPACE_DEFINITION = []
-
-    @classmethod
-    def get_default_config(cls):
-        default_config = AttrDict()
-        for param in cls.CONFIG_DEFINITION:
-            param_dict = param.to_dict()
-            default_config[param_dict['name']] = param_dict['default']
-        
-        return default_config
+    OUTPUT_SPACE_DEFINITION = []
 
     def __init__(self, **kwargs):
-        self.config = self.get_default_config()
+        self.config = get_default_values(self.CONFIG_DEFINITION)
         self.config.update(kwargs)
+
+        self.input_space = get_default_values(self.INPUT_SPACE_DEFINITION)
+        self.input_space.update(kwargs)
+
+        self.output_space = get_default_values(self.OUTPUT_SPACE_DEFINITION)
+        self.output_space.update(kwargs)
 
     def reset(self, run_parameters):
         """Resets the environment to an initial state and returns an initial

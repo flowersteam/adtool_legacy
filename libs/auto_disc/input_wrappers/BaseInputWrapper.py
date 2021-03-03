@@ -1,8 +1,8 @@
 from libs.utils.AttrDict import AttrDict
 from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
 
-class BaseOutputRepresentation ():
-    """ Base class to map the observations of a system to an embedding vector (BC characterization)
+class BaseInputWrapper ():
+    """ Base class to map the parameters sent by the explorer to the system's input space
     """
 
     CONFIG_DEFINITION = []
@@ -11,7 +11,7 @@ class BaseOutputRepresentation ():
         self.config = get_default_values(self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
-    def calc(self, observations, **kwargs):
+    def map(self, observations, **kwargs):
         """ Maps the observations of a system to an embedding
             #TODO: space of possible embeddings as in https://github.com/openai/gym/tree/master/gym/spaces
             #TODO: allow to calc batch of observations

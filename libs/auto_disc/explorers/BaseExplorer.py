@@ -1,4 +1,5 @@
 from libs.utils.AttrDict import AttrDict
+from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
 
 class BaseExplorer ():
     '''
@@ -8,23 +9,14 @@ class BaseExplorer ():
 
     CONFIG_DEFINITION = []
 
-    @classmethod
-    def get_default_config(cls):
-        default_config = AttrDict()
-        for param in cls.CONFIG_DEFINITION:
-            param_dict = param.to_dict()
-            default_config[param_dict['name']] = param_dict['default']
-        
-        return default_config
-
     def __init__(self, **kwargs):
-        self.config = self.get_default_config()
+        self.config = get_default_values(self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
     def emit(self):
         raise NotImplementedError()
 
-    def archive(self, parameters, output_representation):
+    def archive(self, parameters, observations):
         raise NotImplementedError()
 
     def optimize(self):

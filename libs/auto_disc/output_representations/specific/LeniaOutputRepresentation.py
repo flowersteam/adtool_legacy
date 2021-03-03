@@ -1,5 +1,6 @@
-from libs.auto_disc.OutputRepresentations.BaseOutputRepresentation import BaseOutputRepresentation
-from libs.utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum
+from libs.auto_disc.output_representations.BaseOutputRepresentation import BaseOutputRepresentation
+from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter
+from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
 from libs.utils.torch_utils import roll_n
 import torch
 import numpy as np

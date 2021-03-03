@@ -1,7 +1,12 @@
 from libs.systems.python_systems.BasePythonSystem import BasePythonSystem
-from libs.utils.AutoDiscParameter import AutoDiscParameter, ParameterTypesEnum, ParameterBinding
+
+from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter, ParameterBinding
+from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
+from libs.utils.auto_disc_parameters.AutoDiscSpaceDefinition import AutoDiscSpaceDefinition
+
 from libs.utils.AttrDict import AttrDict
 from libs.utils.torch_utils import SphericPad, roll_n, complex_mult_torch
+
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -214,42 +219,86 @@ class Lenia(BasePythonSystem):
     INPUT_SPACE_DEFINITION = [
         AutoDiscParameter(
                     name="init_state", 
-                    type=ParameterTypesEnum.get('ARRAY', dims=[
-                        ParameterBinding("SX"), 
-                        ParameterBinding("SY")]), 
-                    values_range=[[0]*2, [1]*2]),
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[ParameterBinding("SX"), ParameterBinding("SY")],
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
+                    ),
+                    modifiable=False),
         AutoDiscParameter(
-                    name="kn", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[0, 3]),
+                    name="kn",
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[0, 3],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )), 
         AutoDiscParameter(
                     name="gn", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[0, 2]),
-        AutoDiscParameter(
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[0, 2],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )), 
+        AutoDiscParameter(  
                     name="R", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf]),
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[1, np.inf],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )), 
         AutoDiscParameter(
                     name="T", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf]),
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[1, np.inf],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )), 
         AutoDiscParameter(
                     name="B", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf]),
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[1, np.inf],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )),
         AutoDiscParameter(
                     name="m", 
-                    type=ParameterTypesEnum.get('FLOAT'), 
-                    values_range=[1, np.inf]),
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[1, np.inf],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    )),
         AutoDiscParameter(
                     name="s", 
-                    type=ParameterTypesEnum.get('FLOAT'), 
-                    values_range=[1, np.inf])
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[1],
+                        bounds=[1, np.inf],
+                        type=ParameterTypesEnum.get('FLOAT')
+                    )),
+    ]
+
+    OUTPUT_SPACE_DEFINITION = [
+        AutoDiscParameter(
+                    name="output", 
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[ParameterBinding("final_step"),
+                        ParameterBinding("SX"), 
+                        ParameterBinding("SY")],
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('INTEGER')
+                    ),
+                    modifiable=False)
     ]
 
     def reset(self, run_parameters):
-
         if self.config.version.lower() == 'pytorch_fft':
             self.automaton = AutomatonPytorch(run_parameters, version='fft', SX=self.config.SX, SY=self.config.SY)
         elif self.config.version.lower() == 'pytorch_conv2d':
