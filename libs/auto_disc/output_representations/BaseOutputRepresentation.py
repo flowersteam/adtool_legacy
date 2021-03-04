@@ -6,10 +6,17 @@ class BaseOutputRepresentation ():
     """
 
     CONFIG_DEFINITION = []
+    OUTPUT_SPACE_DEFINITION = []
 
     def __init__(self, **kwargs):
         self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
+
+        self.output_space = get_default_values(self, self.OUTPUT_SPACE_DEFINITION)
+        self.output_space.update(kwargs)
+
+    def initialize(self, input_space):
+        self._input_space = input_space
 
     def map(self, observations, **kwargs):
         """ Maps the observations of a system to an embedding

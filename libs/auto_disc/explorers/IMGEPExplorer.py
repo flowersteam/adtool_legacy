@@ -49,10 +49,10 @@ class GoalSpaceExplorer(BaseExplorer):
         # initialize policy library
         self.policy_library = []
     
-    def initialize(self, input_wrapper, output_representation):
-        super().initialize(input_wrapper, output_representation)
+    def initialize(self, input_space, output_space, input_distance_fn):
+        super().initialize(input_space, output_space, input_distance_fn)
         # initialize goal library
-        self.goal_library = torch.empty((0, len(self._output_representation.input_space)))
+        self.goal_library = torch.empty((0, len(self._input_space)))
 
     def _get_next_goal(self):
         """ Defines the next goal of the exploration. """
@@ -80,7 +80,7 @@ class GoalSpaceExplorer(BaseExplorer):
 
         if self.config.source_policy_selection.type == 'optimal':
             # get distance to other goals
-            goal_distances = self._input_wrapper.calc_distance(target_goal, self.goal_library)
+            goal_distances = self._input_distance_fn(target_goal, self.goal_library)
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)

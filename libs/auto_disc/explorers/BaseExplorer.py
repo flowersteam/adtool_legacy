@@ -13,9 +13,10 @@ class BaseExplorer ():
         self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
-    def initialize(self, input_wrapper, output_representation):
-        self._input_wrapper = input_wrapper
-        self._output_representation = output_representation
+    def initialize(self, input_space, output_space, input_distance_fn):
+        self._input_space = input_space
+        self._output_space = output_space
+        self_input_distance_fn = input_distance_fn
 
     def emit(self):
         raise NotImplementedError()
