@@ -2,7 +2,7 @@ from enum import Enum
 
 class ParameterType(object):
     def __init__(self, name):
-        self._name = name
+        self.name = name
 
 class Integer(ParameterType):
     def __init__(self):
@@ -19,11 +19,15 @@ class String(ParameterType):
 class Array(ParameterType):
     def __init__(self, dims):
         super().__init__("Array")
-        self._dims = dims
+        self.dims = dims
 
 class Space(ParameterType):
     def __init__(self):
         super().__init__("Space")
+
+class Object(ParameterType):
+    def __init__(self):
+        super().__init__("Object")
 
 class ParameterTypesEnum(Enum):
     STRING = String
@@ -31,6 +35,7 @@ class ParameterTypesEnum(Enum):
     FLOAT = Float
     ARRAY = Array
     SPACE = Space
+    OBJECT = Object
 
     @classmethod
     def get(cls, name, **kwargs):

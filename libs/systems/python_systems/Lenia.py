@@ -1,6 +1,6 @@
 from libs.systems.python_systems.BasePythonSystem import BasePythonSystem
 
-from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter, ParameterBinding
+from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter, ConfigParameterBinding
 from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
 from libs.utils.auto_disc_parameters.AutoDiscSpaceDefinition import AutoDiscSpaceDefinition
 
@@ -221,7 +221,7 @@ class Lenia(BasePythonSystem):
                     name="init_state", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[ParameterBinding("SX"), ParameterBinding("SY")],
+                        dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
                         bounds=[0, 1],
                         type=ParameterTypesEnum.get('FLOAT')
                     ),
@@ -289,9 +289,9 @@ class Lenia(BasePythonSystem):
                     name="states", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[ParameterBinding("final_step"),
-                        ParameterBinding("SX"), 
-                        ParameterBinding("SY")],
+                        dims=[ConfigParameterBinding("final_step"),
+                        ConfigParameterBinding("SX"), 
+                        ConfigParameterBinding("SY")],
                         bounds=[0, 1],
                         type=ParameterTypesEnum.get('FLOAT')
                     ),
@@ -300,8 +300,8 @@ class Lenia(BasePythonSystem):
                     name="timepoints", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[ParameterBinding("final_step")],
-                        bounds=[1, ParameterBinding("final_step")],
+                        dims=[ConfigParameterBinding("final_step")],
+                        bounds=[1, ConfigParameterBinding("final_step")],
                         type=ParameterTypesEnum.get('INTEGER')
                     ),
                     modifiable=False),
@@ -312,7 +312,7 @@ class Lenia(BasePythonSystem):
                     name="state", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[ParameterBinding("SX"), ParameterBinding("SY")],
+                        dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
                         bounds=[0, 1],
                         type=ParameterTypesEnum.get('FLOAT')
                     ),

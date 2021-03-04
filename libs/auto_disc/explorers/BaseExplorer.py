@@ -10,8 +10,12 @@ class BaseExplorer ():
     CONFIG_DEFINITION = []
 
     def __init__(self, **kwargs):
-        self.config = get_default_values(self.CONFIG_DEFINITION)
+        self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
+
+    def initialize(self, input_wrapper, output_representation):
+        self._input_wrapper = input_wrapper
+        self._output_representation = output_representation
 
     def emit(self):
         raise NotImplementedError()

@@ -2,9 +2,10 @@ class ExperimentPipeline():
     def __init__(self, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
                  on_exploration_callbacks=None):
         self._system = system
-        self._explorer = explorer
         self._input_wrappers = input_wrappers
         self._output_representations = output_representations
+        self._explorer = explorer
+        self._explorer.initialize(self._input_wrappers[-1], self._output_representations[-1])
         self._action_policy = action_policy
         self._on_exploration_callbacks = on_exploration_callbacks
 

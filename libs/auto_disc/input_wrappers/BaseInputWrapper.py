@@ -8,7 +8,7 @@ class BaseInputWrapper ():
     CONFIG_DEFINITION = []
 
     def __init__(self, **kwargs):
-        self.config = get_default_values(self.CONFIG_DEFINITION)
+        self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
     def map(self, observations, **kwargs):

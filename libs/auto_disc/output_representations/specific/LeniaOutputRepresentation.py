@@ -24,7 +24,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         self.n_latents = self.config.env_size[0] * self.config.env_size[1]
 
 
-    def calc(self, observations):
+    def map(self, observations):
         """
             Maps the observations of a system to an embedding vector
             Return a torch tensor

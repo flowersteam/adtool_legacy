@@ -8,10 +8,10 @@ class BaseOutputRepresentation ():
     CONFIG_DEFINITION = []
 
     def __init__(self, **kwargs):
-        self.config = get_default_values(self.CONFIG_DEFINITION)
+        self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
-    def calc(self, observations, **kwargs):
+    def map(self, observations, **kwargs):
         """ Maps the observations of a system to an embedding
             #TODO: space of possible embeddings as in https://github.com/openai/gym/tree/master/gym/spaces
             #TODO: allow to calc batch of observations

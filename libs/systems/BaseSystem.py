@@ -26,16 +26,16 @@ class BaseSystem():
     STEP_OUTPUT_SPACE_DEFINITION = []
 
     def __init__(self, **kwargs):
-        self.config = get_default_values(self.CONFIG_DEFINITION)
+        self.config = get_default_values(self, self.CONFIG_DEFINITION)
         self.config.update(kwargs)
 
-        self.input_space = get_default_values(self.INPUT_SPACE_DEFINITION)
+        self.input_space = get_default_values(self, self.INPUT_SPACE_DEFINITION)
         self.input_space.update(kwargs)
 
-        self.output_space = get_default_values(self.OUTPUT_SPACE_DEFINITION)
+        self.output_space = get_default_values(self, self.OUTPUT_SPACE_DEFINITION)
         self.output_space.update(kwargs)
 
-        self.step_output_space = get_default_values(self.STEP_OUTPUT_SPACE_DEFINITION)
+        self.step_output_space = get_default_values(self, self.STEP_OUTPUT_SPACE_DEFINITION)
         self.step_output_space.update(kwargs)
 
     def reset(self, run_parameters):
