@@ -16,7 +16,7 @@ class BaseExplorer ():
     def initialize(self, input_space, output_space, input_distance_fn):
         self._input_space = input_space
         self._output_space = output_space
-        self_input_distance_fn = input_distance_fn
+        self._input_distance_fn = input_distance_fn
 
     def emit(self):
         raise NotImplementedError()

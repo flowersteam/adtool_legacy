@@ -1,16 +1,39 @@
 import itertools
 from libs.auto_disc.explorers.BaseExplorer import BaseExplorer
 from libs.utils.AttrDict import AttrDict
-from libs.utils.sampling import sampling
+from libs.auto_disc.utils.sampling.sample_value import sample_value
+
+from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
+from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter
 
 from tqdm import tqdm
 import torch
 from torch import nn
 
-class GoalSpaceExplorer(BaseExplorer):
+import numpy as np
+
+class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
     """
+
+    CONFIG_DEFINITION = [
+        AutoDiscParameter(
+                    name="num_of_random_initialization", 
+                    type=ParameterTypesEnum.get('INTEGER'), 
+                    values_range=[1, np.inf], 
+                    default=10),
+        AutoDiscParameter(
+                    name="source_policy_selection_type", 
+                    type=ParameterTypesEnum.get('STRING'), 
+                    values_range=["optimal", "random"], 
+                    default="optimal"),
+        AutoDiscParameter(
+                    name="goal_selection_type", 
+                    type=ParameterTypesEnum.get('STRING'), 
+                    values_range=["random"], 
+                    default="random"),
+    ]
 
     # @staticmethod
     # def default_config():
@@ -51,64 +74,56 @@ class GoalSpaceExplorer(BaseExplorer):
     
     def initialize(self, input_space, output_space, input_distance_fn):
         super().initialize(input_space, output_space, input_distance_fn)
+        if len(self._input_space) > 1:
+            raise NotImplementedError("Only 1 vector can be accepted as input space")
+        self._input_space = self._input_space[next(iter(self._input_space))]
         # initialize goal library
-        self.goal_library = torch.empty((0, len(self._input_space)))
+        self.goal_library = torch.empty((0, self._input_space.dims[0]))
 
     def _get_next_goal(self):
         """ Defines the next goal of the exploration. """
 
-        if self.config.goal_selection.type == 'random':
-            target_goal = torch.zeros(len(self.config.goal_selection.sampling))
-            for idx, sampling_config in enumerate(self.config.goal_selection.sampling):
-                target_goal[idx] = sampling.sample_value(sampling_config)  # TODO: update self.config.goal_selection.sampling config with time (min and max)
-
-        elif self.config.goal_selection.type == 'function':
-            if 'config' in self.config.goal_selection:
-                target_goal = self.config.goal_selection.function(self, self.config.goal_selection.config)
-            else:
-                target_goal = self.config.goal_selection.function(self)
-
+        if self.config.goal_selection_type == 'random':
+            target_goal = sample_value(self._input_space)
         else:
             raise ValueError(
-                'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection.type))
+                'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection_type))
 
-        # convert goal to torch tensor
         return target_goal
 
 
     def _get_source_policy_idx(self, target_goal):
 
-        if self.config.source_policy_selection.type == 'optimal':
+        if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
             goal_distances = self._input_distance_fn(target_goal, self.goal_library)
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)
-
-        elif self.config.source_policy_selection.type == 'random':
-            source_policy_idx = sampling.sample_value(('discrete', 0, len(self.goal_library)-1))
+        elif self.config.source_policy_selection_type == 'random':
+            source_policy_idx = sample_value(('discrete', 0, len(self.goal_library)-1))
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
-                self.config.source_policy_selection.type))
+                self.config.source_policy_selection_type))
 
         return source_policy_idx
 
 
-    def _convert_policy_to_run_parameters(self, policy_parameters):
-        run_parameters = AttrDict()
-        for policy_param_conf in self.config.policy_parameters:
-            run_parameters[policy_param_conf.name] = policy_parameters[policy_param_conf.name].clamp(policy_param_conf.mutate['min'], policy_param_conf.mutate['max'])
+    # def _convert_policy_to_run_parameters(self, policy_parameters):
+    #     run_parameters = AttrDict()
+    #     for policy_param_conf in self.config.policy_parameters:
+    #         run_parameters[policy_param_conf.name] = policy_parameters[policy_param_conf.name].clamp(policy_param_conf.mutate['min'], policy_param_conf.mutate['max'])
 
-        run_parameters['init_state'] = torch.zeros((self.system.config.SX, self.system.config.SY))
-        run_parameters['init_state'][self.system.config.SX//2, self.system.config.SY//2] = 1.0
-        #run_parameters['init_state'] = self.config.goal_selection.config.lenia_animals[20]
+    #     run_parameters['init_state'] = torch.zeros((self.system.config.SX, self.system.config.SY))
+    #     run_parameters['init_state'][self.system.config.SX//2, self.system.config.SY//2] = 1.0
+    #     #run_parameters['init_state'] = self.config.goal_selection.config.lenia_animals[20]
 
-        run_parameters['R'] = 13
-        run_parameters['T'] = 10
-        run_parameters['b'] = torch.tensor([1])
-        run_parameters['kn'] = 1
-        run_parameters['gn'] = 1
-        return run_parameters
+    #     run_parameters['R'] = 13
+    #     run_parameters['T'] = 10
+    #     run_parameters['b'] = torch.tensor([1])
+    #     run_parameters['kn'] = 1
+    #     run_parameters['gn'] = 1
+    #     return run_parameters
 
     def emit(self):
         target_goal = None
@@ -118,11 +133,8 @@ class GoalSpaceExplorer(BaseExplorer):
         # random sampling if not enough in library
         if len(self.policy_library) < self.config.num_of_random_initialization:
             # initialize the parameters
-            for parameter_config in self.config.policy_parameters:
-                if parameter_config.type == "sampling":
-                    policy_parameters[parameter_config['name']] = sampling.sample_value(parameter_config['init'])
-                else:
-                    raise ValueError('Unknown run_parameter type {!r} in configuration.'.format(parameter_config.type))
+            for parameter_key, parameter_space in self._output_space.items():
+                policy_parameters[parameter_key] = sample_value(parameter_space)
 
         else:
             # sample a goal space from the goal space
@@ -132,19 +144,19 @@ class GoalSpaceExplorer(BaseExplorer):
             source_policy_idx = self._get_source_policy_idx(target_goal)
             source_policy = self.policy_library[source_policy_idx]
 
-            for parameter_config in self.config.policy_parameters:
+            for parameter_key, parameter_space in self._output_space.items():
+                
+                # if parameter_config.type == 'sampling':
+                #     policy_parameter = sampling.mutate_value(val=source_policy[parameter_config['name']], config=parameter_config['mutate'])
+                # else:
+                #     raise ValueError(
+                #         'Unknown run_parameter type {!r} in configuration.'.format(parameter_config.type))
 
-                if parameter_config.type == 'sampling':
-                    policy_parameter = sampling.mutate_value(val=source_policy[parameter_config['name']], config=parameter_config['mutate'])
-                else:
-                    raise ValueError(
-                        'Unknown run_parameter type {!r} in configuration.'.format(parameter_config.type))
-
-                policy_parameters[parameter_config['name']] = policy_parameter
+                policy_parameters[parameter_key] = source_policy[parameter_key]
 
         # TODO: Target goal
         # run with parameters
-        run_parameters = self._convert_policy_to_run_parameters(policy_parameters)
+        run_parameters = policy_parameters #self._convert_policy_to_run_parameters(policy_parameters)
         self.policy_library.append(policy_parameters)
 
         return run_parameters

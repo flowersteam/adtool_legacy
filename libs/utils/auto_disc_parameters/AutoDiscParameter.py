@@ -22,14 +22,21 @@ class AutoDiscParameter():
 class ConfigParameterBinding():
     def __init__(self, parameter_name):
         self.parameter_name = parameter_name
+        self.key = None
+    def __getitem__(self, key):
+        self.key = key
+        return self
 
-def recursive_binding_search(config_dict, parameter_name):
+def recursive_binding_search(config_dict, parameter_name, parameter_key=None):
     for key, value in config_dict.items():
         if isinstance(value, dict):
             return recursive_binding_search(value, parameter_name)
         else:
             if key == parameter_name:
-                return value
+                if parameter_key is not None:
+                    return value[parameter_key]
+                else:
+                    return value
     raise Exception("Binding of parameter {} not found !".format(parameter_name))
 
 
@@ -44,7 +51,7 @@ def get_default_values(instance, parameters_definition):
                 new_dims = []
                 for current_val in default_value.dims:
                     if isinstance(current_val, ConfigParameterBinding):
-                       new_dims.append(recursive_binding_search(instance.config, current_val.parameter_name))
+                       new_dims.append(recursive_binding_search(instance.config, current_val.parameter_name, current_val.key))
                     else:
                         new_dims.append(current_val)
                 default_value.dims = new_dims

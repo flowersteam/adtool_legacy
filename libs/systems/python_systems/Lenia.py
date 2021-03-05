@@ -230,48 +230,48 @@ class Lenia(BasePythonSystem):
                     name="kn",
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[0, 3],
+                        dims=[],
+                        bounds=[1, 4],
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(
                     name="gn", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[0, 2],
+                        dims=[],
+                        bounds=[1, 3],
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(  
                     name="R", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[1, np.inf],
+                        dims=[],
+                        bounds=[1, 10], # TODO: CHANGE
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(
                     name="T", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[1, np.inf],
+                        dims=[],
+                        bounds=[1, 10], # TODO: CHANGE
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(
-                    name="B", 
+                    name="b", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
-                        bounds=[1, np.inf],
+                        bounds=[1, 10], # TODO: CHANGE
                         type=ParameterTypesEnum.get('INTEGER')
                     )),
         AutoDiscParameter(
                     name="m", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[1, np.inf],
+                        dims=[],
+                        bounds=[1, 10], # TODO: CHANGE
                         type=ParameterTypesEnum.get('INTEGER')
                     )),
         AutoDiscParameter(
@@ -279,7 +279,7 @@ class Lenia(BasePythonSystem):
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
-                        bounds=[1, np.inf],
+                        bounds=[1, 10], # TODO: CHANGE
                         type=ParameterTypesEnum.get('FLOAT')
                     )),
     ]
@@ -344,17 +344,17 @@ class Lenia(BasePythonSystem):
 
         self.step_idx += 1
         self.automaton.calc_once()
-        self._observations.states[step_idx] = self.automaton.cells
+        self._observations.states[self.step_idx] = self.automaton.cells
 
         current_observation = AttrDict()
-        current_observation.state = self._observations.states[step_idx]
+        current_observation.state = self._observations.states[self.step_idx]
 
         return current_observation, 0, self.step_idx < self.config.final_step, None
 
     def observe(self):
         return self._observations
 
-    def render(self, mode="human"):
+    def render(self, mode="PIL_image"):
         fig = plt.figure(figsize=(10, 10))
         plt.imshow(self.automaton.cells.cpu().detach().numpy(), cmap='gray', vmin=0, vmax=1)
         if mode == "human":

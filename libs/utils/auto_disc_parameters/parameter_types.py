@@ -4,6 +4,10 @@ class ParameterType(object):
     def __init__(self, name):
         self.name = name
 
+class Boolean(ParameterType):
+    def __init__(self):
+        super().__init__("Boolean")
+
 class Integer(ParameterType):
     def __init__(self):
         super().__init__("Integer")
@@ -31,6 +35,7 @@ class Object(ParameterType):
 
 class ParameterTypesEnum(Enum):
     STRING = String
+    BOOLEAN = Boolean
     INTEGER = Integer
     FLOAT = Float
     ARRAY = Array

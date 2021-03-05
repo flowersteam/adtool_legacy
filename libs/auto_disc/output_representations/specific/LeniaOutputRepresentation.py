@@ -1,6 +1,7 @@
 from libs.auto_disc.output_representations.BaseOutputRepresentation import BaseOutputRepresentation
-from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter
+from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter, ConfigParameterBinding
 from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
+from libs.utils.auto_disc_parameters.AutoDiscSpaceDefinition import AutoDiscSpaceDefinition
 from libs.utils.torch_utils import roll_n
 import torch
 import numpy as np
@@ -19,9 +20,22 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
                     default=[256, 256])
     ]
 
+    OUTPUT_SPACE_DEFINITION = [
+        AutoDiscParameter(
+                    name="embedding", 
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[None],
+                        bounds=[0, 10], #TODO: CHANGE
+                        type=ParameterTypesEnum.get('FLOAT')
+                    ),
+                    modifiable=False),
+    ]
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.n_latents = self.config.env_size[0] * self.config.env_size[1]
+        self.output_space["embedding"].dims = [self.n_latents]
 
 
     def map(self, observations):
