@@ -34,6 +34,9 @@ class Object(ParameterType):
         super().__init__("Object")
 
 class ParameterTypesEnum(Enum):
+    '''
+    All types of parameters allowed in the AutoDisc package.
+    '''
     STRING = String
     BOOLEAN = Boolean
     INTEGER = Integer
@@ -44,4 +47,7 @@ class ParameterTypesEnum(Enum):
 
     @classmethod
     def get(cls, name, **kwargs):
+        '''
+        Get type by name (uppercase).
+        '''
         return ParameterTypesEnum[name].value(**kwargs)

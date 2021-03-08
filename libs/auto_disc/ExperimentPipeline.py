@@ -2,6 +2,12 @@ from libs.auto_disc.output_representations.generic.DummyOutputRepresentation imp
 from libs.auto_disc.input_wrappers.generic.DummyInputWrapper import DummyInputWrapper
 
 class ExperimentPipeline():
+    '''
+    Pipeline of an automated discovery experiment.
+    An experiment is at least constitued of a system and an explorer. Additionally, input wrappers and output representations can be added (multiple can be stacked).
+    When the system requires an action at each timestep, an `action_policy` must be provided.
+    In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
+    '''
     def __init__(self, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
                  on_exploration_callbacks=None):
         ### SYSTEM ###
@@ -51,6 +57,9 @@ class ExperimentPipeline():
         return run_parameters
 
     def run(self, n_exploration_runs):
+        '''
+        Launches the experiment for `n_exploration_runs` explorations.
+        '''
         run_idx = 0
         system_steps = [0]
 

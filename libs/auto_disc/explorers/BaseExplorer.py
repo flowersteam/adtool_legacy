@@ -3,8 +3,7 @@ from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
 
 class BaseExplorer ():
     '''
-    Base class for exploration experiments.
-    Allows to save and load exploration results
+    Base class for explorers.
     '''
 
     CONFIG_DEFINITION = []
@@ -14,17 +13,29 @@ class BaseExplorer ():
         self.config.update(kwargs)
 
     def initialize(self, input_space, output_space, input_distance_fn):
+        '''
+        Defines input and output space for the explorer (as well as a distance function for the input space).
+        '''
         self._input_space = input_space
         self._output_space = output_space
         self._input_distance_fn = input_distance_fn
 
     def emit(self):
+        '''
+        Emits a new set of parameters to test in the system
+        '''
         raise NotImplementedError()
 
     def archive(self, parameters, observations):
+        '''
+        Stores parameters and the output the system produced using them
+        '''
         raise NotImplementedError()
 
     def optimize(self):
+        '''
+        Optimizes the explorer's emit policy given the discoveries arhcived
+        '''
         raise NotImplementedError()
 
 

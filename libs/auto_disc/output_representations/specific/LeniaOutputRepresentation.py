@@ -38,7 +38,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         self.output_space["embedding"].dims = [self.n_latents]
 
 
-    def map(self, observations):
+    def map(self, observations, **kwargs):
         """
             Maps the observations of a system to an embedding vector
             Return a torch tensor
@@ -69,7 +69,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         return embedding
 
 
-    def calc_distance(self, embedding_a, embedding_b):
+    def calc_distance(self, embedding_a, embedding_b, **kwargs):
         """
             Compute the distance between 2 embeddings in the latent space
             /!\ batch mode embedding_a and embedding_b can be N*M or M

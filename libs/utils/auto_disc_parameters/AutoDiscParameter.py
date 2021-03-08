@@ -2,6 +2,9 @@ from libs.utils.AttrDict import AttrDict
 from libs.utils.auto_disc_parameters.AutoDiscSpaceDefinition import AutoDiscSpaceDefinition
 
 class AutoDiscParameter():
+    '''
+    Hyperparameter a class exposes. It is used to configure an instance of this class.
+    '''
     def __init__(self, name, type, values_range=None, default=None, modifiable=True):
         self._name = name
         self._type = type
@@ -20,6 +23,9 @@ class AutoDiscParameter():
 
 
 class ConfigParameterBinding():
+    '''
+    Allows to bind some properties of an AutoDiscParameter to the value of another parameter that belongs to the config of the instance.
+    '''
     def __init__(self, parameter_name):
         self.parameter_name = parameter_name
         self.key = None

@@ -2,22 +2,34 @@ from libs.utils.AttrDict import AttrDict
 from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
 
 class BaseSystem():
-    """The main AbstractSystem class. It encapsulates an environment with
+    """The main BaseSystem class. It encapsulates an environment with
     arbitrary behind-the-scenes dynamics. An environment can be
     partially or fully observed.
     The main API methods that users of this class need to know are:
         reset
         step
+        observe
         render
         close
-        #TODO: seed
-        #TODO: compute_reward
-    The config and input space of the system are defined in CONFIG_DEFINITION, INPUT_SPACE_DEFINITION and OUTPUT_SPACE_DEFINITION using:
-        AutoDiscParameter(
+    The config, input space as well as output space of the system are defined in CONFIG_DEFINITION, INPUT_SPACE_DEFINITION and OUTPUT_SPACE_DEFINITION using:
+        `AutoDiscParameter(
                     name="dummy", 
                     type=int, 
                     values_range=[-1, 1], 
-                    default=0)
+                    default=0)`
+    For space parameters, use
+        `AutoDiscParameter(
+                    name="dummu", 
+                    type=ParameterTypesEnum.get('SPACE'),
+                    default=AutoDiscSpaceDefinition(
+                        dims=[10, 10, 3],
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
+                    ))`
+    Non-modifiable parameters should set
+        `modifiable=False`
+    For scalar spaces, set
+        `dims=[]`
     """
 
     CONFIG_DEFINITION = []
