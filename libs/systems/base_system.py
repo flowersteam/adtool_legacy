@@ -1,5 +1,5 @@
-from libs.utils.AttrDict import AttrDict
-from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
+from libs.utils import AttrDict
+from libs.utils.auto_disc_parameters import get_default_values
 
 class BaseSystem():
     """The main BaseSystem class. It encapsulates an environment with

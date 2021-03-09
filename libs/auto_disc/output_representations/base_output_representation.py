@@ -1,5 +1,5 @@
-from libs.utils.AttrDict import AttrDict
-from libs.utils.auto_disc_parameters.AutoDiscParameter import get_default_values
+from libs.utils import AttrDict
+from libs.utils.auto_disc_parameters import get_default_values
 
 class BaseOutputRepresentation ():
     """ Base class to map the observations of a system to an embedding vector (BC characterization)

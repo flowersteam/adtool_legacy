@@ -1,9 +1,9 @@
-from libs.systems.python_systems.Lenia import Lenia
-from libs.auto_disc.output_representations.specific.LeniaOutputRepresentation import LeniaImageRepresentation
-from libs.auto_disc.explorers.IMGEPExplorer import IMGEPExplorer
+from libs.systems.python_systems import PythonLenia
+from libs.auto_disc.output_representations.specific import LeniaImageRepresentation
+from libs.auto_disc.explorers import IMGEPExplorer
 
-from libs.auto_disc.ExperimentPipeline import ExperimentPipeline
-from libs.auto_disc.utils.BaseAutoDiscCallback import BaseAutoDiscCallback
+from libs.auto_disc import ExperimentPipeline
+from libs.auto_disc.utils import BaseAutoDiscCallback
 
 class CustomPrintCallback(BaseAutoDiscCallback):
     def __init__(self, custom_message_to_print):
@@ -15,7 +15,7 @@ class CustomPrintCallback(BaseAutoDiscCallback):
 
 
 experiment = ExperimentPipeline(
-    system=Lenia(
+    system=PythonLenia(
         config_kwargs={
             'SX':256, 
             'SY':256

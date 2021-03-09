@@ -1,5 +1,5 @@
-from libs.utils.AttrDict import AttrDict
-from libs.auto_disc.input_wrappers.BaseInputWrapper import BaseInputWrapper
+from libs.utils import AttrDict
+from libs.auto_disc.input_wrappers import BaseInputWrapper
 
 class DummyInputWrapper(BaseInputWrapper):
     '''

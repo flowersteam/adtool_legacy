@@ -1,5 +1,5 @@
-from libs.auto_disc.output_representations.generic.DummyOutputRepresentation import DummyOutputRepresentation
-from libs.auto_disc.input_wrappers.generic.DummyInputWrapper import DummyInputWrapper
+from libs.auto_disc.output_representations.generic import DummyOutputRepresentation
+from libs.auto_disc.input_wrappers.generic import DummyInputWrapper
 
 class ExperimentPipeline():
     '''

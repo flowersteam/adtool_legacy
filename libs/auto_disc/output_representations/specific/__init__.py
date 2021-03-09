@@ -1,0 +1,1 @@
+from libs.auto_disc.output_representations.specific.lenia_output_representation import LeniaImageRepresentation

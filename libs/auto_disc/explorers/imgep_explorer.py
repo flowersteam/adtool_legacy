@@ -1,10 +1,8 @@
-import itertools
-from libs.auto_disc.explorers.BaseExplorer import BaseExplorer
-from libs.utils.AttrDict import AttrDict
-from libs.auto_disc.utils.sampling.sample_value import sample_value
+from libs.auto_disc.explorers import BaseExplorer
+from libs.utils import AttrDict
+from libs.auto_disc.utils.sampling import sample_value
 
-from libs.utils.auto_disc_parameters.parameter_types import ParameterTypesEnum
-from libs.utils.auto_disc_parameters.AutoDiscParameter import AutoDiscParameter
+from libs.utils.auto_disc_parameters import ParameterTypesEnum, AutoDiscParameter
 
 from tqdm import tqdm
 import torch

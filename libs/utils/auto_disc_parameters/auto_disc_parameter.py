@@ -1,5 +1,5 @@
-from libs.utils.AttrDict import AttrDict
-from libs.utils.auto_disc_parameters.AutoDiscSpaceDefinition import AutoDiscSpaceDefinition
+from libs.utils import AttrDict
+from libs.utils.auto_disc_parameters import AutoDiscSpaceDefinition
 
 class AutoDiscParameter():
     '''

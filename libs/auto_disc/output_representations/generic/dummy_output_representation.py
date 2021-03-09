@@ -1,7 +1,10 @@
-from libs.utils.AttrDict import AttrDict
-from libs.auto_disc.output_representations.BaseOutputRepresentation import BaseOutputRepresentation
+from libs.utils import AttrDict
+from libs.auto_disc.output_representations import BaseOutputRepresentation
 
 class DummyOutputRepresentation(BaseOutputRepresentation):
+    '''
+    Empty OutputRepresentation used when no representation of the system's output mut be used.
+    '''
     def initialize(self, input_space):
         super().initialize(input_space)
         self.output_space = input_space
