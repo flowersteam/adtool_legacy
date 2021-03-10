@@ -1,6 +1,0 @@
-{
-    "python.pythonPath": "/home/cromac/anaconda3/bin/python",
-    "python.linting.pylintArgs": [
-        "--generated-members=numpy.* ,torch.*"
-        ]
-}
