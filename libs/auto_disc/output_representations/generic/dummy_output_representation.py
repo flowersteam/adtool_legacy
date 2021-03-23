@@ -1,6 +1,6 @@
 from libs.utils import AttrDict
 from libs.auto_disc.output_representations import BaseOutputRepresentation
-from libs.utils import LossFunc
+from libs.utils import distance
 
 class DummyOutputRepresentation(BaseOutputRepresentation):
     '''
@@ -15,5 +15,5 @@ class DummyOutputRepresentation(BaseOutputRepresentation):
 
     def calc_distance(self, embedding_a, embedding_b, **kwargs):
         # L2 + add regularizer to avoid dead outcomes
-        dist = LossFunc.l2(embedding_a, embedding_b)
+        dist = distance.calc_l2(embedding_a, embedding_b)
         return dist

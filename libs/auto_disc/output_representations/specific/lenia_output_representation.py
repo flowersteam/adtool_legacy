@@ -1,7 +1,7 @@
 from libs.auto_disc.output_representations import BaseOutputRepresentation
 from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition
 from libs.utils.torch_utils import roll_n
-from libs.utils import LossFunc
+from libs.utils import distance
 import torch
 import numpy as np
 
@@ -75,7 +75,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         """
         # l2 loss
         if self.config.distance_function == "L2":
-            dist = LossFunc.l2(embedding_a, embedding_b) # add regularizer to avoid dead outcomes
+            dist = distance.calc_l2(embedding_a, embedding_b) # add regularizer to avoid dead outcomes
 
         else:
             raise NotImplementedError
