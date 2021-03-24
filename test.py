@@ -5,13 +5,8 @@ from libs.auto_disc.explorers import IMGEPExplorer
 from libs.auto_disc import ExperimentPipeline
 from libs.auto_disc.utils import BaseAutoDiscCallback
 
-class CustomPrintCallback(BaseAutoDiscCallback):
-    def __init__(self, custom_message_to_print):
-        super().__init__()
-        self._custom_message_to_print = custom_message_to_print
-
-    def __call__(self, **kwargs):
-        print(self._custom_message_to_print)
+from libs.auto_disc.utils import CustomSaveCallback
+from libs.auto_disc.utils import CustomPrintCallback
 
 
 experiment = ExperimentPipeline(
@@ -24,6 +19,7 @@ experiment = ExperimentPipeline(
     input_wrappers=None,
     output_representations=[LeniaImageRepresentation()],
     on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
+    #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
 )
 
-experiment.run(5000)
+experiment.run(100)
