@@ -10,5 +10,13 @@ Please follow these instructions when contributing on the project.
 2. Create *autoDiscTool* conda environment: `conda create --name autoDiscTool python=3.6`
 3. Activate *autoDiscTool* conda environment: `conda activate autoDiscTool`
 4. Install the required conda packages in the environment (one by one to deal with dependencies errors): `while read requirement; do conda install --yes $requirement --channel default --channel anaconda --channel conda-forge --channel pytorch; done < requirements.txt`
+
+#### AutoDiscServer
+1. Install flask: `pip install flask`
+
 ### Commits
 Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
+
+### Startinig the project
+#### AutoDiscServer
+Launch the flask server: `python services/AutoDiscServer/app.py`.
