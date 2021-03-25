@@ -8,12 +8,12 @@ class BaseInputWrapper():
     CONFIG_DEFINITION = []
     INPUT_SPACE_DEFINITION = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, config_kwargs={}, input_space_kwargs={}):
         self.config = get_default_values(self, self.CONFIG_DEFINITION)
-        self.config.update(kwargs)
+        self.config.update(config_kwargs)
 
         self.input_space = get_default_values(self, self.INPUT_SPACE_DEFINITION)
-        self.input_space.update(kwargs)
+        self.input_space.update(input_space_kwargs)
 
     def initialize(self, output_space):
         self._output_space = output_space
