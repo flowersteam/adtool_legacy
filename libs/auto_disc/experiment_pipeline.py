@@ -1,5 +1,6 @@
 from libs.auto_disc.output_representations.generic import DummyOutputRepresentation
 from libs.auto_disc.input_wrappers.generic import DummyInputWrapper
+import asyncio
 
 class ExperimentPipeline():
     '''
@@ -56,7 +57,7 @@ class ExperimentPipeline():
             run_parameters = input_wrapper.map(run_parameters)
         return run_parameters
 
-    def run(self, n_exploration_runs):
+    async def run(self, n_exploration_runs):
         '''
         Launches the experiment for `n_exploration_runs` explorations.
         '''

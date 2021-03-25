@@ -8,18 +8,20 @@ from libs.auto_disc.utils import BaseAutoDiscCallback
 from libs.auto_disc.utils import CustomSaveCallback
 from libs.auto_disc.utils import CustomPrintCallback
 
+import asyncio
 
-experiment = ExperimentPipeline(
-    system=PythonLenia(
-        config_kwargs={
-            'SX':256, 
-            'SY':256
-        }),
-    explorer=IMGEPExplorer(),
-    input_wrappers=None,
-    output_representations=[LeniaImageRepresentation()],
-    on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
-    #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
-)
+if __name__ == "__main__":
+    experiment = ExperimentPipeline(
+        system=PythonLenia(
+            config_kwargs={
+                'SX':256, 
+                'SY':256
+            }),
+        explorer=IMGEPExplorer(),
+        input_wrappers=None,
+        output_representations=[LeniaImageRepresentation()],
+        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
+        #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
+    )
 
-experiment.run(100)
+    asyncio.run(experiment.run(100))
