@@ -29,7 +29,7 @@ class IMGEPExplorer(BaseExplorer):
         AutoDiscParameter(
                     name="goal_selection_type", 
                     type=ParameterTypesEnum.get('STRING'), 
-                    values_range=["random"], 
+                    values_range=["random", "specific", "function", None], 
                     default="random"),
     ]
 

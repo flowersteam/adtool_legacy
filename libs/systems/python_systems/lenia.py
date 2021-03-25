@@ -245,7 +245,7 @@ class Lenia(BasePythonSystem):
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[],
-                        bounds=[1, 10], # TODO: CHANGE
+                        bounds=[2, 20],
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(
@@ -253,7 +253,7 @@ class Lenia(BasePythonSystem):
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[],
-                        bounds=[1, 10], # TODO: CHANGE
+                        bounds=[1, 20],
                         type=ParameterTypesEnum.get('INTEGER')
                     )), 
         AutoDiscParameter(
@@ -261,23 +261,23 @@ class Lenia(BasePythonSystem):
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
-                        bounds=[1, 10], # TODO: CHANGE
-                        type=ParameterTypesEnum.get('INTEGER')
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
                     )),
         AutoDiscParameter(
                     name="m", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[],
-                        bounds=[1, 10], # TODO: CHANGE
-                        type=ParameterTypesEnum.get('INTEGER')
+                        bounds=[0, 1],
+                        type=ParameterTypesEnum.get('FLOAT')
                     )),
         AutoDiscParameter(
                     name="s", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
-                        bounds=[1, 10], # TODO: CHANGE
+                        bounds=[0.001, 0.3],
                         type=ParameterTypesEnum.get('FLOAT')
                     )),
     ]
