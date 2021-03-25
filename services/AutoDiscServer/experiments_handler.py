@@ -1,5 +1,6 @@
 from AutoDiscServer.utils import list_classes
 from libs.auto_disc import ExperimentPipeline
+from libs.auto_disc.utils.callbacks import CustomPrintCallback
 import asyncio
 
 class ExperimentsHandler():
@@ -53,7 +54,7 @@ class ExperimentsHandler():
                 explorer=explorer,
                 input_wrappers=input_wrappers,
                 output_representations=output_representations,
-                on_exploration_callbacks=[] # TODO
+                on_exploration_callbacks=[CustomPrintCallback('New discovery for experiment n°{}'.format(id))] # TODO
             )
 
             ## launch async expe

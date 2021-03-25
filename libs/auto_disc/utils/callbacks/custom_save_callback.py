@@ -1,9 +1,9 @@
-from libs.auto_disc.utils import BaseAutoDiscCallback
+from libs.auto_disc.utils.callbacks import BaseCallback
 
 import pickle
 import matplotlib.pyplot as plt
 
-class CustomSaveCallback(BaseAutoDiscCallback):
+class CustomSaveCallback(BaseCallback):
     def __init__(self, folder_path):
         """
         init the callback with a path to a folder to save discoveries

@@ -3,10 +3,9 @@ from libs.auto_disc.output_representations.specific import LeniaImageRepresentat
 from libs.auto_disc.explorers import IMGEPExplorer
 
 from libs.auto_disc import ExperimentPipeline
-from libs.auto_disc.utils import BaseAutoDiscCallback
 
-from libs.auto_disc.utils import CustomSaveCallback
-from libs.auto_disc.utils import CustomPrintCallback
+from libs.auto_disc.utils.callbacks import CustomSaveCallback
+from libs.auto_disc.utils.callbacks import CustomPrintCallback
 
 import asyncio
 

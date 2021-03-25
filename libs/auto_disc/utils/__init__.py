@@ -1,3 +1,0 @@
-from libs.auto_disc.utils.base_auto_disc_callback import BaseAutoDiscCallback
-from libs.auto_disc.utils.auto_disc_callback.custom_save_callback import CustomSaveCallback
-from libs.auto_disc.utils.auto_disc_callback.custom_print_callback import CustomPrintCallback

@@ -1,4 +1,4 @@
-class BaseAutoDiscCallback():
+class BaseCallback():
     '''
     Base class for callbacks used by the experiment pipelines when progress is made (e.g. new dicovery, explorer's optimization).
     '''
