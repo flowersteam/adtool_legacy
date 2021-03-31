@@ -1,6 +1,7 @@
 from libs.auto_disc.explorers import BaseExplorer
 from libs.utils import AttrDict
 from libs.auto_disc.utils.sampling import sample_value
+from libs.auto_disc.utils.sampling import mutate_value
 
 from libs.utils.auto_disc_parameters import ParameterTypesEnum, AutoDiscParameter
 
@@ -144,11 +145,11 @@ class IMGEPExplorer(BaseExplorer):
 
             for parameter_key, parameter_space in self._output_space.items():
                 
-                # if parameter_config.type == 'sampling':
-                #     policy_parameter = sampling.mutate_value(val=source_policy[parameter_config['name']], config=parameter_config['mutate'])
-                # else:
-                #     raise ValueError(
-                #         'Unknown run_parameter type {!r} in configuration.'.format(parameter_config.type))
+                if parameter_space.mutation != None:
+                    policy_parameter = mutate_value.mutate_value(source_policy[parameter_key], parameter_space)
+                else:
+                    raise ValueError(
+                        'Unknown run_parameter type {!r} in configuration.'.format(parameter_space.mutation.distribution))
 
                 policy_parameters[parameter_key] = source_policy[parameter_key]
 

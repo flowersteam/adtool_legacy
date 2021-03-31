@@ -6,3 +6,4 @@ class AutoDiscSpaceDefinition():
         self.dims = dims
         self.bounds = bounds
         self.type = type
+        self.mutation = mutation

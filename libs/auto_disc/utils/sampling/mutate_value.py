@@ -1,54 +1,74 @@
-# TODO
-# def mutate_value(val, mutation_factor=1.0, config=None, **kwargs):
+import torch
 
-#     # TODO: mutate vector
-
-#     new_val = val
-
-#     if isinstance(val, list):
-#         for idx in range(np.shape(val)[0]):
-#             new_val[idx] = mutate_value(new_val[idx], mutation_factor=mutation_factor, config=config, **kwargs)
-#     else:
-
-#         if config and isinstance(config, dict):
-
-#             if 'distribution' in config:
-#                 if config['distribution'] == 'gaussian':
-#                     #new_val = np.random.normal(val, config['sigma'] * max(0, mutation_factor))
-#                     std = config['sigma'] * torch.max(torch.tensor([0, mutation_factor]))
-#                     if std > 0.0:
-#                         new_val = torch.normal(val, std, ())
-#                     elif std == 0.0:
-#                         new_val = torch.tensor(val)
-#                 else:
-#                     raise ValueError('Unknown parameter distribution {!r} for mutation!', config['distribution'])
+def mutate_value_gauss(val, space_mutation, mutation_factor):
+    """
+    description    : apply a gauss function to the data
+    val            : list, tuple or torch of integer or bool; Input data, will be modified
+    space          : AutoDiscMutationDefinition object      ; defined mutation parameters...
+    mutation_factor: float
+    return         : torch resulting from the val modifiaction
+    """
+    if space_mutation.distribution == 'gauss':
+        std = space_mutation.sigma * torch.max(torch.tensor([0, mutation_factor]))
+        if std > 0.0:
+            
+            val = torch.tensor(val)
+            std = torch.full(val.size(), std)
+            val = torch.normal(val.float(), std.float()) # .float is needed to correct this error: _th_normal not supported on CPUType for Long 
+        elif std == 0.0:
+            val = torch.tensor(val)
+    else:
+        raise ValueError('Unknown parameter distribution {!r} for mutation!', space_mutation.distribution)
+    return val
 
 
-#             if 'type' in config:
-#                 if config['type'] == 'discrete':
-#                     #new_val = np.round(new_val)
-#                     if not isinstance(new_val, torch.Tensor):
-#                         new_val = torch.tensor(new_val)
-#                     new_val = torch.round(new_val).int()
-#                 elif config['type'] == 'continuous':
-#                     pass
-#                 elif config['type'] == 'function':
-#                     function_call = config['callname']
-#                     function_kwargs = config
-#                     del function_kwargs['type']
-#                     del function_kwargs['callname']
-#                     new_val = function_call(val, **function_kwargs)
-#                 else:
-#                     raise ValueError('Unknown parameter type {!r} for mutation!', config['type'])
+"""
+description: associates a mutate function with its name (used in mutate_value)
+"""
+my_mutate_func_dic = {
+    "gauss" : mutate_value_gauss
+}
 
-#             if 'min' in config:
-#                 new_val = torch.max(new_val, torch.tensor(config['min'], dtype=new_val.dtype))
+def mutate_value(val, space, mutation_factor=1.0):
+    """
+    description    : apply a slight random variation to the data
+    val            : list, tuple or torch of integer or bool. Input data, will be mdified
+    space          : AutoDiscSpaceDefinition object, defined data space. bounds dimensions etc...
+    mutation_factor: float
+    return         : torch resulting from the val modifiaction
+    """
+    space_type = space.type
+    space_dimensions = space.dims
+    space_bounds = space.bounds
+    space_mutation = space.mutation
 
-#             if 'max' in config:
-#                 new_val = torch.min(new_val, torch.tensor(config['max'], dtype=new_val.dtype))
+    #defines the function which must be called according to space_mutation.distribution
+    #get in "my_mutate_func_dic" dictionary the function associated with the string "space_mutation.distribution"
+    my_mutate_func = my_mutate_func_dic[space_mutation.distribution]
 
-#         elif isinstance(config, tuple) and config[0] == 'function':
-#             new_val = config[1](val, *config[2:])
+    val = my_mutate_func(val, space_mutation, mutation_factor)
+
+    if space_type.name == "Float": # continuous
+        pass
+    elif space_type.name == "Integer": # Dicrete
+        if not isinstance(val, torch.Tensor):
+            val = torch.tensor(val)
+        val = torch.round(val).int()
+    elif space_type.name == "Function":
+        pass
+        #                     function_call = config['callname']
+        #                     function_kwargs = config
+        #                     del function_kwargs['type']
+        #                     del function_kwargs['callname']
+        #                     new_val = function_call(val, **function_kwargs)
+    else:
+        raise ValueError('Unknown parameter type {!r} for mutation!', space_type)
+
+    val = torch.max(val, torch.tensor(space_bounds[0], dtype=val.dtype))
+    val = torch.min(val, torch.tensor(space_bounds[1], dtype=val.dtype))
 
 
-#     return new_val
+    if space_dimensions == []:
+        val = val.item()
+
+    return val

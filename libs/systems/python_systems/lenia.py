@@ -1,6 +1,6 @@
 from libs.systems.python_systems import BasePythonSystem
 
-from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition
+from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition, AutoDiscMutationDefinition
 
 from libs.utils import AttrDict
 from libs.utils.torch_utils import SphericPad, roll_n, complex_mult_torch
@@ -221,7 +221,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
                         bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        type=ParameterTypesEnum.get('FLOAT'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.5) # TODO change all
                     ),
                     modifiable=False),
         AutoDiscParameter(
@@ -230,7 +231,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[],
                         bounds=[1, 4],
-                        type=ParameterTypesEnum.get('INTEGER')
+                        type=ParameterTypesEnum.get('INTEGER'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
                     )), 
         AutoDiscParameter(
                     name="gn", 
@@ -238,7 +240,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[],
                         bounds=[1, 3],
-                        type=ParameterTypesEnum.get('INTEGER')
+                        type=ParameterTypesEnum.get('INTEGER'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.5) # TODO sigma change value
                     )), 
         AutoDiscParameter(  
                     name="R", 
@@ -246,7 +249,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[],
                         bounds=[2, 20],
-                        type=ParameterTypesEnum.get('INTEGER')
+                        type=ParameterTypesEnum.get('INTEGER'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
                     )), 
         AutoDiscParameter(
                     name="T", 
@@ -254,15 +258,17 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[],
                         bounds=[1, 20],
-                        type=ParameterTypesEnum.get('INTEGER')
+                        type=ParameterTypesEnum.get('INTEGER'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
                     )), 
         AutoDiscParameter(
                     name="b", 
                     type=ParameterTypesEnum.get('SPACE'),
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        bounds=[0, 1], #('function', ad.helper.sampling.sample_vector, (('discrete', 1, 3), (0, 1)))
+                        type=ParameterTypesEnum.get('FLOAT'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.1)
                     )),
         AutoDiscParameter(
                     name="m", 
@@ -270,7 +276,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[],
                         bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        type=ParameterTypesEnum.get('FLOAT'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.1)
                     )),
         AutoDiscParameter(
                     name="s", 
@@ -278,7 +285,8 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[1],
                         bounds=[0.001, 0.3],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        type=ParameterTypesEnum.get('FLOAT'),
+                        mutation=AutoDiscMutationDefinition("gauss", 0.05)
                     )),
     ]
 
@@ -291,7 +299,7 @@ class Lenia(BasePythonSystem):
                         ConfigParameterBinding("SX"), 
                         ConfigParameterBinding("SY")],
                         bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        type=ParameterTypesEnum.get('FLOAT'),
                     ),
                     modifiable=False),
         AutoDiscParameter(
@@ -300,7 +308,7 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[ConfigParameterBinding("final_step")],
                         bounds=[1, ConfigParameterBinding("final_step")],
-                        type=ParameterTypesEnum.get('INTEGER')
+                        type=ParameterTypesEnum.get('INTEGER'),
                     ),
                     modifiable=False),
     ]
@@ -312,7 +320,7 @@ class Lenia(BasePythonSystem):
                     default=AutoDiscSpaceDefinition(
                         dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
                         bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
+                        type=ParameterTypesEnum.get('FLOAT'),
                     ),
                     modifiable=False)
     ]
