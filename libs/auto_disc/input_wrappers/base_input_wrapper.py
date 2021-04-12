@@ -1,5 +1,4 @@
-from libs.utils import AttrDict
-from libs.utils.auto_disc_parameters import get_default_values
+from auto_disc.utils.auto_disc_parameters import get_default_values
 
 class BaseInputWrapper():
     """ Base class to map the parameters sent by the explorer to the system's input space

@@ -1,9 +1,9 @@
-from libs.auto_disc.explorers import BaseExplorer
-from libs.utils import AttrDict
-from libs.auto_disc.utils.sampling import sample_value
-from libs.auto_disc.utils.sampling import mutate_value
+from addict import Dict
+from auto_disc.explorers import BaseExplorer
+from auto_disc.utils.sampling import sample_value
+from auto_disc.utils.sampling import mutate_value
 
-from libs.utils.auto_disc_parameters import ParameterTypesEnum, AutoDiscParameter
+from auto_disc.utils.auto_disc_parameters import ParameterTypesEnum, AutoDiscParameter
 
 from tqdm import tqdm
 import torch
@@ -127,7 +127,7 @@ class IMGEPExplorer(BaseExplorer):
     def emit(self):
         target_goal = None
         source_policy_idx = None
-        policy_parameters = AttrDict()  # policy parameters (output of IMGEP policy)
+        policy_parameters = Dict()  # policy parameters (output of IMGEP policy)
 
         # random sampling if not enough in library
         if len(self.policy_library) < self.config.num_of_random_initialization:

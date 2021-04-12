@@ -1,5 +1,12 @@
+ipywidgets
+matplotlib
 odfpy
-scikit-learn
-pytorch
-tqdm
-umap-learn
+pillow
+plotly
+odfpy
+cudatoolkit==10.1
+addict
+
+pip install neat-python==0.92
+pip install tqdm
+pip install torch==1.7.1

@@ -1,9 +1,9 @@
-from libs.systems.python_systems import BasePythonSystem
+from auto_disc.systems.python_systems import BasePythonSystem
 
-from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition, AutoDiscMutationDefinition
+from auto_disc.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition, AutoDiscMutationDefinition
 
-from libs.utils import AttrDict
-from libs.utils.torch_utils import SphericPad, roll_n, complex_mult_torch
+from addict import Dict
+from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch
 
 import torch
 import matplotlib.pyplot as plt
@@ -333,14 +333,14 @@ class Lenia(BasePythonSystem):
         else:
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
-        self._observations = AttrDict()
+        self._observations = Dict()
         self._observations.timepoints = list(range(self.config.final_step))
         self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
         self._observations.states[0] = self.automaton.cells
 
         self.step_idx = 0
 
-        current_observation = AttrDict()
+        current_observation = Dict()
         current_observation.state = self._observations.states[0]
         return current_observation
 
@@ -352,7 +352,7 @@ class Lenia(BasePythonSystem):
         self.automaton.calc_once()
         self._observations.states[self.step_idx] = self.automaton.cells
 
-        current_observation = AttrDict()
+        current_observation = Dict()
         current_observation.state = self._observations.states[self.step_idx]
 
         return current_observation, 0, self.step_idx < self.config.final_step, None

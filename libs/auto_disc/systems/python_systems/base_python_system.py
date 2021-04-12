@@ -1,4 +1,4 @@
-from libs.systems import BaseSystem
+from auto_disc.systems import BaseSystem
 
 class BasePythonSystem(BaseSystem):
     pass

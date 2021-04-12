@@ -1,7 +1,7 @@
-from libs.auto_disc.output_representations import BaseOutputRepresentation
-from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition
-from libs.utils.torch_utils import roll_n
-from libs.utils import distance
+from auto_disc.output_representations import BaseOutputRepresentation
+from auto_disc.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition
+from auto_disc.utils.misc.torch_utils import roll_n
+from auto_disc.utils.spaces.utils import distance
 import torch
 import numpy as np
 

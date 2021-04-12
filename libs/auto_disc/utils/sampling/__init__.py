@@ -1,1 +1,1 @@
-from libs.auto_disc.utils.sampling.sample_value import sample_value
+from auto_disc.utils.sampling.sample_value import sample_value

@@ -1,1 +1,1 @@
-from libs.auto_disc.output_representations.base_output_representation import BaseOutputRepresentation
+from auto_disc.output_representations.base_output_representation import BaseOutputRepresentation

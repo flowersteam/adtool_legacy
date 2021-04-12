@@ -1,5 +1,4 @@
-from libs.utils import AttrDict
-from libs.auto_disc.input_wrappers import BaseInputWrapper
+from auto_disc.input_wrappers import BaseInputWrapper
 
 class DummyInputWrapper(BaseInputWrapper):
     '''

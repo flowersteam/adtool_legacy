@@ -1,6 +1,5 @@
-from libs.utils import AttrDict
-from libs.auto_disc.output_representations import BaseOutputRepresentation
-from libs.utils import distance
+from auto_disc.output_representations import BaseOutputRepresentation
+from auto_disc.utils.spaces.utils import distance
 
 class DummyOutputRepresentation(BaseOutputRepresentation):
     '''

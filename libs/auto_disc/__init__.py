@@ -1,1 +1,1 @@
-from libs.auto_disc.experiment_pipeline import ExperimentPipeline
+from auto_disc.experiment_pipeline import ExperimentPipeline

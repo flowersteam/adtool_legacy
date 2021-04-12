@@ -1,4 +1,4 @@
-from libs.auto_disc.utils.callbacks import BaseCallback
+from auto_disc.utils.callbacks import BaseCallback
 
 import pickle
 import matplotlib.pyplot as plt

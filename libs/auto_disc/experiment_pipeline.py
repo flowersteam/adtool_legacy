@@ -1,5 +1,5 @@
-from libs.auto_disc.output_representations.generic import DummyOutputRepresentation
-from libs.auto_disc.input_wrappers.generic import DummyInputWrapper
+from auto_disc.output_representations.generic import DummyOutputRepresentation
+from auto_disc.input_wrappers.generic import DummyInputWrapper
 import asyncio
 
 class ExperimentPipeline():

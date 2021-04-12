@@ -1,16 +1,18 @@
-from libs.systems.python_systems import PythonLenia
-from libs.auto_disc.output_representations.specific import LeniaImageRepresentation
-from libs.auto_disc.explorers import IMGEPExplorer
+import sys
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(dir_path, "../"))
 
-from libs.auto_disc import ExperimentPipeline
+from auto_disc.systems.python_systems import PythonLenia
+from auto_disc.output_representations.specific import LeniaImageRepresentation
+from auto_disc.explorers import IMGEPExplorer
 
-from libs.auto_disc.utils.callbacks import CustomSaveCallback
-from libs.auto_disc.utils.callbacks import CustomPrintCallback
+from auto_disc import ExperimentPipeline
 
-import numpy as np
-from libs.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition, AutoDiscMutationDefinition
-from libs.auto_disc.utils.sampling.sample_value import sample_value
-from libs.auto_disc.utils.sampling.mutate_value import mutate_value
+from auto_disc.utils.callbacks import CustomSaveCallback
+from auto_disc.utils.callbacks import CustomPrintCallback
+
+from auto_disc.utils.auto_disc_parameters import AutoDiscSpaceDefinition, ParameterTypesEnum, AutoDiscMutationDefinition
 
 import asyncio
 
@@ -24,20 +26,11 @@ if __name__ == "__main__":
         explorer=IMGEPExplorer(),
         input_wrappers=None,
         output_representations=[LeniaImageRepresentation()],
-        #on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
-        on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
+        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
+        #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
     )
 
     asyncio.run(experiment.run(100))
-
-
-
-
-
-
-
-
-
 
 # attrs = vars(experiment._system.input_space)
 # print("\n".join("%s: %s " % item for item in attrs.items()))

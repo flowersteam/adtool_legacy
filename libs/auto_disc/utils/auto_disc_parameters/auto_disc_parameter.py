@@ -1,5 +1,4 @@
-from libs.utils import AttrDict
-from libs.utils.auto_disc_parameters import AutoDiscSpaceDefinition
+from addict import Dict
 
 class AutoDiscParameter():
     '''
@@ -47,7 +46,8 @@ def recursive_binding_search(config_dict, parameter_name, parameter_key=None):
 
 
 def get_default_values(instance, parameters_definition):
-    default_params = AttrDict()
+    from auto_disc.utils.auto_disc_parameters import AutoDiscSpaceDefinition
+    default_params = Dict()
     for param in parameters_definition:
         param_dict = param.to_dict()
         default_value = param_dict['default']
