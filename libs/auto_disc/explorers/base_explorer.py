@@ -1,4 +1,3 @@
-from auto_disc.utils.auto_disc_parameters import get_default_values
 from addict import Dict
 
 class BaseExplorer ():

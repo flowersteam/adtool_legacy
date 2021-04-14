@@ -12,8 +12,6 @@ from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomSaveCallback
 from auto_disc.utils.callbacks import CustomPrintCallback
 
-from auto_disc.utils.auto_disc_parameters import AutoDiscSpaceDefinition, ParameterTypesEnum, AutoDiscMutationDefinition
-
 import asyncio
 
 if __name__ == "__main__":
