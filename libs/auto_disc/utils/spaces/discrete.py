@@ -12,37 +12,33 @@ class DiscreteSpace(BaseSpace):
 
     """
 
-    def __init__(self, n, mutation_mean=0.0, mutation_std=1.0, indpb=1.0):
+    def __init__(self, n, mutator=None, indpb=1.0):
         assert n >= 0
         self._n = n
-        self._mutation_mean = mutation_mean
-        self._mutation_std = mutation_std
         self._indpb = indpb
         
-        super(DiscreteSpace, self).__init__((), torch.int64)
+        super(DiscreteSpace, self).__init__((),torch.int64, mutator)
 
     def initialize(self, parent_obj):
         # Apply potential binding
         super().initialize(parent_obj)
         self.n = self.apply_binding_if_existing(self._n, parent_obj)
 
-        # mutation_mean: mean for the gaussian addition mutation
-        # mutation_std: std for the gaussian addition mutation
         # indpb – independent probability for each attribute to be mutated.
-        self.mutation_mean = torch.as_tensor(self._mutation_mean, dtype=torch.float64)
-        self.mutation_std = torch.as_tensor(self._mutation_std, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
     def sample(self):
         return torch.randint(self.n, ())
 
     def mutate(self, x):
-        mutate_mask = torch.rand(self.shape) < self.indpb
-        noise = torch.normal(self.mutation_mean, self.mutation_std, ())
-        x = x.type(torch.float64) + mutate_mask * noise
-        x = torch.floor(x).type(self.dtype)
-        if not self.contains(x):
-            return self.clamp(x)
+        if self.mutator:
+            mutate_mask = torch.rand(self.shape) < self.indpb
+            x = self.mutator(x, mutate_mask)
+            x = torch.floor(x).type(self.dtype)
+            if not self.contains(x):
+                return self.clamp(x)
+            else:
+                return x
         else:
             return x
 

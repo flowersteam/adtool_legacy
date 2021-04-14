@@ -2,6 +2,7 @@ from auto_disc.systems.python_systems import BasePythonSystem
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
+from auto_disc.utils.mutators import GaussianMutator
 
 from addict import Dict
 from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch
@@ -19,14 +20,14 @@ System definition
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 class Lenia(BasePythonSystem):
     input_space = DictSpace(
-        init_state = BoxSpace(low=0.0, high=1.0, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY"))),
-        R = DiscreteSpace(n=20, mutation_mean=0.0, mutation_std=0.5, indpb=1.0),
-        T = BoxSpace(low=1.0, high=20.0, shape=(), mutation_mean=0.0, mutation_std=0.5, indpb=1.0, dtype=torch.float32),
-        b = BoxSpace(low=0.0, high=1.0, shape=(4,), mutation_mean=0.0, mutation_std=0.1, indpb=1.0, dtype=torch.float32),
-        m = BoxSpace(low=0.0, high=1.0, shape=(), mutation_mean=0.0, mutation_std=0.1, indpb=1.0, dtype=torch.float32),
-        s = BoxSpace(low=0.001, high=0.3, shape=(), mutation_mean=0.0, mutation_std=0.05, indpb=1.0, dtype=torch.float32),
-        kn = DiscreteSpace(n=4, mutation_mean=0.0, mutation_std=0.1, indpb=1.0),
-        gn = DiscreteSpace(n=3, mutation_mean=0.0, mutation_std=0.1, indpb=1.0),
+        init_state = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.5), shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY"))),
+        R = DiscreteSpace(n=20, mutator=GaussianMutator(mean=0.0, std=0.5), indpb=1.0),
+        T = BoxSpace(low=1.0, high=20.0, mutator=GaussianMutator(mean=0.0, std=0.5), shape=(), indpb=1.0, dtype=torch.float32),
+        b = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(4,), indpb=1.0, dtype=torch.float32),
+        m = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(), indpb=1.0, dtype=torch.float32),
+        s = BoxSpace(low=0.001, high=0.3, mutator=GaussianMutator(mean=0.0, std=0.05), shape=(), indpb=1.0, dtype=torch.float32),
+        kn = DiscreteSpace(n=4, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
+        gn = DiscreteSpace(n=3, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
     )
 
     output_space = DictSpace(

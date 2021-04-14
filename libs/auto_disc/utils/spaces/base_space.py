@@ -4,9 +4,10 @@ class BaseSpace(object):
     Defines the init_space, genome_space and intervention_space of a system
     """
 
-    def __init__(self, shape=None, dtype=None):
+    def __init__(self, shape=None, dtype=None, mutator=None):
         self.shape = None if shape is None else tuple(shape)
         self.dtype = dtype
+        self.mutator = mutator
 
     def initialize(self, parent_obj):
         """
@@ -16,6 +17,8 @@ class BaseSpace(object):
         for elem in self.shape:
             new_shape.append(self.apply_binding_if_existing(elem, parent_obj))
         self.shape = tuple(new_shape)
+        if self.mutator:
+            self.mutator.init_shape(self.shape)
 
     def apply_binding_if_existing(self, var, lookup_obj):
         if isinstance(var, ConfigParameterBinding):

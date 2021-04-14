@@ -1,7 +1,5 @@
 from addict import Dict
 from auto_disc.explorers import BaseExplorer
-from auto_disc.utils.sampling import sample_value
-from auto_disc.utils.sampling import mutate_value
 
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
 

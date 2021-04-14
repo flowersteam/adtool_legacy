@@ -45,6 +45,7 @@ class MultiBinarySpace(BaseSpace):
         return torch.randint(low=0, high=2, size=self.shape, dtype=self.dtype)
 
     def mutate(self, x):
+        # TODO implement mutator?
         mutate_mask = torch.rand(self.shape) < self.indpb
         x = torch.where(mutate_mask, (~x.bool()).type(self.dtype), x)
         if not self.contains(x):

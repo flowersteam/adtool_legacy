@@ -13,36 +13,25 @@ class MultiDiscreteSpace(BaseSpace):
 
     """
 
-    def __init__(self, nvec, mutation_mean=0.0, mutation_std=1.0, indpb=1.0):
+    def __init__(self, nvec, mutator=None, indpb=1.0):
 
         """
         nvec: vector of counts of each categorical variable
         """
         self._nvec = nvec
-        self._mutation_mean = mutation_mean
-        self._mutation_std = mutation_std
         self._indpb = indpb
 
-        super(MultiDiscreteSpace, self).__init__(nvec, torch.int64)
+        super(MultiDiscreteSpace, self).__init__(nvec, torch.int64, mutator)
 
     def initialize(self, parent_obj):
         # Apply potential binding
         super().initialize(parent_obj)
         self._nvec = self.apply_binding_if_existing(self._nvec, parent_obj)
-
+        self.shape = self._nvec
         assert (torch.tensor(self._nvec) > 0).all(), 'nvec (counts) have to be positive'
         self.nvec = torch.as_tensor(self._nvec, dtype=torch.int64)
-        # self.mutation_std = self._mutation_std
 
-        # mutation_mean: mean for the gaussian addition mutation
-        # mutation_std: std for the gaussian addition mutation
         # indpb – independent probability for each attribute to be mutated.
-        if isinstance(self._mutation_mean, numbers.Number):
-            self._mutation_mean = torch.full(self.nvec.shape, self._mutation_mean, dtype=torch.float64)
-        self.mutation_mean = torch.as_tensor(self._mutation_mean, dtype=torch.float64)
-        if isinstance(self._mutation_std, numbers.Number):
-            self._mutation_std = torch.full(self.nvec.shape, self._mutation_std, dtype=torch.float64)
-        self.mutation_std = torch.as_tensor(self._mutation_std, dtype=torch.float64)
         if isinstance(self._indpb, numbers.Number):
             self._indpb = torch.full(self.nvec.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
@@ -51,12 +40,14 @@ class MultiDiscreteSpace(BaseSpace):
         return (torch.rand(self.nvec.shape) * self.nvec).type(self.dtype)
 
     def mutate(self, x):
-        mutate_mask = torch.rand(self.shape) < self.indpb
-        noise = torch.normal(self.mutation_mean, self.mutation_std)
-        x = x.type(torch.float64) + mutate_mask * noise
-        x = torch.floor(x).type(self.dtype)
-        if not self.contains(x):
-            return self.clamp(x)
+        if self.mutator:
+            mutate_mask = torch.rand(self.shape) < self.indpb
+            x = self.mutator(x, mutate_mask)
+            x = torch.floor(x).type(self.dtype)
+            if not self.contains(x):
+                return self.clamp(x)
+            else:
+                return x
         else:
             return x
 

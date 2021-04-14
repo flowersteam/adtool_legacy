@@ -22,7 +22,7 @@ class BoxSpace(BaseSpace):
 
     """
 
-    def __init__(self, low, high, shape=None, dtype=torch.float32, mutation_mean=0.0, mutation_std=1.0, indpb=1.0):
+    def __init__(self, low, high, mutator=None, shape=None, dtype=torch.float32, indpb=1.0):
         assert dtype is not None, 'dtype must be explicitly provided. '
     
         # determine shape if it isn't provided directly
@@ -41,11 +41,9 @@ class BoxSpace(BaseSpace):
 
         self._low = low
         self._high = high
-        self._mutation_mean = mutation_mean
-        self._mutation_std = mutation_std
         self._indpb = indpb
 
-        super(BoxSpace, self).__init__(shape, dtype)
+        super(BoxSpace, self).__init__(shape, dtype, mutator)
 
     def initialize(self, parent_obj):
         # Apply potential binding
@@ -66,15 +64,7 @@ class BoxSpace(BaseSpace):
         self.bounded_below = ~torch.isneginf(self.low)
         self.bounded_above = ~torch.isposinf(self.high)
 
-        # mutation_mean: mean for the gaussian addition mutation
-        # mutation_std: std for the gaussian addition mutation
         # indpb – independent probability for each attribute to be mutated.
-        if isinstance(self._mutation_mean, numbers.Number):
-            self._mutation_mean = torch.full(self.shape, self._mutation_mean, dtype=torch.float64)
-        self.mutation_mean = torch.as_tensor(self._mutation_mean, dtype=torch.float64)
-        if isinstance(self._mutation_std, numbers.Number):
-            self._mutation_std = torch.full(self.shape, self._mutation_std, dtype=torch.float64)
-        self.mutation_std = torch.as_tensor(self._mutation_std, dtype=torch.float64)
         if isinstance(self._indpb, numbers.Number):
             self._indpb = torch.full(self.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
@@ -131,14 +121,16 @@ class BoxSpace(BaseSpace):
         return sample.type(self.dtype)
 
     def mutate(self, x):
-        mutate_mask = (torch.rand(self.shape) < self.indpb).type(torch.float64)
-        noise = torch.normal(self.mutation_mean, self.mutation_std)
-        x = x.type(torch.float64) + mutate_mask * noise
-        if not self.dtype.is_floating_point:  # integer
-            x = torch.floor(x)
-        x = x.type(self.dtype)
-        if not self.contains(x):
-            return self.clamp(x)
+        if self.mutator:
+            mutate_mask = (torch.rand(self.shape) < self.indpb).type(torch.float64)
+            x = self.mutator(x, mutate_mask)
+            if not self.dtype.is_floating_point:  # integer
+                x = torch.floor(x)
+            x = x.type(self.dtype)
+            if not self.contains(x):
+                return self.clamp(x)
+            else:
+                return x
         else:
             return x
 
