@@ -1,18 +1,15 @@
-from auto_disc.utils.auto_disc_parameters import get_default_values
+from addict import Dict
+from auto_disc.utils.spaces import DictSpace
 
 class BaseOutputRepresentation ():
     """ Base class to map the observations of a system to an embedding vector (BC characterization)
     """
 
-    CONFIG_DEFINITION = []
-    OUTPUT_SPACE_DEFINITION = []
+    config = Dict()
+    output_space = DictSpace()
 
-    def __init__(self, config_kwargs={}, output_space_kwargs={}):
-        self.config = get_default_values(self, self.CONFIG_DEFINITION)
-        self.config.update(config_kwargs)
-
-        self.output_space = get_default_values(self, self.OUTPUT_SPACE_DEFINITION)
-        self.output_space.update(output_space_kwargs)
+    def __init__(self):
+        self.output_space.initialize(self)
 
     def initialize(self, input_space):
         self._input_space = input_space

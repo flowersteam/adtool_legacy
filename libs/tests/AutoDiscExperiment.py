@@ -18,11 +18,7 @@ import asyncio
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
-        system=PythonLenia(
-            config_kwargs={
-                'SX':256, 
-                'SY':256
-            }),
+        system=PythonLenia(SX=256, SY=256),
         explorer=IMGEPExplorer(),
         input_wrappers=None,
         output_representations=[LeniaImageRepresentation()],

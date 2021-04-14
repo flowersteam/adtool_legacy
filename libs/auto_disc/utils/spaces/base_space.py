@@ -1,0 +1,54 @@
+from auto_disc.utils.spaces.utils import ConfigParameterBinding
+class BaseSpace(object):
+    """
+    Defines the init_space, genome_space and intervention_space of a system
+    """
+
+    def __init__(self, shape=None, dtype=None):
+        self.shape = None if shape is None else tuple(shape)
+        self.dtype = dtype
+
+    def initialize(self, parent_obj):
+        """
+        Initialize the space."""
+        if self.shape is not None:
+            new_shape = []
+        for elem in self.shape:
+            new_shape.append(self.apply_binding_if_existing(elem, parent_obj))
+        self.shape = tuple(new_shape)
+
+    def apply_binding_if_existing(self, var, lookup_obj):
+        if isinstance(var, ConfigParameterBinding):
+            value = var.__get__(lookup_obj)
+        else:
+            value = var
+            
+        return value
+
+    def sample(self):
+        """
+        Randomly sample an element of this space.
+        Can be uniform or non-uniform sampling based on boundedness of space."""
+        raise NotImplementedError
+
+    def mutate(self, x):
+        """
+        Randomly mutate an element of this space.
+        """
+        raise NotImplementedError
+
+    def contains(self, x):
+        """
+        Return boolean specifying if x is a valid
+        member of this space
+        """
+        raise NotImplementedError
+
+    def clamp(self, x):
+        """
+        Return a valid clamped value of x inside space's bounds
+        """
+        raise NotImplementedError
+
+    def __contains__(self, x):
+        return self.contains(x)

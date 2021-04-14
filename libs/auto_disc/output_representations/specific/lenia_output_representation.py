@@ -1,41 +1,20 @@
 from auto_disc.output_representations import BaseOutputRepresentation
-from auto_disc.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition
+from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
+from auto_disc.utils.spaces.utils import ConfigParameterBinding
+from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
 from auto_disc.utils.misc.torch_utils import roll_n
 from auto_disc.utils.spaces.utils import distance
 import torch
 import numpy as np
 
+@StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
+@IntegerConfigParameter(name="SX", default=256, min=1)
+@IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaImageRepresentation(BaseOutputRepresentation):
-    CONFIG_DEFINITION = [
-        AutoDiscParameter(
-                    name="distance_function", 
-                    type=ParameterTypesEnum.get('STRING'), 
-                    values_range=["L2"], 
-                    default="L2"),
-        AutoDiscParameter(
-                    name="env_size", 
-                    type=ParameterTypesEnum.get('ARRAY', dims=[2]), 
-                    values_range=[1, np.inf], 
-                    default=[256, 256])
-    ]
 
-    OUTPUT_SPACE_DEFINITION = [
-        AutoDiscParameter(
-                    name="embedding", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[None],
-                        bounds=[0, 10], #TODO: CHANGE
-                        type=ParameterTypesEnum.get('FLOAT')
-                    ),
-                    modifiable=False),
-    ]
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.n_latents = self.config.env_size[0] * self.config.env_size[1]
-        self.output_space["embedding"].dims = [self.n_latents]
-
+    output_space = DictSpace(
+        embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
+    )
 
     def map(self, observations, **kwargs):
         """

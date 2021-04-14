@@ -1,6 +1,7 @@
 from auto_disc.systems.python_systems import BasePythonSystem
-
-from auto_disc.utils.auto_disc_parameters import AutoDiscParameter, ConfigParameterBinding, ParameterTypesEnum, AutoDiscSpaceDefinition, AutoDiscMutationDefinition
+from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
+from auto_disc.utils.spaces.utils import ConfigParameterBinding
+from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
 
 from addict import Dict
 from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch
@@ -9,339 +10,55 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-class LeniaStepFFT(torch.nn.Module):
-    """ Module pytorch that computes one Lenia Step with the fft version"""
-
-    def __init__(self, run_parameters, use_gpu, SX, SY):
-        super(LeniaStepFFT, self).__init__()
-        self.run_parameters = run_parameters
-        # for k, v in self.run_parameters.items():
-        #     self.run_parameters[k] = torch.nn.Parameter(v)
-
-        self.spheric_pad = SphericPad(int(self.run_parameters.R))
-        self.is_soft_clip = True  # do only soft clip for differentiable lenia
-        self.use_gpu = use_gpu
-        self.SX = SX
-        self.SY = SY
-
-        self.compute_kernel()
-
-    def compute_kernel(self):
-
-        # implementation of meshgrid in torch
-        x = torch.arange(self.SX)
-        y = torch.arange(self.SY)
-        xx = x.repeat(self.SY, 1)
-        yy = y.view(-1, 1).repeat(1, self.SX)
-        X = (xx - int(self.SX / 2)).float() / float(self.run_parameters.R)
-        Y = (yy - int(self.SY / 2)).float() / float(self.run_parameters.R)
-
-        # distance to center in normalized space
-        D = torch.sqrt(X ** 2 + Y ** 2)
-
-        # kernel
-        k = len(self.run_parameters.b)
-        kr = k * D
-        bs = torch.tensor([float(f) for f in self.run_parameters.b])
-        b = bs[torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())]
-        kfunc = AutomatonPytorch.kernel_core[self.run_parameters.kn - 1]
-        kernel = (D < 1).float() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
-        kernel_sum = torch.sum(kernel)
-        # normalization of the kernel
-        self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
-        # fft of the kernel
-        self.kernel_FFT = torch.rfft(self.kernel_norm, signal_ndim=2, onesided=False)
-
-        self.kernel_updated = False
-
-    def forward(self, input):
-        if self.use_gpu:
-            input = input.cuda()
-            self.kernel_FFT = self.kernel_FFT.cuda()
-
-        self.world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
-        self.potential_FFT = complex_mult_torch(self.kernel_FFT, self.world_FFT)
-        self.potential = torch.irfft(self.potential_FFT, signal_ndim=2, onesided=False)
-        self.potential = roll_n(self.potential, 3, self.potential.size(3) // 2)
-        self.potential = roll_n(self.potential, 2, self.potential.size(2) // 2)
-
-        gfunc = AutomatonPytorch.field_func[min(self.run_parameters.gn, 2)]
-        self.field = gfunc(self.potential, self.run_parameters.m, self.run_parameters.s)
-
-        if not self.is_soft_clip:
-            output_img = torch.clamp(input + (1.0 / self.run_parameters.T) * self.field, min=0., max=1.)
-        else:
-            output_img = AutomatonPytorch.soft_clip(input + (1.0 / self.run_parameters.T) * self.field, 0, 1,
-                                                    self.run_parameters.T)
-
-        return output_img
-
-
-class LeniaStepConv2d(torch.nn.Module):
-    """ Module pytorch that computes one Lenia Step with the conv2d version"""
-
-    def __init__(self, run_parameters, use_gpu):
-        super(LeniaStepConv2d, self).__init__()
-        self.run_parameters = run_parameters
-        # for k, v in self.run_parameters.items():
-        #     self.run_parameters[k] = torch.nn.Parameter(v)
-        self.spheric_pad = SphericPad(int(self.run_parameters.R))
-        self.is_soft_clip = True
-        self.use_gpu = use_gpu
-
-        self.compute_kernel()
-
-    def compute_kernel(self):
-        SY = 2 * self.run_parameters.R + 1
-        SX = 2 * self.run_parameters.R + 1
-
-        # implementation of meshgrid in torch
-        x = torch.arange(SX)
-        y = torch.arange(SY)
-        xx = x.repeat(SY, 1)
-        yy = y.view(-1, 1).repeat(1, SX)
-        X = (xx - int(SX / 2)).float() / float(self.run_parameters.R)
-        Y = (yy - int(SY / 2)).float() / float(self.run_parameters.R)
-
-        # distance to center in normalized space
-        D = torch.sqrt(X ** 2 + Y ** 2)
-
-        # kernel
-        k = len(self.run_parameters.b)
-        kr = k * D
-        bs = torch.tensor([float(f) for f in self.run_parameters.b])
-        b = bs[torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())]
-        kfunc = AutomatonPytorch.kernel_core[self.run_parameters.kn - 1]
-        kernel = (D < 1).float() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
-        kernel_sum = torch.sum(kernel)
-        # normalization of the kernel
-        self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
-
-        self.kernel_updated = False
-
-    def forward(self, input):
-        if self.use_gpu:
-            input = input.cuda()
-            self.kernel_norm = self.kernel_norm.cuda()
-
-        self.potential = torch.nn.functional.conv2d(self.spheric_pad(input), weight=self.kernel_norm)
-        gfunc = AutomatonPytorch.field_func[self.run_parameters.gn]
-        self.field = gfunc(self.potential, self.run_parameters.m, self.run_parameters.s)
-
-        if not self.is_soft_clip:
-            output_img = torch.clamp(input + (1.0 / self.run_parameters.T) * self.field, 0,
-                                     1)  # A_new = A + dt * torch.clamp(D, -A/dt, (1-A)/dt)
-        else:
-            output_img = AutomatonPytorch.soft_clip(input + (1.0 / self.run_parameters.T) * self.field, 0, 1,
-                                                    self.run_parameters.T)  # A_new = A + dt * Automaton.soft_clip(D, -A/dt, (1-A)/dt, 1)
-
-        return output_img
-
-
-class AutomatonPytorch:
-    kernel_core = {
-        0: lambda r: (4 * r * (1 - r)) ** 4,  # polynomial (quad4)
-        1: lambda r: torch.exp(4 - 1 / (r * (1 - r))),  # exponential / gaussian bump (bump4)
-        2: lambda r, q=1 / 4: (r >= q).float() * (r <= 1 - q).float(),  # step (stpz1/4)
-        3: lambda r, q=1 / 4: (r >= q).float() * (r <= 1 - q).float() + (r < q).float() * 0.5  # staircase (life)
-    }
-    field_func = {
-        0: lambda n, m, s: torch.max(torch.zeros_like(n), 1 - (n - m) ** 2 / (9 * s ** 2)) ** 4 * 2 - 1,
-        # polynomial (quad4)
-        1: lambda n, m, s: torch.exp(- (n - m) ** 2 / (2 * s ** 2)) * 2 - 1,  # exponential / gaussian (gaus)
-        2: lambda n, m, s: (torch.abs(n - m) <= s).float() * 2 - 1  # step (stpz)
-    }
-
-    @staticmethod
-    def soft_max(x, m, k):
-        return torch.log(torch.exp(k * x) + torch.exp(k * m)) / k
-
-    @staticmethod
-    def soft_clip(x, min, max, k):
-        a = torch.exp(k * x)
-        b = torch.exp(torch.FloatTensor([k * min])).item()
-        c = torch.exp(torch.FloatTensor([-k * max])).item()
-        return torch.log(1.0 / (a + b) + c) / -k
-
-    def __init__(self, run_parameters, version='fft', SX=256, SY=256):
-        # set device
-        if torch.cuda.is_available():
-            self.use_gpu = True
-        else:
-            self.use_gpu = False
-
-        # init state
-        self.cells = torch.clamp(run_parameters["init_state"], 0.0, 1.0)
-
-        # pytorch model to perform one step in Lenia
-        if version == 'fft':
-            self.model = LeniaStepFFT(run_parameters, self.use_gpu, SX, SY)
-        elif version == 'conv2d':
-            self.model = LeniaStepConv2d(run_parameters, self.use_gpu)
-        else:
-            raise ValueError('Lenia pytorch automaton step calculation can be done with fft or conv 2d')
-        if self.use_gpu:
-            self.model = self.model.cuda()
-
-    def calc_once(self):
-        A = self.cells.unsqueeze(0).unsqueeze(0)
-        A_new = self.model(A)
-        A_new = A_new[0, 0, :, :]
-        self.cells = A_new
-
-
+""" =============================================================================================
+System definition
+============================================================================================= """
+@StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
+@IntegerConfigParameter(name="SX", default=256, min=1)
+@IntegerConfigParameter(name="SY", default=256, min=1)
+@IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 class Lenia(BasePythonSystem):
-    CONFIG_DEFINITION = [
-        AutoDiscParameter(
-                    name="version", 
-                    type=ParameterTypesEnum.get('STRING'), 
-                    values_range=["pytorch_fft", "pytorch_conv2d"], 
-                    default="pytorch_fft"),
-        AutoDiscParameter(
-                    name="SX", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf], 
-                    default=256),
-        AutoDiscParameter(
-                    name="SY", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf], 
-                    default=256),
-        AutoDiscParameter(
-                    name="final_step", 
-                    type=ParameterTypesEnum.get('INTEGER'), 
-                    values_range=[1, np.inf], 
-                    default=200),
-    ]
+    input_space = DictSpace(
+        init_state = BoxSpace(low=0.0, high=1.0, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY"))),
+        R = DiscreteSpace(n=20, mutation_mean=0.0, mutation_std=0.5, indpb=1.0),
+        T = BoxSpace(low=1.0, high=20.0, shape=(), mutation_mean=0.0, mutation_std=0.5, indpb=1.0, dtype=torch.float32),
+        b = BoxSpace(low=0.0, high=1.0, shape=(4,), mutation_mean=0.0, mutation_std=0.1, indpb=1.0, dtype=torch.float32),
+        m = BoxSpace(low=0.0, high=1.0, shape=(), mutation_mean=0.0, mutation_std=0.1, indpb=1.0, dtype=torch.float32),
+        s = BoxSpace(low=0.001, high=0.3, shape=(), mutation_mean=0.0, mutation_std=0.05, indpb=1.0, dtype=torch.float32),
+        kn = DiscreteSpace(n=4, mutation_mean=0.0, mutation_std=0.1, indpb=1.0),
+        gn = DiscreteSpace(n=3, mutation_mean=0.0, mutation_std=0.1, indpb=1.0),
+    )
 
-    INPUT_SPACE_DEFINITION = [
-        AutoDiscParameter(
-                    name="init_state", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.5) # TODO change all
-                    ),
-                    modifiable=False),
-        AutoDiscParameter(
-                    name="kn",
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[],
-                        bounds=[1, 4],
-                        type=ParameterTypesEnum.get('INTEGER'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
-                    )), 
-        AutoDiscParameter(
-                    name="gn", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[],
-                        bounds=[1, 3],
-                        type=ParameterTypesEnum.get('INTEGER'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.5) # TODO sigma change value
-                    )), 
-        AutoDiscParameter(  
-                    name="R", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[],
-                        bounds=[2, 20],
-                        type=ParameterTypesEnum.get('INTEGER'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
-                    )), 
-        AutoDiscParameter(
-                    name="T", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[],
-                        bounds=[1, 20],
-                        type=ParameterTypesEnum.get('INTEGER'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.5)
-                    )), 
-        AutoDiscParameter(
-                    name="b", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[0, 1], #('function', ad.helper.sampling.sample_vector, (('discrete', 1, 3), (0, 1)))
-                        type=ParameterTypesEnum.get('FLOAT'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.1)
-                    )),
-        AutoDiscParameter(
-                    name="m", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.1)
-                    )),
-        AutoDiscParameter(
-                    name="s", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[1],
-                        bounds=[0.001, 0.3],
-                        type=ParameterTypesEnum.get('FLOAT'),
-                        mutation=AutoDiscMutationDefinition("gauss", 0.05)
-                    )),
-    ]
+    output_space = DictSpace(
+        states = BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("SX"), ConfigParameterBinding("SY")))
+    )
 
-    OUTPUT_SPACE_DEFINITION = [
-        AutoDiscParameter(
-                    name="states", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[ConfigParameterBinding("final_step"),
-                        ConfigParameterBinding("SX"), 
-                        ConfigParameterBinding("SY")],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT'),
-                    ),
-                    modifiable=False),
-        AutoDiscParameter(
-                    name="timepoints", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[ConfigParameterBinding("final_step")],
-                        bounds=[1, ConfigParameterBinding("final_step")],
-                        type=ParameterTypesEnum.get('INTEGER'),
-                    ),
-                    modifiable=False),
-    ]
+    step_output_space = DictSpace(
+        state = BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")))
+    )
 
-    STEP_OUTPUT_SPACE_DEFINITION = [
-        AutoDiscParameter(
-                    name="state", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[ConfigParameterBinding("SX"), ConfigParameterBinding("SY")],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT'),
-                    ),
-                    modifiable=False)
-    ]
 
     def reset(self, run_parameters):
+        self.state = run_parameters.init_state
+        del run_parameters.init_state
+
         if self.config.version.lower() == 'pytorch_fft':
-            self.automaton = AutomatonPytorch(run_parameters, version='fft', SX=self.config.SX, SY=self.config.SY)
+            self.automaton = LeniaStepFFT(SX=self.config.SX, SY=self.config.SY, **run_parameters)
         elif self.config.version.lower() == 'pytorch_conv2d':
-            self.automaton = AutomatonPytorch(run_parameters, version='conv2d')
+            self.automaton = LeniaStepConv2d(**run_parameters)
         else:
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
         self._observations = Dict()
         self._observations.timepoints = list(range(self.config.final_step))
         self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
-        self._observations.states[0] = self.automaton.cells
+        self._observations.states[0] = self.state
 
         self.step_idx = 0
 
         current_observation = Dict()
         current_observation.state = self._observations.states[0]
+
         return current_observation
 
     def step(self, action=None):
@@ -349,8 +66,9 @@ class Lenia(BasePythonSystem):
             raise Exception("Final step already reached, please reset the system.")
 
         self.step_idx += 1
-        self.automaton.calc_once()
-        self._observations.states[self.step_idx] = self.automaton.cells
+        self.state = self.automaton(self.state)
+
+        self._observations.states[self.step_idx] = self.state[0,0,:,:]
 
         current_observation = Dict()
         current_observation.state = self._observations.states[self.step_idx]
@@ -361,23 +79,30 @@ class Lenia(BasePythonSystem):
         return self._observations
 
     def render(self, mode="PIL_image"):
-        fig = plt.figure(figsize=(10, 10))
-        plt.imshow(self.automaton.cells.cpu().detach().numpy(), cmap='gray', vmin=0, vmax=1)
+        fig = plt.figure(figsize=(4, 4))
+        colormap = create_colormap(np.array(
+            [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
+             [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
+        im = im_from_array_with_colormap(self.state[0,0].cpu().detach().numpy(), colormap)
+        plt.imshow(im)
+        plt.axis('off')
+        plt.tight_layout()
         if mode == "human":
             return plt.show()
         elif mode == "plt_figure":
             return fig
         elif mode == "PIL_image":
-            colormap = create_colormap(np.array([[255,255,255], [119,255,255],[23,223,252],[0,190,250],[0,158,249],[0,142,249],[81,125,248],[150,109,248],[192,77,247],[232,47,247],[255,9,247],[200,0,84]])/255*8)
-            im = im_from_array_with_colormap(self.automaton.cells.cpu().detach().numpy(), colormap)
             return im
         else:
-            raise NotImplementedError  
+            raise NotImplementedError
 
     def close(self):
         pass
 
-import numpy as np
+""" =============================================================================================
+Lenia Main
+============================================================================================= """
+
 from PIL import Image
 
 def create_colormap(colors, is_marker_w=True):
@@ -409,3 +134,160 @@ def im_from_array_with_colormap(np_array, colormap):
     transformed_image.putpalette(colormap)
 
     return transformed_image
+
+
+""" =============================================================================================
+Lenia Main
+============================================================================================= """
+
+# Lenia family of functions for the kernel K and for the growth mapping g
+kernel_core = {
+    0: lambda r: (4 * r * (1 - r)) ** 4,  # polynomial (quad4)
+    1: lambda r: torch.exp(4 - 1 / (r * (1 - r))),  # exponential / gaussian bump (bump4)
+    2: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double(),  # step (stpz1/4)
+    3: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double() + (r < q).double() * 0.5  # staircase (life)
+}
+field_func = {
+    0: lambda n, m, s: torch.max(torch.zeros_like(n), 1 - (n - m) ** 2 / (9 * s ** 2)) ** 4 * 2 - 1,
+    # polynomial (quad4)
+    1: lambda n, m, s: torch.exp(- (n - m) ** 2 / (2 * s ** 2)) * 2 - 1,  # exponential / gaussian (gaus)
+    2: lambda n, m, s: (torch.abs(n - m) <= s).double() * 2 - 1  # step (stpz)
+}
+
+
+# Lenia Step FFT version (faster)
+class LeniaStepFFT(torch.nn.Module):
+    """ Module pytorch that computes one Lenia Step with the fft version"""
+
+    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, SX=256, SY=256, device='cpu'):
+        torch.nn.Module.__init__(self)
+
+        self.register_buffer('R', R+2)
+        self.register_parameter('T', torch.nn.Parameter(T))
+        self.register_buffer('b', b)
+        self.register_parameter('m', torch.nn.Parameter(m))
+        self.register_parameter('s', torch.nn.Parameter(s))
+
+        self.kn = 0
+        self.gn = 1
+
+        self.SX = SX
+        self.SY = SY
+        self.spheric_pad = SphericPad(self.R)
+        self.is_soft_clip = is_soft_clip
+
+        self.device = device
+
+        self.compute_kernel()
+
+    def compute_kernel(self):
+
+        # implementation of meshgrid in torch
+        x = torch.arange(self.SX)
+        y = torch.arange(self.SY)
+        xx = x.repeat(self.SY, 1)
+        yy = y.view(-1, 1).repeat(1, self.SX)
+        X = (xx - int(self.SX / 2)).double() / float(self.R)
+        Y = (yy - int(self.SY / 2)).double() / float(self.R)
+
+        # distance to center in normalized space
+        D = torch.sqrt(X ** 2 + Y ** 2)
+
+        # kernel
+        k = len(self.b)  # modification to allow b always of length 4
+        kr = k * D
+        b = self.b[torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())]
+        kfunc = kernel_core[self.kn]
+        kernel = (D < 1).double() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
+        kernel_sum = torch.sum(kernel)
+        # normalization of the kernel
+        self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
+        # fft of the kernel
+        self.kernel_FFT = torch.rfft(self.kernel_norm, signal_ndim=2, onesided=False).to(self.device)
+
+
+    def forward(self, input):
+
+        world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
+        potential_FFT = complex_mult_torch(self.kernel_FFT, world_FFT)
+        potential = torch.irfft(potential_FFT, signal_ndim=2, onesided=False)
+        potential = roll_n(potential, 3, potential.detach().size(3) // 2)
+        potential = roll_n(potential, 2, potential.detach().size(2) // 2)
+
+        gfunc = field_func[self.gn]
+        field = gfunc(potential, self.m, self.s)
+
+        if not self.is_soft_clip:
+            output_img = torch.clamp(input + (1.0 / self.T) * field, min=0., max=1.)
+        else:
+            output_img = soft_clip(input + (1.0 / self.T) * field, 0, 1, self.T)
+
+        if torch.any(torch.isnan(potential)):
+            print('break')
+
+        return output_img
+
+
+# Lenia Step Conv2D version
+class LeniaStepConv2d(torch.nn.Module):
+    """ Module pytorch that computes one Lenia Step with the conv2d version"""
+
+    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, device='cpu'):
+        torch.nn.Module.__init__(self)
+
+
+        self.register_buffer('R', R+2)
+        self.register_parameter('T', torch.nn.Parameter(T))
+        self.register_buffer('b', b)
+        self.register_parameter('m', torch.nn.Parameter(m))
+        self.register_parameter('s', torch.nn.Parameter(s))
+
+
+        self.kn = 0
+        self.gn = 1
+
+        self.spheric_pad = SphericPad(self.R)
+        self.is_soft_clip = is_soft_clip
+
+        self.device = device
+
+        self.compute_kernel()
+
+
+    def compute_kernel(self):
+        SY = 2 * self.R + 1
+        SX = 2 * self.R + 1
+
+        # implementation of meshgrid in torch
+        x = torch.arange(SX)
+        y = torch.arange(SY)
+        xx = x.repeat(SY, 1)
+        yy = y.view(-1, 1).repeat(1, SX)
+        X = (xx - int(SX / 2)).double() / float(self.R)
+        Y = (yy - int(SY / 2)).double() / float(self.R)
+
+        # distance to center in normalized space
+        D = torch.sqrt(X ** 2 + Y ** 2)
+
+        # kernel
+        k = len(self.b)
+        kr = k * D
+        b = self.b[torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())]
+        kfunc = kernel_core[self.kn]
+        kernel = (D < 1).double() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
+        kernel_sum = torch.sum(kernel)
+        # normalization of the kernel
+        self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0).to(self.device)
+
+
+    def forward(self, input):
+        potential = torch.nn.functional.conv2d(self.spheric_pad(input), weight=self.kernel_norm)
+        gfunc = field_func[self.gn]
+        field = gfunc(potential, self.m, self.s)
+
+        if not self.is_soft_clip:
+            output_img = torch.clamp(input + (1.0 / self.T) * field, min=0., max=1.)
+        else:
+            output_img = soft_clip(input + (1.0 / self.T) * field, 0, 1, self.T)
+
+        return output_img

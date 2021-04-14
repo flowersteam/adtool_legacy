@@ -1,15 +1,12 @@
 from auto_disc.utils.auto_disc_parameters import get_default_values
+from addict import Dict
 
 class BaseExplorer ():
     '''
     Base class for explorers.
     '''
 
-    CONFIG_DEFINITION = []
-
-    def __init__(self, **kwargs):
-        self.config = get_default_values(self, self.CONFIG_DEFINITION)
-        self.config.update(kwargs)
+    config = Dict()
 
     def initialize(self, input_space, output_space, input_distance_fn):
         '''

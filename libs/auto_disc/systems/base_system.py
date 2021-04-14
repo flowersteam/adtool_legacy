@@ -1,4 +1,5 @@
-from auto_disc.utils.auto_disc_parameters import get_default_values
+from addict import Dict
+from auto_disc.utils.spaces import DictSpace
 
 class BaseSystem():
     """The main BaseSystem class. It encapsulates an environment with
@@ -31,23 +32,15 @@ class BaseSystem():
         `dims=[]`
     """
 
-    CONFIG_DEFINITION = []
-    INPUT_SPACE_DEFINITION = []
-    OUTPUT_SPACE_DEFINITION = []
-    STEP_OUTPUT_SPACE_DEFINITION = []
+    config = Dict()
+    input_space = DictSpace()
+    output_space = DictSpace()
+    step_output_space = DictSpace()
 
-    def __init__(self, config_kwargs={}, input_space_kwargs={}, output_space_kwargs={}, step_output_space_kwargs={}):
-        self.config = get_default_values(self, self.CONFIG_DEFINITION)
-        self.config.update(config_kwargs)
-
-        self.input_space = get_default_values(self, self.INPUT_SPACE_DEFINITION)
-        self.input_space.update(input_space_kwargs)
-
-        self.output_space = get_default_values(self, self.OUTPUT_SPACE_DEFINITION)
-        self.output_space.update(output_space_kwargs)
-
-        self.step_output_space = get_default_values(self, self.STEP_OUTPUT_SPACE_DEFINITION)
-        self.step_output_space.update(step_output_space_kwargs)
+    def __init__(self):
+        self.input_space.initialize(self)
+        self.output_space.initialize(self)
+        self.step_output_space.initialize(self)
 
     def reset(self, run_parameters):
         """Resets the environment to an initial state and returns an initial

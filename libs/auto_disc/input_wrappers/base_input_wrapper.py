@@ -1,18 +1,15 @@
-from auto_disc.utils.auto_disc_parameters import get_default_values
+from addict import Dict
+from auto_disc.utils.spaces import DictSpace
 
 class BaseInputWrapper():
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
 
-    CONFIG_DEFINITION = []
-    INPUT_SPACE_DEFINITION = []
+    config = Dict()
+    input_space = DictSpace()
 
-    def __init__(self, config_kwargs={}, input_space_kwargs={}):
-        self.config = get_default_values(self, self.CONFIG_DEFINITION)
-        self.config.update(config_kwargs)
-
-        self.input_space = get_default_values(self, self.INPUT_SPACE_DEFINITION)
-        self.input_space.update(input_space_kwargs)
+    def __init__(self):
+        self.input_space.initialize(self)
 
     def initialize(self, output_space):
         self._output_space = output_space
