@@ -14,11 +14,11 @@ class BaseSpace(object):
         Initialize the space."""
         if self.shape is not None:
             new_shape = []
-        for elem in self.shape:
-            new_shape.append(self.apply_binding_if_existing(elem, parent_obj))
-        self.shape = tuple(new_shape)
-        if self.mutator:
-            self.mutator.init_shape(self.shape)
+            for elem in self.shape:
+                new_shape.append(self.apply_binding_if_existing(elem, parent_obj))
+            self.shape = tuple(new_shape)
+            if self.mutator:
+                self.mutator.init_shape(self.shape)
 
     def apply_binding_if_existing(self, var, lookup_obj):
         if isinstance(var, ConfigParameterBinding):

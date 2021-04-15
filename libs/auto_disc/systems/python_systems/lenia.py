@@ -40,7 +40,10 @@ class Lenia(BasePythonSystem):
 
 
     def reset(self, run_parameters):
-        self.state = run_parameters.init_state
+        init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
+        init_state[0,0, 60:60+int(self.config.SY // 3.0), 60:60+int(self.config.SX // 3.0)] = run_parameters.init_state
+        # self.state = init_state.to(self.device)
+        self.state = init_state
         del run_parameters.init_state
 
         if self.config.version.lower() == 'pytorch_fft':
@@ -59,6 +62,9 @@ class Lenia(BasePythonSystem):
 
         current_observation = Dict()
         current_observation.state = self._observations.states[0]
+
+        
+        # self.step_idx = 0
 
         return current_observation
 

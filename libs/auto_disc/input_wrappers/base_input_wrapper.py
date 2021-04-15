@@ -16,7 +16,7 @@ class BaseInputWrapper():
         self.initial_input_space_keys = [key for key in self.input_space]
 
     def initialize(self, output_space):
-        self._output_space = output_space
+        self.output_space = output_space
         for key in iter(output_space):
             if key != self.wrapped_output_space_key:
                 self.input_space[key] = output_space[key]
