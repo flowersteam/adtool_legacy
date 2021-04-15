@@ -32,12 +32,12 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         if mu_0.item() > 0:
 
             # implementation of meshgrid in torch
-            x = torch.arange(self.config.env_size[0])
-            y = torch.arange(self.config.env_size[1])
-            xx = x.repeat(self.config.env_size[1], 1)
-            yy = y.view(-1, 1).repeat(1, self.config.env_size[0])
-            X = (xx - int(self.config.env_size[0] / 2)).float()
-            Y = (yy - int(self.config.env_size[1] / 2)).float()
+            x = torch.arange(self.config.SX)
+            y = torch.arange(self.config.SY)
+            xx = x.repeat(self.config.SY, 1)
+            yy = y.view(-1, 1).repeat(1, self.config.SX)
+            X = (xx - int(self.config.SX / 2)).float()
+            Y = (yy - int(self.config.SY / 2)).float()
 
             centroid_x = ((X * filtered_im).sum() / mu_0).round().int().item()
             centroid_y = ((Y * filtered_im).sum() / mu_0).round().int().item()
