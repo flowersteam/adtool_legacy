@@ -70,6 +70,12 @@ class DictSpace(BaseSpace):
     def __getitem__(self, key):
         return self.spaces[key]
 
+    def __setitem__(self, key, value):
+        self.spaces[key] = value
+
+    def __delitem__(self, key):
+        del self.spaces[key]
+
     def __iter__(self):
         for key in self.spaces:
             yield key

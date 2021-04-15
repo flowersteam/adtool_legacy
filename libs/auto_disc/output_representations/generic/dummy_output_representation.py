@@ -5,10 +5,6 @@ class DummyOutputRepresentation(BaseOutputRepresentation):
     '''
     Empty OutputRepresentation used when no representation of the system's output mut be used.
     '''
-    def initialize(self, input_space):
-        super().initialize(input_space)
-        self.output_space = input_space
-
     def map(self, observations, **kwargs):
         return observations
 

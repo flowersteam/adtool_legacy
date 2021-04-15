@@ -1,5 +1,6 @@
 from addict import Dict
 from auto_disc.utils.spaces import DictSpace
+from copy import deepcopy
 
 class BaseSystem():
     """The main BaseSystem class. It encapsulates an environment with
@@ -11,25 +12,9 @@ class BaseSystem():
         observe
         render
         close
-    The config, input space as well as output space of the system are defined in CONFIG_DEFINITION, INPUT_SPACE_DEFINITION and OUTPUT_SPACE_DEFINITION using:
-        `AutoDiscParameter(
-                    name="dummy", 
-                    type=int, 
-                    values_range=[-1, 1], 
-                    default=0)`
-    For space parameters, use
-        `AutoDiscParameter(
-                    name="dummu", 
-                    type=ParameterTypesEnum.get('SPACE'),
-                    default=AutoDiscSpaceDefinition(
-                        dims=[10, 10, 3],
-                        bounds=[0, 1],
-                        type=ParameterTypesEnum.get('FLOAT')
-                    ))`
-    Non-modifiable parameters should set
-        `modifiable=False`
-    For scalar spaces, set
-        `dims=[]`
+    The config must be set through ConfigParameters decorators above the system's definition:
+    `@IntegerConfigParameter(name="parameter_name", default=100, min=1, max=1000)`
+    These parameters can then be accessed through `self.config.parameter_name`
     """
 
     config = Dict()
@@ -38,8 +23,13 @@ class BaseSystem():
     step_output_space = DictSpace()
 
     def __init__(self):
+        self.input_space = deepcopy(self.input_space)
         self.input_space.initialize(self)
+
+        self.output_space = deepcopy(self.output_space)
         self.output_space.initialize(self)
+
+        self.step_output_space = deepcopy(self.step_output_space)
         self.step_output_space.initialize(self)
 
     def reset(self, run_parameters):

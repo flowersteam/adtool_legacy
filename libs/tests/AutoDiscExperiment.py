@@ -5,6 +5,7 @@ sys.path.append(os.path.join(dir_path, "../"))
 
 from auto_disc.systems.python_systems import PythonLenia
 from auto_disc.output_representations.specific import LeniaImageRepresentation
+from auto_disc.input_wrappers.generic import TimesNInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
 from auto_disc import ExperimentPipeline
@@ -18,8 +19,8 @@ if __name__ == "__main__":
     experiment = ExperimentPipeline(
         system=PythonLenia(SX=256, SY=256),
         explorer=IMGEPExplorer(),
-        input_wrappers=None,
-        output_representations=[LeniaImageRepresentation()],
+        input_wrappers=[TimesNInputWrapper(10, 'R'), TimesNInputWrapper(10, 'm')], # Starting from the explorer !
+        output_representations=[LeniaImageRepresentation()], # Starting from the system !
         on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
         #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
     )

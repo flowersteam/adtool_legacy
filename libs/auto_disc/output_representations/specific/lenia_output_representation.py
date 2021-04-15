@@ -16,6 +16,9 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
     )
 
+    def __init__(self):
+        super().__init__('states')
+
     def map(self, observations, **kwargs):
         """
             Maps the observations of a system to an embedding vector
