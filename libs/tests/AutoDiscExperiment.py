@@ -17,12 +17,12 @@ import asyncio
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
-        system=PythonLenia(SX=256, SY=256),
+        system=PythonLenia(),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaImageRepresentation()], # Starting from the system !
-        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
-        #on_exploration_callbacks=[CustomSaveCallback("/home/mperie/project/save_callback/")]
+        # on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
+        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomSaveCallback("/home/mperie/project/save_callback/")]
     )
 
     asyncio.run(experiment.run(100))

@@ -16,9 +16,14 @@ class CustomSaveCallback(BaseCallback):
         """
         callback saves the 'rendered_output' (the discoveries) as a jpg and the input parameters 'run_parameters' in a pickle in folder
         define by 'self.folder_path'
-        """
-        plt.imsave(self.folder_path+"output/"+str(run_idx)+".jpg", rendered_output, format='jpg')
+        """   
+        if isinstance(rendered_output, list):
+            rendered_output[0].save(self.folder_path+"output/"+str(run_idx)+'.gif', save_all=True, append_images=rendered_output[1:], duration=100, loop=0)
+        else:
+            plt.imsave(self.folder_path+"output/"+str(run_idx)+".jpg", rendered_output, format='jpg')
         pickle_file=self.folder_path+"run_parameters/"+str(run_idx)
+
+        
 
         with open(pickle_file, 'wb') as f1:
             pickle.dump(run_parameters, f1)

@@ -11,6 +11,8 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib.animation import FuncAnimation
+
 """ =============================================================================================
 System definition
 ============================================================================================= """
@@ -26,8 +28,8 @@ class Lenia(BasePythonSystem):
         b = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(4,), indpb=1.0, dtype=torch.float32),
         m = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(), indpb=1.0, dtype=torch.float32),
         s = BoxSpace(low=0.001, high=0.3, mutator=GaussianMutator(mean=0.0, std=0.05), shape=(), indpb=1.0, dtype=torch.float32),
-        kn = DiscreteSpace(n=4, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
-        gn = DiscreteSpace(n=3, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
+        # kn = DiscreteSpace(n=4, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
+        # gn = DiscreteSpace(n=3, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
     )
 
     output_space = DictSpace(
@@ -40,6 +42,8 @@ class Lenia(BasePythonSystem):
 
 
     def reset(self, run_parameters):
+        run_parameters.kn = 0
+        run_parameters.gn = 1
         init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
         init_state[0,0, 60:60+int(self.config.SY // 3.0), 60:60+int(self.config.SX // 3.0)] = run_parameters.init_state
         # self.state = init_state.to(self.device)
@@ -90,8 +94,13 @@ class Lenia(BasePythonSystem):
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
-        im = im_from_array_with_colormap(self.state[0,0].cpu().detach().numpy(), colormap)
-        plt.imshow(im)
+        im_array = []
+        for img in self._observations.states:
+            im = im_from_array_with_colormap(img.cpu().detach().numpy(), colormap)
+            im_array.append(im)
+        
+        animation = FuncAnimation(fig, lambda frame: plt.imshow(frame), frames=im_array)
+        # plt.imshow(im)
         plt.axis('off')
         plt.tight_layout()
         if mode == "human":
@@ -99,7 +108,7 @@ class Lenia(BasePythonSystem):
         elif mode == "plt_figure":
             return fig
         elif mode == "PIL_image":
-            return im
+            return im_array
         else:
             raise NotImplementedError
 
