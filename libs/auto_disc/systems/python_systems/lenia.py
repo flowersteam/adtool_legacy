@@ -84,7 +84,7 @@ class Lenia(BasePythonSystem):
         current_observation = Dict()
         current_observation.state = self._observations.states[self.step_idx]
 
-        return current_observation, 0, self.step_idx < self.config.final_step, None
+        return current_observation, 0, self.step_idx >= self.config.final_step - 1, None
 
     def observe(self):
         return self._observations

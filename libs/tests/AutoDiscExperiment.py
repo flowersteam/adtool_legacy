@@ -22,7 +22,7 @@ if __name__ == "__main__":
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaImageRepresentation()], # Starting from the system !
         # on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
-        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomSaveCallback("/home/mperie/project/save_callback/")]
+        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomSaveCallback("./experiment_results/")]
     )
 
     asyncio.run(experiment.run(100))
