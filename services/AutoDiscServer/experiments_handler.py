@@ -1,51 +1,40 @@
 from AutoDiscServer.utils import list_classes
-from libs.auto_disc import ExperimentPipeline
-from libs.auto_disc.utils.callbacks import CustomPrintCallback
-import asyncio
+from auto_disc import ExperimentPipeline
+from auto_disc.utils.callbacks import CustomPrintCallback
+import threading
 
 class ExperimentsHandler():
     def __init__(self):
         self._experiments = []
+        self._id = 0
 
     def add_experiment(self, parameters):
         # TODO: Add entry in DB to obtain the id
-        id = 0
+        id = self._id
+        self._id += 1
         try:
             # Get explorer
-            explorer_class = next(filter(lambda dict: dict['name'] == parameters['explorer']['name'], list_classes('libs.auto_disc.explorers')))['class']
-            explorer = explorer_class(
-                config_kwargs=parameters['explorer']['config']
-                )
+            explorer_class = next(filter(lambda dict: dict['name'] == parameters['explorer']['name'], list_classes('auto_disc.explorers')))['class']
+            explorer = explorer_class(**parameters['explorer']['parameters'])
 
             # Get system
-            system_class = next(filter(lambda dict: dict['name'] == parameters['system']['name'], list_classes('libs.auto_disc.systems')))['class']
-            system = system_class(
-               config_kwargs=parameters['system']['config'],
-               input_space_kwargs=parameters['system']['input_space'], 
-               output_space_kwargs=parameters['system']['output_space'], 
-               step_output_space_kwargs=parameters['system']['step_output_space']
-            )
+            system_class = next(filter(lambda dict: dict['name'] == parameters['system']['name'], list_classes('auto_disc.systems')))['class']
+            system = system_class(**parameters['system']['parameters'])
 
             # Get input wrappers
             input_wrappers = []
             for _input_wrapper in parameters['input_wrappers']:
-                input_wrapper_class = next(filter(lambda dict: dict['name'] == _input_wrapper['name'], list_classes('libs.auto_disc.input_wrappers')))['class']
+                input_wrapper_class = next(filter(lambda dict: dict['name'] == _input_wrapper['name'], list_classes('auto_disc.input_wrappers')))['class']
                 input_wrappers.append(
-                    input_wrapper_class(
-                        config_kwargs=_input_wrapper['config'],
-                        input_space_kwargs=_input_wrapper['input_space']
-                    )
+                    input_wrapper_class(**_input_wrapper['parameters'])
                 )
 
             # Get output representations
             output_representations = []
-            for _output_representation in parameters['input_wrappers']:
-                output_representation_class = next(filter(lambda dict: dict['name'] == _output_representation['name'], list_classes('libs.auto_disc.output_representations')))['class']
+            for _output_representation in parameters['output_representations']:
+                output_representation_class = next(filter(lambda dict: dict['name'] == _output_representation['name'], list_classes('auto_disc.output_representations')))['class']
                 output_representations.append(
-                    output_representation_class(
-                        config_kwargs=_output_representation['config'],
-                        outputspace_kwargs=_output_representation['output_space']
-                    )
+                    output_representation_class(**_output_representation['parameters'])
                 )
 
             # Create experiment
@@ -54,22 +43,28 @@ class ExperimentsHandler():
                 explorer=explorer,
                 input_wrappers=input_wrappers,
                 output_representations=output_representations,
-                on_exploration_callbacks=[CustomPrintCallback('New discovery for experiment n°{}'.format(id))] # TODO
+                on_exploration_callbacks=[CustomPrintCallback('New discovery for experiment n°{}'.format(id))], # TODO
+                on_finish_callbacks=[CustomPrintCallback('Experiment n°{} finished !'.format(id))], # TODO
+                on_cancel_callbacks=[CustomPrintCallback('Experiment n°{} cancelled !'.format(id))], # TODO
             )
 
             ## launch async expe
-            task = asyncio.create_task(experiment.run(parameters['nb_iterations']))
+            # coroutine = experiment.run
+            
+            task = threading.Thread(target=experiment.run, args=(parameters['nb_iterations'], ))
+            task.start()
             
             ## Add it in the list 
             self._experiments.append({
                 "ID": id,
-                "experiment": experiment,
-                "task": task
+                "experiment_object": experiment,
+                "task": task,
             })
 
             return id
         except Exception as err:
-            raise Exception("Error when creating experiment:") from err
+            message = "Error when creating experiment:" + str(err)
+            raise Exception(message)
 
     def remove_experiment(self, id):
         # Check if experiment is in the list
@@ -83,7 +78,8 @@ class ExperimentsHandler():
         experiment = self._experiments.pop(index)
 
         # Cancel experiment
-        experiment['task'].cancel() # Need to check if cancelled() == True ??
+        experiment['experiment_object'].cancellation_token.trigger()
+        experiment['task'].join() # Need to check if cancelled() == True ??
 
         # Notify the DB
         # TODO           

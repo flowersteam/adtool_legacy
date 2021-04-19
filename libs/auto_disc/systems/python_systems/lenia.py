@@ -44,9 +44,10 @@ class Lenia(BasePythonSystem):
     def reset(self, run_parameters):
         run_parameters.kn = 0
         run_parameters.gn = 1
-        init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
-        init_state[0,0, 60:60+int(self.config.SY // 3.0), 60:60+int(self.config.SX // 3.0)] = run_parameters.init_state
+        # init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
+        # init_state[0,0, 60:60+int(self.config.SY // 3.0), 60:60+int(self.config.SX // 3.0)] = run_parameters.init_state
         # self.state = init_state.to(self.device)
+        init_state = run_parameters.init_state
         self.state = init_state
         del run_parameters.init_state
 

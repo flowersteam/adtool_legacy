@@ -1,6 +1,13 @@
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
-import asyncio
+
+class CancellationToken:
+    def __init__(self):
+        self._token = False
+    def get(self):
+        return self._token
+    def trigger(self):
+        self._token = True
 
 class ExperimentPipeline():
     '''
@@ -10,12 +17,12 @@ class ExperimentPipeline():
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
     def __init__(self, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
-                 on_exploration_callbacks=None):
+                 on_exploration_callbacks=[], on_finish_callbacks=[], on_cancel_callbacks=[]):
         ### SYSTEM ###
         self._system = system
         
         ### OUTPUT REPRESENTATIONS ###
-        if output_representations is not None:
+        if output_representations is not None and len(output_representations) > 0:
             self._output_representations = output_representations
         else:
             self._output_representations = [DummyOutputRepresentation()]
@@ -27,7 +34,7 @@ class ExperimentPipeline():
                 self._output_representations[i].initialize(input_space=self._output_representations[i-1].output_space)
 
         ### INPUT WRAPPERS ###
-        if input_wrappers is not None:
+        if input_wrappers is not None and len(input_wrappers) > 0:
             self._input_wrappers = input_wrappers
         else:
             self._input_wrappers = [DummyInputWrapper()]
@@ -46,6 +53,9 @@ class ExperimentPipeline():
         
         self._action_policy = action_policy
         self._on_exploration_callbacks = on_exploration_callbacks
+        self._on_finish_callbacks = on_finish_callbacks
+        self._on_cancel_callbacks = on_cancel_callbacks
+        self.cancellation_token = CancellationToken()
 
     def _process_output(self, output):
         for output_representation in self._output_representations:
@@ -57,7 +67,14 @@ class ExperimentPipeline():
             run_parameters = input_wrapper.map(run_parameters)
         return run_parameters
 
-    async def run(self, n_exploration_runs):
+    def _raise_callbacks(self, callbacks, **kwargs):
+        for callback in callbacks:
+            callback(
+                pipeline=self,
+                **kwargs
+            )
+
+    def run(self, n_exploration_runs):
         '''
         Launches the experiment for `n_exploration_runs` explorations.
         '''
@@ -65,6 +82,9 @@ class ExperimentPipeline():
         system_steps = [0]
 
         while run_idx < n_exploration_runs:
+            if self.cancellation_token.get():
+                break
+
             raw_run_parameters = self._explorer.emit()
             run_parameters = self._process_run_parameters(raw_run_parameters)
 
@@ -87,21 +107,31 @@ class ExperimentPipeline():
                 
             self._explorer.archive(raw_run_parameters, output)
 
-            for callback in self._on_exploration_callbacks:
-                callback(
-                    pipeline=self,
-                    run_idx=run_idx,
-                    raw_run_parameters=raw_run_parameters,
-                    run_parameters=run_parameters,
-                    raw_output=raw_output,
-                    output=output,
-                    rendered_output=rendered_output,
-                    step_observations=step_observations
-                )
+            self._raise_callbacks(
+                self._on_exploration_callbacks,
+                run_idx=run_idx,
+                raw_run_parameters=raw_run_parameters,
+                run_parameters=run_parameters,
+                raw_output=raw_output,
+                output=output,
+                rendered_output=rendered_output,
+                step_observations=step_observations
+            )
 
             run_idx += 1
 
             self._explorer.optimize() # TODO callbacks
 
         self._system.close()
+        self._raise_callbacks(
+            self._on_cancel_callbacks if self.cancellation_token.get() else self._on_finish_callbacks,
+            run_idx=run_idx,
+            raw_run_parameters=raw_run_parameters,
+            run_parameters=run_parameters,
+            raw_output=raw_output,
+            output=output,
+            rendered_output=rendered_output,
+            step_observations=step_observations
+        )
+        
  

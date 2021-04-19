@@ -13,19 +13,16 @@ from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomSaveCallback
 from auto_disc.utils.callbacks import CustomPrintCallback
 
-import asyncio
-
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
         system=PythonLenia(),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaImageRepresentation()], # Starting from the system !
-        # on_exploration_callbacks=[CustomPrintCallback("Newly explored output !")]
         on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomSaveCallback("./experiment_results/")]
     )
 
-    asyncio.run(experiment.run(100))
+    experiment.run(100)
 
 # attrs = vars(experiment._system.input_space)
 # print("\n".join("%s: %s " % item for item in attrs.items()))

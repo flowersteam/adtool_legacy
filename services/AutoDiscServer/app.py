@@ -16,7 +16,7 @@ def list_experiments():
 @app.route('/experiments', methods=['POST'])
 def create_experiment():
     try:
-        id = experiments_handler.add_experiment(request.form)
+        id = experiments_handler.add_experiment(request.json)
         return make_response(jsonify({'ID': id}), 200)
     except Exception as ex:
         error_message = "Error while creating the new experiment : {}".format(ex)
