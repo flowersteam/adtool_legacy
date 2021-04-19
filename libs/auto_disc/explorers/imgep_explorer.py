@@ -10,9 +10,18 @@ from torch import nn
 import numpy as np
 from copy import deepcopy
 
+def expand_box_goal_space(space, observations):
+    is_nan_mask = torch.isnan(observations)
+    if is_nan_mask.sum() > 0:
+        observations[is_nan_mask] = space.low[is_nan_mask]
+        observations[is_nan_mask] = space.high[is_nan_mask]
+    space.low = torch.min(space.low, observations)
+    space.high = torch.max(space.high, observations)
+
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
 @StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function", None], default="random")
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
+@IntegerConfigParameter(name="use_exandable_goal_sapce", default=1, min=0, max=1)
 class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
@@ -60,6 +69,7 @@ class IMGEPExplorer(BaseExplorer):
         if len(self._input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
         self._input_space = self._input_space[next(iter(self._input_space))]
+
         # initialize goal library
         self.goal_library = torch.empty((0, self._input_space.shape[0]))
 
@@ -149,7 +159,9 @@ class IMGEPExplorer(BaseExplorer):
 
 
     def archive(self, parameters, observations):
-        self.goal_library = torch.cat([self.goal_library, observations.reshape(1,-1)]) 
+        self.goal_library = torch.cat([self.goal_library, observations.reshape(1,-1)])
+        if bool(self.config.use_exandable_goal_sapce):
+            expand_box_goal_space(self._input_space, observations)
 
     def optimize(self):
         pass

@@ -40,7 +40,6 @@ class Lenia(BasePythonSystem):
         state = BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")))
     )
 
-
     def reset(self, run_parameters):
         run_parameters.kn = 0
         run_parameters.gn = 1

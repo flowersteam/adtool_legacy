@@ -13,7 +13,7 @@ import numpy as np
 class LeniaImageRepresentation(BaseOutputRepresentation):
 
     output_space = DictSpace(
-        embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
+        embedding = BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
     )
 
     def __init__(self):
