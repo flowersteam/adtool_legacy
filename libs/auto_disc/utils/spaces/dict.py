@@ -88,3 +88,9 @@ class DictSpace(BaseSpace):
 
     def __len__(self):
         return len(self.spaces)
+
+    def to_json(self):
+        dict = {}
+        for key, space in self.spaces.items():
+            dict[key] = space.to_json()
+        return dict

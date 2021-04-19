@@ -68,3 +68,9 @@ class MultiDiscreteSpace(BaseSpace):
 
     def __eq__(self, other):
         return isinstance(other, MultiDiscreteSpace) and torch.all(self.nvec == other.nvec)
+
+    def to_json(self):
+        dict = super().to_json()
+        dict['nvec'] = self._nvec
+        dict['indpb'] = self._indpb
+        return dict

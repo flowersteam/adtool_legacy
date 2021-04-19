@@ -1,3 +1,5 @@
+import json
+
 class ConfigParameterBinding():
     '''
     Allows to bind some properties of a space to the value of a config parameter that belongs to the config of the instance.
@@ -24,3 +26,13 @@ class ConfigParameterBinding():
     def __rmul__(self, other):
         self._other.append(other)
         return self
+
+    def to_json(self):
+        binding = self.parameter_name
+        for other in self._other:
+            if isinstance(other, ConfigParameterBinding):
+                binding = binding + '*' + other.parameter_name
+            else:
+                binding = binding + '*' + other
+                
+        return {'binding': binding}

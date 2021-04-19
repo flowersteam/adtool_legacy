@@ -153,3 +153,10 @@ class BoxSpace(BaseSpace):
         return isinstance(other, BoxSpace) and (self.shape == other.shape) and torch.allclose(self.low,
                                                                                               other.low) and torch.allclose(
             self.high, other.high)
+
+    def to_json(self):
+        dict = super().to_json()
+        dict['low'] = self._low
+        dict['high'] = self._high
+        dict['indpb'] = self._indpb
+        return dict

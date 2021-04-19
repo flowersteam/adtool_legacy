@@ -55,3 +55,17 @@ class BaseSpace(object):
 
     def __contains__(self, x):
         return self.contains(x)
+
+    def to_json(self):
+        shape = []
+        if self.shape is not None:
+            for element in self.shape:
+                if isinstance(element, ConfigParameterBinding):
+                    shape.append(element.to_json())
+                else:
+                    shape.append(element)
+        else:
+            shape = None
+        return {
+            'shape': shape
+        }

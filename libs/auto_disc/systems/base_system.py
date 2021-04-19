@@ -17,6 +17,7 @@ class BaseSystem():
     These parameters can then be accessed through `self.config.parameter_name`
     """
 
+    CONFIG_DEFINITION = {}
     config = Dict()
     input_space = DictSpace()
     output_space = DictSpace()

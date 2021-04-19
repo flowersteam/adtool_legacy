@@ -1,1 +1,1 @@
-from AutoDiscServer.utils.list_classes_in_module import list_classes
+from AutoDiscServer.utils.get_auto_disc_registered_modules_info import get_auto_disc_registered_modules_info

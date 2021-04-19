@@ -1,4 +1,4 @@
-from AutoDiscServer.utils import list_classes
+from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomPrintCallback
 import threading
@@ -14,17 +14,17 @@ class ExperimentsHandler():
         self._id += 1
         try:
             # Get explorer
-            explorer_class = next(filter(lambda dict: dict['name'] == parameters['explorer']['name'], list_classes('auto_disc.explorers')))['class']
+            explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
             explorer = explorer_class(**parameters['explorer']['parameters'])
 
             # Get system
-            system_class = next(filter(lambda dict: dict['name'] == parameters['system']['name'], list_classes('auto_disc.systems')))['class']
+            system_class = REGISTRATION['systems'][parameters['system']['name']]
             system = system_class(**parameters['system']['parameters'])
 
             # Get input wrappers
             input_wrappers = []
             for _input_wrapper in parameters['input_wrappers']:
-                input_wrapper_class = next(filter(lambda dict: dict['name'] == _input_wrapper['name'], list_classes('auto_disc.input_wrappers')))['class']
+                input_wrapper_class = REGISTRATION['input_wrappers'][_input_wrapper['name']]
                 input_wrappers.append(
                     input_wrapper_class(**_input_wrapper['parameters'])
                 )
@@ -32,7 +32,7 @@ class ExperimentsHandler():
             # Get output representations
             output_representations = []
             for _output_representation in parameters['output_representations']:
-                output_representation_class = next(filter(lambda dict: dict['name'] == _output_representation['name'], list_classes('auto_disc.output_representations')))['class']
+                output_representation_class = REGISTRATION['output_representations'][_output_representation['name']]
                 output_representations.append(
                     output_representation_class(**_output_representation['parameters'])
                 )
@@ -49,8 +49,6 @@ class ExperimentsHandler():
             )
 
             ## launch async expe
-            # coroutine = experiment.run
-            
             task = threading.Thread(target=experiment.run, args=(parameters['nb_iterations'], ))
             task.start()
             
@@ -66,23 +64,29 @@ class ExperimentsHandler():
             message = "Error when creating experiment:" + str(err)
             raise Exception(message)
 
-    def remove_experiment(self, id):
+    def _get_experiment(self, id):
         # Check if experiment is in the list
         enumerated_experiment_entry = next(filter(lambda element: element[1]["ID"] == id, enumerate(self._experiments)), None)
         if enumerated_experiment_entry is None:
             raise Exception("Unknown experiment ID !")
         
         index = enumerated_experiment_entry[0]
+        return self._experiments[index], index
 
+
+    def remove_experiment(self, id):
+        # Get index in list
+        _, index = self._get_experiment(id)
+        
         # Pop from list
         experiment = self._experiments.pop(index)
 
         # Cancel experiment
         experiment['experiment_object'].cancellation_token.trigger()
-        experiment['task'].join() # Need to check if cancelled() == True ??
+        experiment['task'].join()
 
         # Notify the DB
-        # TODO           
+        # TODO through callback ?         
 
     def list_running_experiments(self):
         return [expe['ID'] for expe in self._experiments]

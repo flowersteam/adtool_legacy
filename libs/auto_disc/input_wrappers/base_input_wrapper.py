@@ -5,7 +5,8 @@ from copy import deepcopy
 class BaseInputWrapper():
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
-
+    
+    CONFIG_DEFINITION = {}
     config = Dict()
     input_space = DictSpace()
 

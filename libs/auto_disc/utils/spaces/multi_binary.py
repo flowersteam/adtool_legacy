@@ -69,3 +69,8 @@ class MultiBinarySpace(BaseSpace):
 
     def __eq__(self, other):
         return isinstance(other, MultiBinarySpace) and self.shape[0] == other.shape[0]
+
+    def to_json(self):
+        dict = super().to_json()
+        dict['indpb'] = self._indpb
+        return dict

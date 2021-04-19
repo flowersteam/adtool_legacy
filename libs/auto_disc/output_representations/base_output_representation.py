@@ -6,6 +6,7 @@ class BaseOutputRepresentation ():
     """ Base class to map the observations of a system to an embedding vector (BC characterization)
     """
 
+    CONFIG_DEFINITION = {}
     config = Dict()
     output_space = DictSpace()
 

@@ -61,3 +61,9 @@ class DiscreteSpace(BaseSpace):
 
     def __eq__(self, other):
         return isinstance(other, DiscreteSpace) and self.n == other.n
+
+    def to_json(self):
+        dict = super().to_json()
+        dict['n'] = self._n
+        dict['indpb'] = self._indpb
+        return dict
