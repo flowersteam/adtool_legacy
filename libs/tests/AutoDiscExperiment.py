@@ -15,7 +15,7 @@ from auto_disc.utils.callbacks import CustomPrintCallback
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
-        system=PythonLenia(),
+        system=PythonLenia(scale_init_state=1.0),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaImageRepresentation()], # Starting from the system !

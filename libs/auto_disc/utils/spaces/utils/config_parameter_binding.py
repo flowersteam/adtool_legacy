@@ -18,6 +18,8 @@ class ConfigParameterBinding():
             return val1 * val2
         elif operator == '/':
             return val1 / val2
+        elif operator == '//':
+            return val1 // val2
 
     def __get__(self, obj, objtype=None):
         value = obj.config[self.parameter_name]
@@ -57,6 +59,14 @@ class ConfigParameterBinding():
 
     def __rdiv__(self, other):
         return self.__div__(other)
+
+    def __floordiv__(self, other):
+        self._operations.append((other, '//'))
+        return self
+
+    def __rfloordiv__(self, other):
+        self.__floordiv__(other)
+
 
     def to_json(self):
         binding = 'binding.' + self.parameter_name

@@ -15,7 +15,7 @@ class BaseSpace(object):
         if self.shape is not None:
             new_shape = []
             for elem in self.shape:
-                new_shape.append(self.apply_binding_if_existing(elem, parent_obj))
+                new_shape.append(int(self.apply_binding_if_existing(elem, parent_obj)))
             self.shape = tuple(new_shape)
             if self.mutator:
                 self.mutator.init_shape(self.shape)

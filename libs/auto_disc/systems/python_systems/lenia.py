@@ -11,6 +11,8 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
+import math
+
 from matplotlib.animation import FuncAnimation
 
 """ =============================================================================================
@@ -20,9 +22,12 @@ System definition
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
+@IntegerConfigParameter(name="scale_init_state", default=1, min=1)
 class Lenia(BasePythonSystem):
     input_space = DictSpace(
-        init_state = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.5), shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY"))),
+        init_state = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.5), 
+                              shape=(ConfigParameterBinding("SX") // ConfigParameterBinding("scale_init_state"), 
+                                     ConfigParameterBinding("SY") // ConfigParameterBinding("scale_init_state"))),
         R = DiscreteSpace(n=20, mutator=GaussianMutator(mean=0.0, std=0.5), indpb=1.0),
         T = BoxSpace(low=1.0, high=20.0, mutator=GaussianMutator(mean=0.0, std=0.5), shape=(), indpb=1.0, dtype=torch.float32),
         b = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(4,), indpb=1.0, dtype=torch.float32),
@@ -43,10 +48,14 @@ class Lenia(BasePythonSystem):
     def reset(self, run_parameters):
         run_parameters.kn = 0
         run_parameters.gn = 1
-        # init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
-        # init_state[0,0, 60:60+int(self.config.SY // 3.0), 60:60+int(self.config.SX // 3.0)] = run_parameters.init_state
+        init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
+        init_state[
+            0,
+            0, 
+            self.config.SY // 2 - math.ceil(self.input_space['init_state'].shape[0] / 2):self.config.SY // 2 + self.input_space['init_state'].shape[0] // 2,
+            self.config.SX // 2 - math.ceil(self.input_space['init_state'].shape[0] / 2):self.config.SX // 2 + self.input_space['init_state'].shape[0] // 2
+        ] = run_parameters.init_state
         # self.state = init_state.to(self.device)
-        init_state = run_parameters.init_state
         self.state = init_state
         del run_parameters.init_state
 
@@ -66,9 +75,6 @@ class Lenia(BasePythonSystem):
 
         current_observation = Dict()
         current_observation.state = self._observations.states[0]
-
-        
-        # self.step_idx = 0
 
         return current_observation
 
