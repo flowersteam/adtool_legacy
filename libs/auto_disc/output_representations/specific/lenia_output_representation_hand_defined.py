@@ -215,7 +215,7 @@ def calc_image_moments(image):
 class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
     output_space = DictSpace(
-        embedding = BoxSpace(low=0, high=10, shape=(17,))
+        embedding = BoxSpace(low=0, high=0, shape=(17,))
     )
 
     def __init__(self):

@@ -17,6 +17,7 @@ REGISTRATION = {
         'generic.TimesN': TimesNInputWrapper 
     },
     'output_representations':{
-        'specific.LeniaFlattenImage': LeniaImageRepresentation
+        'specific.LeniaFlattenImage': LeniaImageRepresentation,
+        'specific.LeniaStatistics': LeniaHandDefinedRepresentation
     }
 }

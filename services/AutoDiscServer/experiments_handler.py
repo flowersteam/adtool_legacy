@@ -1,6 +1,6 @@
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
-from auto_disc.utils.callbacks import CustomPrintCallback
+from auto_disc.utils.callbacks import CustomPrintCallback, CustomSaveCallback
 import threading
 
 class ExperimentsHandler():
@@ -43,7 +43,9 @@ class ExperimentsHandler():
                 explorer=explorer,
                 input_wrappers=input_wrappers,
                 output_representations=output_representations,
-                on_exploration_callbacks=[CustomPrintCallback('New discovery for experiment n°{}'.format(id))], # TODO
+                on_exploration_callbacks=[
+                    CustomPrintCallback('New discovery for experiment n°{}'.format(id)), 
+                    CustomSaveCallback("../experiment_results/")], # TODO
                 on_finish_callbacks=[CustomPrintCallback('Experiment n°{} finished !'.format(id))], # TODO
                 on_cancel_callbacks=[CustomPrintCallback('Experiment n°{} cancelled !'.format(id))], # TODO
             )
