@@ -1,0 +1,26 @@
+# docker-compose.yml
+
+version: '3' # TODO
+services:
+  server:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://autodisc:password@app-db:5432/main
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: autodisc #In production this role should not be the same as the one used for the connection
+      PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
+    depends_on:
+      - app-db
+  app-db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: main
+      POSTGRES_USER: autodisc
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./AppDB/saved_data:/var/lib/postgresql/data"
+      - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
