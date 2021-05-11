@@ -11,6 +11,7 @@ dependencies:
 - matplotlib
 - numpy
 - pillow
+- requests
 - python-graphviz
 - pip:
     - neat-python==0.92
