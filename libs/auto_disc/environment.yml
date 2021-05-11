@@ -1,0 +1,17 @@
+name: autoDiscTool
+channels:
+- default 
+- anaconda 
+- conda-forge
+- pytorch
+dependencies:
+- python=3.7
+- pip
+- addict
+- matplotlib
+- numpy
+- pillow
+- python-graphviz
+- pip:
+    - neat-python==0.92
+    - torch==1.7.1

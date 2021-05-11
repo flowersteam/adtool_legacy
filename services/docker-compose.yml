@@ -2,7 +2,7 @@
 
 version: '3' # TODO
 services:
-  server:
+  app-db-api:
     image: postgrest/postgrest
     ports:
       - "3000:3000"
@@ -24,3 +24,12 @@ services:
     volumes:
       - "./AppDB/saved_data:/var/lib/postgresql/data"
       - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
+  expe-db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: autodisc
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - "./ExpeDB/saved_data:/data/db"

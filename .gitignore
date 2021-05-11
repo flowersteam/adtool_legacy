@@ -1,4 +1,5 @@
 experiment_results/*
+tmp_output_results/*
 
 ### VSCODE
 .vscode/

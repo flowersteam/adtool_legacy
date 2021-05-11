@@ -3,7 +3,6 @@ from auto_disc.explorers import BaseExplorer
 
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
 
-from tqdm import tqdm
 import torch
 from torch import nn
 
