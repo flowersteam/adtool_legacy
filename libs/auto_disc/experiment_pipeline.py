@@ -1,5 +1,6 @@
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
+import torch
 
 class CancellationToken:
     def __init__(self):
@@ -86,7 +87,8 @@ class ExperimentPipeline():
                 break
 
             raw_run_parameters = self._explorer.emit()
-            run_parameters = self._process_run_parameters(raw_run_parameters)
+            with torch.no_grad():
+                run_parameters = self._process_run_parameters(raw_run_parameters)
 
             o, r, d, i = self._system.reset(run_parameters), 0, None, False
             step_observations = [o]
@@ -97,14 +99,16 @@ class ExperimentPipeline():
                 else:
                     a = None
 
-                o, r, d, i = self._system.step(a)
+                with torch.no_grad():
+                    o, r, d, i = self._system.step(a)
                 step_observations.append(o)
                 system_steps[-1] += 1
-
-            raw_output = self._system.observe()
-            output = self._process_output(raw_output)
-            rendered_output = self._system.render()
                 
+            with torch.no_grad():
+                raw_output = self._system.observe()
+                output = self._process_output(raw_output)
+                rendered_output = self._system.render()
+                    
             self._explorer.archive(raw_run_parameters, output)
 
             self._raise_callbacks(

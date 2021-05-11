@@ -2,6 +2,7 @@ from auto_disc.utils.callbacks import BaseCallback
 
 import pickle
 import matplotlib.pyplot as plt
+import os
 
 class CustomSaveCallback(BaseCallback):
     def __init__(self, folder_path):
@@ -18,12 +19,17 @@ class CustomSaveCallback(BaseCallback):
         define by 'self.folder_path'
         """   
         if isinstance(rendered_output, list):
+            if not os.path.isdir(self.folder_path+"output/"):
+                print(self.folder_path)
+                os.makedirs(self.folder_path+"output/")
             rendered_output[0].save(self.folder_path+"output/"+str(run_idx)+'.gif', save_all=True, append_images=rendered_output[1:], duration=100, loop=0)
         else:
             plt.imsave(self.folder_path+"output/"+str(run_idx)+".jpg", rendered_output, format='jpg')
         pickle_file=self.folder_path+"run_parameters/"+str(run_idx)
 
         
-
+        if not os.path.isdir(self.folder_path+"run_parameters/"):
+                print(self.folder_path+"run_parameters/")
+                os.makedirs(self.folder_path+"run_parameters/")
         with open(pickle_file, 'wb') as f1:
             pickle.dump(run_parameters, f1)

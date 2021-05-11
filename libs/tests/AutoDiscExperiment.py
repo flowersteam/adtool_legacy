@@ -15,14 +15,14 @@ from auto_disc.utils.callbacks import CustomPrintCallback
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
-        system=PythonLenia(scale_init_state=1.0),
+        system=PythonLenia(final_step=1000, scale_init_state=1.0),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaHandDefinedRepresentation()], # Starting from the system !
         on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomSaveCallback("./experiment_results/")]
     )
 
-    experiment.run(100)
+    experiment.run(5000)
 
 # attrs = vars(experiment._system.input_space)
 # print("\n".join("%s: %s " % item for item in attrs.items()))
