@@ -14,11 +14,11 @@ from auto_disc.utils.callbacks import CustomSaveCallback, CustomExpeDBSaveCallba
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
-        system=PythonLenia(scale_init_state=1.0),
+        system=PythonLenia(final_step=1000, scale_init_state=1.0),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaHandDefinedRepresentation()], # Starting from the system !
         on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomExpeDBSaveCallback('http://127.0.0.1:5001', 0)]#CustomSaveCallback("./experiment_results/")]
     )
 
-    experiment.run(100)
+    experiment.run(5000)
