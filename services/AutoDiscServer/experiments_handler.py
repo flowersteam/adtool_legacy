@@ -1,7 +1,19 @@
+from numpy.lib.function_base import _diff_dispatcher
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomPrintCallback, CustomSaveCallback
 import threading
+import requests
+import json
+import datetime
+
+
+# def merge_dict(ditc1, dict2):
+#     for key in ditc1:
+#         if key not in dict2:
+#             dict2[key] = ditc1[key]
+#     return dict2
+
 
 class ExperimentsHandler():
     def __init__(self):
@@ -10,8 +22,8 @@ class ExperimentsHandler():
 
     def add_experiment(self, parameters):
         # TODO: Add entry in DB to obtain the id
-        id = self._id
-        self._id += 1
+        # id = self._id
+        # self._id += 1
         try:
             # Get explorer
             explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
@@ -37,6 +49,18 @@ class ExperimentsHandler():
                     output_representation_class(**_output_representation['parameters'])
                 )
 
+            #Add experiment in DB and obtain the id
+            exp_date = datetime.datetime.now()
+            exp_date = exp_date.strftime("%Y")+ exp_date.strftime("%m")+ exp_date.strftime("%d")
+            response = requests.post("http://127.0.0.1:3000" + "/experiments",
+                                     json={
+                                        "name": parameters['name'],
+                                        "created_on":exp_date,
+                                        "config":json.dumps(parameters['parameters']) #TODO
+                                     })
+            id = response.headers["Location"].split(".")
+            id = int(id[1])
+
             # Create experiment
             experiment = ExperimentPipeline(
                 system=system,
@@ -60,6 +84,52 @@ class ExperimentsHandler():
                 "experiment_object": experiment,
                 "task": task,
             })
+
+                        
+            response = requests.post("http://127.0.0.1:3000" + "/systems",
+                                     json={
+                                        "experiment_id": id,
+                                        "name": parameters['system']['name'],
+                                        "config":json.dumps(system.config)
+                                     })
+            response = requests.post("http://127.0.0.1:3000" + "/explorers",
+                                     json={
+                                        "experiment_id": id,
+                                        "name": parameters['explorer']['name'],
+                                        "config":json.dumps(explorer.config)
+                                     })
+            # response = requests.post("http://127.0.0.1:3000" + "/input_wrappers",
+            #                          json=
+            #                             [{"experiment_id": id, 
+            #                               "name":parameters['input_wrappers'][i]['name'], 
+            #                               "config":input_wrappers[i].config, #TODO
+            #                               "index": i} 
+            #                               for i in range(len(input_wrappers))]
+            #                          )
+            response = requests.post("http://127.0.0.1:3000" + "/input_wrappers",
+                                     json=
+                                        [{"experiment_id": id, 
+                                          "name":parameters['input_wrappers'][i]['name'], 
+                                          "config":parameters['input_wrappers'][i]['parameters'], #TODO
+                                          "index": i} 
+                                          for i in range(len(input_wrappers))]
+                                     )
+            # response = requests.post("http://127.0.0.1:3000" + "/input_wrappers",
+            #                          json=
+            #                             [{"experiment_id": id, 
+            #                               "name":parameters['input_wrappers'][i]['name'], 
+            #                               "config":merge_dict(parameters['input_wrappers'][i]['parameters'], input_wrappers[i].config), #TODO
+            #                               "index": i} 
+            #                               for i in range(len(input_wrappers))]
+            #                          )
+            response = requests.post("http://127.0.0.1:3000" + "/output_representations",
+                                     json=
+                                        [{"experiment_id": id, 
+                                          "name":parameters['output_representations'][i]['name'], 
+                                          "config":output_representations[i].config, #TODO
+                                          "index": i} 
+                                          for i in range(len(output_representations))]
+                                     )
 
             return id
         except Exception as err:
