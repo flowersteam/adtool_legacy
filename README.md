@@ -30,5 +30,5 @@ Launch the flask server: `python services/AutoDiscServer/app.py`.
 Start services: `docker-compose up app-db-api`
 Add `-d` option for daemon.
 #### Expe DB
-Start service: `docker-compose up expe-db
+Start service: `docker-compose up expe-db`
 Add `-d` option for daemon.
