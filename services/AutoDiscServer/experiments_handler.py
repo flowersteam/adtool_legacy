@@ -2,6 +2,7 @@ from numpy.lib.function_base import _diff_dispatcher
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomPrintCallback, CustomSaveCallback
+from AutoDiscServer.utils import CheckpointsStatusEnum
 import threading
 import requests
 import json
@@ -158,7 +159,12 @@ class ExperimentsHandler():
         experiment['task'].join()
 
         # Notify the DB
-        # TODO through callback ?         
+        # TODO through callback ?
+        # response = requests.patch("http://127.0.0.1:3000" + "/checkpoints?experiment_id=eq." + str(12),
+        response = requests.patch("http://127.0.0.1:3000" + "/checkpoints?experiment_id=eq." + str(experiment["ID"]),
+                                     json=
+                                        {"status" : int(CheckpointsStatusEnum.CANCELLED)} 
+                                     )        
 
     def list_running_experiments(self):
         return [expe['ID'] for expe in self._experiments]

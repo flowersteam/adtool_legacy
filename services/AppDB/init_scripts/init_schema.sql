@@ -42,7 +42,7 @@ CREATE TABLE checkpoints (
 	id serial PRIMARY KEY,
 	experiment_id INT NOT NULL,
 	parent_id INT NOT NULL,
-	status VARCHAR (255) NOT NULL,
+	status INT NOT NULL,
 	error_message VARCHAR (255) NOT NULL,
 	FOREIGN KEY (experiment_id)
     	REFERENCES experiments (id)
