@@ -17,8 +17,13 @@ class ExperimentPipeline():
     When the system requires an action at each timestep, an `action_policy` must be provided.
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
-    def __init__(self, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
-                 on_exploration_callbacks=[], on_finish_callbacks=[], on_cancel_callbacks=[]):
+    def __init__(self, experiment_id, seed, checkpoint_id, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
+                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finish_callbacks=[], on_cancel_callbacks=[]):
+        self.experiment_id = experiment_id
+        self.seed = seed
+        self.checkpoint_id = checkpoint_id
+        self.save_frequency = save_frequency
+
         ### SYSTEM ###
         self._system = system
         
@@ -53,7 +58,8 @@ class ExperimentPipeline():
                                   input_distance_fn=self._output_representations[-1].calc_distance)
         
         self._action_policy = action_policy
-        self._on_exploration_callbacks = on_exploration_callbacks
+        self._on_discovery_callbacks = on_discovery_callbacks
+        self._on_save_finished_callbacks = on_save_finished_callbacks
         self._on_finish_callbacks = on_finish_callbacks
         self._on_cancel_callbacks = on_cancel_callbacks
         self.cancellation_token = CancellationToken()
@@ -112,8 +118,9 @@ class ExperimentPipeline():
             self._explorer.archive(raw_run_parameters, output)
 
             self._raise_callbacks(
-                self._on_exploration_callbacks,
+                self._on_discovery_callbacks,
                 run_idx=run_idx,
+                seed=self.seed,
                 raw_run_parameters=raw_run_parameters,
                 run_parameters=run_parameters,
                 raw_output=raw_output,
@@ -125,6 +132,11 @@ class ExperimentPipeline():
             run_idx += 1
 
             self._explorer.optimize() # TODO callbacks
+
+            if run_idx % self.save_frequency == 0:
+                self._raise_callbacks(
+                self._on_save_finished_callbacks,# TODO
+            )
 
         self._system.close()
         self._raise_callbacks(

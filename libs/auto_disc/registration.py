@@ -19,5 +19,7 @@ REGISTRATION = {
     'output_representations':{
         'specific.LeniaFlattenImage': LeniaImageRepresentation,
         'specific.LeniaStatistics': LeniaHandDefinedRepresentation
+    },
+    'callbacks': {
     }
 }

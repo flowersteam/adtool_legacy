@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response
-from AutoDiscServer.experiments_handler import ExperimentsHandler
+from AutoDiscServer.experiments import ExperimentsHandler
 from AutoDiscServer.utils import get_auto_disc_registered_modules_info
 from auto_disc import REGISTRATION
 
