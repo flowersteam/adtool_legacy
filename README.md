@@ -14,7 +14,11 @@ Please follow these instructions when contributing on the project.
 ### App DB & Expe DB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
-3. Generate containers `docker-compose -f services/docker-compose.yml create`
+3. Go to the service folder: `cd services`.
+4. Generate containers `docker-compose -f services/docker-compose.yml create`
+5. Install the Expe DB REST API requirements: `pip install ExpeDB/requirements.txt`
+### Front-end app
+1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
@@ -24,6 +28,7 @@ Please follow these instructions when contributing on the project.
 Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
 
 ## Startinig the project
+Go to the `services` folder: `cd services`.
 #### AutoDiscServer
 Launch the flask server: `python services/AutoDiscServer/app.py`.
 #### App DB
@@ -32,3 +37,7 @@ Add `-d` option for daemon.
 #### Expe DB
 Start service: `docker-compose up expe-db`
 Add `-d` option for daemon.
+Launch flask server for the REST API: `python services/ExpeDB/app.py`
+#### Front-end app
+Enter the front-end app folder: `cd FrontEndApp`.
+Start the angular app: `ng serve`.
