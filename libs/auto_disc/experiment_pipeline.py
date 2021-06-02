@@ -1,3 +1,4 @@
+from AutoDiscServer import experiments
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 import torch
@@ -126,7 +127,8 @@ class ExperimentPipeline():
                 raw_output=raw_output,
                 output=output,
                 rendered_output=rendered_output,
-                step_observations=step_observations
+                step_observations=step_observations,
+                experiment_id=self.experiment_id
             )
 
             run_idx += 1
@@ -147,7 +149,6 @@ class ExperimentPipeline():
             raw_output=raw_output,
             output=output,
             rendered_output=rendered_output,
-            step_observations=step_observations
+            step_observations=step_observations,
+            experiment_id=self.experiment_id
         )
-        
- 

@@ -9,7 +9,7 @@ from torch import Tensor
 import json
 import pickle
 
-class CustomExpeDBSaveCallback(BaseCallback):
+class OnDiscoveryExpeDBSaveCallback(BaseCallback):
     def __init__(self, base_url, experiment_id):
         """
         init the callback with a path to a folder to save discoveries

@@ -34,6 +34,7 @@ class IMGEPExplorer(BaseExplorer):
         self.goal_library = torch.empty((0, self._input_space.shape[0]))
 
     def expand_box_goal_space(self, space, observations):
+        observations= observations.type(space.dtype)
         is_nan_mask = torch.isnan(observations)
         if is_nan_mask.sum() > 0:
             observations[is_nan_mask] = space.low[is_nan_mask]
