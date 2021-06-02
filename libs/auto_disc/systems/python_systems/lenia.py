@@ -14,6 +14,7 @@ import numpy as np
 import math
 
 from matplotlib.animation import FuncAnimation
+import io
 
 """ =============================================================================================
 System definition
@@ -112,9 +113,13 @@ class Lenia(BasePythonSystem):
         if mode == "human":
             return plt.show()
         elif mode == "plt_figure":
-            return fig
+            byte_fig = io.BytesIO()
+            fig.savefig(byte_fig, format='png')
+            return (byte_fig, "png")
         elif mode == "PIL_image":
-            return im_array
+            byte_img = io.BytesIO()
+            im_array[0].save(byte_img, format='GIF', save_all=True, append_images=im_array[1:], duration=100, loop=0)
+            return (byte_img, "gif")
         else:
             raise NotImplementedError
 
