@@ -10,7 +10,7 @@ from auto_disc.explorers import IMGEPExplorer
 
 from auto_disc import ExperimentPipeline
 
-from auto_disc.utils.callbacks import CustomSaveCallback, CustomExpeDBSaveCallback, CustomPrintCallback
+from auto_disc.utils.callbacks import OnDiscoverySaveCallbackOnDisk, CustomExpeDBSaveCallback, CustomPrintCallback
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaHandDefinedRepresentation()], # Starting from the system !
-        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomExpeDBSaveCallback('http://127.0.0.1:5001', 0)]#CustomSaveCallback("./experiment_results/")]
+        on_exploration_callbacks=[CustomPrintCallback("Newly explored output !"), CustomExpeDBSaveCallback('http://127.0.0.1:5001', 0)]#OnDiscoverySaveCallbackOnDisk("./experiment_results/")]
     )
 
     experiment.run(5000)

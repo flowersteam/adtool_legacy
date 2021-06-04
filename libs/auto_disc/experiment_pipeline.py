@@ -128,7 +128,8 @@ class ExperimentPipeline():
                 output=output,
                 rendered_output=rendered_output,
                 step_observations=step_observations,
-                experiment_id=self.experiment_id
+                experiment_id=self.experiment_id,
+                checkpoint_id = self.checkpoint_id
             )
 
             run_idx += 1
