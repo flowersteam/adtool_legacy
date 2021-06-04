@@ -1,68 +1,78 @@
-from auto_disc.utils.callbacks import BaseCallback
+from auto_disc.utils.callbacks.on_discovery_callbacks import BaseOnDiscoveryCallback
 import requests
 
 import pickle
 import matplotlib.pyplot as plt
-
-import os
 from torch import Tensor
 import json
 import pickle
 
-class OnDiscoveryExpeDBSaveCallback(BaseCallback):
-    def __init__(self, base_url, experiment_id):
+class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
+    def __init__(self, base_url, experiment_id, to_save_outputs):
         """
-        init the callback with a path to a folder to save discoveries
+        brief:  init the callback 
+        param:  base_url: string, url to save discoveries on database
+        param:  experiment_id: int, id of the current experiment
+        param:  to_save_outputs: string list, key of "SAVABLE_OUTPUTS" (parent's attribute) to select the outpouts who we want to save
         """
-        super().__init__()
+        super().__init__(to_save_outputs)
         self.base_url = base_url
         self.experiment_id = experiment_id
 
     def _serialize_autodisc_space(self, space):
+        """
+        brief:  transform space into serializable object for json (tensor to list)
+        param:  space: one of possible outputs we want save
+        """
         serialized_space = {}
-        for key in space:
-            if isinstance(space[key], Tensor):
-                serialized_space[key] = space[key].tolist()
-            else:
-                serialized_space[key] = space[key]
+        if isinstance(space, Tensor):
+            serialized_space = space.tolist()
+        elif isinstance(space, list):
+            for i in range(len(space)):
+                space[i] = self._serialize_autodisc_space(space[i])
+            serialized_space =space
+        elif isinstance(space, dict):
+            for key in space:
+                if isinstance(space[key], Tensor):
+                    serialized_space[key] = space[key].tolist()
+                else:
+                    serialized_space[key] = space[key]
+        else:
+            serialized_space = space
         return serialized_space
 
-    def __call__(self, pipeline, run_idx, raw_run_parameters, run_parameters, raw_output, output, rendered_output, step_observations):
+    def __call__(self, **kwargs):
         """
-        callback saves the 'rendered_output' (the discoveries) as a jpg and the input parameters 'run_parameters' in a pickle in folder
-        define by 'self.folder_path'
+        brief:      callback saves the discoveries outputs we want to save on database.
+        comment:    always saved : run_idx(json), checkpoint_id(json)
+                    saved if key in self.to_save_outputs: raw_run_parameters(json)
+                                                        run_parameters,(json)
+                                                        raw_output(file),
+                                                        output(json),
+                                                        rendered_output(file),
+                                                        step_observations(file)
         """
-        folder = "./tmp_output_results"
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        saves={}
+        save_to_file={}
 
-        filename = "{}/exp_{}_idx_{}".format(folder, self.experiment_id, run_idx)
+        for save_item in self.to_save_outputs:
+            if save_item == "step_observations":
+                kwargs[save_item] = self._serialize_autodisc_space(kwargs[save_item])
 
-        if isinstance(rendered_output, list):
-            filename += ".gif"
-            rendered_output[0].save(filename, save_all=True, append_images=rendered_output[1:], duration=100, loop=0)
-        else:
-            filename += ".jpg"
-            plt.imsave(filename, rendered_output, format='jpg')
-
+            if save_item == "raw_output" or save_item == "step_observations":
+                save_to_file[save_item] = ('{}_{}_{}'.format(save_item, self.experiment_id, kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
+            elif save_item == "rendered_output":
+                filename = "exp_{}_idx_{}".format(self.experiment_id, kwargs["run_idx"])
+                filename=filename+"."+kwargs["rendered_output"][1]
+                save_to_file["rendered_output"] = (filename, kwargs["rendered_output"][0].getbuffer())
+            else:
+                saves[save_item] = self._serialize_autodisc_space(kwargs[save_item])
+        
         response = requests.post(self.base_url + "/discoveries", 
-                                    json={
-                                        "checkpoint_id": "0",
-                                        "parameters":{
-                                            "raw": self._serialize_autodisc_space(raw_run_parameters),
-                                            "wrapped": self._serialize_autodisc_space(run_parameters)
-                                        },
-                                        "output":{
-                                            "representation": output.tolist()
-                                        }
-                                    })
+                                    json=saves
+                                )
         json_response = json.loads(response.text)
         discovery_id = json_response["ID"]
 
-        with open(filename, 'rb') as rendered_output_file:
-            requests.post(self.base_url + "/discoveries/" + discovery_id + "/files", 
-                        files={
-                            "raw_output": ('raw_output_{}_{}'.format(self.experiment_id, run_idx), pickle.dumps(raw_output), 'application/json'),
-                            "rendered_output": rendered_output_file
-                        })
-        os.remove(filename) # Remove temporary stored file
+        requests.post(self.base_url + "/discoveries/" + discovery_id + "/files", 
+                    files=save_to_file)
