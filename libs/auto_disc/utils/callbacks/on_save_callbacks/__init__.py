@@ -1,1 +1,1 @@
-
+from auto_disc.utils.callbacks.on_save_callbacks.base_on_save_callback import BaseOnSaveCallback

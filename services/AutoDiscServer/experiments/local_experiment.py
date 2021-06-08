@@ -6,13 +6,18 @@ from copy import copy
 class LocalExperiment(BaseExperiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._pipelines = []
+        
+        self.experiment_config['callbacks']['on_discovery'][0]['name'] = 'expeDB'
+        self.experiment_config['callbacks']['on_discovery'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
         additional_callbacks = {
-            "on_discovery_callbacks": [self.on_progress],
-            "on_save_finished_callbacks": [self.on_save],
-            "on_finish_callbacks": [],
-            "on_cancel_callbacks": [],
+            "on_discovery": [self.on_progress],
+            "on_save_finished": [self.on_save],
+            "on_finished": [],
+            "on_cancelled": [],
+            "on_error": [],
         }
+
+        self._pipelines = []
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
             config = copy(self.experiment_config)
             config['experiment']["seed"] = i

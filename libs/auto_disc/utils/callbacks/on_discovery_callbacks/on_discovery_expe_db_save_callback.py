@@ -8,16 +8,14 @@ import json
 import pickle
 
 class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
-    def __init__(self, base_url, experiment_id, to_save_outputs):
+    def __init__(self, base_url, to_save_outputs):
         """
         brief:  init the callback 
         param:  base_url: string, url to save discoveries on database
-        param:  experiment_id: int, id of the current experiment
         param:  to_save_outputs: string list, key of "SAVABLE_OUTPUTS" (parent's attribute) to select the outpouts who we want to save
         """
         super().__init__(to_save_outputs)
         self.base_url = base_url
-        self.experiment_id = experiment_id
 
     def _serialize_autodisc_space(self, space):
         """
@@ -60,9 +58,9 @@ class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
                 kwargs[save_item] = self._serialize_autodisc_space(kwargs[save_item])
 
             if save_item == "raw_output" or save_item == "step_observations":
-                save_to_file[save_item] = ('{}_{}_{}'.format(save_item, self.experiment_id, kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
+                save_to_file[save_item] = ('{}_{}_{}'.format(save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
             elif save_item == "rendered_output":
-                filename = "exp_{}_idx_{}".format(self.experiment_id, kwargs["run_idx"])
+                filename = "exp_{}_idx_{}".format(kwargs["experiment_id"], kwargs["run_idx"])
                 filename=filename+"."+kwargs["rendered_output"][1]
                 save_to_file["rendered_output"] = (filename, kwargs["rendered_output"][0].getbuffer())
             else:

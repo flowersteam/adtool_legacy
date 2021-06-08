@@ -19,7 +19,7 @@ class ExperimentPipeline():
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
     def __init__(self, experiment_id, seed, checkpoint_id, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
-                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finish_callbacks=[], on_cancel_callbacks=[]):
+                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[]):
         self.experiment_id = experiment_id
         self.seed = seed
         self.checkpoint_id = checkpoint_id
@@ -61,8 +61,8 @@ class ExperimentPipeline():
         self._action_policy = action_policy
         self._on_discovery_callbacks = on_discovery_callbacks
         self._on_save_finished_callbacks = on_save_finished_callbacks
-        self._on_finish_callbacks = on_finish_callbacks
-        self._on_cancel_callbacks = on_cancel_callbacks
+        self._on_finished_callbacks = on_finished_callbacks
+        self._on_cancelled_callbacks = on_cancelled_callbacks
         self.cancellation_token = CancellationToken()
 
     def _process_output(self, output):
@@ -136,14 +136,14 @@ class ExperimentPipeline():
 
             self._explorer.optimize() # TODO callbacks
 
-            if run_idx % self.save_frequency == 0:
+            if run_idx % self.save_frequency == 0:  
                 self._raise_callbacks(
-                self._on_save_finished_callbacks,# TODO
-            )
+                    self._on_save_finished_callbacks,# TODO
+                )
 
         self._system.close()
         self._raise_callbacks(
-            self._on_cancel_callbacks if self.cancellation_token.get() else self._on_finish_callbacks,
+            self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,
             run_idx=run_idx,
             raw_run_parameters=raw_run_parameters,
             run_parameters=run_parameters,

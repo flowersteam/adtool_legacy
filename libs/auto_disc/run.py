@@ -6,6 +6,7 @@ def create(parameters, additional_callbacks):
     seed = parameters['experiment']['seed']
     experiment_id = parameters['experiment']['id'] 
     checkpoint_id = parameters['experiment']['checkpoint_id']
+    save_frequency = parameters['experiment']['save_frequency']
 
     # Get explorer
     explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
@@ -31,29 +32,37 @@ def create(parameters, additional_callbacks):
             output_representation_class(**_output_representation['config'])
         )
 
-    # TODO : Register callbacks and automatically load them
-    on_discovery_callbacks = []
-    on_discovery_callbacks.extend(additional_callbacks['on_discovery_callbacks'])
-    on_save_finished_callbacks = []
-    on_save_finished_callbacks.extend(additional_callbacks['on_save_finished_callbacks'])
-    on_finish_callbacks = []
-    on_finish_callbacks.extend(additional_callbacks['on_finish_callbacks'])
-    on_cancel_callbacks = []
-    on_cancel_callbacks.extend(additional_callbacks['on_cancel_callbacks'])
+    # Get callbacks
+    callbacks = {
+        'on_discovery': [],
+        'on_save_finished': [],
+        'on_finished': [],
+        'on_error': [],
+        'on_cancelled': []
+    }
+
+    for callback_key in callbacks:
+        callbacks[callback_key].extend(additional_callbacks[callback_key])
+        for _callback in parameters['callbacks'][callback_key]:
+            callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
+            callbacks[callback_key].append(
+                callback_class(**_callback['config'])
+            )
     
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
         seed=seed,
         checkpoint_id=checkpoint_id,
+        save_frequency=save_frequency,
         system=system,
         explorer=explorer,
         input_wrappers=input_wrappers,
         output_representations=output_representations,
-        on_discovery_callbacks=on_discovery_callbacks,
-        on_save_finished_callbacks=on_save_finished_callbacks,
-        on_finish_callbacks=on_finish_callbacks,
-        on_cancel_callbacks=on_cancel_callbacks
+        on_discovery_callbacks=callbacks['on_discovery'],
+        on_save_finished_callbacks=callbacks['on_save_finished'],
+        on_finished_callbacks=callbacks['on_finished'],
+        on_cancelled_callbacks=callbacks['on_cancelled']
     )
 
     return experiment

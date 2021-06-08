@@ -67,5 +67,13 @@ def list_input_wrappers():
         jsonify(info), 
     200)
 
+# On discovery callback
+@app.route('/discovery-saving-keys', methods=['GET'])
+def list_keys_to_save_on_discovery():
+    info = list(REGISTRATION['callbacks']['on_discovery']['base'].SAVABLE_OUTPUTS.keys())
+    return make_response(
+        jsonify(info), 
+    200)
+
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5000)

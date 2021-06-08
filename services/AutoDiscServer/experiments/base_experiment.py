@@ -16,6 +16,45 @@ class BaseExperiment():
         self.experiment_config['experiment']['id'] = id
         self.experiment_config['experiment']['checkpoint_id'] = checkpoint_id
 
+        # TODO: Find a way to avoid this
+        self.experiment_config['experiment']['save_frequency'] = self.experiment_config['experiment']['config']['save_frequency']
+        del self.experiment_config['experiment']['config']['save_frequency']
+
+        self.experiment_config['callbacks'] = {
+            'on_discovery': [
+                {
+                    'name' : 'base',
+                    'config': {
+                        'to_save_outputs': self.experiment_config['experiment']['config']['discovery_saving_keys']
+                    }
+                }
+            ],
+            'on_save_finished': [
+                {
+                    'name' : 'base',
+                    'config': {}
+                }
+            ],
+            'on_cancelled': [
+                {
+                    'name' : 'base',
+                    'config': {}
+                }
+            ],
+            'on_finished': [
+                {
+                    'name' : 'base',
+                    'config': {}
+                }
+            ],
+            'on_error': [
+                {
+                    'name' : 'base',
+                    'config': {}
+                }
+            ],
+        }
+
     
     def start():
         raise NotImplementedError()
