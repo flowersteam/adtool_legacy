@@ -1,1 +1,29 @@
-<p>home works!</p>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <div class="text-light">List of experiments</div>
+    </div>
+  </nav>
+<div class="container">
+    <div *ngFor="let experiment of experiments" class="card my-5">
+        <div class="card-body">
+            <div class="row">
+                <h5 class="card-title col-6">{{experiment.name}}</h5>
+                <p *ngIf="experiment.status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</p>
+                <p *ngIf="experiment.status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</p>
+                <p *ngIf="experiment.status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</p>
+                <p *ngIf="experiment.status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</p>
+            </div>
+            
+            <h6 class="card-subtitle mb-2 text-muted">{{experiment.created_on}}</h6>
+            <p class="card-text">
+                System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}} | 
+                Explorer: {{experiment.explorers.length > 0 ? experiment.explorers[0].name : 'None'}} | 
+                {{experiment.input_wrappers.length}} input wrappers | 
+                {{experiment.output_representations.length}} output representations
+            </p>
+            <a routerLink="/experiment-monitoring/{{experiment.id}}" class="card-link stretched-link"></a>
+        </div>
+    </div>
+</div>
+<a role="button" routerLink="/new-experiment" class="btn position-fixed z-index-master bottom-0 end-0 p-0 m-4" style="font-size: 3em;"><i class="bi bi-plus-circle-fill" width="16" height="16"></i></a>
+

@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
+import { AppDbService } from '../services/app-db.service';
+import { LightExperiment } from '../entities/light_experiment';
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -7,9 +10,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  constructor() { }
+  experiments: LightExperiment[] = [];
+  
+  constructor(private appDBService: AppDbService) { }
 
-  ngOnInit(): void {
+  ngOnInit() {
+    this.getExperiments();
+  }
+
+  getExperiments(): void {
+    this.appDBService.getLightExperiments()
+    .subscribe(experiments => this.experiments = experiments);
   }
 
 }

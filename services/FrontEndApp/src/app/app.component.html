@@ -1,7 +1,23 @@
-<h1>{{title}}</h1>
-<nav>
-  <a routerLink="/home">Home</a>
-  <span> | </span>
-  <a routerLink="/new-experiment">Create experiment</a>
-</nav>
-<router-outlet></router-outlet>
+<div id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark col-2 position-fixed">
+  <a routerLink="/home" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <span class="fs-4">{{title}}</span>
+  </a>
+  <hr>
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a routerLink="/home" class="nav-link" [ngClass]="path == '/home' ? 'active' : 'text-white'" [attr.aria-current]="path == '/home' ? 'page' : null">
+        <i class="bi bi-house-door me-2" width="16" height="16"></i>
+        Home
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/new-experiment" class="nav-link" [ngClass]="path == '/new-experiment' ? 'active' : 'text-white'" [attr.aria-current]="path == '/new-experiment' ? 'page' : null">
+        <i class="bi bi-binoculars me-2" width="16" height="16"></i>
+        New experiment
+      </a>
+    </li>
+  </ul>
+</div>
+<div class="col-10 float-end">
+  <router-outlet></router-outlet>
+</div>
