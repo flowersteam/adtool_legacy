@@ -8,6 +8,7 @@ import auto_disc.utils.callbacks.on_discovery_callbacks as on_discovery_callback
 import auto_disc.utils.callbacks.on_cancelled_callbacks as on_cancelled_callbacks
 import auto_disc.utils.callbacks.on_error_callbacks as on_error_callbacks
 import auto_disc.utils.callbacks.on_finished_callbacks as on_finished_callbacks
+import auto_disc.utils.callbacks.on_save_callbacks as on_save_callbacks
 import auto_disc.utils.callbacks.on_save_finished_callbacks as on_save_finished_callbacks
 
 REGISTRATION = {
@@ -39,6 +40,11 @@ REGISTRATION = {
         },
         'on_finished':{
             'base': on_finished_callbacks.BaseOnFinishedCallback
+        },
+        'on_saved':{
+            'base': on_save_callbacks.BaseOnSaveCallback,
+            'expeDB': on_save_callbacks.OnSaveExpeDBModulesCallback,
+            'disk': on_save_callbacks.OnSaveModulesOnDiskCallback
         },
         'on_save_finished':{
             'base': on_save_finished_callbacks.BaseOnSaveFinishedCallback

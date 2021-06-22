@@ -53,6 +53,12 @@ class BaseExperiment():
                     'config': {}
                 }
             ],
+            'on_saved': [
+                {
+                    'name' : 'base',
+                    'config': {}
+                }
+            ],
         }
 
     
@@ -71,7 +77,7 @@ class BaseExperiment():
     def on_save(self, seed, current_checkpoint_id):
         # Create new checkpoint if needed
         if len(self.checkpoints_history[current_checkpoint_id]["seeds_done"]) == 0:
-            checkpoint_id = self._on_checkpoint_needed_callback(id, current_checkpoint_id)
+            checkpoint_id = self._on_checkpoint_needed_callback(self.id, current_checkpoint_id)
             self.checkpoints_history[checkpoint_id] = {
                 "seeds_done": [],
                 "parent_id": current_checkpoint_id

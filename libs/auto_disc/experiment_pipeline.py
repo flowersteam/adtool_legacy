@@ -19,7 +19,8 @@ class ExperimentPipeline():
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
     def __init__(self, experiment_id, seed, checkpoint_id, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
-                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[]):
+                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[],
+                  on_save_callbacks=[]):
         self.experiment_id = experiment_id
         self.seed = seed
         self.checkpoint_id = checkpoint_id
@@ -63,6 +64,7 @@ class ExperimentPipeline():
         self._on_save_finished_callbacks = on_save_finished_callbacks
         self._on_finished_callbacks = on_finished_callbacks
         self._on_cancelled_callbacks = on_cancelled_callbacks
+        self._on_save_callbacks = on_save_callbacks
         self.cancellation_token = CancellationToken()
 
     def _process_output(self, output):
@@ -136,20 +138,31 @@ class ExperimentPipeline():
 
             self._explorer.optimize() # TODO callbacks
 
-            if run_idx % self.save_frequency == 0:  
+            if run_idx % self.save_frequency == 0:
+                self._raise_callbacks(
+                    self._on_save_callbacks,
+                    run_idx=run_idx,
+                    seed=self.seed,
+                    experiment_id=self.experiment_id,
+                    checkpoint_id = self.checkpoint_id,
+                    systems=self._system,
+                    explorers=self._explorer,
+                    input_wrappers=self._input_wrappers,
+                    output_representations=self._output_representations
+                )
                 self._raise_callbacks(
                     self._on_save_finished_callbacks,# TODO
+                    run_idx=run_idx,
+                    seed=self.seed,
+                    experiment_id=self.experiment_id,
+                    checkpoint_id = self.checkpoint_id
                 )
 
         self._system.close()
         self._raise_callbacks(
             self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,
             run_idx=run_idx,
-            raw_run_parameters=raw_run_parameters,
-            run_parameters=run_parameters,
-            raw_output=raw_output,
-            output=output,
-            rendered_output=rendered_output,
-            step_observations=step_observations,
-            experiment_id=self.experiment_id
+            seed=self.seed,
+            experiment_id=self.experiment_id,
+            checkpoint_id = self.checkpoint_id
         )

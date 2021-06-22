@@ -9,12 +9,17 @@ class LocalExperiment(BaseExperiment):
         
         self.experiment_config['callbacks']['on_discovery'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_discovery'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
+
+        self.experiment_config['callbacks']['on_saved'][0]['name'] = 'expeDB'
+        self.experiment_config['callbacks']['on_saved'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
+
         additional_callbacks = {
             "on_discovery": [self.on_progress],
             "on_save_finished": [self.on_save],
             "on_finished": [],
             "on_cancelled": [],
             "on_error": [],
+            "on_saved": [],
         }
 
         self._pipelines = []

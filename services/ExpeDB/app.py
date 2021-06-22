@@ -21,7 +21,7 @@ def _get_one_by_filter(collection, filter):
 # LIST
 @app.route('/discoveries', methods=['GET'])
 def list_discoveries():
-    checkpoint_id = request.args.get('checkpoint_id', default=None)
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id:
         discoveries = []
         for discovery in db.discoveries.find({"checkpoint_id": checkpoint_id}):
@@ -76,9 +76,13 @@ def add_discovery_files(id):
 # LIST
 @app.route('/explorers', methods=['GET'])
 def list_explorers():
-    checkpoint_id = request.args.get('checkpoint_id', default=None)
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id:
-        return _get_one_by_filter(db.explorers, {"checkpoint_id": checkpoint_id})
+        explorers = []
+        for explorer in db.explorers.find({"checkpoint_id": checkpoint_id}):
+            explorer['_id'] = str(explorer['_id'])
+            explorers.append(explorer)
+        return make_response(jsonify(explorers), 200)
     else:
         return make_response("You must provide a checkpoint_id in the request args", 403)
 # GET ONE
@@ -126,9 +130,14 @@ def add_explorer_files(id):
 # LIST
 @app.route('/systems', methods=['GET'])
 def list_systems():
-    checkpoint_id = request.args.get('checkpoint_id', default=None)
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id:
-        return _get_one_by_filter(db.systems, {"checkpoint_id": checkpoint_id})
+        systems = []
+        for system in db.systems.find({"checkpoint_id": checkpoint_id}):
+            system['_id'] = str(system['_id'])
+            systems.append(system)
+        return make_response(jsonify(systems), 200)
+        # return _get_one_by_filter(db.systems, {"checkpoint_id": checkpoint_id})
     else:
         return make_response("You must provide a checkpoint_id in the request args", 403)
 
@@ -177,7 +186,7 @@ def add_system_files(id):
 # LIST
 @app.route('/input_wrappers', methods=['GET'])
 def list_input_wrappers():
-    checkpoint_id = request.args.get('checkpoint_id', default=None)
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id:
         input_wrappers = []
         for input_wrapper in db.input_wrappers.find({"checkpoint_id": checkpoint_id}):
@@ -232,7 +241,7 @@ def add_input_wrapper_files(id):
 # LIST
 @app.route('/output_representations', methods=['GET'])
 def list_output_representations():
-    checkpoint_id = request.args.get('checkpoint_id', default=None)
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id:
         output_representations = []
         for output_representation in db.output_representations.find({"checkpoint_id": checkpoint_id}):
