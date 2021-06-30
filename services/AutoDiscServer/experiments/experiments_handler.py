@@ -1,6 +1,7 @@
 from AutoDiscServer.experiments import LocalExperiment
 from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
 import datetime
+from AutoDiscServer.utils import SeedStatusEnum
 
 
 class ExperimentsHandler():
@@ -21,14 +22,14 @@ class ExperimentsHandler():
 #region main functions
     def add_experiment(self, parameters):
         try:
-             #Add experiment in DB and obtain the id
-            exp_date = datetime.datetime.now()
-            exp_date = exp_date.strftime("%Y")+ exp_date.strftime("%m")+ exp_date.strftime("%d")
+            #Add experiment in DB and obtain the id
+            exp_date = datetime.datetime.now().strftime("%Y %m %d %I:%M%p")
             response = self._app_db_caller("/experiments", AppDBMethods.POST, {
                                         "name": parameters['experiment']['name'],
                                         "created_on": exp_date,
                                         "config": parameters['experiment']['config'],
-                                        "progress": 0
+                                        "progress": 0,
+                                        "exp_status": int(SeedStatusEnum.RUNNING) 
                                      })
             id = response.headers["Location"].split(".")
             id = int(id[1])
@@ -37,7 +38,9 @@ class ExperimentsHandler():
             experiment = LocalExperiment(id, parameters, 
                                          self.on_progress_callback,
                                          self.on_checkpoint_needed_callback,
-                                         self.on_checkpoint_finished_callback)
+                                         self.on_checkpoint_finished_callback,
+                                         self.on_checkpoint_update_callback,
+                                         self.on_experiment_update_callback)
 
             # Start the experiment
             experiment.start()
@@ -93,6 +96,7 @@ class ExperimentsHandler():
 
     def list_running_experiments(self):
         return [expe.id for expe in self._experiments]
+
 #endregion
 
 #region callbacks
@@ -117,4 +121,38 @@ class ExperimentsHandler():
         self._app_db_caller("/checkpoints?id=eq.{}&experiment_id=eq.{}".format(checkpoint_id, experiment_id), 
                             AppDBMethods.PATCH, 
                             {"status": int(CheckpointsStatusEnum.DONE)})
+    
+    def on_checkpoint_update_callback(self, seed, checkpoint_id, message, error):
+        r = self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
+            AppDBMethods.GET, {})
+        error_msg = r.json()[0]["error_message"]
+        if error:
+            self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
+                                AppDBMethods.PATCH, 
+                                {"error_message": error_msg +"\n" + message,
+                                "status":3})
+        else:
+            self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
+                                AppDBMethods.PATCH, 
+                                {"error_message": error_msg +"\n" + message})
+    
+    def on_experiment_update_callback(self, experiement_id, param_to_update):
+        """update experiment in db
+        
+        Args:
+            param1 (ExperimentsHandler): class instance
+            param (int): the id of experiment
+            param2 (dict): dict of each value we want update in experiment table in db (key example : "name", "created_on", "config", "progress", "exp_status")
+
+        Returns:
+            response: The response of the request to the database
+        """
+        try:
+            response = self._app_db_caller("/experiments?id=eq.{}".format(experiement_id), AppDBMethods.PATCH, param_to_update)
+            return response
+        except Exception as err:
+            message = "Error when update experiment:" + str(err)
+            raise Exception(message)
+        
+
 #endregion

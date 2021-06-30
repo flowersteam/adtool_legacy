@@ -2,8 +2,13 @@ import sys
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 
+import numpy as np
+import random
+import torch
+
 def create(parameters, additional_callbacks):
     seed = parameters['experiment']['seed']
+    _set_seed(seed)
     experiment_id = parameters['experiment']['id'] 
     checkpoint_id = parameters['experiment']['checkpoint_id']
     save_frequency = parameters['experiment']['save_frequency']
@@ -38,7 +43,8 @@ def create(parameters, additional_callbacks):
         'on_save_finished': [],
         'on_finished': [],
         'on_error': [],
-        'on_cancelled': []
+        'on_cancelled': [],
+        'on_saved':[]
     }
 
     for callback_key in callbacks:
@@ -62,13 +68,25 @@ def create(parameters, additional_callbacks):
         on_discovery_callbacks=callbacks['on_discovery'],
         on_save_finished_callbacks=callbacks['on_save_finished'],
         on_finished_callbacks=callbacks['on_finished'],
-        on_cancelled_callbacks=callbacks['on_cancelled']
+        on_cancelled_callbacks=callbacks['on_cancelled'],
+        on_save_callbacks=callbacks['on_saved'],
+        on_error_callbacks=callbacks['on_error']
     )
 
     return experiment
 
 def start(experiment, nb_iterations):
     experiment.run(nb_iterations)
+
+def _set_seed(seed):
+    seed = int(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+    np.random.seed(seed)  # Numpy module.
+    random.seed(seed)  # Python random module.
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
