@@ -6,6 +6,8 @@ from copy import copy
 class LocalExperiment(BaseExperiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.threading_lock = threading.Lock()
         
         self.experiment_config['callbacks']['on_discovery'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_discovery'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
@@ -16,9 +18,9 @@ class LocalExperiment(BaseExperiment):
         additional_callbacks = {
             "on_discovery": [self.on_progress],
             "on_save_finished": [self.on_save],
-            "on_finished": [],
-            "on_cancelled": [],
-            "on_error": [],
+            "on_finished": [self.on_finished],
+            "on_cancelled": [self.on_cancelled],
+            "on_error": [self.on_error],
             "on_saved": [],
         }
 
@@ -46,4 +48,23 @@ class LocalExperiment(BaseExperiment):
         super().on_progress(kwargs["seed"])
 
     def on_save(self, **kwargs):
-        return super().on_save(kwargs["seed"], kwargs["checkpoint_id"])
+        self.threading_lock.acquire()
+        res = super().on_save(kwargs["seed"], kwargs["checkpoint_id"])
+        self.threading_lock.release()
+        return {"checkpoint_id": res}
+
+    def on_error(self, **kwargs):
+        self.threading_lock.acquire()
+        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"], kwargs["message"])
+        self.threading_lock.release()
+        return res
+
+    def on_finished(self, **kwargs):
+        self.threading_lock.acquire()
+        super().on_finished()
+        self.threading_lock.release()
+    
+    def on_cancelled(self, **kwargs):
+        self.threading_lock.acquire()
+        super().on_cancelled()
+        self.threading_lock.release()

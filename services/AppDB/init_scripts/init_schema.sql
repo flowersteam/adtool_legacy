@@ -3,6 +3,7 @@ CREATE TABLE experiments (
 	name VARCHAR (255) NOT NULL,
 	created_on TIMESTAMP NOT NULL,
 	progress INT NOT NULL,
+	exp_status INT NOT NULL,
 	config jsonb NOT NULL
 );
 CREATE TABLE systems (
@@ -44,7 +45,7 @@ CREATE TABLE checkpoints (
 	experiment_id INT NOT NULL,
 	parent_id INT,
 	status INT NOT NULL,
-	error_message VARCHAR (255) NOT NULL,
+	error_message VARCHAR (8000) NOT NULL,
 	FOREIGN KEY (experiment_id)
     	REFERENCES experiments (id)
 );

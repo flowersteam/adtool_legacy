@@ -69,7 +69,8 @@ def create(parameters, additional_callbacks):
         on_save_finished_callbacks=callbacks['on_save_finished'],
         on_finished_callbacks=callbacks['on_finished'],
         on_cancelled_callbacks=callbacks['on_cancelled'],
-        on_save_callbacks=callbacks['on_saved']
+        on_save_callbacks=callbacks['on_saved'],
+        on_error_callbacks=callbacks['on_error']
     )
 
     return experiment
