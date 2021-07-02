@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
@@ -9,15 +10,19 @@ import { HomeComponent } from './home/home.component';
 import { ExperimentCreationComponent } from './experiment-creation/experiment-creation.component';
 import { ExperimentMonitoringComponent } from './experiment-monitoring/experiment-monitoring.component';
 
+import {FilterPipe} from './pipes/filter.pipe';
+
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     ExperimentCreationComponent,
-    ExperimentMonitoringComponent
+    ExperimentMonitoringComponent,
+    FilterPipe
   ],
   imports: [
     BrowserModule,
+    FormsModule,
     AppRoutingModule,
     HttpClientModule
   ],

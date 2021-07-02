@@ -1,10 +1,21 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-4">
     <div class="container-fluid">
       <div class="text-light">List of experiments</div>
+      <div class="navbar-nav">
+        <button class="btn btn-light mx-2" (click)="sortExperimentsByDate()">Date 
+            <i *ngIf="!sortByDateAsc" class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
+            <i *ngIf="sortByDateAsc" class="bi bi-caret-up-fill me-1" width="16" height="16"></i>
+          </button>
+          <div class="d-flex">
+            <input type="search" class="form-control" id="search-text" aria-describedby="search-text" 
+            [(ngModel)]="searchText" placeholder="Enter text to search" 
+            autofocus>
+          </div>   
+      </div>
     </div>
   </nav>
 <div class="container">
-    <div *ngFor="let experiment of experiments" class="card my-5">
+    <div *ngFor="let experiment of experiments | appFilter:searchText" class="card my-5">
         <div class="card-body">
             <div class="row">
                 <h5 class="card-title col-6">{{experiment.name}}</h5>

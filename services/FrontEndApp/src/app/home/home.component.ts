@@ -11,6 +11,8 @@ import { LightExperiment } from '../entities/light_experiment';
 export class HomeComponent implements OnInit {
 
   experiments: LightExperiment[] = [];
+  sortByDateAsc: boolean = true; 
+  searchText = '';
   
   constructor(private appDBService: AppDbService) { }
 
@@ -20,7 +22,17 @@ export class HomeComponent implements OnInit {
 
   getExperiments(): void {
     this.appDBService.getLightExperiments()
-    .subscribe(experiments => this.experiments = experiments);
+    .subscribe(experiments => {
+      this.experiments = experiments;
+      this.sortExperimentsByDate();
+    });
+  }
+
+  sortExperimentsByDate(): void {
+    this.sortByDateAsc = !this.sortByDateAsc;
+    this.experiments.sort((a, b) => {
+      return this.sortByDateAsc ? +new Date(a.created_on) - +new Date(b.created_on) : +new Date(b.created_on) - +new Date(a.created_on);
+    });
   }
 
 }
