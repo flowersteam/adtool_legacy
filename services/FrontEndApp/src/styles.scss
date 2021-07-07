@@ -1,0 +1,28 @@
+// $theme-colors: (
+//   "primary":    "#AED9E0",
+//   "secondary":  "",
+//   // "success":    $success,
+//   // "info":       $info,
+//   // "warning":    $warning,
+//   // "danger":     $danger,
+//   // "light":      $light,
+//   // "dark":       $dark
+// );
+
+$primary: #AED9E0;
+$secondary: #5E6472;
+$highlighted: #FFA69E;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+#sidebar{
+  height: 100vh;
+}
+
+.text-highlighted{
+  color: $highlighted;
+}
+
+.bg-highlighted{
+  background-color: $highlighted;
+}
