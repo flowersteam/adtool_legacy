@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { AppDbService } from '../services/app-db.service';
-import { LightExperiment } from '../entities/light_experiment';
+import { Experiment } from '../entities/experiment';
 
 @Component({
   selector: 'app-home',
@@ -10,7 +10,7 @@ import { LightExperiment } from '../entities/light_experiment';
 })
 export class HomeComponent implements OnInit {
 
-  experiments: LightExperiment[] = [];
+  experiments: Experiment[] = [];
   sortByDateAsc: boolean = true; 
   searchText = '';
   
