@@ -9,7 +9,7 @@ const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full'},
   { path: 'home', component: HomeComponent },
   { path: 'new-experiment', component: ExperimentCreationComponent },
-  { path: 'experiment', component: ExperimentMonitoringComponent }
+  { path: 'experiment/:id', component: ExperimentMonitoringComponent }
 ];
 
 @NgModule({

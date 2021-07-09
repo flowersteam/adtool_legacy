@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 
-import {LightExperiment} from "../entities/light_experiment";
+import {Experiment} from "../entities/experiment";
 
 import { Observable, of } from 'rxjs';
 
@@ -13,24 +13,46 @@ export class AppDbService {
 
   private appDBUrl = "http://127.0.0.1:3000"
 
-  httpOptions = {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-  };
-
   constructor(private http: HttpClient) { }
 
   /** GET LightExperiments from the AppDB */
-  getLightExperiments(): Observable<LightExperiment[]> {
-    return this.http.get<LightExperiment[]>(
-      this.appDBUrl + "/experiments?select=id,name,created_on,progress,systems(name),explorers(name),input_wrappers(name),output_representations(name)")
+  getLightExperiments(): Observable<Experiment[]> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+
+    return this.http.get<Experiment[]>(
+      this.appDBUrl + 
+      "/experiments?select=id,name,created_on,progress,exp_status," + 
+      "systems(name)," +
+      "explorers(name)," +
+      "input_wrappers(name)," +
+      "output_representations(name)",
+      httpOptions)
       .pipe(
-        map(experiments => experiments.map(
-          experiment => ({
-            ...experiment,
-            status: 0 // Remove this once the status is directly accessible in DB
-          })
-        )),
-        catchError(this.handleError<LightExperiment[]>('getLightExperiments', []))
+        catchError(this.handleError<Experiment[]>('getLightExperiments', []))
+      );
+  }
+
+  getExperimentById(id: number): Observable<Experiment> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.pgrst.object+json' // Get a single json element instead of an array
+      })
+    };
+    return this.http.get<Experiment>(
+      this.appDBUrl + 
+      "/experiments?select=id,name,created_on,progress,exp_status,config," + 
+      "systems(name,config)," +
+      "explorers(name,config)," +
+      "input_wrappers(name,config,index)," +
+      "output_representations(name,config,index)," +
+      "checkpoints(parent_id,status,error_message)" +
+      "&id=eq." + id,
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<Experiment>('getExperiment', undefined))
       );
   }
 

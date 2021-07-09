@@ -11,12 +11,15 @@ import { HomeComponent } from './home/home.component';
 import { ExperimentCreationComponent } from './experiment-creation/experiment-creation.component';
 import { ExperimentMonitoringComponent } from './experiment-monitoring/experiment-monitoring.component';
 
+import {FilterPipe} from './pipes/filter.pipe';
+
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     ExperimentCreationComponent,
-    ExperimentMonitoringComponent
+    ExperimentMonitoringComponent,
+    FilterPipe
   ],
   imports: [
     BrowserModule,

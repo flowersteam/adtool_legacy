@@ -1,1 +1,6 @@
-<p>experiment-monitoring works!</p>
+<div *ngIf="experiment">
+    <h4 class="text-secondary">Name: {{experiment.name}}</h4>
+    <p>Status: {{experiment.exp_status}}</p>
+    <p>Progress: {{experiment.progress}}</p>
+</div>
+<p *ngIf="!experiment" class="text-danger">No such an experiment !</p>

@@ -22,7 +22,7 @@ def _get_one_by_filter(collection, filter):
 @app.route('/discoveries', methods=['GET'])
 def list_discoveries():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id:
+    if checkpoint_id is not None:
         discoveries = []
         for discovery in db.discoveries.find({"checkpoint_id": checkpoint_id}):
             discovery['_id'] = str(discovery['_id'])
@@ -77,7 +77,7 @@ def add_discovery_files(id):
 @app.route('/explorers', methods=['GET'])
 def list_explorers():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id:
+    if checkpoint_id is not None:
         explorers = []
         for explorer in db.explorers.find({"checkpoint_id": checkpoint_id}):
             explorer['_id'] = str(explorer['_id'])
@@ -131,7 +131,7 @@ def add_explorer_files(id):
 @app.route('/systems', methods=['GET'])
 def list_systems():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id:
+    if checkpoint_id is not None:
         systems = []
         for system in db.systems.find({"checkpoint_id": checkpoint_id}):
             system['_id'] = str(system['_id'])
@@ -187,7 +187,7 @@ def add_system_files(id):
 @app.route('/input_wrappers', methods=['GET'])
 def list_input_wrappers():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id:
+    if checkpoint_id is not None:
         input_wrappers = []
         for input_wrapper in db.input_wrappers.find({"checkpoint_id": checkpoint_id}):
             input_wrapper['_id'] = str(input_wrapper['_id'])
@@ -242,7 +242,7 @@ def add_input_wrapper_files(id):
 @app.route('/output_representations', methods=['GET'])
 def list_output_representations():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id:
+    if checkpoint_id is not None:
         output_representations = []
         for output_representation in db.output_representations.find({"checkpoint_id": checkpoint_id}):
             output_representation['_id'] = str(output_representation['_id'])
