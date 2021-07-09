@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
 from AutoDiscServer.experiments import ExperimentsHandler
-from AutoDiscServer.utils import get_auto_disc_registered_modules_info
+from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks
 from auto_disc import REGISTRATION
 
 app = Flask(__name__)
+CORS(app)
 
 # Experiments
 experiments_handler = ExperimentsHandler() # Singleton handling experiments
@@ -71,6 +73,14 @@ def list_input_wrappers():
 @app.route('/discovery-saving-keys', methods=['GET'])
 def list_keys_to_save_on_discovery():
     info = list(REGISTRATION['callbacks']['on_discovery']['base'].SAVABLE_OUTPUTS.keys())
+    return make_response(
+        jsonify(info), 
+    200)
+
+# Callbacks
+@app.route('/callbacks', methods=['GET'])
+def list_callbacks():
+    info = get_auto_disc_registered_callbacks(REGISTRATION['callbacks'])
     return make_response(
         jsonify(info), 
     200)
