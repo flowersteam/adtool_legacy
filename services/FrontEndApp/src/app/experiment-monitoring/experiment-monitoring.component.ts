@@ -13,6 +13,7 @@ import { Experiment } from '../entities/experiment';
 export class ExperimentMonitoringComponent implements OnInit {
 
   experiment: Experiment | undefined;
+  public ellapsed: Number | undefined;
   
   constructor(private appDBService: AppDbService, private route: ActivatedRoute) { }
 
@@ -25,8 +26,10 @@ export class ExperimentMonitoringComponent implements OnInit {
       Number(this.route.snapshot.paramMap.get('id'))
     )
     .subscribe(experiment => {
-      console.log(experiment)
       this.experiment = experiment;
+      if (experiment.exp_status == 1){
+        this.ellapsed = (new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60;
+      }     
     });
   }
 

@@ -1,6 +1,39 @@
-<div *ngIf="experiment">
-    <h4 class="text-secondary">Name: {{experiment.name}}</h4>
-    <p>Status: {{experiment.exp_status}}</p>
-    <p>Progress: {{experiment.progress}}</p>
+<div class="container text-secondary" *ngIf="experiment">
+    <div class="my-4">
+        <h4>Experiment: {{experiment.name}}</h4>
+        <ul>
+            <li>
+                Status: 
+                <span *ngIf="experiment.exp_status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</span>
+                <span *ngIf="experiment.exp_status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>
+                <span *ngIf="experiment.exp_status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</span>
+                <span *ngIf="experiment.exp_status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</span>
+            </li>
+            <li>Creattion date: {{experiment.created_on}}</li>
+            <li>System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}}</li>
+            <li>Explorer: {{experiment.explorers.length > 0 ? experiment.explorers[0].name : 'None'}}</li>
+            <li>Nb of input wrappers: {{experiment.input_wrappers.length}}</li>
+            <li>Nb of output representations: {{experiment.output_representations.length}}</li>
+        </ul>
+        <p>
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseDetails" role="button" aria-expanded="false" aria-controls="collapseDetails">
+                Details <i class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
+            </a>
+        </p>
+        <div class="collapse" id="collapseDetails">
+            <div class="card card-body">
+            TODO: expe details
+            </div>
+        </div>
+    </div>
+    
+    <div class="my-5">
+        <h5>Progress</h5>
+        <p *ngIf="experiment.exp_status == 1">Time ellapsed: {{ellapsed}} minutes</p>
+        <div class="progress col-10">
+            <div class="progress-bar progress-bar-striped" role="progressbar" [style.width.%]="experiment.progress" [attr.aria-valuenow]="experiment.progress" aria-valuemin="0" aria-valuemax="100"
+            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{experiment.progress}}%</div>
+        </div>
+    </div>
 </div>
 <p *ngIf="!experiment" class="text-danger">No such an experiment !</p>
