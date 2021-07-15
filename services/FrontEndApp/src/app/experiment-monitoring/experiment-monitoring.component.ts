@@ -46,6 +46,10 @@ export class ExperimentMonitoringComponent implements OnInit {
     });
   }
 
+  stopExperiment(): void {
+    console.log("Stoppping experiment with id " + this.experiment?.id)
+  }
+
   ngOnDestroy(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
