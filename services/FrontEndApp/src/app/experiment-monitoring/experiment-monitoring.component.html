@@ -49,8 +49,8 @@
     <div class="my-5">
         <h5>Progress</h5>
         <div class="progress col-12" style="height: 25px;">
-            <div class="progress-bar progress-bar-striped" role="progressbar" [style.width.%]="experiment.progress" [attr.aria-valuenow]="experiment.progress" aria-valuemin="0" aria-valuemax="100"
-            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{experiment.progress}}% ({{experiment.config.nb_iterations*experiment.progress/100}} / {{experiment.config.nb_iterations}})</div>
+            <div class="progress-bar progress-bar-striped" role="progressbar" [style.width.%]="progressPercent" [attr.aria-valuenow]="progressPercent" aria-valuemin="0" aria-valuemax="100"
+            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{experiment.progress/experiment.config.nb_iterations*100}}% ({{experiment.progress}} / {{experiment.config.nb_iterations}})</div>
         </div>
         <p *ngIf="experiment.exp_status == 1" class="mt-3">Ellapsed time: {{ellapsed}} hours</p>
         <div *ngIf="experiment.exp_status == 1">
