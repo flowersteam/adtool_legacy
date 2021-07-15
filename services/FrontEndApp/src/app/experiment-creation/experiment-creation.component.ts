@@ -10,6 +10,8 @@ import { ExperimentSettings } from '../entities/experiment_settings';
 import { Callback } from '../entities/callback';
 import { NONE_TYPE } from '@angular/compiler';
 import { FormControl, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { stringify } from '@angular/compiler/src/util';
 // import { NOTINITIALIZED } from 'dns';
 
 @Component({
@@ -22,7 +24,9 @@ export class ExperimentCreationComponent implements OnInit {
   
   // animalControl = new FormControl('', Validators.required);
   // selectFormControl = new FormControl('', Validators.required);
+  objectKeys = Object.keys
 
+  //all modules get with api
   explorers: ExplorerSettings[] = [];
   systems: SystemSettings[] = [];
   input_wrappers: InputWrapperSettings[] = [];
@@ -30,25 +34,18 @@ export class ExperimentCreationComponent implements OnInit {
   discovery_saving_keys: string[] = []
   callbacks: Callback[] = [];
 
-  // isActive = false;
-  exp_name: string = "";
-  nb_iteration: number = 1;
-  nb_seed: number = 1;
-  save_frequency: number = 1;
   discovery_saving_keys_used: { [name: string]: boolean } = {};
-  dsku_list: string[] = []
-  systemUsed: string = "CHOOSE A SYSTEM";
-  explorerUsed: string = "CHOOSE AN EXPLORER";
-  inputWrapperUsed: string = "CHOOSE AN INPUT WRAPPER";
-  outputRepresentationUsed: string = "CHOOSE AN OUTPUT REPRESENTATION";
   
   newExperiment = <ExperimentSettings>{};
+  experiment_id:any = {};
 
   actual_config_elt: any = {};
-
-  // temp
   choice: any = {};
-  constructor(private AutoDiscServerService: AutoDiscServerService) { }
+
+  actualInputWrappersIndex: number = 0;
+  actualOutputRepresentationsIndex: number = 0;
+
+  constructor(private AutoDiscServerService: AutoDiscServerService, private router: Router) { }
 
   ngOnInit(): void {
     this.getExplorers();
@@ -80,10 +77,12 @@ export class ExperimentCreationComponent implements OnInit {
     .subscribe(output_representations => this.output_representations = output_representations);
   }
 
+  // init exp
   getDiscoverySavingKeys(): void {
     this.AutoDiscServerService.getDiscoverySavingKeys()
     .subscribe(discovery_saving_keys => {this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-      this.setDiscoverySavingKeysUsed()});
+      this.setDiscoverySavingKeysUsed(),
+      this.initExp()});
   }
 
   getCallbacks(): void {
@@ -99,42 +98,84 @@ export class ExperimentCreationComponent implements OnInit {
     }
   }
 
-  onCheckboxChange(key: string) {
-    this.discovery_saving_keys_used[key] = !this.discovery_saving_keys_used[key]
+  getDiscoverySavingKeysUsed(){
+    this.newExperiment.experiment.config.discovery_saving_keys = []
+    for (let key in this.discovery_saving_keys_used) {
+      if (this.discovery_saving_keys_used[key]){
+        this.newExperiment.experiment.config.discovery_saving_keys.push(key)
+      }
+    }
   }
 
+  onCheckboxChange(key: string) {
+    this.discovery_saving_keys_used[key] = !this.discovery_saving_keys_used[key]
+    this.getDiscoverySavingKeysUsed()
+  }
+
+  
+
   setSystemUsed(system: string){
-    this.systemUsed = system;
-    console.log(this.systemUsed)
-    console.log(this.systems)
+    this.newExperiment.system.name = system;
+    this.newExperiment.system.config = {}
+    let temp_system_config = this.getModuleByName(this.systems, system).config;
+    for (let item in temp_system_config){
+      this.newExperiment.system.config[item] = temp_system_config[item].default
+    }
+    console.log(this.newExperiment.system.name)
   }
 
   setExplorerUsed(explorer: string){
-    this.explorerUsed = explorer;
-    console.log(this.explorerUsed)
-    console.log(this.explorers)
-  }
-
-  setInputWrapperUsed(inputWrapper: string){
-    this.inputWrapperUsed = inputWrapper;
-    console.log(this.inputWrapperUsed)
-    console.log(this.input_wrappers)
-  }
-
-  setOutputRepresentationUsed(outputRepresentation: string){
-    this.outputRepresentationUsed = outputRepresentation;
-    console.log(this.outputRepresentationUsed)
-    console.log(this.output_representations)
-    this.createExp();
-  }
-
-  getDiscoverySavingKeysUsed(){
-    this.dsku_list = []
-    for (let key in this.discovery_saving_keys_used) {
-      if (this.discovery_saving_keys_used[key]){
-        this.dsku_list.push(key)
-      }
+    this.newExperiment.explorer.name = explorer;
+    this.newExperiment.explorer.config = {}
+    let temp_explorer_config = this.getModuleByName(this.explorers, explorer).config;
+    for (let item in temp_explorer_config){
+      this.newExperiment.explorer.config[item] = temp_explorer_config[item].default
     }
+    console.log(this.newExperiment.explorer.name)
+  }
+
+  setInputWrapperUsed(inputWrapper: string, index: number){
+    this.newExperiment.input_wrappers[index].name = inputWrapper;
+    this.newExperiment.input_wrappers[index].config = {}
+    this.newExperiment.input_wrappers[index].config["wrapped_output_space_key"] = ""
+    let temp_input_wrappers_config = this.getModuleByName(this.input_wrappers, inputWrapper).config;
+    for (let item in temp_input_wrappers_config){
+      this.newExperiment.input_wrappers[index].config[item] = temp_input_wrappers_config[item].default
+    }
+    console.log(this.newExperiment.input_wrappers[index].name)
+  }
+
+  addInputWrapperToUsed(id:number){
+    this.newExperiment.input_wrappers.push({
+      name: "CHOOSE AN INPUT WRAPPER",
+      config: {}
+    })
+  }
+
+  defineActualInputWrappersIndex(index: number){
+    this.actualInputWrappersIndex = index;
+  }
+
+  setOutputRepresentationUsed(outputRepresentation: string, index: number){
+    this.newExperiment.output_representations[index].name = outputRepresentation;
+    this.newExperiment.output_representations[index].config = {}
+    this.newExperiment.output_representations[index].config["wrapped_input_space_key"] = ""
+    let temp_output_representations_config = this.getModuleByName(this.output_representations, outputRepresentation).config;
+    for (let item in temp_output_representations_config){
+      this.newExperiment.output_representations[index].config[item] = temp_output_representations_config[item].default
+    }
+    console.log(this.newExperiment.output_representations[index].name)
+  }
+
+  addOutputRepresentationToUsed(id:number){
+    this.newExperiment.output_representations.push({
+      name: "CHOOSE AN OUTPUT REPRESENTATION",
+      config: {}
+    })
+  }
+
+  defineActualOutputWrappersIndex(index: number){
+    this.actualOutputRepresentationsIndex = index;
   }
 
 
@@ -154,43 +195,54 @@ export class ExperimentCreationComponent implements OnInit {
     return(Math.trunc((this.actual_config_elt.max - this.actual_config_elt.min)/20))
   }
 
-
-// ##################   create exp ####################    
-  createExp(){
-    this.getDiscoverySavingKeysUsed()
+  
+  // ################ init exp #################
+  initExp(){
+    // general config part
     this.newExperiment.experiment = {
-      "name": this.exp_name,
+      name: "unnamed-exp",
       config: {
-        nb_iterations:this.nb_iteration,
-        nb_seeds: this.nb_seed,
-        save_frequency: this.save_frequency,
-        discovery_saving_keys: this.dsku_list
+        nb_iterations:1,
+        nb_seeds:1,
+        save_frequency:1,
       }
     }
+    this.getDiscoverySavingKeysUsed()
+
+    //system part
     this.newExperiment.system = {
-      "name": this.systemUsed,
+      name: "CHOOSE A SYSTEM",
       config: {}
     }
+
     this.newExperiment.explorer = {
-      "name": this.explorerUsed,
+      name: "CHOOSE AN EXPLORER",
       config: {}
     }
+
     this.newExperiment.input_wrappers = []
     this.newExperiment.input_wrappers.push({
-      "name": this.inputWrapperUsed,
+      name: "CHOOSE AN INPUT WRAPPER",
       config: {
         "wrapped_output_space_key": "init_state"
       }
     })
+
     this.newExperiment.output_representations = []
     this.newExperiment.output_representations.push({
-      "name": this.outputRepresentationUsed,
+      name: "CHOOSE AN OUTPUT REPRESENTATION",
       config: {}
     })
     this.newExperiment.callbacks = []
-    // let my_exp = JSON.stringify(this.newExperiment)
-    // console.log(my_exp)
-    this.AutoDiscServerService.createExp(this.newExperiment).subscribe();
+
+  }
+
+
+// ##################   create exp ####################    
+  createExp(){
+    console.log(this.newExperiment)
+    this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {this.experiment_id = res["ID"], 
+    this.router.navigate(["/experiment/"+this.experiment_id.toString()])});
   }
 
 }
