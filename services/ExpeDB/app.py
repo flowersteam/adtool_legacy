@@ -67,7 +67,7 @@ def add_discovery_files(id):
             updates_to_do['$set'][file_name] = str(file_id)
         # Add GridFS ids and filenames to discovery
         db.discoveries.update_one({"_id": discovery["_id"]}, updates_to_do)
-        return make_response(jsonify({"OK"}), 200)
+        return make_response(jsonify({'success':True}), 200)
     else:
         return make_response("No discovery found with id {}".format(id), 403)
 
@@ -121,7 +121,7 @@ def add_explorer_files(id):
             updates_to_do['$set'][file_name] = str(file_id)
         # Add GridFS ids and filenames to explorer
         db.explorers.update_one({"_id": explorer["_id"]}, updates_to_do)
-        return make_response(jsonify({"OK"}), 200)
+        return make_response(jsonify({'success':True}), 200)
     else:
         return make_response("No explorer found with id {}".format(id), 403)
 
@@ -177,7 +177,7 @@ def add_system_files(id):
             updates_to_do['$set'][file_name] = str(file_id)
         # Add GridFS ids and filenames to system
         db.systems.update_one({"_id": system["_id"]}, updates_to_do)
-        return make_response(jsonify({"OK"}), 200)
+        return make_response(jsonify({'success':True}), 200)
     else:
         return make_response("No system found with id {}".format(id), 403)
 
@@ -232,7 +232,7 @@ def add_input_wrapper_files(id):
             updates_to_do['$set'][file_name] = str(file_id)
         # Add GridFS ids and filenames to input_wrapper
         db.input_wrappers.update_one({"_id": input_wrapper["_id"]}, updates_to_do)
-        return make_response(jsonify({"OK"}), 200)
+        return make_response(jsonify({'success':True}), 200)
     else:
         return make_response("No input_wrapper found with id {}".format(id), 403)
 
@@ -287,7 +287,7 @@ def add_output_representation_files(id):
             updates_to_do['$set'][file_name] = str(file_id)
         # Add GridFS ids and filenames to output_representation
         db.output_representations.update_one({"_id": output_representation["_id"]}, updates_to_do)
-        return make_response(jsonify({"OK"}), 200)
+        return make_response(jsonify({'success':True}), 200)
     else:
         return make_response("No output_representation found with id {}".format(id), 403)
 
