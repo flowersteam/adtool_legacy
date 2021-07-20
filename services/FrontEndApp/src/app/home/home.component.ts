@@ -23,6 +23,7 @@ export class HomeComponent implements OnInit {
   getExperiments(): void {
     this.appDBService.getLightExperiments()
     .subscribe(experiments => {
+      this.sortByDateAsc = true; 
       this.experiments = experiments;
       this.sortExperimentsByDate();
     });

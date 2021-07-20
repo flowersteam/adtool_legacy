@@ -23,7 +23,7 @@ class ExperimentsHandler():
     def add_experiment(self, parameters):
         try:
             #Add experiment in DB and obtain the id
-            exp_date = datetime.datetime.now().strftime("%Y %m %d %I:%M%p")
+            exp_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M %Z")
             response = self._app_db_caller("/experiments", AppDBMethods.POST, {
                                         "name": parameters['experiment']['name'],
                                         "created_on": exp_date,
@@ -126,15 +126,19 @@ class ExperimentsHandler():
         r = self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
             AppDBMethods.GET, {})
         error_msg = r.json()[0]["error_message"]
+        error_msg = error_msg +"\n" + message
+        if len(error_msg) > 8000: # Cut message to match varchar length of AppDB
+            error_msg = error_msg[:7997] + '...'
+
         if error:
             self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
                                 AppDBMethods.PATCH, 
-                                {"error_message": error_msg +"\n" + message,
-                                "status":3})
+                                {"error_message": error_msg,
+                                "status":int(CheckpointsStatusEnum.ERROR)})
         else:
             self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
                                 AppDBMethods.PATCH, 
-                                {"error_message": error_msg +"\n" + message})
+                                {"error_message": error_msg})
     
     def on_experiment_update_callback(self, experiement_id, param_to_update):
         """update experiment in db

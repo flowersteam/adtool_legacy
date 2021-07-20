@@ -1,6 +1,93 @@
-<div *ngIf="experiment">
-    <h4 class="text-secondary">Name: {{experiment.name}}</h4>
-    <p>Status: {{experiment.exp_status}}</p>
-    <p>Progress: {{experiment.progress}}</p>
+<div class="container text-secondary" *ngIf="experiment">
+    <div class="my-4">
+        <div class="row">
+            <h4 class="col-6">Experiment: {{experiment.name}}</h4>
+            <div class="col-6 text-end">
+                <button class="btn btn-light text-secondary mx-1" (click)="getExperiment()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
+                <button class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
+                    <i class="bi bi-gear-fill me-1" width="16" height="16"></i>
+                </button>
+                <div class="collapse" id="collapseSettings">
+                    <div class="card card-body">
+                        <div class="form-group row">
+                            <label class="col-2 col-form-label" for="autoRefreshSeconds">Seconds:</label>
+                            <div class="col-8">
+                                <input type="text" class="form-control" name="autoRefreshSeconds" required
+                                [(ngModel)]="autoRefreshSeconds">  
+                            </div>
+                            <button class="btn btn-light text-secondary col-2" (click)="resetAutoRefresh()"><i class="bi bi-check me-1" width="16" height="16"></i></button>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ul>
+            <li>
+                Status: 
+                <span *ngIf="experiment.exp_status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</span>
+                <span *ngIf="experiment.exp_status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>
+                <span *ngIf="experiment.exp_status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</span>
+                <span *ngIf="experiment.exp_status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</span>
+            </li>
+            <li>Creation date: {{experiment.created_on}}</li>
+            <li>System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}}</li>
+            <li>Explorer: {{experiment.explorers.length > 0 ? experiment.explorers[0].name : 'None'}}</li>
+            <li>Nb of input wrappers: {{experiment.input_wrappers.length}}</li>
+            <li>Nb of output representations: {{experiment.output_representations.length}}</li>
+        </ul>
+        <button class="btn btn-primary" data-bs-toggle="collapse" href="#collapseDetails" role="button" aria-expanded="false" aria-controls="collapseDetails">
+            Details <i class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
+        </button>
+        <div class="collapse" id="collapseDetails">
+            <div class="card card-body mt-3">
+            TODO: expe details
+            </div>
+        </div>
+    </div>
+    
+    <div class="my-5">
+        <h5>Progress</h5>
+        <div class="progress col-12" style="height: 25px;">
+            <div class="progress-bar progress-bar-striped" role="progressbar" [style.width.%]="progressPercent" [attr.aria-valuenow]="progressPercent" aria-valuemin="0" aria-valuemax="100"
+            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{experiment.progress/experiment.config.nb_iterations*100}}% ({{experiment.progress}} / {{experiment.config.nb_iterations}})</div>
+        </div>
+        <p *ngIf="experiment.exp_status == 1" class="mt-3">Ellapsed time: {{ellapsed}} hours</p>
+        <div *ngIf="experiment.exp_status == 1">
+            <button class="btn btn-light bg-danger text-white" role="button" (click)="stopExperiment()">
+                <i class="bi bi-square-fill me-1" width="16" height="16"></i> Stop / Cancel 
+            </button>
+        </div>
+        <div>
+            <button class="btn btn-primary mt-3" data-bs-toggle="collapse" href="#collapseCheckpoints" role="button" aria-expanded="false" aria-controls="collapseCheckpoints">
+                Details <i class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
+            </button>
+        </div>
+        
+        <div class="collapse" id="collapseCheckpoints">
+            <div class="accordion mt-3" id="accordionCheckpoints">
+                <div *ngFor="let checkpoint of experiment.checkpoints" class="accordion-item">
+                  <h2 class="accordion-header" [attr.id]="'accordionCheckpoints-heading' + checkpoint.id">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#accordionCheckpoints-collapse' + checkpoint.id" aria-expanded="false" aria-controls="accordionCheckpoints-collapseOne">
+                      ID: {{checkpoint.id}}
+                    </button>
+                  </h2>
+                  <div [attr.id]="'accordionCheckpoints-collapse' + checkpoint.id" class="accordion-collapse collapse" [attr.aria-labelledby]="'accordionCheckpoints-heading' + checkpoint.id">
+                    <div class="accordion-body">
+                      <ul>
+                          <li>Status: 
+                                <span *ngIf="checkpoint.status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</span>
+                                <span *ngIf="checkpoint.status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>
+                                <span *ngIf="checkpoint.status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</span>
+                                <span *ngIf="checkpoint.status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</span>
+                            </li>
+                          <li *ngIf="checkpoint.status == 3">Error: {{checkpoint.error_message}}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <p *ngIf="!experiment" class="text-danger">No such an experiment !</p>

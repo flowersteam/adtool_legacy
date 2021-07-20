@@ -81,6 +81,12 @@ export class AutoDiscServerService {
       );
   }
 
+  stopExperiment(id: number): Observable<any>{
+    return this.http.delete<string>(this.autodiscServerUrl + "/experiments/" + id).pipe(
+      catchError(this.handleError<string>('stopExperiment'))
+      );
+  }
+
   /**
    * Handle Http operation that failed.
    * Let the app continue.
