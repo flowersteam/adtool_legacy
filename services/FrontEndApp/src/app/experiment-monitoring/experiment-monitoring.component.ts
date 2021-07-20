@@ -19,6 +19,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
   public autoRefreshSeconds: number = 30;
+  objectKeys = Object.keys;
   
   constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute) { }
 

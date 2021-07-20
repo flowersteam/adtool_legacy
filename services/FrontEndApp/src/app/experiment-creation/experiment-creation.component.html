@@ -11,13 +11,13 @@
 
 
         <!-- general information accordion -->
-        <div class="accordion-item my-5 border-secondary">
+        <div class="accordion-item mt-5">
             <h2 class="accordion-header" id="headingOne">
             <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                 GENERAL INFORMATION
             </button>
             </h2>
-            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne">
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne">
                 <div class="accordion-body">
                     <label class="card-title col-12" for="experiment_name">Enter the exeperiment name:</label>
                     <input type="text" class="form-control" id="experiment_name" placeholder="My beautifull new experiment" 
@@ -35,7 +35,7 @@
                     <input type="number" min="1" class="form-control" id="save_frequency"
                     [(ngModel)]="this.newExperiment.experiment.config.save_frequency">
     
-                    <h5 class="card-title col-12">What do you want to save</h5>
+                    <h5 class="card-title col-12 mt-5">What do you want to save</h5>
                 
                     <div *ngFor="let discovery_saving_key_used of discovery_saving_keys_used | keyvalue" class="card my-3">
                         <div class="card-body">
@@ -55,7 +55,7 @@
 
 
         <!-- system accordion -->
-        <div class="accordion-item my-5 border-secondary">
+        <div class="accordion-item">
             <h2 class="accordion-header" id="headingTwo">
                 <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
                 SYSTEM
@@ -116,7 +116,7 @@
 
 
         <!-- explorer accordion -->
-        <div class="accordion-item my-5 border-secondary">
+        <div class="accordion-item">
             <h2 class="accordion-header" id="headingExplorer">
                 <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="true" aria-controls="collapseExplorer">
                 Explorer
@@ -161,7 +161,7 @@
 
         <!-- input-wrapper accordion -->
         
-        <div class="accordion-item my-5 border-secondary">
+        <div class="accordion-item">
             <h2 class="accordion-header" id="headingInputWrapper">
                 <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="true" aria-controls="collapseInputWrapper">
                 InputWrapper
@@ -259,7 +259,7 @@
 
         <!-- output-representation accordion -->
         
-        <div class="accordion-item my-5 border-secondary">
+        <div class="accordion-item mb-5">
             <h2 class="accordion-header" id="headingOutputRepresentation">
                 <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="true" aria-controls="collapseOutputRepresentation">
                 OutputRepresentation
