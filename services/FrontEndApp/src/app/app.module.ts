@@ -12,6 +12,7 @@ import { ExperimentCreationComponent } from './experiment-creation/experiment-cr
 import { ExperimentMonitoringComponent } from './experiment-monitoring/experiment-monitoring.component';
 
 import {FilterPipe} from './pipes/filter.pipe';
+import { DragDropModule }from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import {FilterPipe} from './pipes/filter.pipe';
     CommonModule,
     FormsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    DragDropModule
   ],
   providers: [],
   bootstrap: [AppComponent]
