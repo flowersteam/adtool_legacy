@@ -1,7 +1,7 @@
 from addict import Dict
 from auto_disc.explorers import BaseExplorer
 
-from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
+from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter, BooleanConfigParameter
 
 import torch
 from torch import nn
@@ -12,7 +12,8 @@ from copy import deepcopy
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
 @StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function", None], default="random")
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
-@IntegerConfigParameter(name="use_exandable_goal_sapce", default=1, min=0, max=1)
+@BooleanConfigParameter(name="use_exandable_goal_space", default=True)
+
 class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
@@ -102,7 +103,7 @@ class IMGEPExplorer(BaseExplorer):
 
     def archive(self, parameters, observations):
         self.goal_library = torch.cat([self.goal_library, observations.reshape(1,-1)])
-        if bool(self.config.use_exandable_goal_sapce):
+        if self.config.use_exandable_goal_space:
             self.expand_box_goal_space(self._input_space, observations)
 
     def optimize(self):

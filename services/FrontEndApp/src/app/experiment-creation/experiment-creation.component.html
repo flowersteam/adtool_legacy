@@ -86,6 +86,11 @@
                             <!-- type float -->
                             <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
                                     class="form-control" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
+                            <!-- type boolean -->
+                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
+                                Yes : 
+                                <input type="checkbox" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
+                            </label>
                             <!-- type string -->
                             <div *ngIf="this.actual_config_elt.type == 'STRING'" class="dropdown">
                                 <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
@@ -146,6 +151,11 @@
                             <!-- type float -->
                             <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
                                     class="form-control" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
+                            <!-- type boolean -->
+                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
+                                Yes : 
+                                <input type="checkbox" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
+                            </label>
                             <!-- type string -->
                             <div *ngIf="this.actual_config_elt.type == 'STRING'" class="dropdown">
                                 <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
@@ -213,6 +223,11 @@
                                             <!-- type float -->
                                             <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
                                                     class="form-control" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
+                                            <!-- type boolean -->
+                                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
+                                                Yes : 
+                                                <input type="checkbox" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
+                                            </label>
                                             <!-- type string -->
                                             <div *ngIf="this.actual_config_elt.type == 'STRING'" class="dropdown">
                                                 <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
@@ -311,6 +326,11 @@
                                             <!-- type float -->
                                             <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
                                                     class="form-control" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
+                                            <!-- type boolean -->
+                                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
+                                                Yes : 
+                                                <input type="checkbox" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
+                                            </label>
                                             <!-- type string -->
                                             <div *ngIf="this.actual_config_elt.type == 'STRING'" class="dropdown">
                                                 <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
