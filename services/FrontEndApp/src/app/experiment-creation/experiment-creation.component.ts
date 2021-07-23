@@ -11,8 +11,7 @@ import { Callback } from '../entities/callback';
 import { NONE_TYPE } from '@angular/compiler';
 import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { stringify } from '@angular/compiler/src/util';
-// import { NOTINITIALIZED } from 'dns';
+import { CdkDragDrop, DragDropModule, moveItemInArray }from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-experiment-creation',
@@ -22,9 +21,8 @@ import { stringify } from '@angular/compiler/src/util';
 
 export class ExperimentCreationComponent implements OnInit {
   
-  // animalControl = new FormControl('', Validators.required);
   // selectFormControl = new FormControl('', Validators.required);
-  objectKeys = Object.keys
+  objectKeys = Object.keys;
 
   //all modules get with api
   explorers: ExplorerSettings[] = [];
@@ -40,10 +38,6 @@ export class ExperimentCreationComponent implements OnInit {
   experiment_id:any = {};
 
   actual_config_elt: any = {};
-  choice: any = {};
-
-  actualInputWrappersIndex: number = 0;
-  actualOutputRepresentationsIndex: number = 0;
 
   constructor(private AutoDiscServerService: AutoDiscServerService, private router: Router) { }
 
@@ -93,8 +87,7 @@ export class ExperimentCreationComponent implements OnInit {
 
   setDiscoverySavingKeysUsed():void{
   for (let key of this.discovery_saving_keys) {
-      this.discovery_saving_keys_used[key.toString()] = true;
-      
+      this.discovery_saving_keys_used[key.toString()] = true;   
     }
   }
 
@@ -121,7 +114,6 @@ export class ExperimentCreationComponent implements OnInit {
     for (let item in temp_system_config){
       this.newExperiment.system.config[item] = temp_system_config[item].default
     }
-    console.log(this.newExperiment.system.name)
   }
 
   setExplorerUsed(explorer: string){
@@ -131,51 +123,36 @@ export class ExperimentCreationComponent implements OnInit {
     for (let item in temp_explorer_config){
       this.newExperiment.explorer.config[item] = temp_explorer_config[item].default
     }
-    console.log(this.newExperiment.explorer.name)
   }
 
-  setInputWrapperUsed(inputWrapper: string, index: number){
-    this.newExperiment.input_wrappers[index].name = inputWrapper;
-    this.newExperiment.input_wrappers[index].config = {}
-    this.newExperiment.input_wrappers[index].config["wrapped_output_space_key"] = ""
+  addNewInputWrapperToUsed(inputWrapper: string){
+    this.newExperiment.input_wrappers.push({
+      name: inputWrapper,
+      config: {wrapped_output_space_key:"empty"}
+    })
     let temp_input_wrappers_config = this.getModuleByName(this.input_wrappers, inputWrapper).config;
     for (let item in temp_input_wrappers_config){
-      this.newExperiment.input_wrappers[index].config[item] = temp_input_wrappers_config[item].default
+      this.newExperiment.input_wrappers[this.newExperiment.input_wrappers.length - 1].config[item] = temp_input_wrappers_config[item].default
     }
-    console.log(this.newExperiment.input_wrappers[index].name)
   }
 
-  addInputWrapperToUsed(id:number){
-    this.newExperiment.input_wrappers.push({
-      name: "CHOOSE AN INPUT WRAPPER",
-      config: {}
-    })
+  removeInputwrapperToUsed(index: number){
+    this.newExperiment.input_wrappers.splice(index, 1);
   }
 
-  defineActualInputWrappersIndex(index: number){
-    this.actualInputWrappersIndex = index;
-  }
-
-  setOutputRepresentationUsed(outputRepresentation: string, index: number){
-    this.newExperiment.output_representations[index].name = outputRepresentation;
-    this.newExperiment.output_representations[index].config = {}
-    this.newExperiment.output_representations[index].config["wrapped_input_space_key"] = ""
-    let temp_output_representations_config = this.getModuleByName(this.output_representations, outputRepresentation).config;
-    for (let item in temp_output_representations_config){
-      this.newExperiment.output_representations[index].config[item] = temp_output_representations_config[item].default
-    }
-    console.log(this.newExperiment.output_representations[index].name)
-  }
-
-  addOutputRepresentationToUsed(id:number){
+  addNewOutputRepresentationToUsed(outputRepresentation: string){
     this.newExperiment.output_representations.push({
-      name: "CHOOSE AN OUTPUT REPRESENTATION",
-      config: {}
+      name: outputRepresentation,
+      config: {wrapped_input_space_key:"empty"}
     })
+    let temp_output_representation_config = this.getModuleByName(this.output_representations, outputRepresentation).config;
+    for (let item in temp_output_representation_config){
+      this.newExperiment.output_representations[this.newExperiment.output_representations.length - 1].config[item] = temp_output_representation_config[item].default
+    }
   }
 
-  defineActualOutputWrappersIndex(index: number){
-    this.actualOutputRepresentationsIndex = index;
+  removeOutputRepresentationToUsed(index: number){
+    this.newExperiment.output_representations.splice(index, 1);
   }
 
 
@@ -221,26 +198,24 @@ export class ExperimentCreationComponent implements OnInit {
     }
 
     this.newExperiment.input_wrappers = []
-    this.newExperiment.input_wrappers.push({
-      name: "CHOOSE AN INPUT WRAPPER",
-      config: {
-        "wrapped_output_space_key": "init_state"
-      }
-    })
-
     this.newExperiment.output_representations = []
-    this.newExperiment.output_representations.push({
-      name: "CHOOSE AN OUTPUT REPRESENTATION",
-      config: {}
-    })
     this.newExperiment.callbacks = []
 
   }
 
+  drop(event: CdkDragDrop<string[]>, my_dragdrop_array: any[]) {
+    moveItemInArray(my_dragdrop_array, event.previousIndex, event.currentIndex);
+  }
+
+  consolelog(index: any){
+    console.log(index)
+    // for(let i of index){
+    //   console.log(i)
+    // }
+  }
 
 // ##################   create exp ####################    
   createExp(){
-    console.log(this.newExperiment)
     this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {this.experiment_id = res["ID"], 
     this.router.navigate(["/experiment/"+this.experiment_id.toString()])});
   }
