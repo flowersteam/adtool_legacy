@@ -1,4 +1,3 @@
-from AutoDiscServer import experiments
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 import torch

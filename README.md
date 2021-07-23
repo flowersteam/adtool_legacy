@@ -10,7 +10,7 @@ Please follow these instructions when contributing on the project.
 2. Create *autoDiscTool* conda environment: `conda env create -f libs/auto_disc/environment.yml `
 3. Activate *autoDiscTool* conda environment: `conda activate autoDiscTool`
 #### AutoDiscServer
-1. Install flask: `pip install flask`
+1. Install flask: `pip install AutoDiscServer/requirements.txt`
 ### App DB & Expe DB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
