@@ -30,14 +30,14 @@ Please attach every commit to an issue or a merge request. For issues, add #ID a
 ## Startinig the project
 Go to the `services` folder: `cd services`.
 #### AutoDiscServer
-Launch the flask server: `python services/AutoDiscServer/app.py`.
+Launch the flask server: `python -m AutoDiscServer.app`.
 #### App DB
 Start services: `docker-compose up app-db-api`
 Add `-d` option for daemon.
 #### Expe DB
 Start service: `docker-compose up expe-db`
 Add `-d` option for daemon.
-Launch flask server for the REST API: `python services/ExpeDB/app.py`
+Launch flask server for the REST API: `python ExpeDB/app.py`
 #### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
 Start the angular app: `ng serve`.
