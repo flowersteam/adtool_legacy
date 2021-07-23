@@ -19,6 +19,8 @@ Please follow these instructions when contributing on the project.
 5. Install the Expe DB REST API requirements: `pip install ExpeDB/requirements.txt`
 ### Front-end app
 1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
+2. Enter the front-end app folder: `cd services/FrontEndApp`.
+3. Install required packages: `npm install`
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
@@ -27,7 +29,7 @@ Please follow these instructions when contributing on the project.
 ### Commits
 Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
 
-## Startinig the project
+## Starting the project
 Go to the `services` folder: `cd services`.
 #### AutoDiscServer
 Launch the flask server: `python -m AutoDiscServer.app`.
