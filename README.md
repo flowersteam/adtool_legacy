@@ -10,7 +10,7 @@ Please follow these instructions when contributing on the project.
 2. Create *autoDiscTool* conda environment: `conda env create -f libs/auto_disc/environment.yml `
 3. Activate *autoDiscTool* conda environment: `conda activate autoDiscTool`
 #### AutoDiscServer
-1. Install flask: `pip install flask`
+1. Install flask: `pip install AutoDiscServer/requirements.txt`
 ### App DB & Expe DB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
@@ -19,6 +19,8 @@ Please follow these instructions when contributing on the project.
 5. Install the Expe DB REST API requirements: `pip install ExpeDB/requirements.txt`
 ### Front-end app
 1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
+2. Enter the front-end app folder: `cd services/FrontEndApp`.
+3. Install required packages: `npm install`
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
@@ -27,17 +29,17 @@ Please follow these instructions when contributing on the project.
 ### Commits
 Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
 
-## Startinig the project
+## Starting the project
 Go to the `services` folder: `cd services`.
 #### AutoDiscServer
-Launch the flask server: `python services/AutoDiscServer/app.py`.
+Launch the flask server: `python -m AutoDiscServer.app`.
 #### App DB
 Start services: `docker-compose up app-db-api`
 Add `-d` option for daemon.
 #### Expe DB
 Start service: `docker-compose up expe-db`
 Add `-d` option for daemon.
-Launch flask server for the REST API: `python services/ExpeDB/app.py`
+Launch flask server for the REST API: `python ExpeDB/app.py`
 #### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
 Start the angular app: `ng serve`.
