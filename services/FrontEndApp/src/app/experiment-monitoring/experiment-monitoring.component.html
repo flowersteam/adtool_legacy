@@ -46,7 +46,7 @@
                     <!-- system accordion -->
                     <div class="accordion-item mt-2">
                         <h2 class="accordion-header" id="headingSystem">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
                             SYSTEM
                         </button>
                         </h2>
@@ -63,7 +63,7 @@
                     <!-- explorer accordion -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingExplorer">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="false" aria-controls="collapseExplorer">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="false" aria-controls="collapseExplorer">
                             Explorer
                         </button>
                         </h2>
@@ -80,7 +80,7 @@
                     <!-- input wrappers accordion -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingInputWrapper">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="false" aria-controls="collapseInputWrapper">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="false" aria-controls="collapseInputWrapper">
                             InputWrapper
                         </button>
                         </h2>
@@ -99,7 +99,7 @@
                     <!-- output representation accordion -->
                     <div class="accordion-item mb-2">
                         <h2 class="accordion-header" id="headingOutputRepresentation">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="false" aria-controls="collapseOutputRepresentation">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="false" aria-controls="collapseOutputRepresentation">
                             OutputRepresentation
                         </button>
                         </h2>
@@ -114,6 +114,23 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- what you saved accordion -->
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="headingWhatYouSaved">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatYouSaved" aria-expanded="false" aria-controls="collapseWhatYouSaved">
+                            What You Saved
+                        </button>
+                        </h2>
+                        <div id="collapseWhatYouSaved" class="accordion-collapse collapse" aria-labelledby="headingWhatYouSaved">
+                            <div class="accordion-body text-secondary">
+                                <div *ngFor="let discovery_saving_keys of this.experiment.config.discovery_saving_keys | keyvalue">
+                                        <li>{{discovery_saving_keys.value}}</li>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
