@@ -15,7 +15,7 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   experiment: Experiment | undefined;
   public ellapsed: string | undefined;
-  public progressPercent:number = 0;
+  public progressPercent:string = "0";
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
   public autoRefreshSeconds: number = 30;
@@ -42,7 +42,8 @@ export class ExperimentMonitoringComponent implements OnInit {
     )
     .subscribe(experiment => {
       this.experiment = experiment;
-      this.progressPercent = this.experiment.progress/experiment.config.nb_iterations*100;
+      this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
+      this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
       if (experiment.exp_status == 1){
         this.ellapsed = ((new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
       }     
