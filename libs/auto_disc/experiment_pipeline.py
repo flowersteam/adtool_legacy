@@ -1,3 +1,4 @@
+from copy import Error
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 import torch
@@ -97,6 +98,10 @@ class ExperimentPipeline():
         system_steps = [0]
         try:
             while run_idx < n_exploration_runs:
+                ##### REMOVE #####
+                if self.seed == 0: 
+                    raise Exception("TEST ERROR")
+                ##### REMOVE #####
                 if self.cancellation_token.get():
                     break
 
@@ -173,6 +178,8 @@ class ExperimentPipeline():
                 checkpoint_id = self.checkpoint_id,
                 message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
             )
+            raise
+
         self._system.close()
         self._raise_callbacks(
             self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,
