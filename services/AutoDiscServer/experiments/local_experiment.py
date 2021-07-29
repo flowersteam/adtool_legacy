@@ -61,10 +61,10 @@ class LocalExperiment(BaseExperiment):
 
     def on_finished(self, **kwargs):
         self.threading_lock.acquire()
-        super().on_finished()
+        super().on_finished(kwargs["seed"])
         self.threading_lock.release()
     
     def on_cancelled(self, **kwargs):
         self.threading_lock.acquire()
-        super().on_cancelled()
+        super().on_cancelled(kwargs["seed"])
         self.threading_lock.release()
