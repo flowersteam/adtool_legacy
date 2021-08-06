@@ -18,7 +18,7 @@ class CppnInputWrapper(BaseInputWrapper):
     def __init__(self, wrapped_output_space_key):
         super().__init__(wrapped_output_space_key)
 
-    def map(self, parameters, **kwargs):
+    def map(self, parameters, is_input_new_discovery, **kwargs):
         cppn_genome = parameters['genome']
         initialization_cppn = pytorchneat.rnn.RecurrentNetwork.create(cppn_genome, self.input_space['genome'].neat_config)
 

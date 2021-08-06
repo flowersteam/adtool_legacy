@@ -1,12 +1,9 @@
-from addict import Dict
+from auto_disc import BaseAutoDiscModule
 
-class BaseExplorer ():
+class BaseExplorer (BaseAutoDiscModule):
     '''
     Base class for explorers.
     '''
-
-    CONFIG_DEFINITION = {}
-    config = Dict()
 
     def initialize(self, input_space, output_space, input_distance_fn):
         '''

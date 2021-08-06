@@ -19,7 +19,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
     def __init__(self, wrapped_input_space_key=None):
         super().__init__('states')
 
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery):
         """
             Maps the observations of a system to an embedding vector
             Return a torch tensor

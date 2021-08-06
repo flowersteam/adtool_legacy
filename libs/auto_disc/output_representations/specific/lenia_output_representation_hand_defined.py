@@ -233,6 +233,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
                                 'activation_flusser13'
                                 ]
         self.n_latents = len(self.statistic_names)
+        self.i = 0
 
     def calc_static_statistics(self, final_obs):
         '''Calculates the final statistics for lenia last observation'''
@@ -347,11 +348,16 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
         return feature_vector
     
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery):
         """
             Maps the observations of a system to an embedding vector
             Return a torch tensor
         """
+        # if is_output_new_discovery:
+        #     self.i += 1
+        #     if self.i != 0 and self.i % 10 == 0:
+        #         self._call_output_history_update()
+
         embedding = self.calc_static_statistics(observations.states[-1])
 
         return embedding

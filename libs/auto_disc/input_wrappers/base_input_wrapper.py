@@ -1,13 +1,11 @@
-from addict import Dict
+from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
-class BaseInputWrapper():
+class BaseInputWrapper(BaseAutoDiscModule):
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
     
-    CONFIG_DEFINITION = {}
-    config = Dict()
     input_space = DictSpace()
 
     def __init__(self, wrapped_output_space_key=None):
@@ -22,5 +20,5 @@ class BaseInputWrapper():
             if key != self.wrapped_output_space_key:
                 self.input_space[key] = output_space[key]
 
-    def map(self, parameters, **kwargs):
+    def map(self, parameters, is_input_new_discovery, **kwargs):
         raise NotImplementedError
