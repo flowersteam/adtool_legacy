@@ -1,6 +1,9 @@
 experiment_results/*
 tmp_output_results/*
 
+### PYCHARM
+.idea/
+
 ### VSCODE
 .vscode/
 
