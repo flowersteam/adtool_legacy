@@ -1,9 +1,12 @@
 from copy import copy
+import traceback
+
+import torch
+
+from auto_disc import BaseAutoDiscModule
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
-import torch
-import traceback
 
 
 class CancellationToken:
@@ -213,11 +216,9 @@ class ExperimentPipeline():
                     checkpoint_id = self.checkpoint_id
                 )
 
-                run_idx += 1
-
                 self._explorer.optimize() # TODO callbacks
 
-                if run_idx % self.save_frequency == 0:
+                if run_idx+1 % self.save_frequency == 0:
                     self._raise_callbacks(
                         self._on_save_callbacks,
                         run_idx=run_idx,
@@ -238,6 +239,9 @@ class ExperimentPipeline():
                         checkpoint_id = self.checkpoint_id
                     )
                     self.checkpoint_id = callbacks_res["checkpoint_id"]
+
+                run_idx += 1
+                BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
                 
         except Exception as ex:
             self._raise_callbacks(

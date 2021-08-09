@@ -353,10 +353,6 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
             Maps the observations of a system to an embedding vector
             Return a torch tensor
         """
-        # if is_output_new_discovery:
-        #     self.i += 1
-        #     if self.i != 0 and self.i % 10 == 0:
-        #         self._call_output_history_update()
 
         embedding = self.calc_static_statistics(observations.states[-1])
 

@@ -71,10 +71,8 @@ class IMGEPExplorer(BaseExplorer):
         source_policy_idx = None
         policy_parameters = Dict()  # policy parameters (output of IMGEP policy)
 
-        history = self._access_history()
-
         # random sampling if not enough in library
-        if len(history) < self.config.num_of_random_initialization:
+        if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
             # initialize the parameters
             policy_parameters = self._output_space.sample()
             # for parameter_key, parameter_space in self._output_space.items():
@@ -85,6 +83,7 @@ class IMGEPExplorer(BaseExplorer):
             target_goal = self._get_next_goal()
 
             # get source policy which should be mutated
+            history = self._access_history()
             source_policy_idx = self._get_source_policy_idx(target_goal, history)
             source_policy = history[int(source_policy_idx)]['output']
 

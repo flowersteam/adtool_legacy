@@ -9,6 +9,7 @@ class BaseAutoDiscModule:
     _access_history = None # Function to access (readonly) history of (input, output) pairs
     _call_output_history_update = None # Function to ask history of outputs to be updated (use this if some output_representations changed)
     _call_run_parameters_history_update = None # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
+    CURRENT_RUN_INDEX = 0
 
     def set_history_access_fn(self, function):
         '''
