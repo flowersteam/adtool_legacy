@@ -5,12 +5,14 @@ from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
 from auto_disc.utils.misc.torch_utils import roll_n
 from auto_disc.utils.spaces.utils import distance
 import torch
-import numpy as np
+from addict import Dict
 
 @StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaImageRepresentation(BaseOutputRepresentation):
+    CONFIG_DEFINITION = {}
+    config = Dict()
 
     output_space = DictSpace(
         embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))

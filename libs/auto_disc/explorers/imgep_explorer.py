@@ -18,6 +18,8 @@ class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
     """
+    CONFIG_DEFINITION = {}
+    config = Dict()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -102,4 +104,10 @@ class IMGEPExplorer(BaseExplorer):
 
     def optimize(self):
         pass
+
+    def save(self):
+        return {'input_space': self._input_space}
+
+    def load(self, saved_dict):
+        self._input_space = saved_dict['input_space']
 

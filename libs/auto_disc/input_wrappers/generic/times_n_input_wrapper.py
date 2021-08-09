@@ -4,6 +4,9 @@ from auto_disc.utils.spaces import DictSpace, BoxSpace
 import numpy as np
 
 class TimesNInputWrapper(BaseInputWrapper):
+    CONFIG_DEFINITION = {}
+    config = Dict()
+    
     input_space = DictSpace(
         input_parameter = BoxSpace(low=-np.inf, high=np.inf, shape=())
     )

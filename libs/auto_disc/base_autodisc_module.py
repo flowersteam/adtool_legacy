@@ -4,8 +4,6 @@ class BaseAutoDiscModule:
     '''
         Base class of all modules usable in auto_disc.
     '''
-    CONFIG_DEFINITION = {}
-    config = Dict()
     _access_history = None # Function to access (readonly) history of (input, output) pairs
     _call_output_history_update = None # Function to ask history of outputs to be updated (use this if some output_representations changed)
     _call_run_parameters_history_update = None # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
@@ -28,3 +26,15 @@ class BaseAutoDiscModule:
             Set the function asking a refresh (raw_run_parameters will be processed again with output representations) of all run_parameters in history.
         '''
         self._call_run_parameters_history_update = function
+
+    def save(self):
+        '''
+            Return a dict storing everything that has to be pickled.
+        '''
+        return {}
+
+    def load(self, saved_dict):
+        '''
+            Reload module given a dict storing everything that had to be pickled.
+        '''
+        pass

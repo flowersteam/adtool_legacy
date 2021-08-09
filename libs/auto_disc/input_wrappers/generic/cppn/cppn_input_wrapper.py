@@ -1,6 +1,5 @@
 from addict import Dict
 from auto_disc.utils.spaces import DictSpace
-from copy import deepcopy
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.input_wrappers import BaseInputWrapper
@@ -10,6 +9,8 @@ from auto_disc.utils.config_parameters import IntegerConfigParameter
 class CppnInputWrapper(BaseInputWrapper):
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
+    CONFIG_DEFINITION = {}
+    config = Dict()
 
     input_space = DictSpace(
         genome = CPPNGenomeSpace()

@@ -1,7 +1,7 @@
 from auto_disc.utils.callbacks.on_save_callbacks import BaseOnSaveCallback
 import requests
 
-import pickle
+import dill as pickle
 import matplotlib.pyplot as plt
 from torch import Tensor
 import json

@@ -26,6 +26,18 @@ class DB(TinyDB):
         
         return results
 
+    def save(self):
+        '''
+            Save DB.
+        '''
+        return self
+
+    def load(self, saved_dict):
+        '''
+            Reload DB.
+        '''
+        pass
+
 
     
     

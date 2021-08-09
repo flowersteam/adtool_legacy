@@ -5,7 +5,6 @@ import pickle
 import matplotlib.pyplot as plt
 from torch import Tensor
 import json
-import pickle
 
 class OnSaveExpeDBModulesCallback(BaseOnSaveCallback):
     def __init__(self, base_url):
@@ -18,11 +17,18 @@ class OnSaveExpeDBModulesCallback(BaseOnSaveCallback):
                         
     def __call__(self, **kwargs):
         #TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
-        to_save_modules = ["systems","explorers","input_wrappers","output_representations","db"]
+        to_save_modules = ["systems","explorers","input_wrappers","output_representations","in_memory_dbs"]
 
         
         for save_module in to_save_modules:
-            module_to_save = pickle.dumps(kwargs[save_module])
+            if isinstance(kwargs[save_module], list):
+                to_pickle = []
+                for element in kwargs[save_module]:
+                    to_pickle.append(element.save())
+            else:
+                to_pickle = kwargs[save_module].save()
+
+            module_to_save = pickle.dumps(to_pickle)
             save_to_file = {save_module+"_file": module_to_save}           
             response = requests.post(self.base_url + "/"+save_module, 
                                     json={

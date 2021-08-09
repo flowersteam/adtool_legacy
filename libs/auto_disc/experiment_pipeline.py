@@ -218,7 +218,7 @@ class ExperimentPipeline():
 
                 self._explorer.optimize() # TODO callbacks
 
-                if run_idx+1 % self.save_frequency == 0:
+                if (run_idx+1) % self.save_frequency == 0:
                     self._raise_callbacks(
                         self._on_save_callbacks,
                         run_idx=run_idx,
@@ -229,7 +229,7 @@ class ExperimentPipeline():
                         explorers=self._explorer,
                         input_wrappers=self._input_wrappers,
                         output_representations=self._output_representations,
-                        db=self.db
+                        in_memory_dbs=self.db
                     )
                     callbacks_res = self._raise_callbacks(
                         self._on_save_finished_callbacks,# TODO

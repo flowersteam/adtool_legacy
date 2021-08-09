@@ -291,6 +291,61 @@ def add_output_representation_files(id):
     else:
         return make_response("No output_representation found with id {}".format(id), 403)
 
+############################################
+########## In Memory DBs ##########
+# LIST
+@app.route('/in_memory_dbs', methods=['GET'])
+def list_in_memory_dbs():
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
+    if checkpoint_id is not None:
+        in_memory_dbs = []
+        for in_memory_db in db.in_memory_dbs.find({"checkpoint_id": checkpoint_id}):
+            in_memory_db['_id'] = str(in_memory_db['_id'])
+            in_memory_dbs.append(in_memory_db)
+        return make_response(jsonify(in_memory_dbs), 200)
+    else:
+        return make_response("You must provide a checkpoint_id in the request args", 403)
+
+# GET ONE
+@app.route('/in_memory_dbs/<id>', methods=['GET'])
+def get_in_memory_dbs_by_id(id):
+    return _get_one_by_filter(db.in_memory_dbs, {"_id": ObjectId(id)})
+
+# ADD ONE
+@app.route('/in_memory_dbs', methods=['POST'])
+def create_in_memory_db():
+    in_memory_db_to_insert = request.json
+    added_in_memory_db_id = db.in_memory_dbs.insert_one(in_memory_db_to_insert).inserted_id
+    return make_response(jsonify({"ID": str(added_in_memory_db_id)}), 200)
+
+# GET A FILE
+@app.route('/in_memory_dbs/<id>/<file>', methods=['GET'])
+def get_in_memory_db_file(id, file):
+    in_memory_db = db.in_memory_dbs.find_one({"_id": ObjectId(id)})
+    if in_memory_db:
+        if not file in in_memory_db: 
+            return make_response("No file {} found with in in_memory_db with id {}".format(file, id), 403)
+        file = fs.get(ObjectId(in_memory_db[file]))
+        return send_file(file, attachment_filename=file.filename)
+    else:
+        return make_response("No in_memory_db found with id {}".format(id), 403)
+
+# ADD FILES
+@app.route('/in_memory_dbs/<id>/files', methods=['POST'])
+def add_in_memory_db_files(id):
+    in_memory_db = db.in_memory_dbs.find_one({"_id": ObjectId(id)})
+    if in_memory_db:
+        # Add files in GridFS
+        updates_to_do = {'$set': {}}
+        for file_name in request.files:
+            file_id = fs.put(request.files[file_name], filename=request.files[file_name].filename)
+            updates_to_do['$set'][file_name] = str(file_id)
+        # Add GridFS ids and filenames to in_memory_db
+        db.in_memory_dbs.update_one({"_id": in_memory_db["_id"]}, updates_to_do)
+        return make_response(jsonify({'success':True}), 200)
+    else:
+        return make_response("No in_memory_dbs found with id {}".format(id), 403)
+
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5001)

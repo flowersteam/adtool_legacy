@@ -213,7 +213,9 @@ def calc_image_moments(image):
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
-
+    CONFIG_DEFINITION = {}
+    config = Dict()
+    
     output_space = DictSpace(
         embedding = BoxSpace(low=0, high=0, shape=(17,))
     )
@@ -233,7 +235,6 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
                                 'activation_flusser13'
                                 ]
         self.n_latents = len(self.statistic_names)
-        self.i = 0
 
     def calc_static_statistics(self, final_obs):
         '''Calculates the final statistics for lenia last observation'''
