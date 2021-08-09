@@ -1,7 +1,7 @@
 from auto_disc.utils.callbacks.on_save_callbacks import BaseOnSaveCallback
 import requests
 
-import dill as pickle
+import pickle
 import matplotlib.pyplot as plt
 from torch import Tensor
 import json
@@ -18,10 +18,17 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
                         
     def __call__(self, **kwargs):
         #TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
-        to_save_modules = ["systems","explorers","input_wrappers","output_representations","db"]
+        to_save_modules = ["systems","explorers","input_wrappers","output_representations","in_memory_dbs"]
 
         
         for save_module in to_save_modules:
+            if isinstance(kwargs[save_module], list):
+                to_pickle = []
+                for element in kwargs[save_module]:
+                    to_pickle.append(element.save())
+            else:
+                to_pickle = kwargs[save_module].save()
+
             folder = self.folder_path+save_module
             filename = "{}/exp_{}_idx_{}.pickle".format(folder, kwargs["experiment_id"], kwargs["run_idx"])
 
@@ -29,4 +36,4 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
                 print(folder)
                 os.makedirs(folder)
             with open(filename, 'wb') as out_file:
-                pickle.dump(kwargs[save_module], out_file)
+                pickle.dump(to_pickle, out_file)
