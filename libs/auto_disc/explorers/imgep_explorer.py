@@ -21,18 +21,12 @@ class IMGEPExplorer(BaseExplorer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        # initialize policy library
-        # self.policy_library = []
     
     def initialize(self, input_space, output_space, input_distance_fn):
         super().initialize(input_space, output_space, input_distance_fn)
         if len(self._input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
         self._input_space = self._input_space[next(iter(self._input_space))]
-
-        # initialize goal library
-        # self.goal_library = torch.empty((0, self._input_space.shape[0]))
 
     def expand_box_goal_space(self, space, observations):
         observations= observations.type(space.dtype)
@@ -56,9 +50,7 @@ class IMGEPExplorer(BaseExplorer):
 
 
     def _get_source_policy_idx(self, target_goal, history):
-        goal_library = torch.empty((0, self._input_space.shape[0]))
-        for element in history:
-            goal_library = torch.cat([goal_library, element['input'].reshape(1,-1)])
+        goal_library = torch.stack(history['input']) # get goal hitory as tensor
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
@@ -94,20 +86,18 @@ class IMGEPExplorer(BaseExplorer):
 
             # get source policy which should be mutated
             source_policy_idx = self._get_source_policy_idx(target_goal, history)
-            source_policy = history[source_policy_idx]['output']
+            source_policy = history[int(source_policy_idx)]['output']
 
             policy_parameters = self._output_space.mutate(source_policy)
 
         # TODO: Target goal
         # run with parameters
         run_parameters = deepcopy(policy_parameters) #self._convert_policy_to_run_parameters(policy_parameters)
-        # self.policy_library.append(policy_parameters)
 
         return run_parameters
 
 
     def archive(self, parameters, observations):
-        # self.goal_library = torch.cat([self.goal_library, observations.reshape(1,-1)])
         if self.config.use_exandable_goal_space:
             self.expand_box_goal_space(self._input_space, observations)
 

@@ -1,9 +1,7 @@
 from copy import copy
-import pickle
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
-import sys
 import torch
 import traceback
 
@@ -31,13 +29,13 @@ class ExperimentPipeline():
         self.checkpoint_id = checkpoint_id
         self.save_frequency = save_frequency
 
-        self.db = DB('./{}-{}_'.format(experiment_id, seed))
+        self.db = DB()
 
         ### SYSTEM ###
         self._system = system
         self._system.set_call_output_history_update_fn(self._update_outputs_history)
         self._system.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
-        self._system.set_history_access_fn(lambda: self.db.select_partial(self.db.all(), 
+        self._system.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                           ['idx', 'run_parameters', 'raw_output'], 
                                                                           ['idx', 'input', 'output']))
         
@@ -62,7 +60,7 @@ class ExperimentPipeline():
             else:
                 output_key = f'output_{i}'
 
-            self._output_representations[i].set_history_access_fn(lambda: self.db.select_partial(self.db.all(), 
+            self._output_representations[i].set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                                                  ['idx', input_key, output_key], 
                                                                                                  ['idx', 'input', 'output']))
                 
@@ -88,7 +86,7 @@ class ExperimentPipeline():
             else:
                 input_key = f'run_parameters_{i-1}'
 
-            self._input_wrappers[i].set_history_access_fn(lambda: self.db.select_partial(self.db.all(), 
+            self._input_wrappers[i].set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                                          ['idx', input_key, output_key], 
                                                                                          ['idx', 'input', 'output']))
 
@@ -99,7 +97,7 @@ class ExperimentPipeline():
         self._explorer.initialize(input_space=self._output_representations[-1].output_space,
                                   output_space=self._input_wrappers[0].input_space, 
                                   input_distance_fn=self._output_representations[-1].calc_distance)
-        self._explorer.set_history_access_fn(lambda: self.db.select_partial(self.db.all(), 
+        self._explorer.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                             ['idx', 'output', 'raw_run_parameters'], 
                                                                             ['idx', 'input', 'output']))
         
@@ -122,13 +120,15 @@ class ExperimentPipeline():
         return output
 
     def _update_outputs_history(self, output_representation_idx):
+        '''
+            Iterate over history and update values of outputs produced after `output_representation_idx`.
+        '''
         for document in self.db.all():
             if output_representation_idx == 0:
-                output =  document['raw_output']
+                output =  document['raw_output'] # starting from first output => raw_output
             else:
                 output = document[f'output_{output_representation_idx-1}']
             self._process_output(output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
-        print("Updated outputs")
 
     def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
         for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
@@ -140,9 +140,12 @@ class ExperimentPipeline():
         return run_parameters
     
     def _update_run_parameters_history(self, run_parameters_idx):
+        '''
+            Iterate over history and update values of run_parameters produced after `run_parameters_idx`.
+        '''
         for document in self.db.all():
             if run_parameters_idx == 0:
-                run_parameters =  document['raw_run_parameters'],
+                run_parameters =  document['raw_run_parameters'] # starting from first run_parameters => raw_run_parameters
             else:
                 run_parameters = document[f'run_parameters_{run_parameters_idx-1}']
             self._process_run_parameters(run_parameters, document.doc_id, starting_index=run_parameters_idx, is_input_new_discovery=False)
@@ -224,7 +227,8 @@ class ExperimentPipeline():
                         systems=self._system,
                         explorers=self._explorer,
                         input_wrappers=self._input_wrappers,
-                        output_representations=self._output_representations
+                        output_representations=self._output_representations,
+                        db=self.db
                     )
                     callbacks_res = self._raise_callbacks(
                         self._on_save_finished_callbacks,# TODO

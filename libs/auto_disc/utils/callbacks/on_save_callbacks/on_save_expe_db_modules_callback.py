@@ -18,7 +18,7 @@ class OnSaveExpeDBModulesCallback(BaseOnSaveCallback):
                         
     def __call__(self, **kwargs):
         #TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
-        to_save_modules = ["systems","explorers","input_wrappers","output_representations"]
+        to_save_modules = ["systems","explorers","input_wrappers","output_representations","db"]
 
         
         for save_module in to_save_modules:
