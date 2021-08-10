@@ -225,11 +225,11 @@ class ExperimentPipeline():
                         seed=self.seed,
                         experiment_id=self.experiment_id,
                         checkpoint_id = self.checkpoint_id,
-                        systems=self._system,
-                        explorers=self._explorer,
+                        system=self._system,
+                        explorer=self._explorer,
                         input_wrappers=self._input_wrappers,
                         output_representations=self._output_representations,
-                        in_memory_dbs=self.db
+                        in_memory_db=self.db
                     )
                     callbacks_res = self._raise_callbacks(
                         self._on_save_finished_callbacks,# TODO
