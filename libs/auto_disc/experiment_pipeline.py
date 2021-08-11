@@ -37,7 +37,7 @@ class ExperimentPipeline():
         ### SYSTEM ###
         self._system = system
         self._system.set_call_output_history_update_fn(self._update_outputs_history)
-        self._system.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
+        # self._system.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
         self._system.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                           ['idx', 'run_parameters', 'raw_output'], 
                                                                           ['idx', 'input', 'output']))
@@ -94,7 +94,7 @@ class ExperimentPipeline():
         ### EXPLORER ###
         self._explorer = explorer
         self._explorer.set_call_output_history_update_fn(self._update_outputs_history)
-        self._explorer.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
+        # self._explorer.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
         self._explorer.initialize(input_space=self._output_representations[-1].output_space,
                                   output_space=self._input_wrappers[0].input_space, 
                                   input_distance_fn=self._output_representations[-1].calc_distance)
@@ -131,25 +131,25 @@ class ExperimentPipeline():
                 output = document[f'output_{output_representation_idx-1}']
             self._process_output(output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
 
-    # def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
-    #     for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
-    #         run_parameters = input_wrapper.map(run_parameters, is_input_new_discovery)
-    #         if i == len(self._input_wrappers) - 1:
-    #             self.db.update({'run_parameters': copy(run_parameters)}, doc_ids=[document_id])
-    #         else:
-    #             self.db.update({f'run_parameters_{i}': copy(run_parameters)}, doc_ids=[document_id])
-    #     return run_parameters
-    
-    def _update_run_parameters_history(self, run_parameters_idx):
-        '''
-            Iterate over history and update values of run_parameters produced after `run_parameters_idx`.
-        '''
-        for document in self.db.all():
-            if run_parameters_idx == 0:
-                run_parameters =  document['raw_run_parameters'] # starting from first run_parameters => raw_run_parameters
+    def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
+        for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
+            run_parameters = input_wrapper.map(run_parameters, is_input_new_discovery)
+            if i == len(self._input_wrappers) - 1:
+                self.db.update({'run_parameters': copy(run_parameters)}, doc_ids=[document_id])
             else:
-                run_parameters = document[f'run_parameters_{run_parameters_idx-1}']
-            self._process_run_parameters(run_parameters, document.doc_id, starting_index=run_parameters_idx, is_input_new_discovery=False)
+                self.db.update({f'run_parameters_{i}': copy(run_parameters)}, doc_ids=[document_id])
+        return run_parameters
+    
+    # def _update_run_parameters_history(self, run_parameters_idx):
+    #     '''
+    #         Iterate over history and update values of run_parameters produced after `run_parameters_idx`.
+    #     '''
+    #     for document in self.db.all():
+    #         if run_parameters_idx == 0:
+    #             run_parameters =  document['raw_run_parameters'] # starting from first run_parameters => raw_run_parameters
+    #         else:
+    #             run_parameters = document[f'run_parameters_{run_parameters_idx-1}']
+    #         self._process_run_parameters(run_parameters, document.doc_id, starting_index=run_parameters_idx, is_input_new_discovery=False)
 
     def _raise_callbacks(self, callbacks, **kwargs):
         callbacks_res = {}

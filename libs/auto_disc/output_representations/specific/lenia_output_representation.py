@@ -49,7 +49,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
 
         embedding = filtered_im.flatten()
 
-        return embedding
+        return {'embedding': embedding}
 
 
     def calc_distance(self, embedding_a, embedding_b, **kwargs):

@@ -357,7 +357,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
         embedding = self.calc_static_statistics(observations.states[-1])
 
-        return embedding
+        return {'embedding': embedding}
 
     def calc_distance(self, embedding_a, embedding_b):
         """

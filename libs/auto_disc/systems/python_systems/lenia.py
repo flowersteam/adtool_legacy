@@ -71,7 +71,7 @@ class Lenia(BasePythonSystem):
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
         self._observations = Dict()
-        self._observations.timepoints = list(range(self.config.final_step))
+        # self._observations.timepoints = list(range(self.config.final_step))
         self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
         self._observations.states[0] = self.state
 
