@@ -20,9 +20,15 @@ class DB(TinyDB):
 
         for document in documents:
             current_result = {}
+            add_document = True
             for idx, key in enumerate(keys):
-                current_result[result_keys[idx]] = document[key]
-            results.append(current_result)
+                if key in document:
+                    current_result[result_keys[idx]] = document[key]
+                else:
+                    add_document = False
+
+            if add_document:
+                results.append(current_result)
         
         return results
 

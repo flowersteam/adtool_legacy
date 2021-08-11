@@ -50,7 +50,6 @@ class ExperimentPipeline():
 
         for i in range(len(self._output_representations)):
             self._output_representations[i].set_call_output_history_update_fn(lambda: self._update_outputs_history(i))
-            self._output_representations[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
             if i == 0:
                 self._output_representations[i].initialize(input_space=self._system.output_space)
                 input_key = 'raw_output'
@@ -63,9 +62,9 @@ class ExperimentPipeline():
             else:
                 output_key = f'output_{i}'
 
-            self._output_representations[i].set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
-                                                                                                 ['idx', input_key, output_key], 
-                                                                                                 ['idx', 'input', 'output']))
+            self._output_representations[i].set_history_access_fn(lambda i=input_key, o=output_key: self.db.to_autodisc_history(self.db.all(), 
+                                                                                                    ['idx', i, o], 
+                                                                                                    ['idx', 'input', 'output']))
                 
 
         ### INPUT WRAPPERS ###
@@ -75,23 +74,22 @@ class ExperimentPipeline():
             self._input_wrappers = [DummyInputWrapper()]
             
         for i in reversed(range(len(self._input_wrappers))):
-            self._input_wrappers[i].set_call_output_history_update_fn(self._update_outputs_history)
-            self._input_wrappers[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
+            # self._input_wrappers[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
             if i == len(self._input_wrappers) - 1:
                 self._input_wrappers[i].initialize(output_space=self._system.input_space)
                 output_key = f'run_parameters'
             else:
                 self._input_wrappers[i].initialize(output_space=self._input_wrappers[i+1].input_space)
-                output_key = f'run_parameters{i}'
+                output_key = f'run_parameters_{i}'
 
             if i == 0:
                 input_key = 'raw_run_parameters'
             else:
                 input_key = f'run_parameters_{i-1}'
 
-            self._input_wrappers[i].set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
-                                                                                         ['idx', input_key, output_key], 
-                                                                                         ['idx', 'input', 'output']))
+            self._input_wrappers[i].set_history_access_fn(lambda i=input_key, o=output_key: self.db.to_autodisc_history(self.db.all(), 
+                                                                                            ['idx', i, o], 
+                                                                                            ['idx', 'input', 'output']))
 
         ### EXPLORER ###
         self._explorer = explorer
@@ -133,14 +131,14 @@ class ExperimentPipeline():
                 output = document[f'output_{output_representation_idx-1}']
             self._process_output(output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
 
-    def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
-        for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
-            run_parameters = input_wrapper.map(run_parameters, is_input_new_discovery)
-            if i == len(self._input_wrappers) - 1:
-                self.db.update({'run_parameters': copy(run_parameters)}, doc_ids=[document_id])
-            else:
-                self.db.update({f'run_parameters_{i}': copy(run_parameters)}, doc_ids=[document_id])
-        return run_parameters
+    # def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
+    #     for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
+    #         run_parameters = input_wrapper.map(run_parameters, is_input_new_discovery)
+    #         if i == len(self._input_wrappers) - 1:
+    #             self.db.update({'run_parameters': copy(run_parameters)}, doc_ids=[document_id])
+    #         else:
+    #             self.db.update({f'run_parameters_{i}': copy(run_parameters)}, doc_ids=[document_id])
+    #     return run_parameters
     
     def _update_run_parameters_history(self, run_parameters_idx):
         '''
