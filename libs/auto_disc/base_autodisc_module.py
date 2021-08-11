@@ -21,11 +21,11 @@ class BaseAutoDiscModule:
         '''
         self._call_output_history_update = function
 
-    def set_call_run_parameters_history_update_fn(self, function):
-        '''
-            Set the function asking a refresh (raw_run_parameters will be processed again with output representations) of all run_parameters in history.
-        '''
-        self._call_run_parameters_history_update = function
+    # def set_call_run_parameters_history_update_fn(self, function):
+    #     '''
+    #         Set the function asking a refresh (raw_run_parameters will be processed again with output representations) of all run_parameters in history.
+    #     '''
+    #     self._call_run_parameters_history_update = function
 
     def save(self):
         '''
