@@ -1,4 +1,3 @@
 from auto_disc.output_representations.generic.dummy_output_representation import DummyOutputRepresentation
 from auto_disc.output_representations.generic.pca import PCA
-from auto_disc.output_representations.generic.tsne import TSNE
 from auto_disc.output_representations.generic.umap import UMAP

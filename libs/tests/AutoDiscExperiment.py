@@ -5,7 +5,7 @@ sys.path.append(os.path.join(dir_path, "../"))
 
 from auto_disc.systems.python_systems import PythonLenia
 from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation, LeniaImageSelector
-from auto_disc.output_representations.generic import PCA, TSNE, UMAP
+from auto_disc.output_representations.generic import PCA, UMAP
 from auto_disc.input_wrappers.generic import TimesNInputWrapper, CppnInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
@@ -19,10 +19,11 @@ if __name__ == "__main__":
         experiment_id=0,
         checkpoint_id=0,
         seed=42,
+        save_frequency=200,
         system=PythonLenia(final_step=200, scale_init_state=1.0),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaImageSelector(), UMAP('image', n_components=3, fit_period=10)], # Starting from the system !
+        output_representations=[LeniaImageSelector(), PCA('image', n_components=3, fit_period=10)], # Starting from the system !
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
                                                                 to_save_outputs=[
@@ -34,4 +35,4 @@ if __name__ == "__main__":
                                                                 ])]
     )
 
-    experiment.run(100)
+    experiment.run(200)

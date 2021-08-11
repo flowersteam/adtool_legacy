@@ -27,7 +27,7 @@ class PCA(BaseOutputRepresentation):
                                        decomposition.PCA(n_components=self.config.n_components))
 
     def map(self, observations, is_output_new_discovery, **kwargs):
-        input = observations.reshape(1,-1)
+        input = observations[self.wrapped_input_space_key].reshape(1,-1)
         try:
             output = self.algorithm.transform(input)
             output = torch.from_numpy(output).flatten()
@@ -35,14 +35,14 @@ class PCA(BaseOutputRepresentation):
             print("The PCA instance is not fitted yet, returning null embedding")
             output = torch.zeros(self.output_space["embedding"].shape, dtype=self.output_space["embedding"].dtype)
 
-        if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0) and not is_output_new_discovery:
+        if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0) and is_output_new_discovery:
             self.fit_update()
 
-        return output
+        return {"embedding": output}
 
     def fit_update(self):
         history = self._access_history()
-        input_library = np.stack([history['input'][i].flatten() for i in range(len(history['input']))])
+        input_library = np.stack([history['input'][i][self.wrapped_input_space_key].flatten() for i in range(len(history['input']))])
         self.algorithm.fit(input_library)
         self._call_output_history_update()
 
