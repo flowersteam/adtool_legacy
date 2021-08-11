@@ -28,7 +28,7 @@ class IMGEPExplorer(BaseExplorer):
         super().initialize(input_space, output_space, input_distance_fn)
         if len(self._input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
-        self._input_space = self._input_space[next(iter(self._input_space))]
+        self._outter_input_space_key = list(self._input_space.spaces.keys())[0] # select first key in DictSpace
 
     def expand_box_goal_space(self, space, observations):
         observations= observations.type(space.dtype)
@@ -48,11 +48,11 @@ class IMGEPExplorer(BaseExplorer):
             raise ValueError(
                 'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection_type))
 
-        return target_goal
+        return target_goal[self._outter_input_space_key]
 
 
     def _get_source_policy_idx(self, target_goal, history):
-        goal_library = torch.stack(history['input']) # get goal hitory as tensor
+        goal_library = torch.stack([h[self._outter_input_space_key] for h in history]) # get goal history as tensor
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
@@ -86,7 +86,7 @@ class IMGEPExplorer(BaseExplorer):
 
             # get source policy which should be mutated
             history = self._access_history()
-            source_policy_idx = self._get_source_policy_idx(target_goal, history)
+            source_policy_idx = self._get_source_policy_idx(target_goal, history['input'])
             source_policy = history[int(source_policy_idx)]['output']
 
             policy_parameters = self._output_space.mutate(source_policy)
@@ -100,7 +100,7 @@ class IMGEPExplorer(BaseExplorer):
 
     def archive(self, parameters, observations):
         if self.config.use_exandable_goal_space:
-            self.expand_box_goal_space(self._input_space, observations)
+            self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
 
     def optimize(self):
         pass
