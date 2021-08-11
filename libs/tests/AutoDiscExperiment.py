@@ -20,9 +20,9 @@ if __name__ == "__main__":
         checkpoint_id=0,
         seed=42,
         system=PythonLenia(final_step=200, scale_init_state=1.0),
-        explorer=IMGEPExplorer(num_of_random_initializations=20),
+        explorer=IMGEPExplorer(num_of_random_initialization=20),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaImageSelector(), PCA('image', n_components=3, fit_period=10)], # Starting from the system !
+        output_representations=[LeniaImageSelector(), UMAP('image', n_components=3, fit_period=10)], # Starting from the system !
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
                                                                 to_save_outputs=[
