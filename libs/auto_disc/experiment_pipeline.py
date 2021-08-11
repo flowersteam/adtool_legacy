@@ -173,6 +173,8 @@ class ExperimentPipeline():
                 checkpoint_id = self.checkpoint_id,
                 message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
             )
+            raise
+
         self._system.close()
         self._raise_callbacks(
             self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,

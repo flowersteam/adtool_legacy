@@ -1,5 +1,5 @@
-experiment_results/*
-tmp_output_results/*
+experiment_results/
+tmp_output_results/
 
 ### PYCHARM
 .idea/
