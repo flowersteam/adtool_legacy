@@ -5,7 +5,7 @@ class DummyOutputRepresentation(BaseOutputRepresentation):
     '''
     Empty OutputRepresentation used when no representation of the system's output mut be used.
     '''
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery, **kwargs):
         return observations
 
     def calc_distance(self, embedding_a, embedding_b, **kwargs):

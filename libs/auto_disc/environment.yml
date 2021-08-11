@@ -16,3 +16,4 @@ dependencies:
 - pip:
     - neat-python==0.92
     - torch==1.7.1
+    - tinydb

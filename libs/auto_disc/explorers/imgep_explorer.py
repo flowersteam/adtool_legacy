@@ -18,21 +18,17 @@ class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
     """
+    CONFIG_DEFINITION = {}
+    config = Dict()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        # initialize policy library
-        self.policy_library = []
     
     def initialize(self, input_space, output_space, input_distance_fn):
         super().initialize(input_space, output_space, input_distance_fn)
         if len(self._input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
         self._input_space = self._input_space[next(iter(self._input_space))]
-
-        # initialize goal library
-        self.goal_library = torch.empty((0, self._input_space.shape[0]))
 
     def expand_box_goal_space(self, space, observations):
         observations= observations.type(space.dtype)
@@ -55,16 +51,17 @@ class IMGEPExplorer(BaseExplorer):
         return target_goal
 
 
-    def _get_source_policy_idx(self, target_goal):
+    def _get_source_policy_idx(self, target_goal, history):
+        goal_library = torch.stack(history['input']) # get goal hitory as tensor
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
-            goal_distances = self._input_distance_fn(target_goal, self.goal_library)
+            goal_distances = self._input_distance_fn(target_goal, goal_library)
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)
         elif self.config.source_policy_selection_type == 'random':
-            source_policy_idx = sample_value(('discrete', 0, len(self.goal_library)-1))
+            source_policy_idx = sample_value(('discrete', 0, len(goal_library)-1))
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
                 self.config.source_policy_selection_type))
@@ -77,7 +74,7 @@ class IMGEPExplorer(BaseExplorer):
         policy_parameters = Dict()  # policy parameters (output of IMGEP policy)
 
         # random sampling if not enough in library
-        if len(self.policy_library) < self.config.num_of_random_initialization:
+        if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
             # initialize the parameters
             policy_parameters = self._output_space.sample()
             # for parameter_key, parameter_space in self._output_space.items():
@@ -88,24 +85,29 @@ class IMGEPExplorer(BaseExplorer):
             target_goal = self._get_next_goal()
 
             # get source policy which should be mutated
-            source_policy_idx = self._get_source_policy_idx(target_goal)
-            source_policy = self.policy_library[source_policy_idx]
+            history = self._access_history()
+            source_policy_idx = self._get_source_policy_idx(target_goal, history)
+            source_policy = history[int(source_policy_idx)]['output']
 
             policy_parameters = self._output_space.mutate(source_policy)
 
         # TODO: Target goal
         # run with parameters
         run_parameters = deepcopy(policy_parameters) #self._convert_policy_to_run_parameters(policy_parameters)
-        self.policy_library.append(policy_parameters)
 
         return run_parameters
 
 
     def archive(self, parameters, observations):
-        self.goal_library = torch.cat([self.goal_library, observations.reshape(1,-1)])
         if self.config.use_exandable_goal_space:
             self.expand_box_goal_space(self._input_space, observations)
 
     def optimize(self):
         pass
+
+    def save(self):
+        return {'input_space': self._input_space}
+
+    def load(self, saved_dict):
+        self._input_space = saved_dict['input_space']
 

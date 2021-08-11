@@ -19,7 +19,7 @@ if __name__ == "__main__":
         experiment_id=0,
         checkpoint_id=0,
         seed=42,
-        system=PythonLenia(final_step=1000, scale_init_state=1.0),
+        system=PythonLenia(final_step=200, scale_init_state=1.0),
         explorer=IMGEPExplorer(),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
         output_representations=[LeniaImageSelector(), UMAP('image', n_components=3, fit_period=10)], # Starting from the system !

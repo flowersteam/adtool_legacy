@@ -1,13 +1,11 @@
-from addict import Dict
+from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
-class BaseOutputRepresentation ():
+class BaseOutputRepresentation (BaseAutoDiscModule):
     """ Base class to map the observations of a system to an embedding vector (BC characterization)
     """
 
-    CONFIG_DEFINITION = {}
-    config = Dict()
     output_space = DictSpace()
 
     def __init__(self, wrapped_input_space_key=None):
@@ -23,7 +21,7 @@ class BaseOutputRepresentation ():
                 self.output_space[key] = input_space[key]
         
 
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery, **kwargs):
         raise NotImplementedError
 
     def calc_distance(self, embedding_a, embedding_b, **kwargs):

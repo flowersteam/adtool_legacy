@@ -46,7 +46,7 @@
                     <!-- system accordion -->
                     <div class="accordion-item mt-2">
                         <h2 class="accordion-header" id="headingSystem">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
                             SYSTEM
                         </button>
                         </h2>
@@ -63,7 +63,7 @@
                     <!-- explorer accordion -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingExplorer">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="false" aria-controls="collapseExplorer">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="false" aria-controls="collapseExplorer">
                             Explorer
                         </button>
                         </h2>
@@ -80,7 +80,7 @@
                     <!-- input wrappers accordion -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingInputWrapper">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="false" aria-controls="collapseInputWrapper">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="false" aria-controls="collapseInputWrapper">
                             InputWrapper
                         </button>
                         </h2>
@@ -99,7 +99,7 @@
                     <!-- output representation accordion -->
                     <div class="accordion-item mb-2">
                         <h2 class="accordion-header" id="headingOutputRepresentation">
-                        <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="false" aria-controls="collapseOutputRepresentation">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="false" aria-controls="collapseOutputRepresentation">
                             OutputRepresentation
                         </button>
                         </h2>
@@ -114,6 +114,23 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- what you saved accordion -->
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="headingWhatYouSaved">
+                        <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatYouSaved" aria-expanded="false" aria-controls="collapseWhatYouSaved">
+                            What You Saved
+                        </button>
+                        </h2>
+                        <div id="collapseWhatYouSaved" class="accordion-collapse collapse" aria-labelledby="headingWhatYouSaved">
+                            <div class="accordion-body text-secondary">
+                                <div *ngFor="let discovery_saving_keys of this.experiment.config.discovery_saving_keys | keyvalue">
+                                        <li>{{discovery_saving_keys.value}}</li>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -139,15 +156,16 @@
         
         <div class="collapse" id="collapseCheckpoints">
             <div class="accordion mt-3" id="accordionCheckpoints">
-                <div *ngFor="let checkpoint of experiment.checkpoints" class="accordion-item">
+                <div *ngFor="let checkpoint of experiment.checkpoints; let index = index" class="accordion-item">
                   <h2 class="accordion-header" [attr.id]="'accordionCheckpoints-heading' + checkpoint.id">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#accordionCheckpoints-collapse' + checkpoint.id" aria-expanded="false" aria-controls="accordionCheckpoints-collapseOne">
-                      ID: {{checkpoint.id}}
+                      Checkpoint n°{{index + 1}} : {{experiment.config.save_frequency * (index+1)}} iterations
                     </button>
                   </h2>
                   <div [attr.id]="'accordionCheckpoints-collapse' + checkpoint.id" class="accordion-collapse collapse" [attr.aria-labelledby]="'accordionCheckpoints-heading' + checkpoint.id">
                     <div class="accordion-body">
                       <ul>
+                          <li>ID: {{checkpoint.id}}</li>
                           <li>Status: 
                                 <span *ngIf="checkpoint.status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</span>
                                 <span *ngIf="checkpoint.status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>

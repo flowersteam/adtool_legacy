@@ -213,7 +213,9 @@ def calc_image_moments(image):
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
-
+    CONFIG_DEFINITION = {}
+    config = Dict()
+    
     output_space = DictSpace(
         embedding = BoxSpace(low=0, high=0, shape=(17,))
     )
@@ -347,11 +349,12 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
         return feature_vector
     
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery):
         """
             Maps the observations of a system to an embedding vector
             Return a torch tensor
         """
+
         embedding = self.calc_static_statistics(observations.states[-1])
 
         return embedding

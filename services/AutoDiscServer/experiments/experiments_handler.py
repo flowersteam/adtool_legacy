@@ -1,7 +1,7 @@
+from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
 from AutoDiscServer.experiments import LocalExperiment
 from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
 import datetime
-from AutoDiscServer.utils import SeedStatusEnum
 
 
 class ExperimentsHandler():
@@ -29,7 +29,7 @@ class ExperimentsHandler():
                                         "created_on": exp_date,
                                         "config": parameters['experiment']['config'],
                                         "progress": 0,
-                                        "exp_status": int(SeedStatusEnum.RUNNING) 
+                                        "exp_status": int(ExperimentStatusEnum.RUNNING) 
                                      })
             id = response.headers["Location"].split(".")
             id = int(id[1])

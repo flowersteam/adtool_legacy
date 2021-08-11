@@ -4,6 +4,9 @@ from auto_disc.utils.spaces import DictSpace, BoxSpace
 import numpy as np
 
 class TimesNInputWrapper(BaseInputWrapper):
+    CONFIG_DEFINITION = {}
+    config = Dict()
+    
     input_space = DictSpace(
         input_parameter = BoxSpace(low=-np.inf, high=np.inf, shape=())
     )
@@ -21,7 +24,7 @@ class TimesNInputWrapper(BaseInputWrapper):
         del self.input_space[self.initial_input_space_keys[0]]
         self.initial_input_space_keys = [new_key]
 
-    def map(self, parameters, **kwargs):
+    def map(self, parameters, is_input_new_discovery, **kwargs):
         parameters[self.wrapped_output_space_key] = parameters[self.initial_input_space_keys[0]] * self.n
         del parameters[self.initial_input_space_keys[0]]
         return parameters
