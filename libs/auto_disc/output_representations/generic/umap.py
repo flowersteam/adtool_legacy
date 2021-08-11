@@ -18,7 +18,7 @@ import numpy as np
 
 class UMAP(BaseOutputRepresentation):
     '''
-    PCA OutputRepresentation.
+    UMAP OutputRepresentation.
     '''
     output_space = DictSpace(
         embedding=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
@@ -34,36 +34,26 @@ class UMAP(BaseOutputRepresentation):
                                                  init=self.config.init,
                                                  metric=self.config.metric,
                                                  ))
-        self.output_library = np.empty((0, self.config.n_components), )
 
-    def initialize(self, input_space):
-        super().initialize(input_space)
-        input_space_flatten_shape = 1
-        for s in self.input_space[self.wrapped_input_space_key].shape:
-            input_space_flatten_shape *= s
-        self.input_library = np.empty((0, input_space_flatten_shape), )
-
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery, **kwargs):
         input = observations.reshape(1,-1)
         try:
             output = self.algorithm.transform(input)
             output = torch.from_numpy(output).flatten()
         except NotFittedError as nfe:
-            print("The PCA instance is not fitted yet, returning null embedding")
+            print("The UMAP instance is not fitted yet, returning null embedding")
             output = torch.zeros(self.output_space["embedding"].shape, dtype=self.output_space["embedding"].dtype)
-        self.archive(input, output)
 
-        if len(self.output_library) % self.config.fit_period == 0:
-            self.fit_transform()
+        if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0):
+            self.fit_update()
 
         return output
 
-    def archive(self, input, output):
-        self.input_library = np.concatenate([self.input_library, input])
-        self.output_library = np.concatenate([self.output_library, output.reshape(1,-1)])
-
-    def fit_transform(self):
-        self.output_library = self.algorithm.fit_transform(self.input_library)
+    def fit_update(self):
+        history = self._access_history()
+        input_library = np.stack([history['input'][i][self.wrapped_input_space_key] for i in range(len(history['input']))])
+        self.algorithm.fit(input_library)
+        self._call_output_history_update()
 
     def calc_distance(self, embedding_a, embedding_b, **kwargs):
         # L2 + add regularizer to avoid dead outcomes

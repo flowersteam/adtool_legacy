@@ -20,5 +20,5 @@ class LeniaImageSelector(BaseOutputRepresentation):
     def __init__(self, wrapped_input_space_key=None):
         super().__init__('states')
 
-    def map(self, observations, **kwargs):
+    def map(self, observations, is_output_new_discovery, **kwargs):
         return observations.states[self.config.timestep]
