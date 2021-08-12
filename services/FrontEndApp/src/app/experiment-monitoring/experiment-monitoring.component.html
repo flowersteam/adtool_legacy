@@ -182,22 +182,24 @@
         </div>
     </div>
 </div>
-<p ngIf="!experiment" class="text-danger">No such an experiment !</p>
+<p *ngIf="!experiment" class="text-danger">No such an experiment !</p>
 
-
-<button  [hidden]="this.jupy_session_find" type="button" class="btn btn-warning bi bi-cloud-download-fill float-end" 
-    data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
-    data-bs-title="Data Loading"
-    data-bs-content="connection to the jupyter kernel in progress or/and data creation in progress ">
-</button>
-
-<button  [hidden]="!this.new_data_available" type="button" class="btn btn-info bi bi-sd-card float-end"
+<div class="container">
+    <button  [hidden]="this.jupy_session_find" type="button" class="btn btn-warning bi bi-cloud-download-fill float-end mb-4 mr-4" 
         data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
-        data-bs-title="Data Available" 
-        data-bs-content="Jupyter Kernel data is up to date. You could rerun your notebook ">
-</button>
+        data-bs-title="Data Loading"
+        data-bs-content="connection to the jupyter kernel in progress or/and data creation in progress ">
+    </button>
 
-<iframe *ngIf="this.urlSafe" width="100%" height="1000" [src]="this.urlSafe"></iframe>
+    <button  [hidden]="!this.new_data_available" type="button" class="btn btn-info bi bi-sd-card float-end mb-4 mr-4"
+            data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
+            data-bs-title="Data Available" 
+            data-bs-content="Jupyter Kernel data is up to date. You could rerun your notebook ">
+    </button>
+
+    <iframe *ngIf="this.urlSafe" width="100%" height="1000" [src]="this.urlSafe"></iframe>
+</div>
+
 
 
 
