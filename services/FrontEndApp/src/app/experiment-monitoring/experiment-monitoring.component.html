@@ -3,8 +3,9 @@
         <div class="row">
             <h4 class="col-6">Experiment: {{experiment.name}}</h4>
             <div class="col-6 text-end">
-                <button class="btn btn-light text-secondary mx-1" (click)="getExperiment()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
-                <button class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
+                <app-archive-experiment [experiment]="experiment" [refreshExperimentMethod]="refreshExperimentMethod"></app-archive-experiment>
+                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" (click)="getExperiment()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
+                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
                     <i class="bi bi-gear-fill me-1" width="16" height="16"></i>
                 </button>
                 <div class="collapse" id="collapseSettings">

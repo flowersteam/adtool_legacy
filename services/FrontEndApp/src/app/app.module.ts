@@ -10,9 +10,11 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { ExperimentCreationComponent } from './experiment-creation/experiment-creation.component';
 import { ExperimentMonitoringComponent } from './experiment-monitoring/experiment-monitoring.component';
+import { ArchiveExperimentComponent } from './experiment-monitoring/archive-experiment/archive-experiment.component';
 
 import {FilterPipe} from './pipes/filter.pipe';
 import { DragDropModule }from '@angular/cdk/drag-drop';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import { DragDropModule }from '@angular/cdk/drag-drop';
     HomeComponent,
     ExperimentCreationComponent,
     ExperimentMonitoringComponent,
-    FilterPipe
+    FilterPipe,
+    ArchiveExperimentComponent,
   ],
   imports: [
     BrowserModule,
@@ -28,7 +31,8 @@ import { DragDropModule }from '@angular/cdk/drag-drop';
     FormsModule,
     AppRoutingModule,
     HttpClientModule,
-    DragDropModule
+    DragDropModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -18,7 +18,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   public progressPercent:string = "0";
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
-  public autoRefreshSeconds: number = 30;
+  public autoRefreshSeconds: number = 5;
   objectKeys = Object.keys;
   
   constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute) { }
@@ -31,9 +31,15 @@ export class ExperimentMonitoringComponent implements OnInit {
   resetAutoRefresh(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
-    this.updateSubscription = this.intervalToSubscribe.subscribe(
-      (val) => { this.getExperiment()});
+    if (this.experiment?.exp_status == 1){
+      this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
+      this.updateSubscription = this.intervalToSubscribe.subscribe(
+        (val) => { this.getExperiment()});
+    }
+  }
+
+  get refreshExperimentMethod() {
+    return this.getExperiment.bind(this);
   }
 
   getExperiment(): void {
