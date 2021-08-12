@@ -4,7 +4,10 @@ CREATE TABLE experiments (
 	created_on TIMESTAMP NOT NULL,
 	progress INT NOT NULL,
 	exp_status INT NOT NULL,
-	config jsonb NOT NULL
+	config jsonb NOT NULL,
+	archived BOOLEAN NOT NULL,
+	checkpoint_saves_archived BOOLEAN NOT NULL,
+	discoveries_archived BOOLEAN NOT NULL
 );
 CREATE TABLE systems (
 	id serial PRIMARY KEY,

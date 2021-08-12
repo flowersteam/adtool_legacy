@@ -1,8 +1,8 @@
-from addict import Dict
+from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
-class BaseSystem():
+class BaseSystem(BaseAutoDiscModule):
     """The main BaseSystem class. It encapsulates an environment with
     arbitrary behind-the-scenes dynamics. An environment can be
     partially or fully observed.
@@ -17,8 +17,6 @@ class BaseSystem():
     These parameters can then be accessed through `self.config.parameter_name`
     """
 
-    CONFIG_DEFINITION = {}
-    config = Dict()
     input_space = DictSpace()
     output_space = DictSpace()
     step_output_space = DictSpace()

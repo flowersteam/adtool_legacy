@@ -1,0 +1,31 @@
+<button *ngIf="experiment && experiment.exp_status != 1" class="btn btn-light text-secondary mx-1" (click)="updateForm()" data-bs-toggle="modal" data-bs-target="#removeModal"><i class="bi bi-trash-fill me-1" width="16" height="16"></i></button>
+<div *ngIf="experiment && experiment.exp_status != 1" class="modal fade" id="removeModal" tabindex="-1" aria-labelledby="removeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeModalLabel">Delete experiment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+                <form [formGroup]="archiveForm">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="archiveExperiment" formControlName="archiveExperiment" [disabled]="this.experiment.archived">
+                        <label class="form-check-label" for="archiveExperiment">Archive experiment</label>
+                    </div>
+                    <div class="mb-3 ms-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="removeCheckpoints" formControlName="archiveChekpointSaves" [disabled]="this.experiment.checkpoint_saves_archived">
+                        <label class="form-check-label" for="removeCheckpoints">Delete checkpoint saves</label>
+                    </div>
+                    <div class="mb-3 ms-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="removeDiscoveries" formControlName="archiveDiscoveries" [disabled]="this.experiment.discoveries_archived">
+                        <label class="form-check-label" for="removeDiscoveries">Delete discoveries</label>
+                    </div>
+                </form>   
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="applyRemoval()" >Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

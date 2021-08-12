@@ -25,6 +25,9 @@ System definition
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 @IntegerConfigParameter(name="scale_init_state", default=1, min=1)
 class Lenia(BasePythonSystem):
+    CONFIG_DEFINITION = {}
+    config = Dict()
+    
     input_space = DictSpace(
         init_state = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.5), 
                               shape=(ConfigParameterBinding("SX") // ConfigParameterBinding("scale_init_state"), 
@@ -68,7 +71,7 @@ class Lenia(BasePythonSystem):
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
         self._observations = Dict()
-        self._observations.timepoints = list(range(self.config.final_step))
+        # self._observations.timepoints = list(range(self.config.final_step))
         self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
         self._observations.states[0] = self.state
 

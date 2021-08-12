@@ -11,6 +11,9 @@ export interface Experiment {
     progress: number;
     exp_status: number;
     config: { [key: string]: number };
+    archived: boolean;
+    checkpoint_saves_archived: boolean;
+    discoveries_archived: boolean;
     systems: System[];
     explorers: Explorer[];
     input_wrappers: InputWrapper[];

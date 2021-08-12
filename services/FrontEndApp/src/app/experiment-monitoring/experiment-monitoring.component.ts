@@ -21,10 +21,9 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   experiment: Experiment | undefined;
   public ellapsed: string | undefined;
-  public progressPercent:number = 0;
+  public progressPercent:string = "0";
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
-  public autoRefreshSeconds: number = 30;
 
   public jupyterSession:JupyterSessions[] = [];
   public actual_session_path : string | undefined;
@@ -38,9 +37,10 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   public message = 'import requests'+ '\n' +
                    'import json'+ '\n' +
-                   'experiment = json.loads(requests.get(url = "http://127.0.0.1:3000/experiments").content.decode())'
+                   'experiment = json.loads(requests.get(url = "http://127.0.0.1:3000/experiments").content.decode())';
 
   
+  public autoRefreshSeconds: number = 5;
   objectKeys = Object.keys;
   urlSafe: SafeResourceUrl | undefined;
   
@@ -60,9 +60,15 @@ export class ExperimentMonitoringComponent implements OnInit {
   resetAutoRefresh(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
-    this.updateSubscription = this.intervalToSubscribe.subscribe(
-      (val) => { this.refreshExperiment()});
+    if (this.experiment?.exp_status == 1){
+      this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
+      this.updateSubscription = this.intervalToSubscribe.subscribe(
+        (val) => { this.refreshExperiment()});
+    }
+  }
+
+  get refreshExperimentMethod() {
+    return this.refreshExperiment.bind(this);
   }
 
   refreshExperiment(): void {
@@ -72,7 +78,8 @@ export class ExperimentMonitoringComponent implements OnInit {
     .subscribe(experiment => {
       this.newDiscoveriesExist = (this.newDiscoveriesExist || this.experiment == undefined || this.experiment.progress < experiment.progress);
       this.experiment = experiment;
-      this.progressPercent = this.experiment.progress/experiment.config.nb_iterations*100;
+      this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
+      this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
       if (experiment.exp_status == 1){
         this.ellapsed = ((new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
       }

@@ -227,7 +227,7 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">Input Space</h5>
                                                 <p class="card-text" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)"
-                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'bg-info'">
+                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
                                                     {{elt_input_space == this.newExperiment.input_wrappers[index].config['wrapped_output_space_key']?
                                                     objectKeys(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[index].name).input_space)[0]
                                                      : elt_input_space}}
@@ -238,7 +238,7 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">Output Space</h5>
                                                 <p class="card-text" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)"
-                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'bg-info'">
+                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
                                                     {{elt_input_space}}
                                                 </p>
                                             </div>
@@ -330,7 +330,7 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">Input Space</h5>
                                                 <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)"
-                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'bg-info'">
+                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
                                                     {{elt_output_space}}
                                                 </p>
                                             </div>
@@ -339,7 +339,7 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">Output Space</h5>
                                                 <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)"
-                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'bg-info'">
+                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
                                                     {{elt_output_space == this.newExperiment.output_representations[index].config['wrapped_input_space_key']?
                                                     objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[index].name).output_space)[0]
                                                     : elt_output_space}}
@@ -360,12 +360,12 @@
         <div class="accordion-item mb-5">
             <h2 class="accordion-header" id="headingWhatDoYouWantToSave">
                 <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatDoYouWantToSave" aria-expanded="true" aria-controls="collapseWhatDoYouWantToSave">
-                WHAT DO YOU WANT TO SAVE
+                WHAT DO YOU WANT TO SAVE ?
                 </button>
             </h2>
             <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">
                 <div class="accordion-body">
-                    <h5 class="card-title col-12 mt-5">What do you want to save</h5>
+                    <h5 class="card-title col-12 mt-5">What do you want to save ?</h5>
                 
                     <div *ngFor="let discovery_saving_key_used of discovery_saving_keys_used | keyvalue" class="card my-3">
                         <div class="card-body">
@@ -378,7 +378,8 @@
                                         <!-- print space Raw system output -->
                                         <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && discovery_saving_key_used.key == 'Raw system output'" class="card">
                                             <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)">{{elt_output_space}} | </p>
+                                                <p class="card-text d-inline" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space); let index = index">
+                                                    <span *ngIf="index > 0"> | </span>{{elt_output_space}}</p>
                                             </div>
                                         </div>
                                         <!-- print space Parameters sent by the explorer before input wrappers -->
@@ -386,17 +387,18 @@
                                                     this.newExperiment.input_wrappers.length > 0 && 
                                                     discovery_saving_key_used.key == 'Parameters sent by the explorer before input wrappers'" class="card">
                                             <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)">
-                                                    {{elt_input_space == this.newExperiment.input_wrappers[0].config['wrapped_output_space_key']?
+                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space); let index = index">
+                                                    <span *ngIf="index > 0"> | </span>{{elt_input_space == this.newExperiment.input_wrappers[0].config['wrapped_output_space_key']?
                                                     objectKeys(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[0].name).input_space)[0]
-                                                        : elt_input_space}} | 
+                                                        : elt_input_space}}
                                                 </p>
                                             </div>
                                         </div>
                                         <!-- print space Parameters sent by the explorer after input wrappers -->
                                         <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && discovery_saving_key_used.key == 'Parameters sent by the explorer after input wrappers'" class="card">
                                             <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)">{{elt_input_space +' '}} | </p>
+                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space); let index = index">
+                                                    <span *ngIf="index > 0"> | </span>{{elt_input_space +' '}}</p>
                                             </div>
                                         </div>
                                         <!-- print space  Representation of system output -->
@@ -404,10 +406,10 @@
                                                     this.newExperiment.output_representations.length > 0 && 
                                                     discovery_saving_key_used.key == 'Representation of system output'" class="card">
                                             <div class="card-body">
-                                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)">
-                                                    {{elt_output_space == this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].config['wrapped_input_space_key']?
+                                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space); let index = index">
+                                                    <span *ngIf="index > 0"> | </span>{{elt_output_space == this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].config['wrapped_input_space_key']?
                                                     objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].name).output_space)[0]
-                                                    : elt_output_space}} | 
+                                                    : elt_output_space}}
                                                 </p>
                                             </div>
                                         </div>
@@ -419,6 +421,6 @@
                 </div>
             </div>
         </div>            
-        <button type="button" class="btn btn-primary" (click)="this.createExp()">Create Experiment</button>
+        <button type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
     </div>
 </div>

@@ -3,8 +3,9 @@
         <div class="row">
             <h4 class="col-6">Experiment: {{experiment.name}}</h4>
             <div class="col-6 text-end">
-                <button class="btn btn-light text-secondary mx-1" (click)="refreshExperiment()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
-                <button class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
+                <app-archive-experiment [experiment]="experiment" [refreshExperimentMethod]="refreshExperimentMethod"></app-archive-experiment>
+                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" (click)="refreshExperiment()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
+                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
                     <i class="bi bi-gear-fill me-1" width="16" height="16"></i>
                 </button>
                 <div class="collapse" id="collapseSettings">
@@ -156,15 +157,16 @@
         
         <div class="collapse" id="collapseCheckpoints">
             <div class="accordion mt-3" id="accordionCheckpoints">
-                <div *ngFor="let checkpoint of experiment.checkpoints" class="accordion-item">
+                <div *ngFor="let checkpoint of experiment.checkpoints; let index = index" class="accordion-item">
                   <h2 class="accordion-header" [attr.id]="'accordionCheckpoints-heading' + checkpoint.id">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#accordionCheckpoints-collapse' + checkpoint.id" aria-expanded="false" aria-controls="accordionCheckpoints-collapseOne">
-                      ID: {{checkpoint.id}}
+                      Checkpoint n°{{index + 1}} : {{experiment.config.save_frequency * (index+1)}} iterations
                     </button>
                   </h2>
                   <div [attr.id]="'accordionCheckpoints-collapse' + checkpoint.id" class="accordion-collapse collapse" [attr.aria-labelledby]="'accordionCheckpoints-heading' + checkpoint.id">
                     <div class="accordion-body">
                       <ul>
+                          <li>ID: {{checkpoint.id}}</li>
                           <li>Status: 
                                 <span *ngIf="checkpoint.status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</span>
                                 <span *ngIf="checkpoint.status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>
@@ -180,7 +182,7 @@
         </div>
     </div>
 </div>
-<p *ngIf="!experiment" class="text-danger">No such an experiment !</p>
+<p ngIf="!experiment" class="text-danger">No such an experiment !</p>
 
 
 <button  [hidden]="this.jupy_session_find" type="button" class="btn btn-warning bi bi-cloud-download-fill float-end" 
