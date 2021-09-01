@@ -35,9 +35,8 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   public kernel_restart_sub: Subscription | undefined;
 
-  public message = 'import requests'+ '\n' +
-                   'import json'+ '\n' +
-                   'experiment = json.loads(requests.get(url = "http://127.0.0.1:3000/experiments").content.decode())';
+   public message = '';
+   aKernelToRuleThemAll: any;
 
   
   public autoRefreshSeconds: number = 5;
@@ -52,6 +51,15 @@ export class ExperimentMonitoringComponent implements OnInit {
     this.resetAutoRefresh();
 
     this.initJupyterServiceSubData();
+
+    this.jupyterService.createKernel().subscribe(res =>{
+      this.aKernelToRuleThemAll = res;
+      this.jupyterService.openKernelChannel(this.aKernelToRuleThemAll.id);
+
+      this.makeKernelMessageToCreateDataset();
+      this.jupyterService.sendToKernel(this.message).subscribe();
+    });
+    
     this.initPopover();    
   }
 
@@ -87,15 +95,16 @@ export class ExperimentMonitoringComponent implements OnInit {
       if(!this.kernelInfoSet){
         this.defineInfoToAccessKernel(this.experiment.name, this.experiment.id);
       }
-      if(!this.jupy_session_find){
-        this.getJupyterSessions();
-      }
+      // if(!this.jupy_session_find){
+      //   this.getJupyterSessions();
+      // }
 
-      if(this.newDiscoveriesExist && this.jupy_session_find){      
-        this.jupyterService.sendToKernel(this.message);
+      // if(this.newDiscoveriesExist && this.jupy_session_find){
+      if(this.newDiscoveriesExist){  
+        this.makeKernelMessageToCreateDataset()     
+        this.jupyterService.sendToKernel(this.message).subscribe();
         this.newDiscoveriesExist = false;
       }
-      
     });
   }
 
@@ -111,7 +120,8 @@ export class ExperimentMonitoringComponent implements OnInit {
   ngOnDestroy(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    this.jupyterService.closeKernelChannel()
+    this.jupyterService.closeKernelChannel();
+    this.jupyterService.destroyKernel(this.aKernelToRuleThemAll.id).subscribe();
   }
 
   initPopover(){
@@ -124,9 +134,10 @@ export class ExperimentMonitoringComponent implements OnInit {
   // ######### JUPYTER PART #########
 
   defineInfoToAccessKernel(exp_name: string, exp_id: number){
-    this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/notebooks/'+exp_name+'_'+exp_id.toString()+'.ipynb');
+    // this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/notebooks/'+exp_name+'_'+exp_id.toString()+'.ipynb');
     // this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab/Untitled_Folder');
-    // this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab?');
+    let path = exp_name+'_'+exp_id.toString()
+    this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab/workspaces/'+path+'/tree/Experiments/'+path+'/');
     this.actual_session_path = exp_name+'_'+ exp_id.toString()+'.ipynb';
     this.kernelInfoSet = true;
   }
@@ -161,6 +172,27 @@ export class ExperimentMonitoringComponent implements OnInit {
         this.getJupyterSessions();
       }    
     });
+  }
+
+  makeKernelMessageToCreateDataset(){
+    
+    if(this.experiment){
+      let checkpoint_list:string ="[";
+      for (let checkpoint of this.experiment.checkpoints){
+        if(checkpoint_list[checkpoint_list.length-1] != "," && checkpoint_list[checkpoint_list.length-1] != "["){
+          checkpoint_list=checkpoint_list+",";
+        }
+        checkpoint_list=checkpoint_list+checkpoint.id.toString();
+      }
+      checkpoint_list=checkpoint_list+"]";
+      this.message = 'import requests'+ '\n' +
+                     'import json'+ '\n' +
+                     'dataset_'+this.experiment.id.toString()+'= []'+ '\n' +
+                     'checkpoints_id = '+ checkpoint_list + '\n' +
+                     'for checkpoint_id in checkpoints_id:'+ '\n' +
+                     ' dataset_'+this.experiment.id.toString()+'.extend(json.loads(requests.get(url = "http://127.0.0.1:5001/discoveries?checkpoint_id="+str(checkpoint_id)).content.decode()))'+ '\n' +
+                     '%store dataset_'+this.experiment.id.toString();
+    }
   }
 
 }

@@ -4,6 +4,7 @@ import { catchError } from 'rxjs/operators';
 
 import { JupyterSessions } from '../entities/jupyter_sessions';
 import { JupyterKernel } from '../entities/jupyter_kernel';
+import { JupyterDir } from '../entities/jupyter_dir';
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 
 import { AppDbService } from '../services/app-db.service';
@@ -24,6 +25,7 @@ export class JupyterService {
   // public jupy_value_update_number:number = 0;
   public new_data_available = new Subject<boolean>();
   public kernel_restart = new Subject<boolean>();
+  public path:any;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -39,6 +41,14 @@ export class JupyterService {
       .pipe(
         catchError(this.handleError<JupyterSessions[]>('getSessions', []))
       );
+  }
+
+  createKernel(): Observable<any>{
+    return this.http.post<any>(this.jupyterUrl + "/api/kernels", {})
+  }
+
+  destroyKernel(kernel_id: string): Observable<any>{
+    return this.http.delete<any>(this.jupyterUrl + "/api/kernels/"+kernel_id);
   }
 
   getKernel(kernel_id: string):Observable<JupyterKernel>{
@@ -66,6 +76,9 @@ export class JupyterService {
                         // the kernel be restart, inform the component to connect it with the new kernel
                         this.kernel_restart.next(true);
                        }
+                     }
+                     else{
+                       console.log(msg)
                      }
                     }, // Called whenever there is a message from the server.
       (err: any) => console.log("error append with jupyter kernel server: " + err), // Called if at any point WebSocket API signals some kind of error.
@@ -99,16 +112,67 @@ export class JupyterService {
     return msg
   }
 
-  createNotebook(experiment_name: string, experiment_id: number, body: any):Observable<any>{
-    let response = this.http.put<any>(
-      this.jupyterUrl + '/api/contents/'+experiment_name+'_'+experiment_id.toString()+'.ipynb',
-      body, 
-      this.httpOptions)
-      .pipe(
-        catchError(this.handleError<any>('createNotebook'))
-      );
+  // createNotebook(experiment_name: string, experiment_id: number, body: any):Observable<any>{
+  //   let response = this.http.put<any>(
+  //     this.jupyterUrl + '/api/contents/'+experiment_name+'_'+experiment_id.toString()+'.ipynb',
+  //     body, 
+  //     this.httpOptions)
+  //     .pipe(
+  //       catchError(this.handleError<any>('createNotebook'))
+  //     );
+  //   return response;
+  // }
+
+  createNotebookDir(experiment_name: string, experiment_id: number, path_template_folder:string):Observable<any>{    
+    let response:Observable<any>;
+    response = of(this.createJupyDir(experiment_name, experiment_id).subscribe(res=>{
+      return this.getAllNoetbooksInDir(path_template_folder).subscribe(res => {
+        return this.copyPastAllNotebook(experiment_name, experiment_id, res.content)
+      });
+    }))
+    
     return response;
   }
+
+  createJupyDir(experiment_name: string, experiment_id: number):Observable<any>{
+    let response = this.http.put<any>(
+      this.jupyterUrl + '/api/contents/Experiments/'+experiment_name+'_'+experiment_id.toString(),
+      {
+        "name": experiment_name+'_'+experiment_id.toString(),
+        "path": experiment_name+'_'+experiment_id.toString(),
+        "type": "directory"
+      }, 
+      this.httpOptions)
+    return response;
+  }
+
+  getAllNoetbooksInDir(folder_path: string):Observable<JupyterDir>{
+    let response = this.http.get<JupyterDir>(
+      this.jupyterUrl + '/api/contents/'+folder_path,
+      this.httpOptions)
+    return response;
+  }
+
+  copyPastAllNotebook(experiment_name: string, experiment_id: number, notebooks_dir_content:any):Observable<any>{
+    let response = new Observable<any>();
+    for(let notebook of notebooks_dir_content){
+      console.log(notebook);
+      response = this.copyPastNotebook(experiment_name, experiment_id, notebook.path);
+      }
+    return(response);
+  }
+
+  copyPastNotebook(experiment_name: string, experiment_id: number, notebook_path:string):Observable<any>{
+    return of(this.http.post<any>(
+      this.jupyterUrl + '/api/contents/Experiments/'+experiment_name+'_'+experiment_id.toString(),
+      {
+        "copy_from" : notebook_path
+      },
+      this.httpOptions).subscribe())
+  }
+
+  
+  
 
   // must be replace by a call to a true jupyter notebook template
   // add a parameter to choose the template

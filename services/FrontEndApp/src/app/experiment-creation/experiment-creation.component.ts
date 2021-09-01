@@ -41,6 +41,8 @@ export class ExperimentCreationComponent implements OnInit {
 
   actual_config_elt: any = {};
 
+  path_template_folder = "Templates";
+
   constructor(private AutoDiscServerService: AutoDiscServerService, private router: Router, private JupyterService: JupyterService) { }
 
   ngOnInit(): void {
@@ -63,7 +65,8 @@ export class ExperimentCreationComponent implements OnInit {
 
   getSystems(): void {
     this.AutoDiscServerService.getSystems()
-    .subscribe(systems => this.systems = systems);
+    .subscribe(systems => {this.systems = systems;
+                console.log(systems)});
   }
 
   getInputWrappers(): void {
@@ -225,7 +228,7 @@ export class ExperimentCreationComponent implements OnInit {
     this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
       this.experiment_id = res["ID"]; 
       let body = this.JupyterService.defineNotebookBody(this.newExperiment.experiment.name, this.experiment_id);
-      this.JupyterService.createNotebook(this.newExperiment.experiment.name, this.experiment_id, body).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
+      this.JupyterService.createNotebookDir(this.newExperiment.experiment.name, this.experiment_id, this.path_template_folder).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
       
     });
   }
