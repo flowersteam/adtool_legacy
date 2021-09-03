@@ -11,7 +11,13 @@ import { Observable, of } from 'rxjs';
 })
 export class ExpeDbService {
 
-  private expeDBUrl = "http://127.0.0.1:5001"
+  private expeDBUrl = "http://127.0.0.1:5001";
+
+  httpOptions = {
+    headers: new HttpHeaders({
+
+      'Content-Type': 'application/json' })
+  };
 
   constructor(private http: HttpClient) { }
 
@@ -32,6 +38,37 @@ export class ExpeDbService {
         catchError(this.handleError<any>('deleteCheckpointSaves', undefined))
       );
   }
+
+  getDiscovery(filter: string): Observable<any[]>{
+    return this.http.get<any[]>(
+      this.expeDBUrl + 
+      "/discoveries?filter=" + filter,
+      this.httpOptions)
+      .pipe(
+        catchError(this.handleError<any[]>('getDiscovery', []))
+      );
+  }
+
+  getDiscoveryRenderedOutput(id: string): Observable<any[]>{
+    const httpOptions = {
+      headers: new HttpHeaders({'Content-Type': 'video/mp4'}),
+      responseType: 'blob' as 'json'
+    };
+    
+    return this.http.get<any[]>(
+      this.expeDBUrl + 
+      "/discoveries/" + id + "/rendered_output",
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any[]>('getDiscoveryOutput', []))
+      );
+  }
+
+//   public getVideo(url:string): Observable<any> {
+//     const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authenticationService.token, 'Content-Type': 'video/mp4' });
+//     const options = { headers: headers };
+//     return this.http.get(url, options);
+// }
 
 
   /**

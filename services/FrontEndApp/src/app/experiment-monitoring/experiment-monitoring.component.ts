@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { AppDbService } from '../services/app-db.service';
+import { ExpeDbService } from '../services/expe-db.service';
 import { AutoDiscServerService } from '../services/auto-disc.service';
 import { Experiment } from '../entities/experiment';
 import { Observable, interval, Subscription } from 'rxjs';
@@ -25,6 +26,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
 
+  // var about jupyter
   public jupyterSession:JupyterSessions[] = [];
   public actual_session_path : string | undefined;
   public new_data_available_sub: Subscription | undefined;
@@ -32,11 +34,16 @@ export class ExperimentMonitoringComponent implements OnInit {
   public jupy_session_find = false;
   public kernelInfoSet =false;
   public newDiscoveriesExist = false;
-
   public kernel_restart_sub: Subscription | undefined;
+  public message = '';
+  aKernelToRuleThemAll: any;
 
-   public message = '';
-   aKernelToRuleThemAll: any;
+  // var about Discovery display
+  actualRunIdx = 0; // run_idx value defined by the user. Using to show discovery of this specific run_idx
+  run_idxmax= 0; // define max value of range who permit to user to chose run_idx he want to see
+  actualSeed=0; // seed value defined by the user to visualise it in discoveries tab
+  discoveries:any;
+  renderedOutput:any;
 
   
   public autoRefreshSeconds: number = 5;
@@ -44,7 +51,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   urlSafe: SafeResourceUrl | undefined;
   
   constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute,
-              public sanitizer: DomSanitizer, private jupyterService: JupyterService) { }
+              public sanitizer: DomSanitizer, private jupyterService: JupyterService, private expeDbService: ExpeDbService) { }
 
   ngOnInit() {
     this.refreshExperiment();
@@ -60,7 +67,8 @@ export class ExperimentMonitoringComponent implements OnInit {
       this.jupyterService.sendToKernel(this.message).subscribe();
     });
     
-    this.initPopover();    
+    this.initPopover();
+    this.initCollapseVisualisation();  
   }
 
   
@@ -84,6 +92,7 @@ export class ExperimentMonitoringComponent implements OnInit {
       Number(this.route.snapshot.paramMap.get('id'))
     )
     .subscribe(experiment => {
+      this.run_idxmax = this.getUpToNModEqualY(experiment.config.save_frequency, 0, experiment.config.nb_iterations);
       this.newDiscoveriesExist = (this.newDiscoveriesExist || this.experiment == undefined || this.experiment.progress < experiment.progress);
       this.experiment = experiment;
       this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
@@ -91,6 +100,8 @@ export class ExperimentMonitoringComponent implements OnInit {
       if (experiment.exp_status == 1){
         this.ellapsed = ((new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
       }
+
+      this.defineWhatWeWantVisualise();
 
       if(!this.kernelInfoSet){
         this.defineInfoToAccessKernel(this.experiment.name, this.experiment.id);
@@ -130,6 +141,82 @@ export class ExperimentMonitoringComponent implements OnInit {
       return new bootstrap.Popover(popoverTriggerEl)
     })
   }
+
+  // ######### TAB PART (jupyter discovery...)#########
+  initCollapseVisualisation(){
+    (document.getElementById('btncollapseJupyter') as HTMLButtonElement).disabled = true;
+  }
+
+  collapseVisualisation(event: any){
+    
+    var collapseBtnTriggerList = document.querySelectorAll('#btncollapseJupyter, #btncollapseDiscovery')
+    var collapseTriggerList = [].slice.call(document.querySelectorAll('#collapseJupyter, #collapseDiscovery'))
+    var collapseList = collapseTriggerList.map(function (collapseTriggerEl) {
+      return new bootstrap.Collapse(collapseTriggerEl)
+    })
+    for (let index = 0; index < collapseBtnTriggerList.length; index++) {
+      ((collapseBtnTriggerList[index]) as HTMLButtonElement).disabled = false;
+    }
+    event.target.disabled = true;
+  }
+
+  // ######### DISCOVERY PART #########
+  getUpToNModEqualY(x: number, y: number, n: number){
+    // Stores the required number
+    let num = 0;
+ 
+    //  Update num as the result
+    if (n - n % x + y <= n){
+      num = n - n % x + y;
+    }
+    else{
+      num = n - n % x - (x - y);
+    }
+    return num;
+  }
+
+  counter(i: number) {
+    return new Array(i);
+}
+
+  setActualRunIdx(event: any){
+    this.actualRunIdx = event.target.value;
+    console.log(this.actualRunIdx);
+    this.defineWhatWeWantVisualise()
+  }
+
+  setActualSeedToVisualise(event: any){
+    this.actualSeed = event.target.value;
+    this.defineWhatWeWantVisualise();
+  }
+
+  defineWhatWeWantVisualise(){
+    // this.actualRunIdx
+    // this.actualSeed
+    this.getDiscovery();
+    console.log('oui');
+  }
+
+  getDiscovery(): void {
+    // let filter = '{"checkpoint_id":{"$eq":141}}';
+    if(this.experiment){
+      let checkpoint_id = this.experiment.checkpoints[Math.floor(this.actualRunIdx / this.experiment.config.save_frequency)].id.toString();
+      let filter = '{"$and":[{"checkpoint_id":{"$eq":'+checkpoint_id+'}}, {"run_idx":{"$eq":'+this.actualRunIdx.toString()+'}},  {"seed":{"$in":[0,1,2]}}]}'
+      this.expeDbService.getDiscovery(filter)
+      .subscribe(discoveries => {
+        this.discoveries = discoveries;
+        this.expeDbService.getDiscoveryRenderedOutput(this.discoveries[0]._id)
+        .subscribe(renderedOutput => {
+          this.renderedOutput = renderedOutput;
+          let video = document.querySelector("video");
+          if(video){
+            video.src = window.URL.createObjectURL(this.renderedOutput);
+          }     
+        });
+      });
+    }
+  }
+  
 
   // ######### JUPYTER PART #########
 
