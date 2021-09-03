@@ -42,7 +42,7 @@ class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
     def __call__(self, **kwargs):
         """
         brief:      callback saves the discoveries outputs we want to save on database.
-        comment:    always saved : run_idx(json), checkpoint_id(json)
+        comment:    always saved : run_idx(json), experiment_id(json)
                     saved if key in self.to_save_outputs: raw_run_parameters(json)
                                                         run_parameters,(json)
                                                         raw_output(file),
