@@ -227,7 +227,6 @@ export class ExperimentCreationComponent implements OnInit {
   createExp(){
     this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
       this.experiment_id = res["ID"]; 
-      let body = this.JupyterService.defineNotebookBody(this.newExperiment.experiment.name, this.experiment_id);
       this.JupyterService.createNotebookDir(this.newExperiment.experiment.name, this.experiment_id, this.path_template_folder).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
       
     });

@@ -35,14 +35,6 @@ export class JupyterService {
 
   constructor(private http: HttpClient, private appDBService: AppDbService) { }
 
-  getSessions():Observable<JupyterSessions[]>{
-    return this.http.get<JupyterSessions[]>(
-      this.jupyterUrl + "/api/sessions")
-      .pipe(
-        catchError(this.handleError<JupyterSessions[]>('getSessions', []))
-      );
-  }
-
   createKernel(): Observable<any>{
     return this.http.post<any>(this.jupyterUrl + "/api/kernels", {})
   }
@@ -51,18 +43,12 @@ export class JupyterService {
     return this.http.delete<any>(this.jupyterUrl + "/api/kernels/"+kernel_id);
   }
 
-  getKernel(kernel_id: string):Observable<JupyterKernel>{
-    return this.http.get<JupyterKernel>(
-      this.jupyterUrl + '/api/kernels/'+kernel_id)
-      .pipe(
-        catchError(this.handleError<JupyterKernel>('getKernel'))
-      );
-  }
   
-  openKernelChannel(kernel_id:string){
+  openKernelChannel(kernel_id:string):Observable<any>{
     this.jupyWebSocket = webSocket('ws://localhost:8888/api/kernels/'+kernel_id+'/channels');
     this.jupyWebSocket.subscribe(
       (msg: any) => {
+                     
                      if(msg.parent_header.msg_id == this.msg_id_send && msg.content.status == 'ok'){
                       // server inform we can use new data
                       this.new_data_available.next(true);
@@ -71,22 +57,23 @@ export class JupyterService {
                       // the user clic execute button in notebook so we consider he know the available data
                       this.new_data_available.next(false);
                      }
-                     else if(msg.parent_header.msg_type == 'shutdown_request' && msg.content.status == 'ok') {
-                       if(msg.content.restart){
-                        // the kernel be restart, inform the component to connect it with the new kernel
-                        this.kernel_restart.next(true);
-                       }
-                     }
+                    //  else if(msg.parent_header.msg_type == 'shutdown_request' && msg.content.status == 'ok') {
+                    //    if(msg.content.restart){
+                    //     // the kernel be restart, inform the component to connect it with the new kernel
+                    //     this.kernel_restart.next(true);
+                    //    }
+                    //  }
                      else{
-                       console.log(msg)
+                      //  console.log(msg)
                      }
                     }, // Called whenever there is a message from the server.
       (err: any) => console.log("error append with jupyter kernel server: " + err), // Called if at any point WebSocket API signals some kind of error.
       () => console.log('complete') // Called when connection is closed (for whatever reason).
     );
+    return this.jupyWebSocket
   }
 
-  sendToKernel(message:string): any{
+  sendToKernel(message:string): Observable<any>{
     let formated_message = this.format_request(message)
     this.msg_id_send = formated_message.parent_header.msg_id
     let response = this.jupyWebSocket.next(formated_message);
@@ -112,16 +99,6 @@ export class JupyterService {
     return msg
   }
 
-  // createNotebook(experiment_name: string, experiment_id: number, body: any):Observable<any>{
-  //   let response = this.http.put<any>(
-  //     this.jupyterUrl + '/api/contents/'+experiment_name+'_'+experiment_id.toString()+'.ipynb',
-  //     body, 
-  //     this.httpOptions)
-  //     .pipe(
-  //       catchError(this.handleError<any>('createNotebook'))
-  //     );
-  //   return response;
-  // }
 
   createNotebookDir(experiment_name: string, experiment_id: number, path_template_folder:string):Observable<any>{    
     let response:Observable<any>;
@@ -171,59 +148,6 @@ export class JupyterService {
       this.httpOptions).subscribe())
   }
 
-  
-  
-
-  // must be replace by a call to a true jupyter notebook template
-  // add a parameter to choose the template
-  defineNotebookBody(exp_name: string, exp_id: number){
-    let body = {
-      "content": {
-          "cells": this.defineNotebookCells(exp_name, exp_id),
-          "metadata": {
-              "kernelspec": {
-                  "display_name": "Python 3",
-                  "language": "python",
-                  "name": "python3"
-              },
-              "language_info": {
-                  "codemirror_mode": {
-                      "name": "ipython",
-                      "version": 3
-                  },
-                  "file_extension": ".py",
-                  "mimetype": "text/x-python",
-                  "name": "python",
-                  "nbconvert_exporter": "python",
-                  "pygments_lexer": "ipython3",
-                  "version": "3.8.5"
-              }
-          },
-          "nbformat": 4,
-          "nbformat_minor": 4
-      },
-      "format": "json",
-      "mimetype": null,
-      "writable": true,
-      "type": "notebook"
-    };
-    return(body)
-  }
-
-  defineNotebookCells(exp_name: string, exp_id: number){
-    let cells = [
-      {
-          "cell_type": "code",
-          "execution_count": 2,
-          "metadata": {
-              "trusted": true
-          },
-          "outputs": [],
-          "source": "a=155\nb=5\nprint(a+b)"
-      }
-    ];
-    return(cells);    
-  }
 
 
   /**

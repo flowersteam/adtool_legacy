@@ -31,11 +31,8 @@ export class ExperimentMonitoringComponent implements OnInit {
   public actual_session_path : string | undefined;
   public new_data_available_sub: Subscription | undefined;
   public new_data_available: boolean = false;
-  public jupy_session_find = false;
   public kernelInfoSet =false;
-  public newDiscoveriesExist = false;
-  public kernel_restart_sub: Subscription | undefined;
-  public message = '';
+  public message:string = '';
   aKernelToRuleThemAll: any;
 
   // var about Discovery display
@@ -44,6 +41,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   actualSeed=0; // seed value defined by the user to visualise it in discoveries tab
   discoveries:any;
   renderedOutput:any;
+  tabButtonDisable:any;
 
   
   public autoRefreshSeconds: number = 5;
@@ -56,15 +54,12 @@ export class ExperimentMonitoringComponent implements OnInit {
   ngOnInit() {
     this.refreshExperiment();
     this.resetAutoRefresh();
-
-    this.initJupyterServiceSubData();
-
     this.jupyterService.createKernel().subscribe(res =>{
       this.aKernelToRuleThemAll = res;
-      this.jupyterService.openKernelChannel(this.aKernelToRuleThemAll.id);
-
-      this.makeKernelMessageToCreateDataset();
-      this.jupyterService.sendToKernel(this.message).subscribe();
+      this.jupyterService.openKernelChannel(this.aKernelToRuleThemAll.id).subscribe(_ =>{
+        this.makeKernelMessageToCreateDataset();
+        this.jupyterService.sendToKernel(this.message);
+      });
     });
     
     this.initPopover();
@@ -93,7 +88,6 @@ export class ExperimentMonitoringComponent implements OnInit {
     )
     .subscribe(experiment => {
       this.run_idxmax = this.getUpToNModEqualY(experiment.config.save_frequency, 0, experiment.config.nb_iterations);
-      this.newDiscoveriesExist = (this.newDiscoveriesExist || this.experiment == undefined || this.experiment.progress < experiment.progress);
       this.experiment = experiment;
       this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
       this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
@@ -106,15 +100,10 @@ export class ExperimentMonitoringComponent implements OnInit {
       if(!this.kernelInfoSet){
         this.defineInfoToAccessKernel(this.experiment.name, this.experiment.id);
       }
-      // if(!this.jupy_session_find){
-      //   this.getJupyterSessions();
-      // }
 
-      // if(this.newDiscoveriesExist && this.jupy_session_find){
-      if(this.newDiscoveriesExist){  
+      if(this.aKernelToRuleThemAll){
         this.makeKernelMessageToCreateDataset()     
-        this.jupyterService.sendToKernel(this.message).subscribe();
-        this.newDiscoveriesExist = false;
+        this.jupyterService.sendToKernel(this.message);
       }
     });
   }
@@ -129,10 +118,10 @@ export class ExperimentMonitoringComponent implements OnInit {
   }
 
   ngOnDestroy(): void{
-    this.updateSubscription?.unsubscribe();
-    this.intervalToSubscribe = undefined;
-    this.jupyterService.closeKernelChannel();
     this.jupyterService.destroyKernel(this.aKernelToRuleThemAll.id).subscribe();
+    this.jupyterService.closeKernelChannel();
+    this.updateSubscription?.unsubscribe();
+    this.intervalToSubscribe = undefined;    
   }
 
   initPopover(){
@@ -144,7 +133,7 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   // ######### TAB PART (jupyter discovery...)#########
   initCollapseVisualisation(){
-    (document.getElementById('btncollapseJupyter') as HTMLButtonElement).disabled = true;
+    this.tabButtonDisable = {"btncollapseJupyter": true, "btncollapseDiscovery": false};
   }
 
   collapseVisualisation(event: any){
@@ -154,10 +143,11 @@ export class ExperimentMonitoringComponent implements OnInit {
     var collapseList = collapseTriggerList.map(function (collapseTriggerEl) {
       return new bootstrap.Collapse(collapseTriggerEl)
     })
-    for (let index = 0; index < collapseBtnTriggerList.length; index++) {
-      ((collapseBtnTriggerList[index]) as HTMLButtonElement).disabled = false;
+
+    for (let key in this.tabButtonDisable) {
+      this.tabButtonDisable[key] = false;
     }
-    event.target.disabled = true;
+    this.tabButtonDisable[event.delegateTarget.id] = true;
   }
 
   // ######### DISCOVERY PART #########
@@ -194,25 +184,25 @@ export class ExperimentMonitoringComponent implements OnInit {
     // this.actualRunIdx
     // this.actualSeed
     this.getDiscovery();
-    console.log('oui');
   }
 
   getDiscovery(): void {
-    // let filter = '{"checkpoint_id":{"$eq":141}}';
     if(this.experiment){
-      let checkpoint_id = this.experiment.checkpoints[Math.floor(this.actualRunIdx / this.experiment.config.save_frequency)].id.toString();
-      let filter = '{"$and":[{"checkpoint_id":{"$eq":'+checkpoint_id+'}}, {"run_idx":{"$eq":'+this.actualRunIdx.toString()+'}},  {"seed":{"$in":[0,1,2]}}]}'
+      let filter = '{"$and":[{"experiment_id":{"$eq":'+this.experiment.id.toString()+'}}, {"run_idx":{"$eq":'+this.actualRunIdx.toString()+'}},  {"seed":{"$in":[0,1,2]}}]}'
       this.expeDbService.getDiscovery(filter)
       .subscribe(discoveries => {
         this.discoveries = discoveries;
-        this.expeDbService.getDiscoveryRenderedOutput(this.discoveries[0]._id)
-        .subscribe(renderedOutput => {
-          this.renderedOutput = renderedOutput;
-          let video = document.querySelector("video");
-          if(video){
-            video.src = window.URL.createObjectURL(this.renderedOutput);
-          }     
-        });
+        if(discoveries.length > 0){
+          this.expeDbService.getDiscoveryRenderedOutput(this.discoveries[0]._id)
+          .subscribe(renderedOutput => {
+            this.renderedOutput = renderedOutput;
+            let video = document.querySelector("video");
+            if(video){
+              video.src = window.URL.createObjectURL(this.renderedOutput);
+            }     
+          });
+        }
+        
       });
     }
   }
@@ -221,25 +211,15 @@ export class ExperimentMonitoringComponent implements OnInit {
   // ######### JUPYTER PART #########
 
   defineInfoToAccessKernel(exp_name: string, exp_id: number){
-    // this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/notebooks/'+exp_name+'_'+exp_id.toString()+'.ipynb');
-    // this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab/Untitled_Folder');
     let path = exp_name+'_'+exp_id.toString()
     this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab/workspaces/'+path+'/tree/Experiments/'+path+'/');
     this.actual_session_path = exp_name+'_'+ exp_id.toString()+'.ipynb';
     this.kernelInfoSet = true;
   }
 
-  getJupyterSessions():void{
-    this.jupyterService.getSessions()
-    .subscribe(jupyterSession => {this.jupyterSession = jupyterSession,
-      this.openKernelChannel()     
-    });
-  }
-
   openKernelChannel():any{
     for (let session of this.jupyterSession) {
       if(session.path == this.actual_session_path){
-        this.jupy_session_find = true;
         this.jupyterService.openKernelChannel(session.kernel.id.toString());
         this.refreshExperiment();
         break;
@@ -252,34 +232,25 @@ export class ExperimentMonitoringComponent implements OnInit {
     this.new_data_available_sub = this.jupyterService.new_data_available.subscribe((new_data_available: boolean) => {
       this.new_data_available = new_data_available;
     });
-    // when the kernel was restart this reconnect our app to the good one.
-    this.kernel_restart_sub = this.jupyterService.kernel_restart.subscribe((kernel_restart: boolean) => {
-      if(this.experiment && kernel_restart){
-        this.newDiscoveriesExist = true;
-        this.getJupyterSessions();
-      }    
-    });
   }
 
   makeKernelMessageToCreateDataset(){
-    
     if(this.experiment){
-      let checkpoint_list:string ="[";
-      for (let checkpoint of this.experiment.checkpoints){
-        if(checkpoint_list[checkpoint_list.length-1] != "," && checkpoint_list[checkpoint_list.length-1] != "["){
-          checkpoint_list=checkpoint_list+",";
-        }
-        checkpoint_list=checkpoint_list+checkpoint.id.toString();
+      this.message =  'import os'+'\n' +
+                      'import sys'+'\n' +
+                      'server_path = os.readlink("/proc/%s/cwd" % os.environ["JPY_PARENT_PID"])'+'\n' +
+                      'module_path = os.path.abspath(os.path.join(server_path, "../../libs"))'+'\n' +
+                      'if module_path not in sys.path:'+'\n' +
+                      '    sys.path.append(module_path)'+'\n' +
+                      'from auto_disc_db import Dataset'+'\n' +
+                      'if __name__ == "__main__":'+'\n' +
+                      '     dataset_'+this.experiment.id.toString()+' = Dataset('+this.experiment.id.toString()+')'+'\n' +
+                      '     dataset = Dataset('+this.experiment.id.toString()+')'+'\n' +
+                      '     print(dataset)'+'\n'+
+                      '     %store dataset_'+this.experiment.id.toString()+'\n' +
+                      '     %store dataset'
+                      
       }
-      checkpoint_list=checkpoint_list+"]";
-      this.message = 'import requests'+ '\n' +
-                     'import json'+ '\n' +
-                     'dataset_'+this.experiment.id.toString()+'= []'+ '\n' +
-                     'checkpoints_id = '+ checkpoint_list + '\n' +
-                     'for checkpoint_id in checkpoints_id:'+ '\n' +
-                     ' dataset_'+this.experiment.id.toString()+'.extend(json.loads(requests.get(url = "http://127.0.0.1:5001/discoveries?checkpoint_id="+str(checkpoint_id)).content.decode()))'+ '\n' +
-                     '%store dataset_'+this.experiment.id.toString();
-    }
   }
 
 }

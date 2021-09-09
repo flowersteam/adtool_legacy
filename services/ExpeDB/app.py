@@ -12,8 +12,8 @@ db = client.main_db
 fs = GridFS(db)
 
 # Return request with a document matching filter 
-def _get_one_by_filter(collection, filter):
-    element = collection.find_one(filter)
+def _get_one_by_filter(collection, filter, query=None):
+    element = collection.find_one(filter, query)
     if element:
         element['_id'] = str(element['_id'])
         return make_response(jsonify(element), 200)
@@ -21,9 +21,9 @@ def _get_one_by_filter(collection, filter):
         return make_response("No element found matching {} in collection {}".format(filter, collection), 403)
 
 # Return request with multiple documents matching filter 
-def _get_multiple_by_filter(collection, filter):
+def _get_multiple_by_filter(collection, filter, query=None):
     elements = []
-    for element in collection.find(filter):
+    for element in collection.find(filter, query):
         element['_id'] = str(element['_id'])
         elements.append(element)
     return make_response(jsonify(elements), 200)
@@ -55,7 +55,8 @@ def _add_files_to_document(collection, document, files):
 def list_discoveries():
     filter = request.args.get('filter', default=None)
     if filter is not None:
-        return _get_multiple_by_filter(db.discoveries, json.loads(filter))
+        query = request.args.get('query', default=None)
+        return _get_multiple_by_filter(db.discoveries, json.loads(filter), json.loads(query) if query else None)
     else:
         return make_response("You must provide a filter in the request args", 403)
 
@@ -108,7 +109,8 @@ def delete_discoveries():
 def list_checkpoint_saves():
     filter = request.args.get('filter', default=None)
     if filter is not None:
-        return _get_multiple_by_filter(db.checkpoint_saves, json.loads(filter))
+        query = request.args.get('query', default=None)
+        return _get_multiple_by_filter(db.checkpoint_saves, json.loads(filter), json.loads(query) if query else None)
     else:
         return make_response("You must provide a filter in the request args", 403)
 
