@@ -14,12 +14,12 @@ class LeniaImageSelector(BaseOutputRepresentation):
     '''
 
     output_space = DictSpace(
-        image=BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY"),))
+        image=BoxSpace(low=0, high=10, shape=(1, ConfigParameterBinding("SX"), ConfigParameterBinding("SY"),))
     )
 
     def __init__(self, wrapped_input_space_key=None):
         super().__init__("states")
 
     def map(self, observations, is_output_new_discovery, **kwargs):
-        output_image = observations[self.wrapped_input_space_key][self.config.timestep]
+        output_image = observations[self.wrapped_input_space_key][self.config.timestep].unsqueeze(0) #CHW
         return {"image": output_image}
