@@ -1,4 +1,6 @@
 experiment_results/
+checkpoints/
+tensorboard/
 tmp_output_results/
 
 ### PYCHARM

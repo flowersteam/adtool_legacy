@@ -1,3 +1,4 @@
 from auto_disc.output_representations.generic.dummy_output_representation import DummyOutputRepresentation
 from auto_disc.output_representations.generic.pca import PCA
 from auto_disc.output_representations.generic.umap import UMAP
+from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.vae import VAE

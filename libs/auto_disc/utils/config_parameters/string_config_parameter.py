@@ -10,7 +10,9 @@ class StringConfigParameter(BaseConfigParameter):
         super().__init__(name, default)
 
     def check_value_to_set(self, value):
-        if value in self._possible_values:
+        if self._possible_values == "all":
+            return True
+        elif value in self._possible_values:
             return True
         else:
             raise Exception('Chosen value ({0}) does not belong to the authorized list ({1}).'.format(value, self._possible_values))
