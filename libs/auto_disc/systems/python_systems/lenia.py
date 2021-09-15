@@ -233,14 +233,23 @@ class LeniaStepFFT(torch.nn.Module):
         # normalization of the kernel
         self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
         # fft of the kernel
-        self.kernel_FFT = torch.rfft(self.kernel_norm, signal_ndim=2, onesided=False).to(self.device)
+        if torch.__version__ >= "1.7.1":
+            self.kernel_FFT = torch.fft.rfft2(self.kernel_norm).to(self.device)
+        else:
+            self.kernel_FFT = torch.rfft(self.kernel_norm, signal_ndim=2, onesided=False).to(self.device)
 
 
     def forward(self, input):
 
-        world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
-        potential_FFT = complex_mult_torch(self.kernel_FFT, world_FFT)
-        potential = torch.irfft(potential_FFT, signal_ndim=2, onesided=False)
+        if torch.__version__ >= "1.7.1":
+            world_FFT = torch.fft.rfft2(input)
+            potential_FFT = self.kernel_FFT * world_FFT  # complex mutliplication
+            potential = torch.fft.irfft2(potential_FFT)
+        else:
+            world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
+            potential_FFT = complex_mult_torch(self.kernel_FFT, world_FFT)  # complex mutliplication
+            potential = torch.irfft(potential_FFT, signal_ndim=2, onesided=False)
+
         potential = roll_n(potential, 3, potential.detach().size(3) // 2)
         potential = roll_n(potential, 2, potential.detach().size(2) // 2)
 
@@ -253,7 +262,7 @@ class LeniaStepFFT(torch.nn.Module):
             output_img = soft_clip(input + (1.0 / self.T) * field, 0, 1, self.T)
 
         if torch.any(torch.isnan(potential)):
-            print('break')
+            raise AssertionError(f"lenia paremeters {self.T, self.R, self.b, self.m, self.s} are causing NaN values")
 
         return output_img
 
