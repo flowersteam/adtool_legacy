@@ -19,7 +19,7 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                 define by 'self.folder_path'
 
         comment:callback save the discoveries outputs we want to save on disk.
-                always saved : run_idx(pickle), checkpoint_id(pickle)
+                always saved : run_idx(pickle), experiment_id(pickle)
                 saved if key in self.to_save_outputs: raw_run_parameters(pickle)
                                                     run_parameters,(pickle)
                                                     raw_output(pickle),

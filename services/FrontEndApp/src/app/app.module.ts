@@ -16,6 +16,8 @@ import {FilterPipe} from './pipes/filter.pipe';
 import { DragDropModule }from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
 
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -32,7 +34,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     AppRoutingModule,
     HttpClientModule,
     DragDropModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgxSliderModule
   ],
   providers: [],
   bootstrap: [AppComponent]

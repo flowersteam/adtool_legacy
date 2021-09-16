@@ -13,6 +13,8 @@ import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray }from '@angular/cdk/drag-drop';
 
+import { JupyterService } from '../services/jupyter.service';
+
 @Component({
   selector: 'app-experiment-creation',
   templateUrl: './experiment-creation.component.html',
@@ -39,15 +41,19 @@ export class ExperimentCreationComponent implements OnInit {
 
   actual_config_elt: any = {};
 
-  constructor(private AutoDiscServerService: AutoDiscServerService, private router: Router) { }
+  path_template_folder = "Templates";
+
+  constructor(private AutoDiscServerService: AutoDiscServerService, private router: Router, private JupyterService: JupyterService) { }
 
   ngOnInit(): void {
+    this.initExp();
     this.getExplorers();
     this.getInputWrappers();
     this.getSystems();
     this.getOutputRepresentations();
     this.getDiscoverySavingKeys();
     this.getCallbacks();
+    
   }
 
 
@@ -59,7 +65,8 @@ export class ExperimentCreationComponent implements OnInit {
 
   getSystems(): void {
     this.AutoDiscServerService.getSystems()
-    .subscribe(systems => this.systems = systems);
+    .subscribe(systems => {this.systems = systems;
+                console.log(systems)});
   }
 
   getInputWrappers(): void {
@@ -76,7 +83,7 @@ export class ExperimentCreationComponent implements OnInit {
     this.AutoDiscServerService.getDiscoverySavingKeys()
     .subscribe(discovery_saving_keys => {this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
       this.setDiscoverySavingKeysUsed(),
-      this.initExp()});
+      this.getDiscoverySavingKeysUsed()});
   }
 
   getCallbacks(): void {
@@ -184,7 +191,9 @@ export class ExperimentCreationComponent implements OnInit {
         save_frequency:1,
       }
     }
-    this.getDiscoverySavingKeysUsed()
+    if(this.discovery_saving_keys_used != undefined){
+      this.getDiscoverySavingKeysUsed()
+    }
 
     //system part
     this.newExperiment.system = {
@@ -216,8 +225,11 @@ export class ExperimentCreationComponent implements OnInit {
 
 // ##################   create exp ####################    
   createExp(){
-    this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {this.experiment_id = res["ID"], 
-    this.router.navigate(["/experiment/"+this.experiment_id.toString()])});
+    this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
+      this.experiment_id = res["ID"]; 
+      this.JupyterService.createNotebookDir(this.newExperiment.experiment.name, this.experiment_id, this.path_template_folder).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
+      
+    });
   }
 
 }
