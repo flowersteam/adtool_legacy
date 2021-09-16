@@ -50,6 +50,7 @@ export class ExpeDbService {
   }
 
   getDiscoveryRenderedOutput(id: string): Observable<any[]>{
+
     const httpOptions = {
       headers: new HttpHeaders({'Content-Type': 'video/mp4'}),
       responseType: 'blob' as 'json'
@@ -60,7 +61,7 @@ export class ExpeDbService {
       "/discoveries/" + id + "/rendered_output",
       httpOptions)
       .pipe(
-        catchError(this.handleError<any[]>('getDiscoveryOutput', []))
+        catchError(this.handleError<any[]>('getDiscoveryRenderedOutput', []))
       );
   }
 

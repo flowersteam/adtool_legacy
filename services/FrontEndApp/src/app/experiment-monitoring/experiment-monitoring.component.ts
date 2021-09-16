@@ -5,7 +5,7 @@ import { AppDbService } from '../services/app-db.service';
 import { ExpeDbService } from '../services/expe-db.service';
 import { AutoDiscServerService } from '../services/auto-disc.service';
 import { Experiment } from '../entities/experiment';
-import { Observable, interval, Subscription } from 'rxjs';
+import { Observable, interval, Subscription, empty } from 'rxjs';
 
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { JupyterService } from '../services/jupyter.service';
@@ -35,13 +35,23 @@ export class ExperimentMonitoringComponent implements OnInit {
   public message:string = '';
   aKernelToRuleThemAll: any;
 
+  tabButtonDisable:any; //able or disbale button to select page (jupyter Discovery Log)
+
   // var about Discovery display
-  actualRunIdx = 0; // run_idx value defined by the user. Using to show discovery of this specific run_idx
-  run_idxmax= 0; // define max value of range who permit to user to chose run_idx he want to see
-  actualSeed=0; // seed value defined by the user to visualise it in discoveries tab
-  discoveries:any;
-  renderedOutput:any;
-  tabButtonDisable:any;
+  actualRunIdx:any = []; // run_idx value defined by the user. Using to show discovery of this specific run_idx
+  all_seed_checkox_selected:any = []; // seed value defined by the user to visualise it in discoveries tab
+  nb_discoveries_display = 12; // how many discories we want display simultaneously
+  index_discoveries_display:number=0; //index to define wich subarray of run_idx we want display now
+  array_filter_run_idx:any = []; //subarray of run_idx we want see now
+  slider_double_value = {
+    value: 0,
+    highValue: 0,
+    options: {
+      floor: 0,
+      ceil: 0
+   } // define var needed to range with two values
+  }
+  
 
   
   public autoRefreshSeconds: number = 5;
@@ -87,7 +97,6 @@ export class ExperimentMonitoringComponent implements OnInit {
       Number(this.route.snapshot.paramMap.get('id'))
     )
     .subscribe(experiment => {
-      this.run_idxmax = this.getUpToNModEqualY(experiment.config.save_frequency, 0, experiment.config.nb_iterations);
       this.experiment = experiment;
       this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
       this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
@@ -104,6 +113,15 @@ export class ExperimentMonitoringComponent implements OnInit {
       if(this.aKernelToRuleThemAll){
         this.makeKernelMessageToCreateDataset()     
         this.jupyterService.sendToKernel(this.message);
+      }
+
+      this.slider_double_value = {
+        value: this.slider_double_value.value,
+        highValue: this.slider_double_value.highValue,
+        options: {
+          floor: 0,
+          ceil: this.experiment.progress-1
+       }
       }
     });
   }
@@ -131,7 +149,7 @@ export class ExperimentMonitoringComponent implements OnInit {
     })
   }
 
-  // ######### TAB PART (jupyter discovery...)#########
+  // ######### TAB PART (jupyter discovery log)#########
   initCollapseVisualisation(){
     this.tabButtonDisable = {"btncollapseJupyter": true, "btncollapseDiscovery": false};
   }
@@ -151,62 +169,120 @@ export class ExperimentMonitoringComponent implements OnInit {
   }
 
   // ######### DISCOVERY PART #########
-  getUpToNModEqualY(x: number, y: number, n: number){
-    // Stores the required number
-    let num = 0;
- 
-    //  Update num as the result
-    if (n - n % x + y <= n){
-      num = n - n % x + y;
-    }
-    else{
-      num = n - n % x - (x - y);
-    }
-    return num;
-  }
 
   counter(i: number) {
-    return new Array(i);
+    let res = new Array(i);
+    for (let index = 0; index < res.length; index++) {
+      res[index] = index;
+      
+    }    
+    return res;
 }
 
-  setActualRunIdx(event: any){
-    this.actualRunIdx = event.target.value;
-    console.log(this.actualRunIdx);
-    this.defineWhatWeWantVisualise()
+  setActualRunIdx(){
+    this.actualRunIdx = [];
+    for (let index = this.slider_double_value.value; index <= this.slider_double_value.highValue; index++) {
+        this.actualRunIdx.push(index)
+    }
   }
 
-  setActualSeedToVisualise(event: any){
-    this.actualSeed = event.target.value;
-    this.defineWhatWeWantVisualise();
+  setActualSeedToVisualise(){
+    this.all_seed_checkox_selected = [];
+    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+    for (let index = 0; index < checkbox.length; index++) {
+      if((checkbox[index]as HTMLInputElement).checked){
+        let res = checkbox[index].id.replace('checkboxSeed+','');
+        this.all_seed_checkox_selected.push(parseInt(res))
+      } 
+    }
+  }
+
+  selectAllSeedCheckbox(event: any){
+    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+    for (let index = 0; index < checkbox.length; index++) {
+      (checkbox[index]as HTMLInputElement).checked = true;
+    }
+    this.setActualSeedToVisualise();
+  }
+
+  unselectAllSeedCheckbox(event: any){
+    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+    for (let index = 0; index < checkbox.length; index++) {
+      (checkbox[index]as HTMLInputElement).checked = false;
+    }
+    this.setActualSeedToVisualise();
   }
 
   defineWhatWeWantVisualise(){
-    // this.actualRunIdx
-    // this.actualSeed
+    this.index_discoveries_display = 0
+    this.setActualRunIdx();
+    this.setActualSeedToVisualise();
     this.getDiscovery();
   }
 
+  definedFilters(): string{
+    let filter = "";
+    if(this.experiment){
+      this.array_filter_run_idx = [];
+      for (let i = 0; i <= Math.floor(this.actualRunIdx.length / this.nb_discoveries_display); i++) {
+        this.array_filter_run_idx.push(this.actualRunIdx.slice(i*this.nb_discoveries_display, (i+1)*this.nb_discoveries_display))
+        if(this.array_filter_run_idx[i].length == 0){
+          this.array_filter_run_idx.splice(i, 1); 
+        }
+      }
+      filter = '{"$and":[{"experiment_id":'
+                    +this.experiment.id.toString()
+                    +'}, {"run_idx":{"$in":'
+                    +JSON.stringify(this.array_filter_run_idx[this.index_discoveries_display])
+                    +'}},  {"seed":{"$in":'
+                    +JSON.stringify(this.all_seed_checkox_selected)
+                    +'}}]}'
+    }
+    return filter;
+  }
+  
+  setIndexDiscoveries(i:number){
+    this.index_discoveries_display = this.index_discoveries_display + i;
+    if(i == 0){
+      this.index_discoveries_display = 0;
+    }
+    else if(this.index_discoveries_display < 0){
+      this.index_discoveries_display =this.array_filter_run_idx.length -1;
+    }
+    else if(this.index_discoveries_display >= this.array_filter_run_idx.length){
+      this.index_discoveries_display = 0;
+    }
+    this.getDiscovery();
+  }
+
+
   getDiscovery(): void {
     if(this.experiment){
-      let filter = '{"$and":[{"experiment_id":{"$eq":'+this.experiment.id.toString()+'}}, {"run_idx":{"$eq":'+this.actualRunIdx.toString()+'}},  {"seed":{"$in":[0,1,2]}}]}'
+      for(let index = 0; index < this.experiment.config.nb_seeds; index++){
+          let video = <HTMLVideoElement><any> document.querySelector("#video_"+index.toString());
+          if(video){
+            video.src = "";
+          }
+      }
+      let filter = this.definedFilters()
       this.expeDbService.getDiscovery(filter)
       .subscribe(discoveries => {
-        this.discoveries = discoveries;
         if(discoveries.length > 0){
-          this.expeDbService.getDiscoveryRenderedOutput(this.discoveries[0]._id)
-          .subscribe(renderedOutput => {
-            this.renderedOutput = renderedOutput;
-            let video = document.querySelector("video");
-            if(video){
-              video.src = window.URL.createObjectURL(this.renderedOutput);
-            }     
-          });
+          for(let discoverie of discoveries){
+            this.expeDbService.getDiscoveryRenderedOutput(discoverie._id)
+            .subscribe(renderedOutput => {
+              let video = <HTMLVideoElement> <any> document.querySelector("#video_"+discoverie.seed.toString()+"_"+discoverie.run_idx.toString());
+              if(video){
+                video.src = window.URL.createObjectURL(renderedOutput);
+              } 
+            });
+          }
+          
         }
         
       });
     }
   }
-  
 
   // ######### JUPYTER PART #########
 
