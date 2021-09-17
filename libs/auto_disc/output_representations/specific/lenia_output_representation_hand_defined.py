@@ -358,17 +358,3 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
         embedding = self.calc_static_statistics(observations.states[-1])
 
         return {'embedding': embedding}
-
-    def calc_distance(self, embedding_a, embedding_b):
-        """
-            Compute the distance between 2 embeddings in the latent space
-            /!\ batch mode embedding_a and embedding_b can be N*M or M
-        """
-        # l2 loss
-        if self.config.distance_function == "L2":
-            dist = (embedding_a - embedding_b).pow(2).sum(-1).sqrt()
-
-        else:
-            raise NotImplementedError
-
-        return dist

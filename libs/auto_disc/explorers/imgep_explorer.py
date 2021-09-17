@@ -3,10 +3,9 @@ from auto_disc.explorers import BaseExplorer
 
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter, BooleanConfigParameter
 
+import random
 import torch
-from torch import nn
 
-import numpy as np
 from copy import deepcopy
 
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
@@ -24,20 +23,20 @@ class IMGEPExplorer(BaseExplorer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
     
-    def initialize(self, input_space, output_space, input_distance_fn):
-        super().initialize(input_space, output_space, input_distance_fn)
+    def initialize(self, input_space, output_space):
+        super().initialize(input_space, output_space)
         if len(self._input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
         self._outter_input_space_key = list(self._input_space.spaces.keys())[0] # select first key in DictSpace
 
-    def expand_box_goal_space(self, space, observations):
-        observations= observations.type(space.dtype)
-        is_nan_mask = torch.isnan(observations)
-        if is_nan_mask.sum() > 0:
-            observations[is_nan_mask] = space.low[is_nan_mask]
-            observations[is_nan_mask] = space.high[is_nan_mask]
-        space.low = torch.min(space.low, observations)
-        space.high = torch.max(space.high, observations)
+    # def expand_box_goal_space(self, space, observations):
+    #     observations = observations.type(space.dtype)
+    #     is_nan_mask = torch.isnan(observations)
+    #     if is_nan_mask.sum() > 0:
+    #         observations[is_nan_mask] = space.low[is_nan_mask]
+    #         observations[is_nan_mask] = space.high[is_nan_mask]
+    #     space.low = torch.min(space.low, observations)
+    #     space.high = torch.max(space.high, observations)
 
     def _get_next_goal(self):
         """ Defines the next goal of the exploration. """
@@ -51,17 +50,20 @@ class IMGEPExplorer(BaseExplorer):
         return target_goal[self._outter_input_space_key]
 
 
-    def _get_source_policy_idx(self, target_goal, history):
-        goal_library = torch.stack([h[self._outter_input_space_key] for h in history]) # get goal history as tensor
+    def _get_source_policy_idx(self, target_goal):
+        history = self._access_history()
+        goal_library = [h[self._outter_input_space_key] for h in history['input']] # get goal history as tensor
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
-            goal_distances = self._input_distance_fn(target_goal, goal_library)
+            goal_distances = self._input_space[self._outter_input_space_key].calc_distance(target_goal, goal_library)
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)
+
         elif self.config.source_policy_selection_type == 'random':
-            source_policy_idx = sample_value(('discrete', 0, len(goal_library)-1))
+            source_policy_idx = random.randint(0, len(goal_library)-1)
+
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
                 self.config.source_policy_selection_type))
@@ -86,7 +88,7 @@ class IMGEPExplorer(BaseExplorer):
 
             # get source policy which should be mutated
             history = self._access_history()
-            source_policy_idx = self._get_source_policy_idx(target_goal, history['input'])
+            source_policy_idx = self._get_source_policy_idx(target_goal)
             source_policy = history[int(source_policy_idx)]['output']
 
             policy_parameters = self._output_space.mutate(source_policy)
@@ -100,7 +102,8 @@ class IMGEPExplorer(BaseExplorer):
 
     def archive(self, parameters, observations):
         if self.config.use_exandable_goal_space:
-            self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
+            self._input_space[self._outter_input_space_key].expand(observations[self._outter_input_space_key])
+            #self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
 
     def optimize(self):
         pass

@@ -1,7 +1,7 @@
 from auto_disc.output_representations import BaseOutputRepresentation
 import torch
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
-from auto_disc.utils.spaces.utils import distance, ConfigParameterBinding
+from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 import umap
 from sklearn.preprocessing import StandardScaler
@@ -54,10 +54,5 @@ class UMAP(BaseOutputRepresentation):
         input_library = np.stack([history['input'][i][self.wrapped_input_space_key].flatten() for i in range(len(history['input']))])
         self.algorithm.fit(input_library)
         self._call_output_history_update()
-
-    def calc_distance(self, embedding_a, embedding_b, **kwargs):
-        # L2 + add regularizer to avoid dead outcomes
-        dist = distance.calc_l2(embedding_a, embedding_b)
-        return dist
 
 

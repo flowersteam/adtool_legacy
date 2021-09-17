@@ -3,7 +3,6 @@ from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConf
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
 from auto_disc.utils.misc.torch_utils import roll_n
-from auto_disc.utils.spaces.utils import distance
 import torch
 from addict import Dict
 
@@ -50,18 +49,3 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         embedding = filtered_im.flatten()
 
         return {'embedding': embedding}
-
-
-    def calc_distance(self, embedding_a, embedding_b, **kwargs):
-        """
-            Compute the distance between 2 embeddings in the latent space
-            /!\ batch mode embedding_a and embedding_b can be N*M or M
-        """
-        # l2 loss
-        if self.config.distance_function == "L2":
-            dist = distance.calc_l2(embedding_a, embedding_b) # add regularizer to avoid dead outcomes
-
-        else:
-            raise NotImplementedError
-
-        return dist

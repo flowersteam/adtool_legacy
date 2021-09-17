@@ -1,5 +1,6 @@
 import torch
 from auto_disc.utils.spaces import BaseSpace
+from auto_disc.utils.spaces.utils import distance
 
 
 class DiscreteSpace(BaseSpace):
@@ -55,6 +56,17 @@ class DiscreteSpace(BaseSpace):
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
         x = torch.min(x, torch.as_tensor(self.n - 1, dtype=self.dtype, device=x.device))
         return x
+
+    def calc_distance(self, x1, x2):
+        x2 = torch.stack(x2)
+        dist = distance.calc_l2(x1, x2)
+
+        return dist
+
+    def expand(self, x):
+        x = x.type(self.dtype)
+        if x > self.n:
+            self.n = x
 
     def __repr__(self):
         return "DiscreteSpace(%d)" % self.n

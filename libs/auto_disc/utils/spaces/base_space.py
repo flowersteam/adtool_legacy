@@ -53,6 +53,18 @@ class BaseSpace(object):
         """
         raise NotImplementedError
 
+    def calc_distance(self, x1, x2):
+        """
+        Returns the distance between a point x1 and a list of points x2
+        """
+        raise NotImplementedError
+
+    def expand(self, x):
+        """
+        expands the space bounds to include a point x
+        """
+        raise NotImplementedError
+
     def __contains__(self, x):
         return self.contains(x)
 

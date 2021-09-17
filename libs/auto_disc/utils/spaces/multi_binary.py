@@ -2,6 +2,7 @@ import numbers
 
 import torch
 from auto_disc.utils.spaces import BaseSpace
+from auto_disc.utils.spaces.utils import distance
 
 
 class MultiBinarySpace(BaseSpace):
@@ -63,6 +64,17 @@ class MultiBinarySpace(BaseSpace):
     def clamp(self, x):
         # TODO?
         return x
+
+    def calc_distance(self, x1, x2):
+        x2 = torch.stack(x2)
+        dist = distance.calc_l2(x1, x2)
+
+        return dist
+
+    def expand(self, x):
+        x = x.type(self.dtype)
+        assert len(x.shape) == len(self.shape)
+        self.shape = [max(shape, x.shape[i]) for i, shape in enumerate(self.shape)]
 
     def __repr__(self):
         return "MultiBinarySpace({})".format(self.shape[0])

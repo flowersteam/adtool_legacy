@@ -23,6 +23,3 @@ class BaseOutputRepresentation (BaseAutoDiscModule):
 
     def map(self, observations, is_output_new_discovery, **kwargs):
         raise NotImplementedError
-
-    def calc_distance(self, embedding_a, embedding_b, **kwargs):
-        raise NotImplementedError

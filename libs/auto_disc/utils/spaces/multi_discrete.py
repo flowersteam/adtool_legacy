@@ -2,6 +2,7 @@ import numbers
 
 import torch
 from auto_disc.utils.spaces import BaseSpace
+from auto_disc.utils.spaces.utils import distance
 
 
 class MultiDiscreteSpace(BaseSpace):
@@ -62,6 +63,18 @@ class MultiDiscreteSpace(BaseSpace):
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
         x = torch.min(x, torch.as_tensor(self.nvec - 1, dtype=self.dtype, device=x.device))
         return x
+
+    def calc_distance(self, x1, x2):
+        x2 = torch.stack(x2)
+        dist = distance.calc_l2(x1, x2)
+
+        return dist
+
+    def expand(self, x):
+        x = x.type(self.dtype)
+        assert len(x.shape) == len(self.nvec)
+        self.nvec = [max(n, x[i]) for i, n in enumerate(self.nvec)]
+        self.shape = self.nvec
 
     def __repr__(self):
         return "MultiDiscreteSpace({})".format(self.nvec)

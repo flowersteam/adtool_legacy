@@ -33,6 +33,12 @@ class TupleSpace(BaseSpace):
     def clamp(self, x):
         return tuple([space.clamp(x) for space in self.spaces])
 
+    def calc_distance(self, x1, x2):
+        return tuple([space.calc_distance(x1,x2) for space in self.spaces])
+
+    def expand(self, x):
+        return tuple([space.expand(x) for space in self.spaces])
+
     def __repr__(self):
         return "Tuple(" + ", ".join([str(s) for s in self.spaces]) + ")"
 

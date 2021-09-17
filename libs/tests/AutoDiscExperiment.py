@@ -5,7 +5,7 @@ sys.path.append(os.path.join(dir_path, "../"))
 
 from auto_disc.systems.python_systems import PythonLenia
 from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation, LeniaImageSelector
-from auto_disc.output_representations.generic import PCA, UMAP,VAE
+from auto_disc.output_representations.generic import PCA, UMAP,VAE, HOLMES_VAE
 from auto_disc.input_wrappers.generic import TimesNInputWrapper, CppnInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         system=PythonLenia(final_step=200, scale_init_state=1.0),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaImageSelector(), VAE(wrapped_input_space_key='image', encoder_n_latents=3, train_period=10, input_tensors_device="cuda")], # Starting from the system !
+        output_representations=[LeniaImageSelector(), HOLMES_VAE(wrapped_input_space_key='image', train_period=10)], # Starting from the system !
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
                                                                 to_save_outputs=[

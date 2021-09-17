@@ -3,6 +3,7 @@ import numbers
 import torch
 from auto_disc.utils.spaces import BaseSpace
 
+from auto_disc.utils.spaces.utils import distance
 
 class BoxSpace(BaseSpace):
     """
@@ -145,6 +146,29 @@ class BoxSpace(BaseSpace):
         if self.is_bounded(manner="above"):
             x = torch.min(x, torch.as_tensor(self.high, dtype=self.dtype, device=x.device))
         return x
+
+    def calc_distance(self, x1, x2):
+        x2 = torch.stack(x2)
+        scale = (self.high - self.low)
+        scale[torch.where(scale == 0.0)] = 1.0
+        low = self.low
+
+        # L2 by default
+        x1 = (x1 - low) / scale
+        x2 = (x2 - low) / scale
+        dist = distance.calc_l2(x1, x2)
+
+        return dist
+
+    def expand(self, x):
+        x = x.type(self.dtype)
+        assert x.shape == self.shape
+        is_nan_mask = torch.isnan(x)
+        if is_nan_mask.sum() > 0:
+            x[is_nan_mask] = self.low[is_nan_mask]
+            x[is_nan_mask] = self.high[is_nan_mask]
+        self.low = torch.min(self.low, x)
+        self.high = torch.max(self.high, x)
 
     def __repr__(self):
         return "BoxSpace({}, {}, {}, {})".format(self.low.min(), self.high.max(), self.shape, self.dtype)

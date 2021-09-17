@@ -96,8 +96,7 @@ class ExperimentPipeline():
         self._explorer.set_call_output_history_update_fn(self._update_outputs_history)
         # self._explorer.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
         self._explorer.initialize(input_space=self._output_representations[-1].output_space,
-                                  output_space=self._input_wrappers[0].input_space, 
-                                  input_distance_fn=self._output_representations[-1].calc_distance)
+                                  output_space=self._input_wrappers[0].input_space)
         self._explorer.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                             ['idx', 'output', 'raw_run_parameters'], 
                                                                             ['idx', 'input', 'output']))

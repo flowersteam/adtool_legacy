@@ -5,13 +5,12 @@ class BaseExplorer (BaseAutoDiscModule):
     Base class for explorers.
     '''
 
-    def initialize(self, input_space, output_space, input_distance_fn):
+    def initialize(self, input_space, output_space):
         '''
-        Defines input and output space for the explorer (as well as a distance function for the input space).
+        Defines input and output space for the explorer
         '''
         self._input_space = input_space
         self._output_space = output_space
-        self._input_distance_fn = input_distance_fn
 
     def emit(self):
         '''
