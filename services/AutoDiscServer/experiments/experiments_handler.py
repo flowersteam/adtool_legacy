@@ -2,6 +2,7 @@ from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
 from AutoDiscServer.experiments import LocalExperiment
 from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
 import datetime
+import traceback
 
 
 class ExperimentsHandler():
@@ -34,6 +35,8 @@ class ExperimentsHandler():
                                         "checkpoint_saves_archived": False,
                                         "discoveries_archived": False
                                      })
+            print(response)
+            print(response.headers)
             id = response.headers["Location"].split(".")
             id = int(id[1])
 
@@ -79,6 +82,7 @@ class ExperimentsHandler():
             return id
         except Exception as err:
             message = "Error when creating experiment:" + str(err)
+            print(traceback.format_exc())
             raise Exception(message)
 
     def remove_experiment(self, id):
