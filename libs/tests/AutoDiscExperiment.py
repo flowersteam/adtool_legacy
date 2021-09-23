@@ -19,6 +19,88 @@ from auto_disc.run import _set_seed
 if __name__ == "__main__":
     seed = 42
     _set_seed(seed)
+    VAE_representation = VAE(wrapped_input_space_key="image",
+                                           input_tensors_device="cuda",
+
+                                           encoder_name="Burgess",
+                                           encoder_n_latents=16,
+                                           encoder_n_conv_layers=6,
+                                           encoder_feature_layer=2,
+                                           encoder_hidden_channels=16,
+                                           encoder_hidden_dims=64,
+                                           encoder_conditional_type="gaussian",
+
+                                           weights_init_name="pytorch",
+
+                                           loss_name="VAE",
+                                           optimizer_name="Adam",
+
+                                           tb_record_loss_frequency=1,
+                                           tb_record_images_frequency=10,
+                                           tb_record_embeddings_frequency=10,
+                                           tb_record_memory_max=100,
+
+                                            train_period=20,
+                                            n_epochs_per_train_period=20,
+
+                                            dataloader_batch_size=20,
+                                            dataloader_num_workers=5,
+                                            dataloader_drop_last=True,
+
+                                            expand_output_space=True)
+
+
+    HOLMES_VAE_representation = HOLMES_VAE(wrapped_input_space_key="image",
+                                           input_tensors_device="cuda",
+
+                                           encoder_name="Burgess",
+                                           encoder_n_latents=16,
+                                           encoder_n_conv_layers=6,
+                                           encoder_feature_layer=2,
+                                           encoder_hidden_channels=16,
+                                           encoder_hidden_dims=64,
+                                           encoder_conditional_type="gaussian",
+
+                                           weights_init_name="pytorch",
+
+                                           loss_name="VAE",
+                                           optimizer_name="Adam",
+
+                                           tb_record_loss_frequency=1,
+                                           tb_record_images_frequency=10,
+                                           tb_record_embeddings_frequency=10,
+                                           tb_record_memory_max=100,
+
+                                           create_connections_lf=True,
+                                           create_connections_gf=False,
+                                           create_connections_gfi=True,
+                                           create_connections_lfi=True,
+                                           create_connections_recon=True,
+
+                                           split_active=True,
+                                           split_loss_key="recon",
+                                           split_type="plateau",
+                                           split_parameters_epsilon=20,
+                                           split_parameters_n_steps_average=50,
+                                           n_min_epochs_before_split=200,
+                                           n_min_epochs_between_splits=20,
+                                           n_min_points_for_split=50,
+                                           n_max_splits=10,
+
+                                           boundary_name="cluster.KMeans",
+
+                                           train_period=20,
+                                           n_epochs_per_train_period=20,
+                                           alternated_backward_active=True,
+                                           alternated_backward_period=10,
+                                           alternated_backward_connections=2,
+
+                                           dataloader_batch_size=20,
+                                           dataloader_num_workers=5,
+                                           dataloader_drop_last=True,
+
+                                           expand_output_space=True,
+                                           )
     experiment = ExperimentPipeline(
         experiment_id=0,
         checkpoint_id=0,
@@ -27,7 +109,8 @@ if __name__ == "__main__":
         system=PythonLenia(final_step=200, scale_init_state=1.0),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
         input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaImageSelector(), HOLMES_VAE(wrapped_input_space_key='image', train_period=10)], # Starting from the system !
+        output_representations=[LeniaImageSelector(),
+                                VAE_representation],
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
                                                                 to_save_outputs=[
