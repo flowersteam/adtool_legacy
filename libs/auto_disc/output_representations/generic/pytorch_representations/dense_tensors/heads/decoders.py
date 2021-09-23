@@ -47,10 +47,7 @@ class Decoder(nn.Module):
             for _ in range(self.spatial_dims):
                 z = z.unsqueeze(-1)
 
-        if bool(torch._C._get_tracing_state()):
-            return self.forward_for_graph_tracing(z)
-
-            # global feature map
+        # global feature map
         gfi = self.efi(z)
         # global feature map
         lfi = self.gfi(gfi)
@@ -60,15 +57,6 @@ class Decoder(nn.Module):
         decoder_outputs = {"gfi": gfi, "lfi": lfi, "recon_x": recon_x}
 
         return decoder_outputs
-
-    def forward_for_graph_tracing(self, z):
-        # global feature map
-        gfi = self.efi(z)
-        # global feature map
-        lfi = self.gfi(gfi)
-        # recon_x
-        recon_x = self.lfi(lfi)
-        return recon_x
 
 
 def get_decoder(model_architecture):
@@ -396,8 +384,6 @@ class ConnectedDecoder(Decoder):
         #TODO: weight initialisation
 
     def forward(self, z, parent_gfi=None, parent_lfi=None, parent_recon_x=None):
-        if torch._C._get_tracing_state():
-            return self.forward_for_graph_tracing(z)
 
         if z.dim() == 2 and self.efi.out_connection_type[0] == "conv":  # B*n_latents -> B*n_latents*1*1(*1)
             for _ in range(self.spatial_dims):
@@ -437,30 +423,3 @@ class ConnectedDecoder(Decoder):
             self.train()
 
         return decoder_outputs
-
-    def forward_for_graph_tracing(self, z, parent_gfi=None, parent_lfi=None, parent_recon_x=None):
-        if z.dim() == 2:  # B*n_latents -> B*n_latents*1*1
-            z = z.unsqueeze(dim=-1).unsqueeze(dim=-1)
-
-        # global feature map
-        gfi = self.efi(z)
-        # add the connections
-        if self.connect_gfi:
-            # gfi = gfi + self.gfi_c(parent_gfi)
-            gfi = gfi * self.gfi_c_gamma(parent_gfi) + self.gfi_c_beta(parent_gfi)
-
-        # local feature map
-        lfi = self.gfi(gfi)
-        # add the connections
-        if self.connect_lfi:
-            # lfi = lfi + self.lfi_c(parent_lfi)
-            lfi = lfi * self.lfi_c_gamma(parent_lfi) + self.lfi_c_beta(parent_lfi)
-
-        # recon_x
-        recon_x = self.lfi(lfi)
-        # add the connections
-        if self.connect_recon:
-            # recon_x = recon_x + self.recon_c(parent_recon_x)
-            recon_x = recon_x * self.recon_c_gamma(parent_recon_x) + self.recon_c_beta(parent_recon_x)
-
-        return recon_x

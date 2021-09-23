@@ -51,8 +51,6 @@ class Encoder(nn.Module):
             self.output_keys_list += ["mu", "logvar"]
 
     def forward(self, x):
-        if torch._C._get_tracing_state():
-            return self.forward_for_graph_tracing(x)
 
         # local feature map
         lf = self.lf(x)
@@ -85,16 +83,6 @@ class Encoder(nn.Module):
             encoder_outputs.update({"af": af})
 
         return encoder_outputs
-
-    def forward_for_graph_tracing(self, x):
-        lf = self.lf(x)
-        gf = self.gf(lf)
-        if self.conditional_type == "gaussian":
-            mu, logvar = torch.chunk(self.ef(gf), 2, dim=1)
-            z = self.reparameterize(mu, logvar)
-        else:
-            z = self.ef(gf)
-        return z, lf
 
     def reparameterize(self, mu, logvar):
         if self.training:
@@ -485,8 +473,6 @@ class ConnectedEncoder(Encoder):
 
 
     def forward(self, x, parent_lf=None, parent_gf=None):
-        if torch._C._get_tracing_state():
-            return self.forward_for_graph_tracing(x)
 
         # batch norm cannot deal with batch_size 1 in train mode
         was_training = None
@@ -510,7 +496,7 @@ class ConnectedEncoder(Encoder):
             gf = gf * self.gf_c_gamma(parent_gf) + self.gf_c_beta(parent_gf)
 
         # encoding
-        if self.config.encoder_conditional_type == "gaussian":
+        if self.conditional_type == "gaussian":
             mu, logvar = torch.chunk(self.ef(gf), 2, dim=1)
             z = self.reparameterize(mu, logvar)
             if z.ndim > 2:
@@ -519,7 +505,7 @@ class ConnectedEncoder(Encoder):
                     logvar = logvar.squeeze(-1)
                     z = z.squeeze(-1)
             encoder_outputs = {"x": x, "lf": lf, "gf": gf, "z": z, "mu": mu, "logvar": logvar}
-        elif self.config.encoder_conditional_type == "deterministic":
+        elif self.conditional_type == "deterministic":
             z = self.ef(gf)
             if z.ndim > 2:
                 for _ in range(self.spatial_dims):
@@ -530,25 +516,3 @@ class ConnectedEncoder(Encoder):
             self.train()
 
         return encoder_outputs
-
-    def forward_for_graph_tracing(self, x, parent_lf=None, parent_gf=None):
-        # local feature map
-        lf = self.lf(x)
-        # add the connections
-        if self.connect_lf:
-            #lf = lf + self.lf_c(parent_lf)
-            lf = lf * self.lf_c_gamma(parent_lf) + self.lf_c_beta(parent_lf)
-
-        # global feature map
-        gf = self.gf(lf)
-        # add the connections
-        if self.connect_gf:
-            #gf = gf + self.gf_c(parent_gf)
-            gf = gf * self.gf_c_gamma(parent_gf) + self.gf_c_beta(parent_gf)
-
-        if self.config.encoder_conditional_type == "gaussian":
-            mu, logvar = torch.chunk(self.ef(gf), 2, dim=1)
-            z = self.reparameterize(mu, logvar)
-        else:
-            z = self.ef(gf)
-        return z, lf

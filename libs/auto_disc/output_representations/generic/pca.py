@@ -1,6 +1,6 @@
 import torch
 from auto_disc.output_representations import BaseOutputRepresentation
-from auto_disc.utils.config_parameters import IntegerConfigParameter
+from auto_disc.utils.config_parameters import IntegerConfigParameter, BooleanConfigParameter
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 from sklearn import decomposition
@@ -11,6 +11,7 @@ import numpy as np
 
 @IntegerConfigParameter(name="n_components", default=3, min=1)
 @IntegerConfigParameter(name="fit_period", default=10, min=1)
+@BooleanConfigParameter(name="expand_output_space", default=True)
 
 class PCA(BaseOutputRepresentation):
     '''
@@ -38,7 +39,12 @@ class PCA(BaseOutputRepresentation):
         if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0) and is_output_new_discovery:
             self.fit_update()
 
-        return {"embedding": output}
+        output = {"embedding": output}
+
+        if self.config.expand_output_space:
+            self.output_space.expand(output)
+
+        return output
 
     def fit_update(self):
         history = self._access_history()

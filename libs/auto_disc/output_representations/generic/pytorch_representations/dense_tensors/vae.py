@@ -2,7 +2,7 @@ from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.trunks.encoders import get_encoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.heads.decoders import get_decoder
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter
-from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset
+from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
@@ -38,11 +38,7 @@ from tensorboardX import SummaryWriter
 @StringConfigParameter(name="optimizer_name", default="Adam", possible_values=["Adam", ])
 # TODO: DictConfigParameter for optimizer_parameters
 
-@BooleanConfigParameter(name="checkpoint_active", default=True)
-# TODO: replace checkpoint frequency with callbacks
-@StringConfigParameter(name="checkpoint_folder", default="./checkpoints", possible_values="all")
-@BooleanConfigParameter(name="checkpoint_best_model", default=False)
-@IntegerConfigParameter(name="checkpoint_frequency", default=10, min=1)
+#TODO: proper save function with AutoDiscTool
 
 #@BooleanConfigParameter(name="tensorboard_active", default=True)
 # TODO: replace tensorboard frequency with callbacks
@@ -51,8 +47,15 @@ from tensorboardX import SummaryWriter
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1)
-@IntegerConfigParameter(name="train_period", default=10, min=1)
 
+@IntegerConfigParameter(name="train_period", default=20, min=1)
+@IntegerConfigParameter(name="n_epochs_per_train_period", default=20, min=1)
+
+@IntegerConfigParameter(name="dataloader_batch_size", default=10, min=1)
+@IntegerConfigParameter(name="dataloader_num_workers", default=0, min=0)
+@BooleanConfigParameter(name="dataloader_drop_last", default=True)
+
+@BooleanConfigParameter(name="expand_output_space", default=True)
 
 class VAE(nn.Module, BaseOutputRepresentation):
     """
@@ -84,9 +87,6 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
         # Compute
         self.set_input_tensors_compatibility()
-
-        # Checkpoints
-        self.set_checkpoint()
 
         # Tensorboard Logger
         self.set_tensorboard()
@@ -176,12 +176,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 .unsqueeze(0)
             self.eval()
             with torch.no_grad():
-                self.logger.add_graph(self, dummy_input, verbose=False)
-
-    def set_checkpoint(self):
-        if self.config.checkpoint_folder is not None:
-            if not os.path.exists(self.config.checkpoint_folder):
-                os.makedirs(self.config.checkpoint_folder)
+                model_wrapper = ModelWrapper(self)
+                self.logger.add_graph(model_wrapper, dummy_input, verbose=False)
 
     def forward_from_encoder(self, encoder_outputs):
         decoder_outputs = self.decoder(encoder_outputs["z"])
@@ -190,18 +186,10 @@ class VAE(nn.Module, BaseOutputRepresentation):
         return model_outputs
 
     def forward(self, x):
-        if torch._C._get_tracing_state():
-            return self.forward_for_graph_tracing(x)
 
         x = x.to(self.config.input_tensors_device)
         encoder_outputs = self.encoder(x)
         return self.forward_from_encoder(encoder_outputs)
-
-    def forward_for_graph_tracing(self, x):
-        x = x.to(self.config.input_tensors_device)
-        z, feature_map = self.encoder.forward_for_graph_tracing(x)
-        recon_x = self.decoder(z)
-        return recon_x
 
     def run_training(self, train_loader, n_epochs=0, valid_loader=None):
 
@@ -221,11 +209,6 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 self.logger.add_text('time/train', 'Train Epoch {}: {:.3f} secs'.format(self.n_epochs, t1 - t0),
                                      self.n_epochs)
 
-            if self.n_epochs % self.config.checkpoint_frequency == 0:
-                # TODO: proper save function with AutoDiscTool, torch.save throws error here
-                # torch.save(self, os.path.join(self.config.checkpoint_folder, 'current_weight_model.pth'))
-                pass
-
             if do_validation:
                 t2 = time.time()
                 valid_losses = self.valid_epoch(valid_loader)
@@ -235,11 +218,6 @@ class VAE(nn.Module, BaseOutputRepresentation):
                         self.logger.add_scalars('loss/{}'.format(k), {'valid': v}, self.n_epochs)
                     self.logger.add_text('time/valid', 'Valid Epoch {}: {:.3f} secs'.format(self.n_epochs, t3 - t2),
                                          self.n_epochs)
-
-                valid_loss = valid_losses['total']
-                if valid_loss < best_valid_loss and self.config.checkpoint_best_model:
-                    best_valid_loss = valid_loss
-                    self.save(os.path.join(self.config.checkpoint_folderolder, 'best_weight_model.pth'))
 
     def train_epoch(self, train_loader):
         self.train()
@@ -370,12 +348,27 @@ class VAE(nn.Module, BaseOutputRepresentation):
         train_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  history_ids=list(range(self.CURRENT_RUN_INDEX)),
                                                  wrapped_input_space_key=self.wrapped_input_space_key)
-        train_loader = DataLoader(train_dataset)
+        train_loader = DataLoader(train_dataset,
+                                  # TODO: sampler=weighted_train_sampler,
+                                  batch_size=self.config.dataloader_batch_size,
+                                  num_workers=self.config.dataloader_num_workers,
+                                  drop_last=self.config.dataloader_drop_last,
+                                  # TODO: collate_fn=self.config.dataloader_collate_fn
+                                  )
+
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
-                                                 history_ids=list(range(-5, 0)),
+                                                 history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
+                                                 # TODO: other options
                                                  wrapped_input_space_key=self.wrapped_input_space_key)
-        valid_loader = DataLoader(valid_dataset)
-        self.run_training(train_loader=train_loader, n_epochs=10, valid_loader=valid_loader)
+        valid_loader = DataLoader(valid_dataset,
+                                  batch_size=self.config.dataloader_batch_size,
+                                  num_workers=self.config.dataloader_num_workers,
+                                  drop_last=False,
+                                  # TODO: collate_fn=self.config.dataloader_collate_fn
+                                  )
+        self.run_training(train_loader=train_loader, n_epochs=self.config.n_epochs_per_train_period, valid_loader=valid_loader)
+
+        self._call_output_history_update()
 
     def map(self, observations, is_output_new_discovery, **kwargs):
 
@@ -387,9 +380,13 @@ class VAE(nn.Module, BaseOutputRepresentation):
             .to(self.config.input_tensors_device) \
             .type(self.input_space[self.wrapped_input_space_key].dtype) \
             .unsqueeze(0)
-        output = self.encoder.calc_embedding(input).flatten().cpu().detach()
 
-        return {"embedding": output}
+        output = {"embedding": self.encoder.calc_embedding(input).flatten().cpu().detach()}
+
+        if self.config.expand_output_space:
+            self.output_space.expand(output)
+
+        return output
 
 
 """==============================================================================================================
