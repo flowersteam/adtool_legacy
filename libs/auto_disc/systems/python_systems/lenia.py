@@ -100,6 +100,7 @@ class Lenia(BasePythonSystem):
         return self._observations
 
     def render(self, mode="PIL_image"):
+        plt.close()
         fig = plt.figure(figsize=(4, 4))
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
@@ -118,10 +119,12 @@ class Lenia(BasePythonSystem):
         elif mode == "plt_figure":
             byte_fig = io.BytesIO()
             fig.savefig(byte_fig, format='png')
+            plt.close()
             return (byte_fig, "png")
         elif mode == "PIL_image":
             byte_img = io.BytesIO()
             im_array[0].save(byte_img, format='GIF', save_all=True, append_images=im_array[1:], duration=100, loop=0)
+            plt.close()
             return (byte_img, "gif")
         else:
             raise NotImplementedError
