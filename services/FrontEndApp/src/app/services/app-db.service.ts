@@ -48,7 +48,7 @@ export class AppDbService {
       "explorers(name,config)," +
       "input_wrappers(name,config,index)," +
       "output_representations(name,config,index)," +
-      "checkpoints(id,parent_id,status,error_message)" +
+      "checkpoints!experiment_id(id,parent_id,status)" +
       "&id=eq." + id,
       httpOptions)
       .pipe(

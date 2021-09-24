@@ -1,6 +1,7 @@
 import sys
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
+from auto_disc.utils.logger import ADToolLogger
 
 import numpy as np
 import random
@@ -55,6 +56,13 @@ def create(parameters, additional_callbacks):
                 callback_class(**_callback['config'])
             )
     
+    # Get logger
+    logger_key = parameters['logger']['name']
+    logger_class = REGISTRATION['logger'][logger_key]
+    logger = logger_class(**parameters['logger']['config'])
+
+    logger = ADToolLogger(logger)
+    
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
@@ -70,7 +78,8 @@ def create(parameters, additional_callbacks):
         on_finished_callbacks=callbacks['on_finished'],
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
-        on_error_callbacks=callbacks['on_error']
+        on_error_callbacks=callbacks['on_error'],
+        logger = logger
     )
 
     return experiment

@@ -26,7 +26,7 @@ class ExperimentPipeline():
     '''
     def __init__(self, experiment_id, seed, checkpoint_id, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
                  save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[],
-                  on_save_callbacks=[], on_error_callbacks=[]):
+                  on_save_callbacks=[], on_error_callbacks=[], logger=None):
         self.experiment_id = experiment_id
         self.seed = seed
         self.checkpoint_id = checkpoint_id
@@ -110,6 +110,11 @@ class ExperimentPipeline():
         self._on_error_callbacks = on_error_callbacks
         self._on_save_callbacks = on_save_callbacks
         self.cancellation_token = CancellationToken()
+
+        BaseAutoDiscModule.logger = logger
+        BaseAutoDiscModule.logger.experiment_id = experiment_id
+        BaseAutoDiscModule.logger.checkpoint_id = checkpoint_id
+        BaseAutoDiscModule.logger.seed = seed
 
     def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
         for i, output_representation in enumerate(self._output_representations[starting_index:]):
@@ -238,6 +243,7 @@ class ExperimentPipeline():
                         checkpoint_id = self.checkpoint_id
                     )
                     self.checkpoint_id = callbacks_res["checkpoint_id"]
+                    BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id  
 
                 run_idx += 1
                 BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
@@ -249,6 +255,7 @@ class ExperimentPipeline():
                 seed=self.seed,
                 experiment_id=self.experiment_id,
                 checkpoint_id = self.checkpoint_id,
+                logger = BaseAutoDiscModule.logger,
                 message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
             )
             self.db.close()

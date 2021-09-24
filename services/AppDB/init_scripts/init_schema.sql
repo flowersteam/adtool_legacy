@@ -48,7 +48,34 @@ CREATE TABLE checkpoints (
 	experiment_id INT NOT NULL,
 	parent_id INT,
 	status INT NOT NULL,
-	error_message VARCHAR (8000) NOT NULL,
+	-- error_message VARCHAR (8000) NOT NULL,
 	FOREIGN KEY (experiment_id)
     	REFERENCES experiments (id)
 );
+
+CREATE TABLE log_levels(
+	id serial PRIMARY KEY,
+	name VARCHAR (255) NOT NULL
+);
+
+CREATE TABLE logs (
+	id serial PRIMARY KEY,
+	experiment_id INT NOT NULL,
+	checkpoint_id INT NOT NULL,
+	seed INT,
+	log_level_id INT NOT NULL,
+	error_message VARCHAR (8000) NOT NULL,
+	FOREIGN KEY (experiment_id)
+    	REFERENCES experiments (id),
+	FOREIGN KEY (checkpoint_id)
+    	REFERENCES checkpoints (id),
+	FOREIGN KEY (log_level_id)
+    	REFERENCES log_levels (id)
+);
+
+INSERT INTO log_levels(name) VALUES('NOTSET');
+INSERT INTO log_levels(name) VALUES('DEBUG');
+INSERT INTO log_levels(name) VALUES('INFO');
+INSERT INTO log_levels(name) VALUES('WARNING');
+INSERT INTO log_levels(name) VALUES('ERROR');
+INSERT INTO log_levels(name) VALUES('CRITICAL');

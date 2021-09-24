@@ -114,8 +114,7 @@ class ExperimentsHandler():
                             {
                                 "experiment_id": experiment_id,
                                 "parent_id": previous_checkpoint_id,
-                                "status": int(CheckpointsStatusEnum.RUNNING),
-                                "error_message": ""
+                                "status": int(CheckpointsStatusEnum.RUNNING)
                             })
         id = response.headers["Location"].split(".")[1]
         return int(id)
@@ -125,23 +124,15 @@ class ExperimentsHandler():
                             AppDBMethods.PATCH, 
                             {"status": int(CheckpointsStatusEnum.DONE)})
     
-    def on_checkpoint_update_callback(self, seed, checkpoint_id, message, error):
-        r = self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
-            AppDBMethods.GET, {})
-        error_msg = r.json()[0]["error_message"]
-        error_msg = error_msg +"\n" + message
-        if len(error_msg) > 8000: # Cut message to match varchar length of AppDB
-            error_msg = error_msg[:7997] + '...'
+    def on_checkpoint_update_callback(self, checkpoint_id, logger,  message, error):
+        if len(message) > 8000: # Cut message to match varchar length of AppDB
+            message = message[:7997] + '...'
 
         if error:
             self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
                                 AppDBMethods.PATCH, 
-                                {"error_message": error_msg,
-                                "status":int(CheckpointsStatusEnum.ERROR)})
-        else:
-            self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
-                                AppDBMethods.PATCH, 
-                                {"error_message": error_msg})
+                                {"status":int(CheckpointsStatusEnum.ERROR)})
+        logger("error", message)
     
     def on_experiment_update_callback(self, experiement_id, param_to_update):
         """update experiment in db
