@@ -30,7 +30,7 @@ if __name__ == "__main__":
                                            encoder_hidden_dims=64,
                                            encoder_conditional_type="gaussian",
 
-                                           weights_init_name="pytorch",
+                                           weights_init_name="kaiming_uniform",
 
                                            loss_name="VAE",
                                            optimizer_name="Adam",

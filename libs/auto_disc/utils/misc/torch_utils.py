@@ -1,7 +1,9 @@
 from collections import namedtuple
 import math
+import os
 import torch
 from torch import nn
+from torch.nn.init import kaiming_normal_, kaiming_uniform_, xavier_normal_, xavier_uniform_, uniform_, eye_
 from torch.utils.data import Dataset
 from typing import Any
 
@@ -140,20 +142,26 @@ class ExperimentHistoryDataset(Dataset):
     Input params:
         transform: PyTorch transform to apply on-the-fly to every data tensor instance (default=None).
     """
-    def __init__(self, access_history_fn, history_ids, wrapped_input_space_key, transform=None, **kwargs):
+    def __init__(self, access_history_fn, key, history_ids, filter=None, transform=None):
 
+        subkeys = key.split('.')
+        history = [access_history_fn()[subkeys[0]][i] for i in history_ids]
+        self.dataset = []
+        for data in history:
+            for subkey in subkeys[1:]:
+                data = data[subkey]
+            if filter is not None and not filter(data):
+                self.dataset.append(data)
+            else:
+                self.dataset.append(data)
 
-        self.access_history_fn = access_history_fn
-        self.history_ids = history_ids
-        self.wrapped_input_space_key = wrapped_input_space_key
         self.transform = transform
 
     def __len__(self):
-        return len(self.history_ids)
+        return len(self.dataset)
 
     def __getitem__(self, idx):
-        rel_idx = self.history_ids[idx]
-        data = self.access_history_fn()['input'][rel_idx][self.wrapped_input_space_key]
+        data = self.dataset[idx]
 
         if self.transform is not None:
             data = self.transform(data)
@@ -188,4 +196,117 @@ class ModelWrapper(torch.nn.Module):
             data = tuple(data)
 
         return data
+
+"""===================================================================
+Weights init utils
+====================================================================="""
+def get_weights_init(initialization_name):
+    '''
+    initialization_name: string such that the function called is weights_init_<initialization_name>
+    '''
+    initialization_name = initialization_name.lower()
+    return eval("weights_init_{}".format(initialization_name))
+
+
+def weights_init_null(m):
+    """
+    For HOLMES: initialize zero net (child born with no knowledge) and identity connections from parent (child start by copying parent)
+    """
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
+        m.weight.data.fill_(0)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+
+
+def weights_init_connections_identity(m):
+    """
+    For HOLMES: initialize identity connections
+    """
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        m.weight.data.fill_(1)  # for 1*1 convolution is equivalent to identity
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        eye_(m.weight.data)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_uniform(m, a=0., b=0.01):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        uniform_(m.weight.data, a, b)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        uniform_(m.weight.data, a, b)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_pytorch(m):
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
+        m.reset_parameters()
+
+
+def weights_init_xavier_uniform(m):
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+        xavier_uniform_(m.weight.data)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_xavier_normal(m):
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+        xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_kaiming_uniform(m):
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+        kaiming_uniform_(m.weight.data, mode='fan_in', nonlinearity='relu')
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_kaiming_normal(m):
+    classname = m.__class__.__name__
+    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+        kaiming_normal_(m.weight.data, mode='fan_in', nonlinearity='relu')
+        if m.bias is not None:
+            m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
+
+
+def weights_init_custom_uniform(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        # m.weight.data.uniform_(-1,1)
+        m.weight.data.uniform_(-1 / (m.weight.size(2)), 1 / (m.weight.size(2)))
+        if m.bias is not None:
+            m.bias.data.uniform_(-0.1, 0.1)
+    elif classname.find('Linear') != -1:
+        m.weight.data.uniform_(-1 / math.sqrt(m.weight.size(0)), 1 / math.sqrt(m.weight.size(0)))
+        if m.bias is not None:
+            m.bias.data.uniform_(-0.1, 0.1)
+    elif classname.find('BatchNorm') != -1:
+        m.reset_parameters()
 

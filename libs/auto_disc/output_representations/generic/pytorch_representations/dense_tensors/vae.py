@@ -2,7 +2,7 @@ from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.trunks.encoders import get_encoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.heads.decoders import get_decoder
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter
-from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper
+from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper, get_weights_init
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
@@ -29,7 +29,7 @@ from tensorboardX import SummaryWriter
 @StringConfigParameter(name="encoder_conditional_type", default="gaussian",
                        possible_values=["gaussian", "deterministic", ])
 @BooleanConfigParameter(name="encoder_use_attention", default=False)
-@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pytorch", ])
+@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["null", "identity", "uniform", "pytorch", "xavier_uniform", "xavier_normal", "kaiming_uniform", "kaiming_normal"])
 # TODO: DictConfigParameter for weights_init_parameters
 
 @StringConfigParameter(name="loss_name", default="VAE", possible_values=["VAE", "betaVAE", "annealedVAE", ])
@@ -43,6 +43,7 @@ from tensorboardX import SummaryWriter
 #@BooleanConfigParameter(name="tensorboard_active", default=True)
 # TODO: replace tensorboard frequency with callbacks
 @StringConfigParameter(name="tb_folder", default="./tensorboard", possible_values="all")
+@IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1)
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1)
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
@@ -121,7 +122,13 @@ class VAE(nn.Module, BaseOutputRepresentation):
         self.init_network_weights()
 
     def init_network_weights(self):
-        # TODO
+        weights_init_function = get_weights_init(self.config.weights_init_name)
+        if self.config.weights_init_name == "pretrain":
+            #TODO
+            pass
+        else:
+            self.apply(weights_init_function)
+
         return
 
     def set_loss(self):
@@ -346,8 +353,9 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
     def train_update(self):
         train_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
+                                                 key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(self.CURRENT_RUN_INDEX)),
-                                                 wrapped_input_space_key=self.wrapped_input_space_key)
+                                                 filter=lambda x: ((x-x[0])<1e-10).all().item())
         train_loader = DataLoader(train_dataset,
                                   # TODO: sampler=weighted_train_sampler,
                                   batch_size=self.config.dataloader_batch_size,
@@ -357,9 +365,10 @@ class VAE(nn.Module, BaseOutputRepresentation):
                                   )
 
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
+                                                 key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
-                                                 # TODO: other options
-                                                 wrapped_input_space_key=self.wrapped_input_space_key)
+                                                 filter=lambda x: ((x-x[0])<1e-10).all().item())
+
         valid_loader = DataLoader(valid_dataset,
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
