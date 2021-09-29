@@ -79,6 +79,32 @@ export class AppDbService {
   }
 
 
+  getAllLogLevels(): Observable<any> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+    return this.http.get<any>(
+      this.appDBUrl + 
+      "/log_levels",
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('getAllLogLevels', undefined))
+      );
+  }
+
+  getLogs(filter: string): Observable<any> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+    return this.http.get<any>(
+      this.appDBUrl + 
+      "/logs"+ filter,
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('getAllLogLevels', undefined))
+      );
+  }
+
   /**
    * Handle Http operation that failed.
    * Let the app continue.

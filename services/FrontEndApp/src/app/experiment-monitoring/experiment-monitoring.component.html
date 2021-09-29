@@ -188,13 +188,17 @@
 
 <div class="container" id="visualisationGroup">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <button id="btncollapseJupyter" class="btn btn-primary dropdown" data-bs-toggle="collapse" data-bs-target="#collapseJupyter" data-parent="#visualisationGroup" role="button" aria-expanded="true" aria-controls="collapseJupyter"
+        <button id="btncollapseJupyter" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseJupyter" data-parent="#visualisationGroup" role="button" aria-expanded="true" aria-controls="collapseJupyter"
         (click)="this.collapseVisualisation($event)"  [disabled]="this.tabButtonDisable['btncollapseJupyter']">
         Jupyter Notebook
         </button>
-        <button id="btncollapseDiscovery" class="btn btn-primary dropdown" data-bs-toggle="collapse" data-bs-target="#collapseDiscovery" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseDiscovery"
+        <button id="btncollapseDiscovery" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseDiscovery" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseDiscovery"
         (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseDiscovery']">
         Discovery
+        </button>
+        <button id="btncollapseLogs" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseLogs" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseLogs"
+        (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseLogs']">
+        LOGS
         </button>
     </nav>
     
@@ -238,10 +242,10 @@
             </p>
             <div class="collapse" id="collapseCheckBoxSeed">
                 <div class="card card-body row col-12" *ngIf="this.experiment">
-                    <button class="btn btn-primary col-3" role="button" (click) = selectAllSeedCheckbox($event)>
+                    <button class="btn btn-primary col-3" role="button" name="seed_checkbox" (click) = selectAllCheckbox($event)>
                         Selected all
                     </button>
-                    <button class="btn btn-primary col-3" role="button" (click) = unselectAllSeedCheckbox($event)>
+                    <button class="btn btn-primary col-3" role="button" name="seed_checkbox" (click) = unselectAllCheckbox($event)>
                         Unselected all
                     </button>
                     <div *ngFor="let in of counter(this.experiment.config.nb_seeds) ;let i = index" class="col-1">
@@ -269,6 +273,97 @@
                 <button class="bi bi-chevron-right justify-content-right" type="button" (click)="setIndexDiscoveries(1)"></button>
             </div>
         </div>
+    </div>
+
+    <!-- ********************************************** -->
+    <!-- ***************** LOGS  ***********************-->
+    <!-- ********************************************** -->
+
+
+
+
+    <div class="collapse row col-12  mx-auto" id="collapseLogs">
+
+        <div class="container border col-12" id="containerChoiceFilterLog">
+            <nav class="navbar navbar-expand-lg navbar-with bg-with">
+                <label class="mx-2">FILTER:</label>
+                <button id="btncollapseLogsChooseSeed" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxSeedLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxSeedLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxSeedLogs"
+                        (click)="this.collapseLogs($event)">
+                    Choose seed
+                </button>
+                <button id="btncollapseLogsChooseCheckpoint" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxCheckpointLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxCheckpointLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxCheckpointLogs"
+                        (click)="this.collapseLogs($event)">
+                    Choose checkpoints
+                </button>
+                <button id="btncollapseLogsChooseLogLevel" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxLevelLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxLevelLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxLevelLogs"
+                        (click)="this.collapseLogs($event)">
+                    Choose logs level
+                </button>
+                <!-- confirmed filter choice and execute request to get log -->
+                <button class="btn btn-success col-2" (click)="this.logsWewant()">Confirmed choice</button>
+            </nav>
+        </div>
+
+        <div class="collapse" id="collapseCheckBoxSeedLogs">
+            <div class="card card-body row col-12" *ngIf="this.experiment">
+                <button class="btn btn-light col-3" role="button" name="seed_checkbox_logs" (click) = selectAllCheckbox($event)>
+                    Selected all
+                </button>
+                <button class="btn btn-light col-3 mt-2 mb-2" role="button" name="seed_checkbox_logs" (click) = unselectAllCheckbox($event)>
+                    Unselected all
+                </button>
+                <div *ngFor="let in of counter(this.experiment.config.nb_seeds) ;let i = index" class="col-1">
+                    <label>Seed {{i}}: 
+                        <input name="seed_checkbox_logs" type="checkbox" id="checkboxSeedLogs+{{i.toString()}}">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="collapse" id="collapseCheckBoxCheckpointLogs">
+            <div class="card card-body row col-12" *ngIf="this.experiment">
+                <button class="btn btn-light col-3" role="button" name="checkpoint_checkbox_logs" (click) = selectAllCheckbox($event)>
+                    Selected all
+                </button>
+                <button class="btn btn-light col-3 mt-2 mb-2" role="button" name="checkpoint_checkbox_logs" (click) = unselectAllCheckbox($event)>
+                    Unselected all
+                </button>
+                <div *ngFor="let i of counter(this.experiment.checkpoints.length)" class="col-6">
+                    <label>checkpoints {{this.experiment.checkpoints[i].id}}: 
+                        <input name="checkpoint_checkbox_logs" type="checkbox" id="checkboxCheckpointLogs+{{i.toString()}}">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- choose log level -->
+
+        <div class="collapse" id="collapseCheckBoxLevelLogs">
+            <div class="card card-body row col-12">
+                <button class="btn btn-light col-3" role="button" name="level_checkbox_logs" (click) = selectAllCheckbox($event)>
+                    Selected all
+                </button>
+                <button class="btn btn-light col-3 mt-2 mb-2" role="button" name="level_checkbox_logs" (click) = unselectAllCheckbox($event)>
+                    Unselected all
+                </button>
+                <div *ngFor="let i of counter(this.logs.log_level.length)" class="col-6">
+                    <label>{{this.logs.log_level[i].name}}: 
+                        <input name="level_checkbox_logs" type="checkbox" id="checkboxLevelLogs+{{this.logs.log_level[i].id.toString()}}">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- display log message -->
+        <div class="bg-dark">
+            <label class="mt-2 text-white" *ngFor="let i of counter(this.logs_value.length)">
+                {{this.logs_value[i].error_message}}
+            </label>
+        </div>
+        
+        
     </div>
 </div>
 
