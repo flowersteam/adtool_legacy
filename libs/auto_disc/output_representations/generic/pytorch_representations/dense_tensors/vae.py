@@ -15,7 +15,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
-
 #@StringConfigParameter(name="input_tensors_layout", default="dense", possible_values=["dense", "minkowski", ])
 @StringConfigParameter(name="input_tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
 # TODO: Add device as part of spaces (?)
@@ -355,28 +354,44 @@ class VAE(nn.Module, BaseOutputRepresentation):
         return losses
 
     def train_update(self):
+        # TODO: pass filter, transform, sampler and collate_fn in config
+        filter = lambda x: ((x-x.min())<1e-3).all().item()
+        from auto_disc.utils.misc.torch_utils import TensorRandomCentroidCrop, TensorRandomRoll, TensorRandomSphericalRotation
+        from torchvision.transforms import Compose, ToTensor, ToPILImage, RandomHorizontalFlip, RandomVerticalFlip
+        img_size = self.input_space[self.wrapped_input_space_key].shape[1:]
+        random_center_crop = TensorRandomCentroidCrop(p=0.6, size=img_size, scale=(0.5, 1.0), ratio_x=(1., 1.), interpolation='bilinear')
+        random_roll = TensorRandomRoll(p=(0.6, 0.6), max_delta=(0.5,0.5))
+        random_spherical_rotation = TensorRandomSphericalRotation(p=0.6, max_degrees=20, img_size=img_size)
+        random_horizontal_flip = RandomHorizontalFlip(0.2)
+        random_vertical_flip = RandomVerticalFlip(0.2)
+        transform = Compose([random_roll, random_spherical_rotation, random_center_crop, ToPILImage(), random_horizontal_flip, random_vertical_flip, ToTensor()])
+        train_sampler = None
+        collate_fn = None
+
         train_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(self.CURRENT_RUN_INDEX)),
-                                                 filter=lambda x: ((x-x[0])<1e-10).all().item())
+                                                 filter=filter,
+                                                 transform=transform)
         train_loader = DataLoader(train_dataset,
-                                  # TODO: sampler=weighted_train_sampler,
+                                  sampler=train_sampler,
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
                                   drop_last=self.config.dataloader_drop_last,
-                                  # TODO: collate_fn=self.config.dataloader_collate_fn
+                                  collate_fn=collate_fn,
                                   )
 
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
-                                                 filter=lambda x: ((x-x[0])<1e-10).all().item())
+                                                 filter=filter,
+                                                 transform=transform)
 
         valid_loader = DataLoader(valid_dataset,
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
                                   drop_last=False,
-                                  # TODO: collate_fn=self.config.dataloader_collate_fn
+                                  collate_fn=collate_fn,
                                   )
         self.run_training(train_loader=train_loader, n_epochs=self.config.n_epochs_per_train_period, valid_loader=valid_loader)
 
