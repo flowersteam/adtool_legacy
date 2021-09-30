@@ -397,6 +397,18 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
         return output
 
+    def save(self):
+        return {
+            "epoch": self.n_epochs,
+            "network_state_dict": self.state_dict(),
+            "optimizer_state_dict": self.optimizer.state_dict()
+        }
+
+    def load(self, saved_dict):
+        # TODO: deal with device
+        self.n_epochs = saved_dict["epoch"]
+        self.load_state_dict(saved_dict["network_state_dict"])
+        self.optimizer.load_state_dict(saved_dict["optimizer_state_dict"])
 
 """==============================================================================================================
 LOSSES

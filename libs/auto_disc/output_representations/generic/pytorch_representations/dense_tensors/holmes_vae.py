@@ -594,6 +594,10 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         else:
             self.logger = None
 
+        self.add_graph_to_tensorboard()
+
+
+    def add_graph_to_tensorboard(self):
         # Save the graph in the logger
         if self.logger is not None:
             dummy_input = torch.Tensor(size=self.input_space[self.wrapped_input_space_key].shape).uniform_(0, 1)\
@@ -824,70 +828,64 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     trigger_split_in_leaf = True
 
             if trigger_split_in_leaf:
-                leaf_node.split(create_boundary=True, history=self._access_history()['output'], boundary_name=self.config.boundary_name, boundary_parameters=self.config.boundary_parameters)
-
-                # 1) set input tensors compatibility
-                self.set_input_tensors_compatibility()
-
-                # 2) update optimizer
-                cur_node_optimizer_group_id = leaf_node.optimizer_group_id
-                # delete param groups and residuates in optimize.state
-                del self.optimizer.param_groups[cur_node_optimizer_group_id]
-                for n, p in leaf_node.named_parameters():
-                    if p in self.optimizer.state.keys():
-                        del self.optimizer.state[p]
-                leaf_node.optimizer_group_id = None
-                n_groups = len(self.optimizer.param_groups)
-                # update optimizer_group ids in the tree and sanity check that there is no conflict
-                sanity_check = np.asarray([False] * n_groups)
-                for other_leaf_path in self.root.get_leaf_pathes():
-                    if other_leaf_path[:len(leaf_path)] != leaf_path:
-                        other_leaf = self.root.get_child_node(other_leaf_path)
-                        if other_leaf.optimizer_group_id > cur_node_optimizer_group_id:
-                            other_leaf.optimizer_group_id -= 1
-                        if sanity_check[other_leaf.optimizer_group_id] == False:
-                            sanity_check[other_leaf.optimizer_group_id] = True
-                        else:
-                            raise ValueError("doublons in the optimizer group ids")
-                if (n_groups > 0) and (~sanity_check).any():
-                    raise ValueError("optimizer group ids does not match the optimzer param groups length")
-                self.optimizer.add_param_group({"params": leaf_node.left.parameters()})
-                leaf_node.left.optimizer_group_id = n_groups
-                self.optimizer.add_param_group({"params": leaf_node.right.parameters()})
-                leaf_node.right.optimizer_group_id = n_groups + 1
-
-
-                # 3) Create new keys in output space
-                self.output_space.spaces[f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-                self.output_space.spaces[f"{leaf_path}0"].initialize(self)
-                self.output_space.spaces[f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-                self.output_space.spaces[f"{leaf_path}1"].initialize(self)
-
-                # 4) Update history
-                self._call_output_history_update()
-
-                # 5) Expand new goal spaces
-                #TODO
-
-                # save split history
-                self.split_history[leaf_path] = {"boundary": leaf_node.boundary, "epoch": self.n_epochs}
-
+                self.split(leaf_path, create_boundary=True)
                 # Save the new graph in the logger
-                if self.logger is not None:
-                    dummy_input = torch.Tensor(size=self.input_space[self.wrapped_input_space_key].shape).uniform_(0, 1) \
-                        .type(self.input_space[self.wrapped_input_space_key].dtype) \
-                        .to(self.config.input_tensors_device) \
-                        .unsqueeze(0)
-                    self.eval()
-                    with torch.no_grad():
-                        model_wrapper = ModelWrapper(self)
-                        self.logger.add_graph(model_wrapper, dummy_input, verbose=False)
+                self.add_graph_to_tensorboard()
 
                 splitted_leafs.append(leaf_path)
 
-
         train_loader.dataset.transform = old_transform_state
         return splitted_leafs
+
+    def split(self, leaf_path, create_boundary=False):
+            leaf_node = self.root.get_child_node(leaf_path)
+            leaf_node.split(create_boundary=create_boundary, history=self._access_history()['output'], boundary_name=self.config.boundary_name, boundary_parameters=self.config.boundary_parameters)
+
+            # 1) set input tensors compatibility
+            self.set_input_tensors_compatibility()
+
+            # 2) update optimizer
+            cur_node_optimizer_group_id = leaf_node.optimizer_group_id
+            # delete param groups and residuates in optimize.state
+            del self.optimizer.param_groups[cur_node_optimizer_group_id]
+            for n, p in leaf_node.named_parameters():
+                if p in self.optimizer.state.keys():
+                    del self.optimizer.state[p]
+            leaf_node.optimizer_group_id = None
+            n_groups = len(self.optimizer.param_groups)
+            # update optimizer_group ids in the tree and sanity check that there is no conflict
+            sanity_check = np.asarray([False] * n_groups)
+            for other_leaf_path in self.root.get_leaf_pathes():
+                if other_leaf_path[:len(leaf_path)] != leaf_path:
+                    other_leaf = self.root.get_child_node(other_leaf_path)
+                    if other_leaf.optimizer_group_id > cur_node_optimizer_group_id:
+                        other_leaf.optimizer_group_id -= 1
+                    if sanity_check[other_leaf.optimizer_group_id] == False:
+                        sanity_check[other_leaf.optimizer_group_id] = True
+                    else:
+                        raise ValueError("doublons in the optimizer group ids")
+            if (n_groups > 0) and (~sanity_check).any():
+                raise ValueError("optimizer group ids does not match the optimzer param groups length")
+            self.optimizer.add_param_group({"params": leaf_node.left.parameters()})
+            leaf_node.left.optimizer_group_id = n_groups
+            self.optimizer.add_param_group({"params": leaf_node.right.parameters()})
+            leaf_node.right.optimizer_group_id = n_groups + 1
+
+
+            # 3) Create new keys in output space
+            self.output_space.spaces[f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space.spaces[f"{leaf_path}0"].initialize(self)
+            self.output_space.spaces[f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space.spaces[f"{leaf_path}1"].initialize(self)
+
+            # 4) Update history
+            self._call_output_history_update()
+
+            # 5) Expand new goal spaces
+            #TODO
+
+            # save split history
+            self.split_history[leaf_path] = {"boundary": leaf_node.boundary, "epoch": self.n_epochs}
 
 
     def train_epoch(self, train_loader):
@@ -1064,25 +1062,29 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
     def train_update(self):
         train_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
+                                                 key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(self.CURRENT_RUN_INDEX)),
-                                                 wrapped_input_space_key=self.wrapped_input_space_key)
+                                                 filter=lambda x: ((x - x[0]) < 1e-10).all().item())
         train_loader = DataLoader(train_dataset,
-                                  #TODO: sampler=weighted_train_sampler,
+                                  # TODO: sampler=weighted_train_sampler,
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
                                   drop_last=self.config.dataloader_drop_last,
-                                  #TODO: collate_fn=self.config.dataloader_collate_fn
+                                  # TODO: collate_fn=self.config.dataloader_collate_fn
                                   )
 
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
-                                                 history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)), #TODO: other options
-                                                 wrapped_input_space_key=self.wrapped_input_space_key)
+                                                 key=f"input.{self.wrapped_input_space_key}",
+                                                 history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
+                                                 filter=lambda x: ((x - x[0]) < 1e-10).all().item())
+
         valid_loader = DataLoader(valid_dataset,
-                                    batch_size=self.config.dataloader_batch_size,
-                                    num_workers=self.config.dataloader_num_workers,
-                                    drop_last=False,
-                                    # TODO: collate_fn=self.config.dataloader_collate_fn
-                                    )
+                                  batch_size=self.config.dataloader_batch_size,
+                                  num_workers=self.config.dataloader_num_workers,
+                                  drop_last=False,
+                                  # TODO: collate_fn=self.config.dataloader_collate_fn
+                                  )
+
         self.run_training(train_loader=train_loader, n_epochs=self.config.n_epochs_per_train_period, valid_loader=valid_loader)
 
         self._call_output_history_update()
@@ -1109,19 +1111,19 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
     def save(self):
         return {
             "epoch": self.n_epochs,
-            "network_state_dict": self.network.state_dict(),
+            "root_state_dict": self.root.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
             "split_history": self.split_history
         }
 
     def load(self, saved_dict):
-        #TODO: deal with device, test save/load
+        #TODO: deal with device
         self.n_epochs = saved_dict["epoch"]
         self.split_history = saved_dict['split_history']
         for split_node_path, split_node_attr in self.split_history.items():
-            node_to_split = self.network.get_node_path(node_to_split)
-            node_to_split.split()
+            node_to_split = self.root.get_child_node(split_node_path)
+            self.split(split_node_path, create_boundary=False)
             node_to_split.boundary = split_node_attr["boundary"]
 
-        self.network.load_state_dict(saved_dict['network_state_dict'])
+        self.root.load_state_dict(saved_dict['root_state_dict'])
         self.optimizer.load_state_dict(saved_dict['optimizer_state_dict'])

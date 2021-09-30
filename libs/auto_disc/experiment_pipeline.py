@@ -236,7 +236,8 @@ class ExperimentPipeline():
                         experiment_id=self.experiment_id,
                         checkpoint_id = self.checkpoint_id
                     )
-                    self.checkpoint_id = callbacks_res["checkpoint_id"]
+                    if 'checkpoint_id' in callbacks_res:
+                        self.checkpoint_id = callbacks_res["checkpoint_id"]
 
                 run_idx += 1
                 BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
