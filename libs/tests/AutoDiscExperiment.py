@@ -34,7 +34,9 @@ if __name__ == "__main__":
                                                encoder_hidden_dims=64,
                                                encoder_conditional_type="gaussian",
 
-                                               weights_init_name="kaiming_uniform",
+                                               weights_init_name="pytorch",
+                                               #weights_init_checkpoint_filepath="./checkpoints/output_representations/exp_0_idx_39.pickle",
+                                               #weights_init_checkpoint_keys="network_state_dict",
 
                                                loss_name="VAE",
                                                optimizer_name="Adam",
@@ -133,6 +135,6 @@ if __name__ == "__main__":
         import pickle
         with open("./checkpoints/output_representations/exp_0_idx_39.pickle", "rb") as f:
             representation_dict = pickle.load(f)
-        representation.load(representation_dict[1])
+        experiment._output_representations[-1].load(representation_dict[-1])
 
     experiment.run(100)

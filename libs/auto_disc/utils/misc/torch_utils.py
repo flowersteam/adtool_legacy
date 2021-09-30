@@ -6,6 +6,7 @@ from torch import nn
 from torch.nn.init import kaiming_normal_, kaiming_uniform_, xavier_normal_, xavier_uniform_, uniform_, eye_
 from torch.utils.data import Dataset
 from typing import Any
+import pickle
 
 PI = torch.acos(torch.zeros(1)).item() * 2
 
@@ -206,6 +207,18 @@ def get_weights_init(initialization_name):
     '''
     initialization_name = initialization_name.lower()
     return eval("weights_init_{}".format(initialization_name))
+
+def weights_init_pretrain(checkpoint_filepath, chekpoint_keys=[]):
+    if os.path.exists(checkpoint_filepath):
+        with open(checkpoint_filepath, "rb") as f:
+            network_dict = pickle.load(f)
+        if isinstance(chekpoint_keys, str):
+            checkpoint_keys = chekpoint_keys.split(".")
+        for key in checkpoint_keys:
+            network_dict = network_dict[key]
+    else:
+        print("WARNING: the checkpoint filepath for a pretrain initialization has not been found, skipping the initialization")
+    return network_dict
 
 
 def weights_init_null(m):

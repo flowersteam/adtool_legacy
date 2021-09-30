@@ -29,8 +29,10 @@ from tensorboardX import SummaryWriter
 @StringConfigParameter(name="encoder_conditional_type", default="gaussian",
                        possible_values=["gaussian", "deterministic", ])
 @BooleanConfigParameter(name="encoder_use_attention", default=False)
-@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["null", "identity", "uniform", "pytorch", "xavier_uniform", "xavier_normal", "kaiming_uniform", "kaiming_normal"])
+@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pretrain","null", "identity", "uniform", "pytorch", "xavier_uniform", "xavier_normal", "kaiming_uniform", "kaiming_normal"])
 # TODO: DictConfigParameter for weights_init_parameters
+@StringConfigParameter(name="weights_init_checkpoint_filepath", default="", possible_values="all")
+@StringConfigParameter(name="weights_init_checkpoint_keys", default="", possible_values="all")
 
 @StringConfigParameter(name="loss_name", default="VAE", possible_values=["VAE", "betaVAE", "annealedVAE", ])
 # TODO: DictConfigParameter for loss_parameters
@@ -125,7 +127,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
         weights_init_function = get_weights_init(self.config.weights_init_name)
         if self.config.weights_init_name == "pretrain":
             #TODO
-            pass
+            network_dict = weights_init_function(self.config.weights_init_checkpoint_filepath, self.config.weights_init_checkpoint_keys)
+            self.load_state_dict(network_dict)
         else:
             self.apply(weights_init_function)
 

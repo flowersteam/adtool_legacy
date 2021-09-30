@@ -5,7 +5,7 @@ from auto_disc.output_representations.generic.pytorch_representations.dense_tens
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.vae import VAELoss
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter
 from auto_disc.utils.misc.dict_utils import map_nested_dicts
-from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper
+from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper, get_weights_init
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
@@ -425,8 +425,10 @@ HOLMES CLASS
 @StringConfigParameter(name="encoder_conditional_type", default="gaussian", possible_values=["gaussian", "deterministic", ])
 @BooleanConfigParameter(name="encoder_use_attention", default=False)
 
-@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pytorch", ])
-#TODO: DictConfigParameter for weights_init_parameters
+@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pretrain","null", "identity", "uniform", "pytorch", "xavier_uniform", "xavier_normal", "kaiming_uniform", "kaiming_normal"])
+# TODO: DictConfigParameter for weights_init_parameters
+@StringConfigParameter(name="weights_init_checkpoint_filepath", default="", possible_values="all")
+@StringConfigParameter(name="weights_init_checkpoint_keys", default="", possible_values="all")
 
 @StringConfigParameter(name="loss_name", default="VAE", possible_values=["VAE", "betaVAE", "annealedVAE", ])
 #TODO: DictConfigParameter for loss_parameters
@@ -544,7 +546,14 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
 
     def init_network_weights(self):
-        #TODO
+        weights_init_function = get_weights_init(self.config.weights_init_name)
+        if self.config.weights_init_name == "pretrain":
+            #TODO
+            network_dict = weights_init_function(self.config.weights_init_checkpoint_filepath, self.config.weights_init_checkpoint_keys)
+            self.load_state_dict(network_dict)
+        else:
+            self.apply(weights_init_function)
+
         return
 
     def set_loss(self):
