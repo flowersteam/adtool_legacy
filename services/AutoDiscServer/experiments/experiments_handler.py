@@ -29,7 +29,10 @@ class ExperimentsHandler():
                                         "created_on": exp_date,
                                         "config": parameters['experiment']['config'],
                                         "progress": 0,
-                                        "exp_status": int(ExperimentStatusEnum.RUNNING) 
+                                        "exp_status": int(ExperimentStatusEnum.RUNNING),
+                                        "archived": False,
+                                        "checkpoint_saves_archived": False,
+                                        "discoveries_archived": False
                                      })
             id = response.headers["Location"].split(".")
             id = int(id[1])

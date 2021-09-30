@@ -15,6 +15,7 @@ import math
 
 from matplotlib.animation import FuncAnimation
 import io
+import imageio
 
 """ =============================================================================================
 System definition
@@ -100,32 +101,26 @@ class Lenia(BasePythonSystem):
         return self._observations
 
     def render(self, mode="PIL_image"):
-        plt.close()
-        fig = plt.figure(figsize=(4, 4))
+
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
         im_array = []
         for img in self._observations.states:
             im = im_from_array_with_colormap(img.cpu().detach().numpy(), colormap)
-            im_array.append(im)
+            im_array.append(im.convert('RGB'))
         
-        animation = FuncAnimation(fig, lambda frame: plt.imshow(frame), frames=im_array)
-        # plt.imshow(im)
-        plt.axis('off')
-        plt.tight_layout()
+
         if mode == "human":
+            fig = plt.figure(figsize=(4, 4))
+            animation = FuncAnimation(fig, lambda frame: plt.imshow(frame), frames=im_array)
+            plt.axis('off')
+            plt.tight_layout()
             return plt.show()
-        elif mode == "plt_figure":
-            byte_fig = io.BytesIO()
-            fig.savefig(byte_fig, format='png')
-            plt.close()
-            return (byte_fig, "png")
         elif mode == "PIL_image":
             byte_img = io.BytesIO()
-            im_array[0].save(byte_img, format='GIF', save_all=True, append_images=im_array[1:], duration=100, loop=0)
-            plt.close()
-            return (byte_img, "gif")
+            imageio.mimwrite(byte_img, im_array, 'mp4',  fps=30, output_params=["-f", "mp4"])
+            return (byte_img, "mp4")
         else:
             raise NotImplementedError
 

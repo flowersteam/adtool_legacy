@@ -1,16 +1,19 @@
 from flask import Flask, request, jsonify, make_response, send_file
+from flask_cors import CORS
 from pymongo import MongoClient
 from gridfs import GridFS
 from bson.objectid import ObjectId
+import json
 
 app = Flask(__name__)
+CORS(app)
 client = MongoClient('mongodb://localhost:27017/', username="autodisc", password="password")
 db = client.main_db
 fs = GridFS(db)
 
 # Return request with a document matching filter 
-def _get_one_by_filter(collection, filter):
-    element = collection.find_one(filter)
+def _get_one_by_filter(collection, filter, query=None):
+    element = collection.find_one(filter, query)
     if element:
         element['_id'] = str(element['_id'])
         return make_response(jsonify(element), 200)
@@ -18,9 +21,9 @@ def _get_one_by_filter(collection, filter):
         return make_response("No element found matching {} in collection {}".format(filter, collection), 403)
 
 # Return request with multiple documents matching filter 
-def _get_multiple_by_filter(collection, filter):
+def _get_multiple_by_filter(collection, filter, query=None):
     elements = []
-    for element in collection.find(filter):
+    for element in collection.find(filter, query):
         element['_id'] = str(element['_id'])
         elements.append(element)
     return make_response(jsonify(elements), 200)
@@ -48,13 +51,14 @@ def _add_files_to_document(collection, document, files):
 #################################
 ########## DISCOVERIES ##########
 # GET
-@app.route('/discoveries', methods=['GET']) # list discoveries given checkpoint id
+@app.route('/discoveries', methods=['GET']) # list discoveries given filter
 def list_discoveries():
-    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id is not None:
-        return _get_multiple_by_filter(db.discoveries, {"checkpoint_id": checkpoint_id})
+    filter = request.args.get('filter', default=None)
+    if filter is not None:
+        query = request.args.get('query', default=None)
+        return _get_multiple_by_filter(db.discoveries, json.loads(filter), json.loads(query) if query else None)
     else:
-        return make_response("You must provide a checkpoint_id in the request args", 403)
+        return make_response("You must provide a filter in the request args", 403)
 
 @app.route('/discoveries/<id>', methods=['GET']) # get a discovery by its id
 def get_discovery_by_id(id):
@@ -82,17 +86,33 @@ def add_discovery_files(id):
     else:
         return make_response("No discovery found with id {}".format(id), 403)
 
+# DELETE
+@app.route('/discoveries/<id>', methods=['DELETE']) # remove a discovery by its id
+def delete_discovery_by_id(id):
+    db.discoveries.delete_one({"_id": ObjectId(id)})
+    return make_response(jsonify({'success':True}), 200)
+
+@app.route('/discoveries/', methods=['DELETE']) # remove multiple discoveries given a checkpoint id
+def delete_discoveries():
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
+    if checkpoint_id is not None:
+        db.discoveries.delete_many({"checkpoint_id": checkpoint_id})
+        return make_response(jsonify({'success':True}), 200)
+    else:
+        return make_response("You must provide a checkpoint_id in the request args", 403)
+
 
 ######################################
 ########## CHECKPOINT SAVES ##########
 # GET
-@app.route('/checkpoint_saves', methods=['GET']) # list checkpoint saves given checkpoint id
+@app.route('/checkpoint_saves', methods=['GET']) # list checkpoint saves given filter
 def list_checkpoint_saves():
-    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id is not None:
-        return _get_multiple_by_filter(db.checkpoint_saves, {"checkpoint_id": checkpoint_id})
+    filter = request.args.get('filter', default=None)
+    if filter is not None:
+        query = request.args.get('query', default=None)
+        return _get_multiple_by_filter(db.checkpoint_saves, json.loads(filter), json.loads(query) if query else None)
     else:
-        return make_response("You must provide a checkpoint_id in the request args", 403)
+        return make_response("You must provide a filter in the request args", 403)
 
 @app.route('/checkpoint_saves/<id>', methods=['GET']) # get a checkpoint save by its id
 def get_checkpoint_save_by_id(id):
@@ -119,6 +139,21 @@ def add_checkpoint_save_files(id):
         return _add_files_to_document(db.checkpoint_saves, checkpoint_save, request.files)
     else:
         return make_response("No checkpoint_save found with id {}".format(id), 403)
+
+# DELETE
+@app.route('/checkpoint_saves/<id>', methods=['DELETE']) # remove a checkpoint save by its id
+def delete_checkpoint_save_by_id(id):
+    db.checkpoint_saves.delete_one({"_id": ObjectId(id)})
+    return make_response(jsonify({'success':True}), 200)
+
+@app.route('/checkpoint_saves/', methods=['DELETE']) # remove multiple checkpoint save given a checkpoint id
+def delete_checkpoint_saves():
+    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
+    if checkpoint_id is not None:
+        db.checkpoint_saves.delete_many({"checkpoint_id": checkpoint_id})
+        return make_response(jsonify({'success':True}), 200)
+    else:
+        return make_response("You must provide a checkpoint_id in the request args", 403)
 
 
 if __name__ == '__main__':

@@ -166,6 +166,7 @@ class ExperimentPipeline():
         Launches the experiment for `n_exploration_runs` explorations.
         '''
         run_idx = 0
+        BaseAutoDiscModule.CURRENT_RUN_INDEX = 0
         system_steps = [0]
         try:
             while run_idx < n_exploration_runs:

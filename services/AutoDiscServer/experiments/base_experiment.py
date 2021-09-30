@@ -88,10 +88,7 @@ class BaseExperiment():
         # AND 
         # if we need to make a new backup afterwards then we create a new checkpoint
         if ((len(self.checkpoints_history[current_checkpoint_id]["seeds_status"]) == 0 
-            or all(value == int(SeedStatusEnum.ERROR) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()))
-            and 
-            self.progresses[seed] <= self.experiment_config['experiment']['config']["nb_iterations"] 
-                                    - self.experiment_config['experiment']['save_frequency']):   
+            or all(value == int(SeedStatusEnum.ERROR) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()))):   
                 checkpoint_id = self._on_checkpoint_needed_callback(self.id, current_checkpoint_id)
                 self.checkpoints_history[checkpoint_id] = {
                     "seeds_status": {},

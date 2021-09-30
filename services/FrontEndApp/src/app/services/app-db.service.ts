@@ -23,11 +23,11 @@ export class AppDbService {
 
     return this.http.get<Experiment[]>(
       this.appDBUrl + 
-      "/experiments?select=id,name,created_on,progress,exp_status," + 
+      "/experiments?select=id,name,created_on,progress,exp_status,archived," + 
       "systems(name)," +
       "explorers(name)," +
       "input_wrappers(name)," +
-      "output_representations(name)",
+      "output_representations(name)&archived=is.false",
       httpOptions)
       .pipe(
         catchError(this.handleError<Experiment[]>('getLightExperiments', []))
@@ -43,7 +43,7 @@ export class AppDbService {
     };
     return this.http.get<Experiment>(
       this.appDBUrl + 
-      "/experiments?select=id,name,created_on,progress,exp_status,config," + 
+      "/experiments?select=id,name,created_on,progress,exp_status,config,archived,checkpoint_saves_archived,discoveries_archived," + 
       "systems(name,config)," +
       "explorers(name,config)," +
       "input_wrappers(name,config,index)," +
@@ -54,6 +54,28 @@ export class AppDbService {
       .pipe(
         catchError(this.handleError<Experiment>('getExperiment', undefined))
       );
+  }
+
+  private patchExperimentById(id: number, patchObject: Object) {
+    return this.http.patch(
+      this.appDBUrl + 
+      "/experiments?id=eq." + id,
+      patchObject)
+      .pipe(
+        catchError(this.handleError<any>('patchExperimentById', undefined))
+      );
+  }
+
+  updateArchiveExperimentStatusById(id: number, status: boolean) {
+    return this.patchExperimentById(id, {'archived': status});
+  }
+
+  archiveExperimentCheckpointSavesById(id: number) {
+    return this.patchExperimentById(id, {'checkpoint_saves_archived': true});
+  }
+
+  archiveExperimentDiscoveriesById(id: number) {
+    return this.patchExperimentById(id, {'discoveries_archived': true});
   }
 
 
