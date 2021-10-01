@@ -28,6 +28,19 @@ class CPPNGenomeSpace(BaseSpace):
         new_genome.mutate(self.neat_config.genome_config)
         return new_genome
 
+    def crossover(self, genome_1, genome_2):
+        genome_1 = deepcopy(genome_1)
+        genome_2 = deepcopy(genome_2)
+        if genome_1.fitness is None:
+            genome_1.fitness = 0.0
+        if genome_2.fitness is None:
+            genome_2.fitness = 0.0
+        child_1 = self.neat_config.genome_type(0)
+        child_1.configure_crossover(genome_1, genome_2, self.neat_config.genome_config)
+        child_2 = self.neat_config.genome_type(0)
+        child_2.configure_crossover(genome_1, genome_2, self.neat_config.genome_config)
+        return child_1, child_2
+
     def contains(self, x):
         # TODO
         return True
@@ -35,3 +48,10 @@ class CPPNGenomeSpace(BaseSpace):
     def clamp(self, x):
         # TODO
         return x
+
+    def calc_distance(self, x1, x2):
+        return x1.distance(x2, self.neat_config.genome_config)
+
+    def expand(self, x):
+        # TODO
+        return

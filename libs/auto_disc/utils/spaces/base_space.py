@@ -40,6 +40,12 @@ class BaseSpace(object):
         """
         raise NotImplementedError
 
+    def crossover(self, x1, x2):
+        """
+        Mate 2 elements of this space
+        """
+        raise NotImplementedError
+
     def contains(self, x):
         """
         Return boolean specifying if x is a valid

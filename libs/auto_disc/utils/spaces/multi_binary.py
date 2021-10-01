@@ -3,7 +3,7 @@ import numbers
 import torch
 from auto_disc.utils.spaces import BaseSpace
 from auto_disc.utils.spaces.utils import distance
-
+from copy import deepcopy
 
 class MultiBinarySpace(BaseSpace):
     """
@@ -53,6 +53,17 @@ class MultiBinarySpace(BaseSpace):
             return self.clamp(x)
         else:
             return x
+
+    def crossover(self, x1, x2):
+        child_1 = deepcopy(x1)
+        child_2 = deepcopy(x2)
+        if self.shape != ():
+            crossover_mask = (torch.rand(self.shape) < self.indpb)
+            switch_parent_mask = crossover_mask & torch.randint(2, self.shape, dtype=torch.bool)
+            # mix parents
+            child_1[switch_parent_mask] = x2[switch_parent_mask]
+            child_2[switch_parent_mask] = x1[switch_parent_mask]
+        return child_1, child_2
 
     def contains(self, x):
         if isinstance(x, list) or isinstance(x, tuple):
