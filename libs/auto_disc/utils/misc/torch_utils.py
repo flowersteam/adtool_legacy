@@ -703,3 +703,29 @@ def random_crop_preprocess(x, patch_size, out_size=None, interpolation='bilinear
 
     return selected_patch
 
+"""=====================================================================
+Sparse Tensors
+======================================================================"""
+
+def to_sparse_tensor(x):
+    """ converts dense tensor x to sparse format """
+    x_typename = torch.typename(x).split('.')[-1]
+    if x_typename == "BoolTensor":
+        sparse_tensortype = getattr(torch.sparse, "IntTensor")
+    else:
+        sparse_tensortype = getattr(torch.sparse, x_typename)
+
+    indices = torch.nonzero(x)
+    if len(indices.shape) == 0:  # if all elements are zeros
+        return sparse_tensortype(*x.shape)
+    indices = indices.t()
+    values = x[tuple(indices[i] for i in range(indices.shape[0]))]
+
+    if x_typename == "BoolTensor":
+        values = values.int()
+    sparse_tensor = sparse_tensortype(indices, values, x.size()).coalesce()
+
+    if x_typename == "BoolTensor":
+        sparse_tensor = sparse_tensor.bool()
+
+    return sparse_tensor

@@ -3,3 +3,4 @@ from auto_disc.output_representations.generic.pca import PCA
 from auto_disc.output_representations.generic.umap import UMAP
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.vae import VAE
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.holmes_vae import HOLMES_VAE
+from auto_disc.output_representations.generic.tensor_slice_selector import TensorSliceSelector

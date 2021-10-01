@@ -73,8 +73,8 @@ class Lenia(BasePythonSystem):
 
         self._observations = Dict()
         # self._observations.timepoints = list(range(self.config.final_step))
-        self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
-        self._observations.states[0] = self.state
+        self._observations.states = torch.empty((self.config.final_step, 1, self.config.SX, self.config.SY))
+        self._observations.states[0] = self.state[0]
 
         self.step_idx = 0
 
@@ -90,7 +90,7 @@ class Lenia(BasePythonSystem):
         self.step_idx += 1
         self.state = self.automaton(self.state)
 
-        self._observations.states[self.step_idx] = self.state[0,0,:,:]
+        self._observations.states[self.step_idx] = self.state[0]
 
         current_observation = Dict()
         current_observation.state = self._observations.states[self.step_idx]
@@ -107,7 +107,7 @@ class Lenia(BasePythonSystem):
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
         im_array = []
         for img in self._observations.states:
-            im = im_from_array_with_colormap(img.cpu().detach().numpy(), colormap)
+            im = im_from_array_with_colormap(img.squeeze().cpu().detach().numpy(), colormap)
             im_array.append(im.convert('RGB'))
         
 

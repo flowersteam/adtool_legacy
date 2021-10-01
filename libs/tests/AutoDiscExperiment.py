@@ -4,8 +4,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 
 from auto_disc.systems.python_systems import PythonLenia
-from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation, LeniaImageSelector
-from auto_disc.output_representations.generic import PCA, UMAP,VAE, HOLMES_VAE
+from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation
+from auto_disc.output_representations.generic import PCA, UMAP, VAE, HOLMES_VAE, TensorSliceSelector
 from auto_disc.input_wrappers.generic import TimesNInputWrapper, CppnInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     seed = 42
     _set_seed(seed)
     representation_type = "VAE"
-    load_checkpoint = True
+    load_checkpoint = False
     if representation_type == "VAE":
         representation = VAE(wrapped_input_space_key="image",
                                                input_tensors_device="cuda",
@@ -46,8 +46,8 @@ if __name__ == "__main__":
                                                tb_record_embeddings_frequency=10,
                                                tb_record_memory_max=100,
 
-                                                train_period=20,
-                                                n_epochs_per_train_period=20,
+                                                train_period=5,
+                                                n_epochs_per_train_period=5,
 
                                                 dataloader_batch_size=20,
                                                 dataloader_num_workers=5,
@@ -116,8 +116,13 @@ if __name__ == "__main__":
         save_frequency=20,
         system=PythonLenia(final_step=200, scale_init_state=1.0),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
-        input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaImageSelector(),
+        input_wrappers=[CppnInputWrapper(wrapped_output_space_key="init_state",
+                                         # wrapped_input_space_key="genome",
+                                         #neat_config_filepath="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/generic/cppn/config.cfg"
+                                         )],
+        output_representations=[TensorSliceSelector(wrapped_input_space_key="states",
+                                                    #wrapped_output_space_key="image"
+                                                    ),
                                 representation],
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 

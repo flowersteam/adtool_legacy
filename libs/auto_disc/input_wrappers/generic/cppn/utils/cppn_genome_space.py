@@ -1,7 +1,6 @@
 from auto_disc.utils.spaces import BaseSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
 import neat
-import os
 from copy import deepcopy
 
 class CPPNGenomeSpace(BaseSpace):
