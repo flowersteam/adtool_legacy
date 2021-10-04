@@ -18,7 +18,7 @@ class PCA(BaseOutputRepresentation):
     PCA OutputRepresentation.
     '''
     output_space = DictSpace(
-        embedding=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
+        pca=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
     )
 
     def __init__(self, wrapped_input_space_key=None):
@@ -26,6 +26,7 @@ class PCA(BaseOutputRepresentation):
 
         self.algorithm = make_pipeline(StandardScaler(),
                                        decomposition.PCA(n_components=self.config.n_components))
+        self.output_space[f"pca_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("pca")
 
     def map(self, observations, is_output_new_discovery, **kwargs):
         input = observations[self.wrapped_input_space_key].reshape(1,-1)
@@ -33,13 +34,13 @@ class PCA(BaseOutputRepresentation):
             output = self.algorithm.transform(input)
             output = torch.from_numpy(output).flatten()
         except NotFittedError as nfe:
-            print("The PCA instance is not fitted yet, returning null embedding")
-            output = torch.zeros(self.output_space["embedding"].shape, dtype=self.output_space["embedding"].dtype)
+            print("The PCA instance is not fitted yet, returning null pca")
+            output = torch.zeros(self.output_space[f"pca_{self.wrapped_input_space_key}"].shape, dtype=self.output_space[f"pca_{self.wrapped_input_space_key}"].dtype)
 
         if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0) and is_output_new_discovery:
             self.fit_update()
 
-        output = {"embedding": output}
+        output = {f"pca_{self.wrapped_input_space_key}": output}
 
         if self.config.expand_output_space:
             self.output_space.expand(output)

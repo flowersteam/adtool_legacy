@@ -65,7 +65,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
     """
 
     output_space = DictSpace(
-        embedding=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+        vae=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
     )
 
     def __init__(self, wrapped_input_space_key=None):
@@ -74,6 +74,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
     def initialize(self, input_space):
         BaseOutputRepresentation.initialize(self, input_space)
+        self.output_space[f"vae_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("vae")
 
         # Model
         self.set_model()
@@ -408,7 +409,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
             .type(self.input_space[self.wrapped_input_space_key].dtype) \
             .unsqueeze(0)
 
-        output = {"embedding": self.encoder.calc_embedding(input).flatten().cpu().detach()}
+        output = {f"vae_{self.wrapped_input_space_key}": self.encoder.calc_embedding(input).flatten().cpu().detach()}
 
         if self.config.expand_output_space:
             self.output_space.expand(output)

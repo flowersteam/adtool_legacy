@@ -9,20 +9,21 @@ from auto_disc.utils.spaces.utils import ConfigParameterBinding
 
 #TODO: @StringConfigParameter(name="neat_config_filepath", default="config.cfg", possible_values="all")
 @IntegerConfigParameter(name="n_passes", default=2, min=1)
-# TODO: @StringConfigParameter(name="wrapped_input_space_key", default="slice", possible_values="all")
-#TODO replace "genome"  with self.config.wrapped_input_space_key
+
 class CppnInputWrapper(BaseInputWrapper):
-    #input_spaces = {ConfigParameterBinding("wrapped_input_space_key"): CPPNGenomeSpace(ConfigParameterBinding("neat_config_filepath"))}
-    #input_space = DictSpace(spaces=input_spaces)
     input_space = DictSpace(
         genome=CPPNGenomeSpace(
             neat_config_filepath="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/generic/cppn/config.cfg"
         )
     )
 
+    def initialize(self, output_space):
+        super().initialize(output_space)
+        self.input_space[f"genome_{self.wrapped_output_space_key}"] = self.input_space.spaces.pop("genome")
+
     def map(self, parameters, is_input_new_discovery, **kwargs):
-        cppn_genome = parameters['genome']
-        initialization_cppn = pytorchneat.rnn.RecurrentNetwork.create(cppn_genome, self.input_space['genome'].neat_config)
+        cppn_genome = parameters[f"genome_{self.wrapped_output_space_key}"]
+        initialization_cppn = pytorchneat.rnn.RecurrentNetwork.create(cppn_genome, self.input_space[f"genome_{self.wrapped_output_space_key}"].neat_config)
 
         output_shape = self.output_space[self.wrapped_output_space_key].shape
         cppn_input = pytorchneat.utils.create_image_cppn_input(output_shape, is_distance_to_center=True, is_bias=True)
@@ -30,7 +31,7 @@ class CppnInputWrapper(BaseInputWrapper):
         cppn_net_output = (1.0 - cppn_output.abs()).squeeze()  #TODO: allow other mapping of cppn output in config
 
         parameters[self.wrapped_output_space_key] = cppn_net_output
-        del parameters['genome']
+        del parameters[f"genome_{self.wrapped_output_space_key}"]
         return parameters
 
         

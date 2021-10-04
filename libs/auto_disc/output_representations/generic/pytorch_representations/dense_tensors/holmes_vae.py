@@ -488,8 +488,10 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
     """
 
     output_space = DictSpace(
-        spaces={"0": BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))}
-                     )
+        holmes_vae = DictSpace (
+            spaces={"0": BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))}
+        )
+    )
 
     def __init__(self, wrapped_input_space_key=None):
         BaseOutputRepresentation.__init__(self, wrapped_input_space_key=wrapped_input_space_key)
@@ -882,10 +884,10 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
 
             # 3) Create new keys in output space
-            self.output_space.spaces[f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-            self.output_space.spaces[f"{leaf_path}0"].initialize(self)
-            self.output_space.spaces[f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-            self.output_space.spaces[f"{leaf_path}1"].initialize(self)
+            self.output_space.holmes_vae.spaces[f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space.holmes_vae.spaces[f"{leaf_path}0"].initialize(self)
+            self.output_space.holmes_vae.spaces[f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space.holmes_vae.spaces[f"{leaf_path}1"].initialize(self)
 
             # 4) Update history
             self._call_output_history_update()
@@ -980,7 +982,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 recon_images = torch.empty((0, ) + self.input_space[self.wrapped_input_space_key].shape)
             if self.n_epochs % self.config.tb_record_embeddings_frequency == 0:
                 record_embeddings = True
-                embeddings = torch.empty((0, ) + self.output_space["0"].shape)
+                embeddings = torch.empty((0, ) + self.output_space.holmes_vae["0"].shape)
                 labels = torch.empty((0, 1))
                 if images is None:
                     images = torch.empty((0, ) + self.input_space[self.wrapped_input_space_key].shape)
@@ -1129,9 +1131,9 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         output = map_nested_dicts(output, lambda x: x.flatten().cpu().detach())
 
         if self.config.expand_output_space:
-            self.output_space.expand(output)
+            self.output_space.holmes_vae.expand(output)
 
-        return output
+        return {f"holmes_vae": output}
 
     def save(self):
         return {

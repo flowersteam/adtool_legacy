@@ -22,7 +22,7 @@ class UMAP(BaseOutputRepresentation):
     UMAP OutputRepresentation.
     '''
     output_space = DictSpace(
-        embedding=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
+        umap=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
     )
 
     def __init__(self, wrapped_input_space_key=None):
@@ -36,6 +36,8 @@ class UMAP(BaseOutputRepresentation):
                                                  metric=self.config.metric,
                                                  ))
 
+        self.output_space[f"umap_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("umap")
+
     def map(self, observations, is_output_new_discovery, **kwargs):
         input = observations[self.wrapped_input_space_key].reshape(1,-1)
         try:
@@ -43,12 +45,12 @@ class UMAP(BaseOutputRepresentation):
             output = torch.from_numpy(output).flatten()
         except NotFittedError as nfe:
             print("The UMAP instance is not fitted yet, returning null embedding")
-            output = torch.zeros(self.output_space["embedding"].shape, dtype=self.output_space["embedding"].dtype)
+            output = torch.zeros(self.output_space[f"umap_{self.wrapped_input_space_key}"].shape, dtype=self.output_space[f"umap_{self.wrapped_input_space_key}"].dtype)
 
         if (self.CURRENT_RUN_INDEX % self.config.fit_period == 0) and (self.CURRENT_RUN_INDEX > 0) and is_output_new_discovery:
             self.fit_update()
 
-        output = {"embedding": output}
+        output = {f"umap_{self.wrapped_input_space_key}": output}
 
         if self.config.expand_output_space:
             self.output_space.expand(output)
