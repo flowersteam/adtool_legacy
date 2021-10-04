@@ -4,9 +4,11 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 
 from auto_disc.systems.python_systems import PythonLenia
-from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation
-from auto_disc.output_representations.generic import PCA, UMAP, VAE, HOLMES_VAE, TensorSliceSelector
+from auto_disc.systems.executable_systems import SimCells
+from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation, SimCellsMatRenderToRGB
+from auto_disc.output_representations.generic import PCA, UMAP, VAE, HOLMES_VAE, SliceSelector
 from auto_disc.input_wrappers.generic import TimesNInputWrapper, CppnInputWrapper
+from auto_disc.input_wrappers.specific import SimcellsMatnucleusInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
 from auto_disc import ExperimentPipeline
@@ -23,7 +25,7 @@ if __name__ == "__main__":
     representation_type = "VAE"
     load_checkpoint = False
     if representation_type == "VAE":
-        representation = VAE(wrapped_input_space_key="image",
+        representation = VAE(wrapped_input_space_key="slice_matrender_rgb", #"image",
                                                input_tensors_device="cuda",
 
                                                encoder_name="Burgess",
@@ -57,7 +59,7 @@ if __name__ == "__main__":
 
 
     elif representation_type=="HOLMES_VAE":
-        representation = HOLMES_VAE(wrapped_input_space_key="image",
+        representation = HOLMES_VAE(wrapped_input_space_key="slice_matrender_rgb", #"image",
                                                input_tensors_device="cuda",
 
                                                encoder_name="Burgess",
@@ -114,15 +116,12 @@ if __name__ == "__main__":
         checkpoint_id=0,
         seed=seed,
         save_frequency=20,
-        system=PythonLenia(final_step=200, scale_init_state=1.0),
+        #system=PythonLenia(final_step=200, scale_init_state=1.0),
+        system=SimCells(final_step=20),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
-        input_wrappers=[CppnInputWrapper(wrapped_output_space_key="init_state",
-                                         # wrapped_input_space_key="genome",
-                                         #neat_config_filepath="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/generic/cppn/config.cfg"
-                                         )],
-        output_representations=[TensorSliceSelector(wrapped_input_space_key="states",
-                                                    #wrapped_output_space_key="image"
-                                                    ),
+        input_wrappers=[SimcellsMatnucleusInputWrapper()],
+        output_representations=[SimCellsMatRenderToRGB(),
+                                SliceSelector(wrapped_input_space_key="matrender_rgb"),
                                 representation],
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
