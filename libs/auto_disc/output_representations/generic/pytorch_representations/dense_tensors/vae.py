@@ -331,16 +331,9 @@ class VAE(nn.Module, BaseOutputRepresentation):
             vizu_tensor_list[0::2] = [input_images[n] for n in range(n_images)]
             vizu_tensor_list[1::2] = [output_images[n] for n in range(n_images)]
             logger_add_image_list(self.logger, vizu_tensor_list, "reconstructions",
-                                  global_step=self.n_epochs,
-                                  n_channels=self.input_space[self.wrapped_input_space_key].shape[0],
-                                  spatial_dims=len(self.input_space[self.wrapped_input_space_key].shape[1:]))
+                                  global_step=self.n_epochs)
 
         if record_embeddings:
-            if len(images.shape) == 5:
-                images = images[:, :, self.input_space[self.wrapped_input_space_key].shape[0] // 2, :,
-                         :]  # we take slice at middle depth only
-            if (images.shape[1] != 1) or (images.shape[1] != 3):
-                images = images[:, :3, ...]
             images = resize_embeddings(images)
             self.logger.add_embedding(
                 embeddings,
@@ -386,7 +379,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
                                                  filter=filter,
-                                                 transform=transform)
+                                                 transform=None)
 
         valid_loader = DataLoader(valid_dataset,
                                   batch_size=self.config.dataloader_batch_size,

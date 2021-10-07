@@ -1035,10 +1035,6 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     leaf_embeddings = embeddings[leaf_x_ids]
                     leaf_labels = labels[leaf_x_ids]
                     leaf_images = images[leaf_x_ids]
-                    if len(leaf_images.shape) == 5:
-                        leaf_images = leaf_images[:, :, leaf_images.shape[2] // 2, :, :]  # we take slice at middle depth only
-                    if (leaf_images.shape[1] != 1) or (leaf_images.shape[1] != 3):
-                        leaf_images = leaf_images[:, :3, ...]
                     leaf_images = resize_embeddings(leaf_images)
                     try:
                         self.logger.add_embedding(
@@ -1061,9 +1057,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     vizu_tensor_list[0::2] = [input_images[n] for n in range(n_images)]
                     vizu_tensor_list[1::2] = [output_images[n] for n in range(n_images)]
                     logger_add_image_list(self.logger, vizu_tensor_list, f"leaf_{leaf_path}/reconstructions",
-                                          global_step=self.n_epochs,
-                                          n_channels=self.input_space[self.wrapped_input_space_key].shape[0],
-                                          spatial_dims=len(self.input_space[self.wrapped_input_space_key].shape[1:]))
+                                          global_step=self.n_epochs)
 
         # 4) AVERAGE LOSS ON WHOLE TREE AND RETURN
         for k, v in losses.items():
@@ -1103,7 +1097,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
                                                  filter=filter,
-                                                 transform=transform)
+                                                 transform=None)
 
         valid_loader = DataLoader(valid_dataset,
                                   batch_size=self.config.dataloader_batch_size,

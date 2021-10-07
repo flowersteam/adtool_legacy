@@ -3,7 +3,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 
-from auto_disc.systems.python_systems import PythonLenia
+from auto_disc.systems.python_systems import PythonLenia, LeniaExpandedDiff
 from auto_disc.systems.executable_systems import SimCells
 from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation, SimCellsMatRenderToRGB
 from auto_disc.output_representations.generic import PCA, UMAP, VAE, HOLMES_VAE, SliceSelector
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     representation_type = "VAE"
     load_checkpoint = False
     if representation_type == "VAE":
-        representation = VAE(wrapped_input_space_key="slice_matrender_rgb", #"image",
+        representation = VAE(wrapped_input_space_key="slice_states",
                                                input_tensors_device="cuda",
 
                                                encoder_name="Burgess",
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
 
     elif representation_type=="HOLMES_VAE":
-        representation = HOLMES_VAE(wrapped_input_space_key="slice_matrender_rgb", #"image",
+        representation = HOLMES_VAE(wrapped_input_space_key="slice_states",
                                                input_tensors_device="cuda",
 
                                                encoder_name="Burgess",
@@ -117,11 +117,13 @@ if __name__ == "__main__":
         seed=seed,
         save_frequency=20,
         #system=PythonLenia(final_step=200, scale_init_state=1.0),
-        system=SimCells(final_step=20),
+        #system=SimCells(final_step=20),
+        system=LeniaExpandedDiff(final_step=200, scale_init_state=3),
         explorer=IMGEPExplorer(num_of_random_initialization=20),
-        input_wrappers=[SimcellsMatnucleusInputWrapper()],
-        output_representations=[SimCellsMatRenderToRGB(),
-                                SliceSelector(wrapped_input_space_key="matrender_rgb"),
+        input_wrappers=[CppnInputWrapper("init_wall")], #SimcellsMatnucleusInputWrapper()],
+        output_representations=[SliceSelector(wrapped_input_space_key="states"),
+                                #SimCellsMatRenderToRGB(),
+                                #SliceSelector(wrapped_input_space_key="matrender_rgb"),
                                 representation],
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
