@@ -357,8 +357,8 @@
 
 
         <!-- display log message -->
-        <div class="bg-dark">
-            <label class="mt-2 text-white" *ngFor="let i of counter(this.logs_value.length)">
+        <div class="bg-dark mb-4">
+            <label class="mt-2 text-white col-12" *ngFor="let i of counter(this.logs_value.length)">
                 {{this.logs_value[i].error_message}}
             </label>
         </div>

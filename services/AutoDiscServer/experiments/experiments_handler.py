@@ -124,15 +124,11 @@ class ExperimentsHandler():
                             AppDBMethods.PATCH, 
                             {"status": int(CheckpointsStatusEnum.DONE)})
     
-    def on_checkpoint_update_callback(self, checkpoint_id, logger,  message, error):
-        if len(message) > 8000: # Cut message to match varchar length of AppDB
-            message = message[:7997] + '...'
-
+    def on_checkpoint_update_callback(self, checkpoint_id, error):
         if error:
             self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
                                 AppDBMethods.PATCH, 
                                 {"status":int(CheckpointsStatusEnum.ERROR)})
-        logger("error", message)
     
     def on_experiment_update_callback(self, experiement_id, param_to_update):
         """update experiment in db

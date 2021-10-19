@@ -66,7 +66,7 @@ class LocalExperiment(BaseExperiment):
 
     def on_error(self, **kwargs):
         self.threading_lock.acquire()
-        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"], kwargs["logger"], kwargs["message"])
+        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"])
         self.threading_lock.release()
         return res
 

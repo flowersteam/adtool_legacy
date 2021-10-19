@@ -116,7 +116,7 @@ class BaseExperiment():
 
         return checkpoint_id
 
-    def on_error(self, seed, current_checkpoint_id, logger, message):
+    def on_error(self, seed, current_checkpoint_id):
         del self.progresses[seed]
         
         # Update list of seeds for precedent checkpoint
@@ -124,7 +124,7 @@ class BaseExperiment():
 
         error = len(self.progresses) == 0
         # Put precedent checkpoint to error
-        self._on_checkpoint_update_callback(current_checkpoint_id, logger, message, error)
+        self._on_checkpoint_update_callback(current_checkpoint_id, error)
         if error:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
 

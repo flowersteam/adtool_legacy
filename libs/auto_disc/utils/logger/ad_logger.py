@@ -1,41 +1,58 @@
 import logging
-import enum
+from random import seed
 
-class ADToolLogger():
 
-    def __init__(self, specific_handler):
-        # set handler to log in console
-        self.logger = logging.getLogger("adtool_logger")
-        stream_h = logging.StreamHandler()
-        stream_h.setLevel(logging.NOTSET)
-        logging.getLogger().setLevel(logging.NOTSET)
-        self.formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-        stream_h.setFormatter(self.formatter)
-        self.logger.addHandler(stream_h)
+class AutoDiscLogg(logging.Logger):
 
-        #dict of all level match with enum of log levels
-        self.levels={
-            "debug" : self.logger.debug,
-            "info" : self.logger.info,
-            "warning" : self.logger.warning,
-            "error" : self.logger.error,
-            "critical" : self.logger.critical
-        }
-
-        # set others handler
-        if isinstance(specific_handler, list):
-            for handler in specific_handler:
-                self.logger.addHandler(handler)
+    def __init__(self, experiment_id, seed, checkpoint_id, specific_handler):
+        self._experiment_id = experiment_id
+        self._seed = seed
+        self._checkpoint_id = checkpoint_id
+        if "ad_tool_logger" not in logging.root.manager.loggerDict:
+            self._shared_logger = logging.getLogger("ad_tool_logger")
+            # create handler
+            # add handler
+            stream_h = logging.StreamHandler()
+            stream_h.setLevel(logging.NOTSET)
+            logging.getLogger().setLevel(logging.NOTSET)
+            formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+            stream_h.setFormatter(formatter)
+            self._shared_logger.addHandler(stream_h)
+            if isinstance(specific_handler, list):
+                for handler in specific_handler:
+                    self._shared_logger.addHandler(handler)
+            else:
+                self._shared_logger.addHandler(specific_handler)
         else:
-            self.logger.addHandler(specific_handler)
-
-    def __call__(self, level, msg, context):
-        self.levels[level.value](msg, context)
+            self._shared_logger = logging.getLogger("ad_tool_logger")
     
-    def __call__(self, level, msg):
-        if isinstance(level, enum.Enum):
-            self.levels[level.value](msg, {"experiment_id" : self.experiment_id,"checkpoint_id": self.checkpoint_id,"seed": self.seed})
-        elif isinstance(level, str):
-            self.levels[level](msg, {"experiment_id" : self.experiment_id,"checkpoint_id": self.checkpoint_id,"seed": self.seed})
-        else:
-            raise NotImplementedError()
+    @property 
+    def seed(self):
+        return self._seed
+    
+    @seed.setter
+    def seed(self, seed):
+        self._seed = seed
+
+    @property 
+    def checkpoint_id(self):
+        return self._checkpoint_id
+    
+    @checkpoint_id.setter 
+    def checkpoint_id(self, checkpoint_id ):
+        self._checkpoint_id = checkpoint_id
+
+    def debug(self, *args):
+        self._shared_logger.debug(*args, {"experiment_id": self.experiment_id, "checkpoint_id": self._checkpoint_id,"seed": self._seed})
+
+    def info(self, *args):
+        self._shared_logger.info(*args, {"experiment_id": self.experiment_id, "checkpoint_id": self._checkpoint_id,"seed": self._seed})
+    
+    def warning(self, *args):
+        self._shared_logger.warning(*args, {"experiment_id": self.experiment_id, "checkpoint_id": self._checkpoint_id,"seed": self._seed})
+
+    def error(self, *args):
+        self._shared_logger.error(*args, {"experiment_id": self.experiment_id, "checkpoint_id": self._checkpoint_id,"seed": self._seed})
+
+    def critical(self, *args):
+        self._shared_logger.critical(*args, {"experiment_id": self.experiment_id, "checkpoint_id": self._checkpoint_id,"seed": self._seed})

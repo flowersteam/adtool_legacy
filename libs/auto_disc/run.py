@@ -1,7 +1,7 @@
 import sys
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
-from auto_disc.utils.logger import ADToolLogger
+from auto_disc.utils.logger import AutoDiscLogg
 
 import numpy as np
 import random
@@ -61,8 +61,8 @@ def create(parameters, additional_callbacks):
     logger_class = REGISTRATION['logger'][logger_key]
     logger = logger_class(**parameters['logger']['config'])
 
-    logger = ADToolLogger(logger)
-    
+    logger = AutoDiscLogg(experiment_id, seed, checkpoint_id, logger)
+
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,

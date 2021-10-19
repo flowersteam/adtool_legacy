@@ -31,6 +31,6 @@ class SetDBHandler(StreamHandler):
                                             "checkpoint_id":record.args["checkpoint_id"],
                                             "seed":record.args["seed"],
                                             "log_level_id":levelname,
-                                            "error_message":"{} - {} - {} \n".format(record.name, record.levelname, record.msg)
+                                            "error_message":"{} - {} \n".format(record.levelname, record.msg)
                                         }
                                 )

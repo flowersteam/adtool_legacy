@@ -7,6 +7,7 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
+from auto_disc.utils.callbacks import BaseCallback
 
 
 class CancellationToken:
@@ -116,6 +117,11 @@ class ExperimentPipeline():
         BaseAutoDiscModule.logger.checkpoint_id = checkpoint_id
         BaseAutoDiscModule.logger.seed = seed
 
+        BaseCallback.logger = logger
+        BaseCallback.logger.experiment_id = experiment_id
+        BaseCallback.logger.checkpoint_id = checkpoint_id
+        BaseCallback.logger.seed = seed
+
     def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
         for i, output_representation in enumerate(self._output_representations[starting_index:]):
             output = output_representation.map(output, is_output_new_discovery)
@@ -219,7 +225,7 @@ class ExperimentPipeline():
                     experiment_id=self.experiment_id,
                     checkpoint_id = self.checkpoint_id
                 )
-
+                BaseAutoDiscModule.logger.info("New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
                 self._explorer.optimize() # TODO callbacks
 
                 if (run_idx+1) % self.save_frequency == 0:
@@ -242,21 +248,25 @@ class ExperimentPipeline():
                         experiment_id=self.experiment_id,
                         checkpoint_id = self.checkpoint_id
                     )
+                    BaseAutoDiscModule.logger.info("Experiment {} with seed {} and checkpoint_id {} saved".format(self.experiment_id, self.seed, self.checkpoint_id))
                     self.checkpoint_id = callbacks_res["checkpoint_id"]
-                    BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id  
+                    BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id
+                    BaseCallback.logger.checkpoint_id = self.checkpoint_id
 
                 run_idx += 1
                 BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
                 
         except Exception as ex:
+            message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
+            if len(message) > 8000: # Cut message to match varchar length of AppDB
+                message = message[:7997] + '...'
+            BaseAutoDiscModule.logger.error(message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=run_idx,
                 seed=self.seed,
                 experiment_id=self.experiment_id,
                 checkpoint_id = self.checkpoint_id,
-                logger = BaseAutoDiscModule.logger,
-                message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
             )
             self.db.close()
             raise
@@ -269,4 +279,5 @@ class ExperimentPipeline():
             experiment_id=self.experiment_id,
             checkpoint_id = self.checkpoint_id
         )
+        BaseAutoDiscModule.logger.info("Experiment {} with seed {} finished".format(self.experiment_id, self.seed))
         self.db.close()
