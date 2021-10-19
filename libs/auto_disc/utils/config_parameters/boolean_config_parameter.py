@@ -12,7 +12,7 @@ class BooleanConfigParameter(BaseConfigParameter):
         if value in self._possible_values:
             return True
         else:
-            raise Exception('Chosen value ({0}) does not a boolean.'.format(value))
+            raise Exception('Chosen value ({0}) is not a boolean.'.format(value))
 
     def __call__(self, original_class):
         new_class = super().__call__(original_class)
