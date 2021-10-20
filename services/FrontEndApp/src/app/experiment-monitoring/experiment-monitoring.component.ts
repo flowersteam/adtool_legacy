@@ -34,6 +34,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   public kernelInfoSet =false;
   public message:string = '';
   aKernelToRuleThemAll: any;
+  needSendMessageToKernel = true;
 
   tabButtonDisable:any; //able or disbale button to select page (jupyter Discovery Log)
 
@@ -78,8 +79,11 @@ export class ExperimentMonitoringComponent implements OnInit {
     this.jupyterService.createKernel().subscribe(res =>{
       this.aKernelToRuleThemAll = res;
       this.jupyterService.openKernelChannel(this.aKernelToRuleThemAll.id).subscribe(_ =>{
-        this.makeKernelMessageToCreateDataset();
-        this.jupyterService.sendToKernel(this.message);
+        if(this.needSendMessageToKernel){
+          this.makeKernelMessageToCreateDataset();
+          this.jupyterService.sendToKernel(this.message);
+          this.needSendMessageToKernel = false;
+        }
       });
     });
     
@@ -120,11 +124,6 @@ export class ExperimentMonitoringComponent implements OnInit {
 
       if(!this.kernelInfoSet){
         this.defineInfoToAccessKernel(this.experiment.name, this.experiment.id);
-      }
-
-      if(this.aKernelToRuleThemAll){
-        this.makeKernelMessageToCreateDataset()     
-        this.jupyterService.sendToKernel(this.message);
       }
 
       this.slider_double_value = {
