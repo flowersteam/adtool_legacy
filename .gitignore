@@ -1,7 +1,4 @@
-experiment_results/
-checkpoints/
-tensorboard/
-tmp_output_results/
+libs/tests/*
 
 ### PYCHARM
 .idea/
