@@ -68,6 +68,11 @@ class BaseExperiment():
             ],
         }
 
+        self.experiment_config['logger'] = {
+            'name' : 'base',
+            'config': {}
+        }
+
     
     def start():
         raise NotImplementedError()
@@ -111,7 +116,7 @@ class BaseExperiment():
 
         return checkpoint_id
 
-    def on_error(self, seed, current_checkpoint_id, message):
+    def on_error(self, seed, current_checkpoint_id):
         del self.progresses[seed]
         
         # Update list of seeds for precedent checkpoint
@@ -119,7 +124,7 @@ class BaseExperiment():
 
         error = len(self.progresses) == 0
         # Put precedent checkpoint to error
-        self._on_checkpoint_update_callback(seed, current_checkpoint_id, message, error)
+        self._on_checkpoint_update_callback(current_checkpoint_id, error)
         if error:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
 

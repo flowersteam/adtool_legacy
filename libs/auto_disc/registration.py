@@ -10,6 +10,7 @@ import auto_disc.utils.callbacks.on_error_callbacks as on_error_callbacks
 import auto_disc.utils.callbacks.on_finished_callbacks as on_finished_callbacks
 import auto_disc.utils.callbacks.on_save_callbacks as on_save_callbacks
 import auto_disc.utils.callbacks.on_save_finished_callbacks as on_save_finished_callbacks
+from auto_disc.utils.logger.handlers import *
 
 REGISTRATION = {
     'systems':{
@@ -49,5 +50,9 @@ REGISTRATION = {
         'on_save_finished':{
             'base': on_save_finished_callbacks.BaseOnSaveFinishedCallback
         },
+    },
+    'logger':{
+        'logFile': SetFileHandler,
+        'appDB': SetDBHandler
     }
 }

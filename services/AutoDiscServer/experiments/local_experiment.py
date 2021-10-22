@@ -2,6 +2,7 @@ from AutoDiscServer.experiments import BaseExperiment
 from auto_disc.run import create, start as start_pipeline
 import threading
 from copy import copy
+import logging
 
 class LocalExperiment(BaseExperiment):
     def __init__(self, *args, **kwargs):
@@ -9,11 +10,21 @@ class LocalExperiment(BaseExperiment):
 
         self.threading_lock = threading.Lock()
         
+        # callback
         self.experiment_config['callbacks']['on_discovery'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_discovery'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
 
         self.experiment_config['callbacks']['on_saved'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_saved'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
+
+        # logger
+        self.experiment_config['logger']['name'] = 'appDB'
+        self.experiment_config['logger']['config']['formatter'] = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+        self.experiment_config['logger']['config']['base_url'] = 'http://127.0.0.1:3000'
+
+        # self.experiment_config['logger']['name'] = 'logFile'
+        # self.experiment_config['logger']['config']['file_log_path'] = '/home/mperie/project/test/savefile/file.log'
+        # self.experiment_config['logger']['config']['formatter'] = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
 
         additional_callbacks = {
             "on_discovery": [self.on_progress],
@@ -55,7 +66,7 @@ class LocalExperiment(BaseExperiment):
 
     def on_error(self, **kwargs):
         self.threading_lock.acquire()
-        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"], kwargs["message"])
+        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"])
         self.threading_lock.release()
         return res
 
