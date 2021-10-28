@@ -21,6 +21,8 @@ Please follow these instructions when contributing on the project.
 1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
 2. Enter the front-end app folder: `cd services/FrontEndApp`.
 3. Install required packages: `npm install`
+#### Jupyter Lab
+1. Install jupyter: `pip install JupyterLab/requirements.txt`
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
