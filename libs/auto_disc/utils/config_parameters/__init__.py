@@ -3,3 +3,4 @@ from auto_disc.utils.config_parameters.string_config_parameter import StringConf
 from auto_disc.utils.config_parameters.decimal_config_parameter import DecimalConfigParameter
 from auto_disc.utils.config_parameters.integer_config_parameter import IntegerConfigParameter
 from auto_disc.utils.config_parameters.boolean_config_parameter import BooleanConfigParameter
+from auto_disc.utils.config_parameters.dict_config_parameter import DictConfigParameter

@@ -101,6 +101,7 @@ class IMGEPExplorer(BaseExplorer):
     def archive(self, parameters, observations):
         if self.config.use_exandable_goal_space:
             self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
+            self.logger.debug("Imgep goal space was extend")
 
     def optimize(self):
         pass

@@ -34,6 +34,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   public kernelInfoSet =false;
   public message:string = '';
   aKernelToRuleThemAll: any;
+  needSendMessageToKernel = true;
 
   tabButtonDisable:any; //able or disbale button to select page (jupyter Discovery Log)
 
@@ -51,6 +52,17 @@ export class ExperimentMonitoringComponent implements OnInit {
       ceil: 0
    } // define var needed to range with two values
   }
+
+  // var about logs
+  logs ={
+    checkpoints :[],
+    seeds :[],
+    log_level :<any>[],
+  };
+  all_checkpoints_logs_checkox_selected: any = [];
+  all_seed_checkox_logs_selected: any = [];
+  all_level_checkox_logs_selected: any = [];
+  logs_value :any = [];
   
 
   
@@ -67,13 +79,17 @@ export class ExperimentMonitoringComponent implements OnInit {
     this.jupyterService.createKernel().subscribe(res =>{
       this.aKernelToRuleThemAll = res;
       this.jupyterService.openKernelChannel(this.aKernelToRuleThemAll.id).subscribe(_ =>{
-        this.makeKernelMessageToCreateDataset();
-        this.jupyterService.sendToKernel(this.message);
+        if(this.needSendMessageToKernel){
+          this.makeKernelMessageToCreateDataset();
+          this.jupyterService.sendToKernel(this.message);
+          this.needSendMessageToKernel = false;
+        }
       });
     });
     
     this.initPopover();
-    this.initCollapseVisualisation();  
+    this.initCollapseVisualisation();
+    this.getLogLevels()
   }
 
   
@@ -108,11 +124,6 @@ export class ExperimentMonitoringComponent implements OnInit {
 
       if(!this.kernelInfoSet){
         this.defineInfoToAccessKernel(this.experiment.name, this.experiment.id);
-      }
-
-      if(this.aKernelToRuleThemAll){
-        this.makeKernelMessageToCreateDataset()     
-        this.jupyterService.sendToKernel(this.message);
       }
 
       this.slider_double_value = {
@@ -151,14 +162,21 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   // ######### TAB PART (jupyter discovery log)#########
   initCollapseVisualisation(){
-    this.tabButtonDisable = {"btncollapseJupyter": true, "btncollapseDiscovery": false};
+    this.tabButtonDisable = {"btncollapseJupyter": true, "btncollapseDiscovery": false, "btncollapseLogs": false};
   }
 
   collapseVisualisation(event: any){
     
-    var collapseBtnTriggerList = document.querySelectorAll('#btncollapseJupyter, #btncollapseDiscovery')
-    var collapseTriggerList = [].slice.call(document.querySelectorAll('#collapseJupyter, #collapseDiscovery'))
-    var collapseList = collapseTriggerList.map(function (collapseTriggerEl) {
+    // var collapseBtnTriggerList = document.querySelectorAll('#btncollapseJupyter, #btncollapseDiscovery, #btncollapseLogs')
+    var collapseTriggerList:any = [].slice.call(document.querySelectorAll('#collapseJupyter, #collapseDiscovery, #collapseLogs'))
+    var collapseBtnTriggeringList =[];
+    for(let collapseTrigger of collapseTriggerList){
+      if(event.delegateTarget.id.replace("btn", "") == collapseTrigger.id || collapseTrigger.classList.value.includes('show')){
+        collapseBtnTriggeringList.push(collapseTrigger);
+      }
+    }
+     
+    var collapseList = collapseBtnTriggeringList.map(function (collapseTriggerEl) {
       return new bootstrap.Collapse(collapseTriggerEl)
     })
 
@@ -186,37 +204,63 @@ export class ExperimentMonitoringComponent implements OnInit {
     }
   }
 
-  setActualSeedToVisualise(){
-    this.all_seed_checkox_selected = [];
-    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+  setActualCheckbox(checkbox_name: string){   
+    if(checkbox_name == "seed_checkbox"){
+      this.all_seed_checkox_selected = [];
+    }
+    else if(checkbox_name == "seed_checkbox_logs"){
+      this.all_seed_checkox_logs_selected = [];
+    }
+    else if(checkbox_name == "checkpoint_checkbox_logs"){
+      this.all_checkpoints_logs_checkox_selected = [];
+    }
+    else if(checkbox_name == "level_checkbox_logs"){
+      this.all_level_checkox_logs_selected = [];
+    }
+    let checkbox = document.querySelectorAll('input[name="'+checkbox_name+'"]')
     for (let index = 0; index < checkbox.length; index++) {
       if((checkbox[index]as HTMLInputElement).checked){
-        let res = checkbox[index].id.replace('checkboxSeed+','');
-        this.all_seed_checkox_selected.push(parseInt(res))
+        if(checkbox_name == "seed_checkbox"){
+          let res = checkbox[index].id.replace('checkboxSeed+','');
+          this.all_seed_checkox_selected.push(parseInt(res))
+        }
+        else if(checkbox_name == "seed_checkbox_logs"){
+          let res = checkbox[index].id.replace('checkboxSeedLogs+','');
+          this.all_seed_checkox_logs_selected.push(parseInt(res))
+        }
+        else if(checkbox_name == "checkpoint_checkbox_logs" && this.experiment){
+          let res = checkbox[index].id.replace('checkboxCheckpointLogs+','');
+          this.all_checkpoints_logs_checkox_selected.push(this.experiment.checkpoints[parseInt(res)].id)
+        }
+        else if(checkbox_name == "level_checkbox_logs"){
+          let res = checkbox[index].id.replace('checkboxLevelLogs+','');
+          this.all_level_checkox_logs_selected.push(parseInt(res))
+        }
+        
       } 
     }
   }
 
-  selectAllSeedCheckbox(event: any){
-    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+  selectAllCheckbox(event: any){
+    let checkbox = document.querySelectorAll('input[name="'+event.target.name+'"]')
     for (let index = 0; index < checkbox.length; index++) {
       (checkbox[index]as HTMLInputElement).checked = true;
     }
-    this.setActualSeedToVisualise();
+    this.setActualCheckbox(event.target.name);
   }
 
-  unselectAllSeedCheckbox(event: any){
-    let checkbox = document.querySelectorAll('input[name="seed_checkbox"]')
+  unselectAllCheckbox(event: any){
+    let checkbox = document.querySelectorAll('input[name="'+event.target.name+'"]')
     for (let index = 0; index < checkbox.length; index++) {
       (checkbox[index]as HTMLInputElement).checked = false;
     }
-    this.setActualSeedToVisualise();
+    this.setActualCheckbox(event.target.name);
   }
 
   defineWhatWeWantVisualise(){
     this.index_discoveries_display = 0
     this.setActualRunIdx();
-    this.setActualSeedToVisualise();
+    this.setActualCheckbox("seed_checkbox");
     this.getDiscovery();
   }
 
@@ -329,4 +373,55 @@ export class ExperimentMonitoringComponent implements OnInit {
       }
   }
 
+
+  // ######### LOGS PART #########
+  setLogs(){
+    this.logs.checkpoints = []
+    this.logs.seeds = []
+    this.logs.log_level = []
+  }
+
+  getLogLevels(){
+    this.appDBService.getAllLogLevels().subscribe(res =>{ this.logs.log_level = res});
+  }
+
+  definedOneFilterParam(param:string, param_name:string){
+    param = param.replace("[", "(");
+    param = param.replace("]", ")");
+    if(param.length <= 2){
+      param = ""
+    }
+    else{
+      param = "&"+param_name+"=in."+param
+    }
+    return(param)
+  }
+
+  collapseLogs(event: any){
+    var collapseTriggerList:any = [].slice.call(document.querySelectorAll('#collapseCheckBoxSeedLogs, #collapseCheckBoxCheckpointLogs, #collapseCheckBoxLevelLogs'))
+    var collapseBtnTriggeringList =[];
+    for(let collapseTrigger of collapseTriggerList){
+      if(event.delegateTarget.id.replace("btn", "") == collapseTrigger.id || collapseTrigger.classList.value.includes('show')){
+        collapseBtnTriggeringList.push(collapseTrigger);
+      }
+    }
+     
+    var collapseList = collapseBtnTriggeringList.map(function (collapseTriggerEl) {
+      return new bootstrap.Collapse(collapseTriggerEl)
+    })
+  }
+
+  logsWewant(){
+    if(this.experiment){
+      this.setActualCheckbox("seed_checkbox_logs");
+      this.setActualCheckbox("checkpoint_checkbox_logs");
+      this.setActualCheckbox("level_checkbox_logs");
+      let checkpoints = this.definedOneFilterParam(JSON.stringify(this.all_checkpoints_logs_checkox_selected), 'checkpoint_id');
+      let seeds = this.definedOneFilterParam(JSON.stringify(this.all_seed_checkox_logs_selected), 'seed');
+      let log_levels = this.definedOneFilterParam(JSON.stringify(this.all_level_checkox_logs_selected), 'log_level_id');
+      let filter = "?&experiment_id=eq."+this.experiment.id.toString() + checkpoints + log_levels + seeds;
+      this.appDBService.getLogs(filter).subscribe(res => this.logs_value = res);
+      console.log(filter);
+    }
+  }
 }

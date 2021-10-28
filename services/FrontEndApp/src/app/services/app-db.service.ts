@@ -48,7 +48,7 @@ export class AppDbService {
       "explorers(name,config)," +
       "input_wrappers(name,config,index)," +
       "output_representations(name,config,index)," +
-      "checkpoints(id,parent_id,status,error_message)" +
+      "checkpoints!experiment_id(id,parent_id,status)" +
       "&id=eq." + id,
       httpOptions)
       .pipe(
@@ -78,6 +78,32 @@ export class AppDbService {
     return this.patchExperimentById(id, {'discoveries_archived': true});
   }
 
+
+  getAllLogLevels(): Observable<any> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+    return this.http.get<any>(
+      this.appDBUrl + 
+      "/log_levels",
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('getAllLogLevels', undefined))
+      );
+  }
+
+  getLogs(filter: string): Observable<any> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+    return this.http.get<any>(
+      this.appDBUrl + 
+      "/logs"+ filter,
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('getAllLogLevels', undefined))
+      );
+  }
 
   /**
    * Handle Http operation that failed.
