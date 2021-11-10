@@ -1,7 +1,7 @@
 from AutoDiscServer.experiments import BaseExperiment
 from auto_disc.run import create, start as start_pipeline
 import threading
-from copy import copy
+from copy import deepcopy
 import logging
 
 class LocalExperiment(BaseExperiment):
@@ -19,12 +19,10 @@ class LocalExperiment(BaseExperiment):
 
         # logger
         self.experiment_config['logger']['name'] = 'appDB'
-        self.experiment_config['logger']['config']['formatter'] = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         self.experiment_config['logger']['config']['base_url'] = 'http://127.0.0.1:3000'
 
         # self.experiment_config['logger']['name'] = 'logFile'
-        # self.experiment_config['logger']['config']['file_log_path'] = '/home/mperie/project/test/savefile/file.log'
-        # self.experiment_config['logger']['config']['formatter'] = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+        # self.experiment_config['logger']['config']['folder_log_path'] = '/home/mperie/project/test/savefile/'
 
         additional_callbacks = {
             "on_discovery": [self.on_progress],
@@ -37,9 +35,13 @@ class LocalExperiment(BaseExperiment):
 
         self._pipelines = []
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
-            config = copy(self.experiment_config)
-            config['experiment']["seed"] = i
-            self._pipelines.append(create(config, additional_callbacks))
+            config = deepcopy(self.experiment_config)
+            del config['experiment']['config']
+            del config['experiment']['name']
+            seed = i
+            experiment_id = config['experiment']['id']
+            del config['experiment']['id']
+            self._pipelines.append(create(config, experiment_id, seed, additional_callbacks))
 
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(self.id, self.experiment_config['experiment']['config']['nb_seeds']))

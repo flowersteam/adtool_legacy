@@ -19,7 +19,7 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                 define by 'self.folder_path'
 
         comment:callback save the discoveries outputs we want to save on disk.
-                always saved : run_idx(pickle), experiment_id(pickle)
+                always saved : run_idx(pickle), experiment_id(pickle), seed(pickle)
                 saved if key in self.to_save_outputs: raw_run_parameters(pickle)
                                                     run_parameters,(pickle)
                                                     raw_output(pickle),
@@ -28,11 +28,11 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                                                     step_observations(pickle)
         """
         for save_item in self.to_save_outputs:
-            folder = self.folder_path+save_item
+            folder = "{}{}/{}/{}".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"], save_item)
             if save_item != "rendered_output":
-                filename = "{}/exp_{}_idx_{}.pickle".format(folder, kwargs["experiment_id"], kwargs["run_idx"])
+                filename = "{}/idx_{}.pickle".format(folder, kwargs["run_idx"])
             else:
-                filename = "{}/exp_{}_idx_{}.{}".format(folder, kwargs["experiment_id"], kwargs["run_idx"], kwargs["rendered_output"][1])
+                filename = "{}/idx_{}.{}".format(folder, kwargs["run_idx"], kwargs["rendered_output"][1])
             
             if not os.path.isdir(folder):
                 os.makedirs(folder)

@@ -1,4 +1,6 @@
 import sys
+import argparse
+import json  
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.logger import AutoDiscLogg
@@ -7,10 +9,8 @@ import numpy as np
 import random
 import torch
 
-def create(parameters, additional_callbacks):
-    seed = parameters['experiment']['seed']
+def create(parameters, experiment_id, seed, additional_callbacks = None):
     _set_seed(seed)
-    experiment_id = parameters['experiment']['id'] 
     checkpoint_id = parameters['experiment']['checkpoint_id']
     save_frequency = parameters['experiment']['save_frequency']
 
@@ -49,7 +49,8 @@ def create(parameters, additional_callbacks):
     }
 
     for callback_key in callbacks:
-        callbacks[callback_key].extend(additional_callbacks[callback_key])
+        if(additional_callbacks):
+            callbacks[callback_key].extend(additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
             callbacks[callback_key].append(
@@ -59,9 +60,9 @@ def create(parameters, additional_callbacks):
     # Get logger
     logger_key = parameters['logger']['name']
     logger_class = REGISTRATION['logger'][logger_key]
-    logger = logger_class(**parameters['logger']['config'])
+    logger = logger_class(**parameters['logger']['config'], experiment_id=experiment_id)
 
-    logger = AutoDiscLogg(experiment_id, seed, checkpoint_id, logger)
+    logger = AutoDiscLogg(seed, checkpoint_id, logger)
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
@@ -98,8 +99,15 @@ def _set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise SyntaxError("One single dictionnary parameter must be provided to set the experiment.")
-
-    experiment = create(sys.argv[1])
-    start(experiment, sys.argv[1]['nb_iterations'])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_file', type=str, required=True)
+    parser.add_argument('--experiment_id', type=int, required=True)
+    parser.add_argument('--seed', type=int, required=True)
+    
+    args = parser.parse_args()
+    
+    with open(args.config_file) as json_file:
+        config = json.load(json_file)
+        
+    experiment = create(config, args.experiment_id, args.seed)
+    start(experiment, 10)  

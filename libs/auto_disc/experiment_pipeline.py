@@ -249,7 +249,8 @@ class ExperimentPipeline():
                         checkpoint_id = self.checkpoint_id
                     )
                     BaseAutoDiscModule.logger.info("Experiment {} with seed {} and checkpoint_id {} saved".format(self.experiment_id, self.seed, self.checkpoint_id))
-                    self.checkpoint_id = callbacks_res["checkpoint_id"]
+                    if("checkpoint_id" in callbacks_res):
+                        self.checkpoint_id = callbacks_res["checkpoint_id"]
                     BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id
                     BaseCallback.logger.checkpoint_id = self.checkpoint_id
 

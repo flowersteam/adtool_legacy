@@ -29,8 +29,8 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
             else:
                 to_pickle = kwargs[save_module].save()
 
-            folder = self.folder_path+save_module
-            filename = "{}/exp_{}_idx_{}.pickle".format(folder, kwargs["experiment_id"], kwargs["run_idx"])
+            folder = "{}{}/{}/{}".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"], save_module)
+            filename = "{}/idx_{}.pickle".format(folder, kwargs["run_idx"])
 
             if not os.path.isdir(folder):
                 print(folder)
