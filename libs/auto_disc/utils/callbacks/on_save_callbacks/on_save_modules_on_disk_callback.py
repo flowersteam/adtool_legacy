@@ -37,3 +37,6 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
                 os.makedirs(folder)
             with open(filename, 'wb') as out_file:
                 pickle.dump(to_pickle, out_file)
+            
+        folder = "{}{}/{}/".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"])
+        self.logger.info("New modules saved : {} : {} :{}".format(folder, to_save_modules, kwargs["run_idx"]))

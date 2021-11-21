@@ -42,3 +42,5 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                 else:
                     out_file.write(kwargs["rendered_output"][0].getbuffer())
         print("Saved in '{}' discovery {} for experiment {}".format(self.folder_path, kwargs["run_idx"], kwargs["experiment_id"]))
+        folder = "{}{}/{}/".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"])
+        self.logger.info("New discovery saved : {} : {} :{}".format(folder, self.to_save_outputs, kwargs["run_idx"]))
