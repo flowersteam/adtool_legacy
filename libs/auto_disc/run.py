@@ -106,6 +106,7 @@ if __name__ == "__main__":
     parser.add_argument('--config_file', type=str, required=True)
     parser.add_argument('--experiment_id', type=int, required=True)
     parser.add_argument('--seed', type=int, required=True)
+    parser.add_argument('--nb_iterations', type=int, required=True)
     
     args = parser.parse_args()
     
@@ -113,4 +114,4 @@ if __name__ == "__main__":
         config = json.load(json_file)
         
     experiment = create(config, args.experiment_id, args.seed)
-    start(experiment, 10)  
+    start(experiment, args.nb_iterations)  
