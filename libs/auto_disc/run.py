@@ -1,5 +1,5 @@
 import sys
-from auto_disc import REGISTRATION
+from k import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.logger import AutoDiscLogg
 

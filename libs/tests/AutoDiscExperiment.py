@@ -12,6 +12,7 @@ from auto_disc import ExperimentPipeline
 
 from auto_disc.utils.callbacks import CustomPrintCallback
 from auto_disc.utils.callbacks.on_discovery_callbacks import OnDiscoverySaveCallbackOnDisk
+from auto_disc.utils.callbacks.on_save_callbacks import OnSaveModulesOnDiskCallback
 
 if __name__ == "__main__":
     experiment = ExperimentPipeline(
@@ -30,7 +31,8 @@ if __name__ == "__main__":
                                                                     "Raw system output",
                                                                     "Representation of system output",
                                                                     "Rendered system output"
-                                                                ])]
+                                                                ])],
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("./checkpoints/")]
     )
 
     experiment.run(5000)

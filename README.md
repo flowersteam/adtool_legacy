@@ -44,5 +44,7 @@ Add `-d` option for daemon.
 Launch flask server for the REST API: `python ExpeDB/app.py`
 #### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
-Start the angular app: `ng serve`.
-Start the jupyter lab on port 8888: `jupyter lab ../JupyterLab/Notebooks/`
+Start the angular app: `ng serve`. 
+##### Jupyter Lab
+Enter Jupyter Lab's folder: `cd ../JupyterLab`
+Start the jupyter lab on port 8888: `jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`

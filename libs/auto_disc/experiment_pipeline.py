@@ -116,6 +116,7 @@ class ExperimentPipeline():
         BaseAutoDiscModule.logger.experiment_id = experiment_id
         BaseAutoDiscModule.logger.checkpoint_id = checkpoint_id
         BaseAutoDiscModule.logger.seed = seed
+        logger.debug()
 
         BaseCallback.logger = logger
         BaseCallback.logger.experiment_id = experiment_id
