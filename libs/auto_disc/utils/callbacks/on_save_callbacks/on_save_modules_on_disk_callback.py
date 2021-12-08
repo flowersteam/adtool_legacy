@@ -29,11 +29,14 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
             else:
                 to_pickle = kwargs[save_module].save()
 
-            folder = self.folder_path+save_module
-            filename = "{}/exp_{}_idx_{}.pickle".format(folder, kwargs["experiment_id"], kwargs["run_idx"])
+            folder = "{}{}/{}/{}".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"], save_module)
+            filename = "{}/idx_{}.pickle".format(folder, kwargs["run_idx"])
 
             if not os.path.isdir(folder):
                 print(folder)
                 os.makedirs(folder)
             with open(filename, 'wb') as out_file:
                 pickle.dump(to_pickle, out_file)
+            
+        folder = "{}{}/{}/".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"])
+        self.logger.info("New modules saved : {} : {} :{}".format(folder, to_save_modules, kwargs["run_idx"]))
