@@ -6,15 +6,14 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
-from auto_disc.utils.logger import AutoDiscLogg
+from auto_disc.utils.logger import AutoDiscLogger
 
 import numpy as np
 import random
 import torch
 
-def create(parameters, experiment_id, seed, additional_callbacks = None):
+def create(parameters, experiment_id, seed, additional_callbacks = None, additional_handlers=None):
     _set_seed(seed)
-    checkpoint_id = parameters['experiment']['checkpoint_id']
     save_frequency = parameters['experiment']['save_frequency']
 
     # Get explorer
@@ -52,7 +51,7 @@ def create(parameters, experiment_id, seed, additional_callbacks = None):
     }
 
     for callback_key in callbacks:
-        if(additional_callbacks):
+        if additional_callbacks is not None:
             callbacks[callback_key].extend(additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
@@ -61,17 +60,21 @@ def create(parameters, experiment_id, seed, additional_callbacks = None):
             )
     
     # Get logger
-    logger_key = parameters['logger']['name']
-    logger_class = REGISTRATION['logger'][logger_key]
-    logger = logger_class(**parameters['logger']['config'], experiment_id=experiment_id)
+    handlers = []
+    for logger_handler in parameters['logger_handlers']:
+        hanlder_key =  logger_handler['name']
+        handler_class = REGISTRATION['logger_handlers'][hanlder_key]
+        handler = handler_class(**logger_handler['config'], experiment_id=experiment_id)
+        handlers.append(handler)
+    if additional_handlers is not None:
+        handlers.extend(additional_handlers)
 
-    logger = AutoDiscLogg(seed, checkpoint_id, logger)
+    logger = AutoDiscLogger(experiment_id, seed, handlers)
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
         seed=seed,
-        checkpoint_id=checkpoint_id,
         save_frequency=save_frequency,
         system=system,
         explorer=explorer,

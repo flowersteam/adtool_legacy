@@ -13,7 +13,7 @@ from auto_disc import ExperimentPipeline
 from auto_disc.utils.callbacks import CustomPrintCallback
 from auto_disc.utils.callbacks.on_discovery_callbacks import OnDiscoverySaveCallbackOnDisk
 from auto_disc.utils.callbacks.on_save_callbacks import OnSaveModulesOnDiskCallback
-from auto_disc.utils.logger import AutoDiscLogg
+from auto_disc.utils.logger import AutoDiscLogger
 from auto_disc.utils.logger.handlers import SetFileHandler 
 
 if __name__ == "__main__":
@@ -37,7 +37,7 @@ if __name__ == "__main__":
                                                                     "Rendered system output"
                                                                 ])],
         on_save_callbacks=[OnSaveModulesOnDiskCallback("/home/mperie/project/test/test_runpy/mes_modules_perso/")],
-        logger=AutoDiscLogg(42, 0, SetFileHandler("/home/mperie/project/test/test_runpy/", experiment_id))
+        logger=AutoDiscLogger(42, 0, SetFileHandler("/home/mperie/project/test/test_runpy/", experiment_id))
     )
 
     experiment.run(10)

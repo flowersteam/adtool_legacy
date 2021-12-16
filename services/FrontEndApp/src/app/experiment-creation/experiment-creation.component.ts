@@ -209,6 +209,7 @@ export class ExperimentCreationComponent implements OnInit {
     this.newExperiment.input_wrappers = []
     this.newExperiment.output_representations = []
     this.newExperiment.callbacks = []
+    this.newExperiment.logger_handlers = []
 
   }
 

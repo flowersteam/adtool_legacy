@@ -1,4 +1,5 @@
 from AutoDiscServer.utils import SeedStatusEnum, ExperimentStatusEnum
+from AutoDiscServer.utils import clear_dict_config_parameter
 
 class BaseExperiment():
     def __init__(self, id, experiment_config, on_progress_callback, on_checkpoint_needed_callback, on_checkpoint_finished_callback,
@@ -68,11 +69,7 @@ class BaseExperiment():
             ],
         }
 
-        self.experiment_config['logger'] = {
-            'name' : 'base',
-            'config': {}
-        }
-
+        self.cleared_config = clear_dict_config_parameter(self.experiment_config)
     
     def start():
         raise NotImplementedError()
@@ -127,14 +124,20 @@ class BaseExperiment():
         self._on_checkpoint_update_callback(current_checkpoint_id, error)
         if error:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
+            self.clean_after_experiment()
 
 
     def on_finished(self, seed):
         del self.progresses[seed]
         if len(self.progresses) == 0:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.DONE)})
+            self.clean_after_experiment()
     
     def on_cancelled(self, seed):
         del self.progresses[seed]
         if len(self.progresses) == 0:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.CANCELLED)})
+            self.clean_after_experiment()
+
+    def clean_after_experiment(self):
+        pass

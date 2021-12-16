@@ -25,12 +25,11 @@ class ExperimentPipeline():
     When the system requires an action at each timestep, an `action_policy` must be provided.
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
-    def __init__(self, experiment_id, seed, checkpoint_id, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
+    def __init__(self, experiment_id, seed, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
                  save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[],
                   on_save_callbacks=[], on_error_callbacks=[], logger=None):
         self.experiment_id = experiment_id
         self.seed = seed
-        self.checkpoint_id = checkpoint_id
         self.save_frequency = save_frequency
 
         self.db = DB()
@@ -114,13 +113,10 @@ class ExperimentPipeline():
 
         BaseAutoDiscModule.logger = logger
         BaseAutoDiscModule.logger.experiment_id = experiment_id
-        BaseAutoDiscModule.logger.checkpoint_id = checkpoint_id
         BaseAutoDiscModule.logger.seed = seed
-        logger.debug()
 
         BaseCallback.logger = logger
         BaseCallback.logger.experiment_id = experiment_id
-        BaseCallback.logger.checkpoint_id = checkpoint_id
         BaseCallback.logger.seed = seed
 
     def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
@@ -164,16 +160,11 @@ class ExperimentPipeline():
     #         self._process_run_parameters(run_parameters, document.doc_id, starting_index=run_parameters_idx, is_input_new_discovery=False)
 
     def _raise_callbacks(self, callbacks, **kwargs):
-        callbacks_res = {}
         for callback in callbacks:
-            callback_res = callback(
-                                    pipeline=self,
-                                    **kwargs
-                                    )
-            if callback_res != None:
-                callbacks_res.update(callback_res)
-        return callbacks_res
-
+            callback(
+                pipeline=self,
+                **kwargs
+                )
     def run(self, n_exploration_runs):
         '''
         Launches the experiment for `n_exploration_runs` explorations.
@@ -223,10 +214,9 @@ class ExperimentPipeline():
                     output=output,
                     rendered_output=rendered_output,
                     step_observations=step_observations,
-                    experiment_id=self.experiment_id,
-                    checkpoint_id = self.checkpoint_id
+                    experiment_id=self.experiment_id
                 )
-                BaseAutoDiscModule.logger.info("New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
+                BaseAutoDiscModule.logger.info("[DISCOVERY] - New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
                 self._explorer.optimize() # TODO callbacks
 
                 if (run_idx+1) % self.save_frequency == 0:
@@ -235,51 +225,43 @@ class ExperimentPipeline():
                         run_idx=run_idx,
                         seed=self.seed,
                         experiment_id=self.experiment_id,
-                        checkpoint_id = self.checkpoint_id,
                         system=self._system,
                         explorer=self._explorer,
                         input_wrappers=self._input_wrappers,
                         output_representations=self._output_representations,
                         in_memory_db=self.db
                     )
-                    callbacks_res = self._raise_callbacks(
+                    self._raise_callbacks(
                         self._on_save_finished_callbacks,# TODO
                         run_idx=run_idx,
                         seed=self.seed,
-                        experiment_id=self.experiment_id,
-                        checkpoint_id = self.checkpoint_id
+                        experiment_id=self.experiment_id
                     )
-                    BaseAutoDiscModule.logger.info("Experiment {} with seed {} and checkpoint_id {} saved".format(self.experiment_id, self.seed, self.checkpoint_id))
-                    if("checkpoint_id" in callbacks_res):
-                        self.checkpoint_id = callbacks_res["checkpoint_id"]
-                    BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id
-                    BaseCallback.logger.checkpoint_id = self.checkpoint_id
+                    BaseAutoDiscModule.logger.info("[SAVED] - experiment {} with seed {} saved".format(self.experiment_id, self.seed))
 
                 run_idx += 1
                 BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
                 
         except Exception as ex:
-            message = "error exp_{}_check_{}_run_{}_seed_{} = {}".format(self.experiment_id, self.checkpoint_id, run_idx, self.seed, traceback.format_exc())
+            message = "error in experiment {} run_idx {} seed {} = {}".format(self.experiment_id, run_idx, self.seed, traceback.format_exc())
             if len(message) > 8000: # Cut message to match varchar length of AppDB
                 message = message[:7997] + '...'
-            BaseAutoDiscModule.logger.error(message)
+            BaseAutoDiscModule.logger.error("[ERROR] - " + message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=run_idx,
                 seed=self.seed,
-                experiment_id=self.experiment_id,
-                checkpoint_id = self.checkpoint_id,
+                experiment_id=self.experiment_id
             )
             self.db.close()
             raise
 
         self._system.close()
+        BaseAutoDiscModule.logger.info("[FINISHED] - experiment {} with seed {} finished".format(self.experiment_id, self.seed))
         self._raise_callbacks(
             self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,
             run_idx=run_idx,
             seed=self.seed,
-            experiment_id=self.experiment_id,
-            checkpoint_id = self.checkpoint_id
+            experiment_id=self.experiment_id
         )
-        BaseAutoDiscModule.logger.info("Experiment {} with seed {} finished".format(self.experiment_id, self.seed))
         self.db.close()

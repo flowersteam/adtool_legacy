@@ -12,4 +12,5 @@ export interface ExperimentSettings {
     input_wrappers: Config[];
     output_representations: Config[];
     callbacks: string[];
+    logger_handlers: any[];
   }

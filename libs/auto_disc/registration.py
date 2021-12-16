@@ -30,8 +30,7 @@ REGISTRATION = {
     'callbacks': {
         'on_discovery':{
             'base': on_discovery_callbacks.BaseOnDiscoveryCallback,
-            'disk': on_discovery_callbacks.OnDiscoverySaveCallbackOnDisk,
-            'expeDB': on_discovery_callbacks.OnDiscoveryExpeDBSaveCallback
+            'disk': on_discovery_callbacks.OnDiscoverySaveCallbackOnDisk
         },
         'on_cancelled':{
             'base': on_cancelled_callbacks.BaseOnCancelledCallback
@@ -44,15 +43,13 @@ REGISTRATION = {
         },
         'on_saved':{
             'base': on_save_callbacks.BaseOnSaveCallback,
-            'expeDB': on_save_callbacks.OnSaveExpeDBModulesCallback,
             'disk': on_save_callbacks.OnSaveModulesOnDiskCallback
         },
         'on_save_finished':{
             'base': on_save_finished_callbacks.BaseOnSaveFinishedCallback
         },
     },
-    'logger':{
-        'logFile': SetFileHandler,
-        'appDB': SetDBHandler
+    'logger_handlers':{
+        'logFile': SetFileHandler
     }
 }
