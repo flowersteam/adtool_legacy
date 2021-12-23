@@ -15,6 +15,7 @@ class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
         param:  to_save_outputs: string list, key of "SAVABLE_OUTPUTS" (parent's attribute) to select the outpouts who we want to save
         """
         super().__init__(to_save_outputs)
+        self.to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
         self.base_url = base_url
 
     def _serialize_autodisc_space(self, space):
@@ -42,7 +43,7 @@ class OnDiscoveryExpeDBSaveCallback(BaseOnDiscoveryCallback):
     def __call__(self, **kwargs):
         """
         brief:      callback saves the discoveries outputs we want to save on database.
-        comment:    always saved : run_idx(json), checkpoint_id(json)
+        comment:    always saved : run_idx(json), experiment_id(json)
                     saved if key in self.to_save_outputs: raw_run_parameters(json)
                                                         run_parameters,(json)
                                                         raw_output(file),

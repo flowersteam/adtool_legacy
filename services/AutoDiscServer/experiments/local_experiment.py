@@ -1,7 +1,8 @@
 from AutoDiscServer.experiments import BaseExperiment
 from auto_disc.run import create, start as start_pipeline
 import threading
-from copy import copy
+from copy import deepcopy
+import logging
 
 class LocalExperiment(BaseExperiment):
     def __init__(self, *args, **kwargs):
@@ -9,11 +10,19 @@ class LocalExperiment(BaseExperiment):
 
         self.threading_lock = threading.Lock()
         
+        # callback
         self.experiment_config['callbacks']['on_discovery'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_discovery'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
 
         self.experiment_config['callbacks']['on_saved'][0]['name'] = 'expeDB'
         self.experiment_config['callbacks']['on_saved'][0]['config']['base_url'] = 'http://127.0.0.1:5001'
+
+        # logger
+        self.experiment_config['logger']['name'] = 'appDB'
+        self.experiment_config['logger']['config']['base_url'] = 'http://127.0.0.1:3000'
+
+        # self.experiment_config['logger']['name'] = 'logFile'
+        # self.experiment_config['logger']['config']['folder_log_path'] = '/home/mperie/project/test/savefile/'
 
         additional_callbacks = {
             "on_discovery": [self.on_progress],
@@ -26,9 +35,13 @@ class LocalExperiment(BaseExperiment):
 
         self._pipelines = []
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
-            config = copy(self.experiment_config)
-            config['experiment']["seed"] = i
-            self._pipelines.append(create(config, additional_callbacks))
+            config = deepcopy(self.experiment_config)
+            del config['experiment']['config']
+            del config['experiment']['name']
+            seed = i
+            experiment_id = config['experiment']['id']
+            del config['experiment']['id']
+            self._pipelines.append(create(config, experiment_id, seed, additional_callbacks))
 
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(self.id, self.experiment_config['experiment']['config']['nb_seeds']))
@@ -55,7 +68,7 @@ class LocalExperiment(BaseExperiment):
 
     def on_error(self, **kwargs):
         self.threading_lock.acquire()
-        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"], kwargs["message"])
+        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"])
         self.threading_lock.release()
         return res
 

@@ -1,0 +1,10 @@
+name: 
+  curta
+ssh_configuration: 
+  curta
+work_path:
+  /home/cromac/experiments/
+execution:
+  sbatch curta.slurm $NB_SEEDS $ARGS | egrep "[0-9]*" -o
+cancellation:
+  scancel $RUN_ID

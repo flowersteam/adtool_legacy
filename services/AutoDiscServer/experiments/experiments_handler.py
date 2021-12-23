@@ -1,5 +1,6 @@
+import traceback
 from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
-from AutoDiscServer.experiments import LocalExperiment
+from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
 from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
 import datetime
 import traceback
@@ -23,7 +24,7 @@ class ExperimentsHandler():
 #region main functions
     def add_experiment(self, parameters):
         try:
-            #Add experiment in DB and obtain the id
+            # Add experiment in DB and obtain the id
             exp_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M %Z")
             response = self._app_db_caller("/experiments", AppDBMethods.POST, {
                                         "name": parameters['experiment']['name'],
@@ -41,12 +42,23 @@ class ExperimentsHandler():
             id = int(id[1])
 
             # Create experiment
-            experiment = LocalExperiment(id, parameters, 
-                                         self.on_progress_callback,
-                                         self.on_checkpoint_needed_callback,
-                                         self.on_checkpoint_finished_callback,
-                                         self.on_checkpoint_update_callback,
-                                         self.on_experiment_update_callback)
+            #TODO: Remove first condition
+            if "host" not in parameters["experiment"] or parameters["experiment"]["host"] == "local":
+                experiment = LocalExperiment(id, parameters, 
+                                            self.on_progress_callback,
+                                            self.on_checkpoint_needed_callback,
+                                            self.on_checkpoint_finished_callback,
+                                            self.on_checkpoint_update_callback,
+                                            self.on_experiment_update_callback)
+            else:
+                experiment = RemoteExperiment(parameters["experiment"]["host"], 
+                                            id, parameters, 
+                                            self.on_progress_callback,
+                                            self.on_checkpoint_needed_callback,
+                                            self.on_checkpoint_finished_callback,
+                                            self.on_checkpoint_update_callback,
+                                            self.on_experiment_update_callback)
+
 
             # Start the experiment
             experiment.start()
@@ -81,8 +93,7 @@ class ExperimentsHandler():
 
             return id
         except Exception as err:
-            message = "Error when creating experiment:" + str(err)
-            print(traceback.format_exc())
+            message = "Error when creating experiment: {}".format(traceback.format_exc())
             raise Exception(message)
 
     def remove_experiment(self, id):
@@ -118,8 +129,7 @@ class ExperimentsHandler():
                             {
                                 "experiment_id": experiment_id,
                                 "parent_id": previous_checkpoint_id,
-                                "status": int(CheckpointsStatusEnum.RUNNING),
-                                "error_message": ""
+                                "status": int(CheckpointsStatusEnum.RUNNING)
                             })
         id = response.headers["Location"].split(".")[1]
         return int(id)
@@ -129,23 +139,11 @@ class ExperimentsHandler():
                             AppDBMethods.PATCH, 
                             {"status": int(CheckpointsStatusEnum.DONE)})
     
-    def on_checkpoint_update_callback(self, seed, checkpoint_id, message, error):
-        r = self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
-            AppDBMethods.GET, {})
-        error_msg = r.json()[0]["error_message"]
-        error_msg = error_msg +"\n" + message
-        if len(error_msg) > 8000: # Cut message to match varchar length of AppDB
-            error_msg = error_msg[:7997] + '...'
-
+    def on_checkpoint_update_callback(self, checkpoint_id, error):
         if error:
             self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
                                 AppDBMethods.PATCH, 
-                                {"error_message": error_msg,
-                                "status":int(CheckpointsStatusEnum.ERROR)})
-        else:
-            self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id), 
-                                AppDBMethods.PATCH, 
-                                {"error_message": error_msg})
+                                {"status":int(CheckpointsStatusEnum.ERROR)})
     
     def on_experiment_update_callback(self, experiement_id, param_to_update):
         """update experiment in db
@@ -162,7 +160,7 @@ class ExperimentsHandler():
             response = self._app_db_caller("/experiments?id=eq.{}".format(experiement_id), AppDBMethods.PATCH, param_to_update)
             return response
         except Exception as err:
-            message = "Error when update experiment:" + str(err)
+            message = "Error when update experiment: {}".format(traceback.format_exc())
             raise Exception(message)
         
 

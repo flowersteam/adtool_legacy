@@ -12,7 +12,6 @@ class BaseOnDiscoveryCallback(BaseCallback):
 
     def __init__(self, to_save_outputs):
         self.to_save_outputs = [v for k, v in self.SAVABLE_OUTPUTS.items() if k in to_save_outputs]
-        self.to_save_outputs.extend(["run_idx", "checkpoint_id", "seed"])
 
 
     def __call__(self, experiment_id, seed, **kwargs):

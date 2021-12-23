@@ -68,6 +68,11 @@ class BaseExperiment():
             ],
         }
 
+        self.experiment_config['logger'] = {
+            'name' : 'base',
+            'config': {}
+        }
+
     
     def start():
         raise NotImplementedError()
@@ -88,10 +93,7 @@ class BaseExperiment():
         # AND 
         # if we need to make a new backup afterwards then we create a new checkpoint
         if ((len(self.checkpoints_history[current_checkpoint_id]["seeds_status"]) == 0 
-            or all(value == int(SeedStatusEnum.ERROR) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()))
-            and 
-            self.progresses[seed] <= self.experiment_config['experiment']['config']["nb_iterations"] 
-                                    - self.experiment_config['experiment']['save_frequency']):   
+            or all(value == int(SeedStatusEnum.ERROR) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()))):   
                 checkpoint_id = self._on_checkpoint_needed_callback(self.id, current_checkpoint_id)
                 self.checkpoints_history[checkpoint_id] = {
                     "seeds_status": {},
@@ -114,7 +116,7 @@ class BaseExperiment():
 
         return checkpoint_id
 
-    def on_error(self, seed, current_checkpoint_id, message):
+    def on_error(self, seed, current_checkpoint_id):
         del self.progresses[seed]
         
         # Update list of seeds for precedent checkpoint
@@ -122,7 +124,7 @@ class BaseExperiment():
 
         error = len(self.progresses) == 0
         # Put precedent checkpoint to error
-        self._on_checkpoint_update_callback(seed, current_checkpoint_id, message, error)
+        self._on_checkpoint_update_callback(current_checkpoint_id, error)
         if error:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
 

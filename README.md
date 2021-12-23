@@ -21,6 +21,8 @@ Please follow these instructions when contributing on the project.
 1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
 2. Enter the front-end app folder: `cd services/FrontEndApp`.
 3. Install required packages: `npm install`
+#### Jupyter Lab
+1. Install jupyter: `pip install JupyterLab/requirements.txt`
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
@@ -42,4 +44,7 @@ Add `-d` option for daemon.
 Launch flask server for the REST API: `python ExpeDB/app.py`
 #### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
-Start the angular app: `ng serve`.
+Start the angular app: `ng serve`. 
+##### Jupyter Lab
+Enter Jupyter Lab's folder: `cd ../JupyterLab`
+Start the jupyter lab on port 8888: `jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`

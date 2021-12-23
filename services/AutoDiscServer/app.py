@@ -8,7 +8,7 @@ sys.path.append(os.path.join(dir_path, "../../libs/"))
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from AutoDiscServer.experiments import ExperimentsHandler
-from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks
+from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles
 
 from auto_disc import REGISTRATION
 
@@ -91,6 +91,16 @@ def list_callbacks():
     info = get_auto_disc_registered_callbacks(REGISTRATION['callbacks'])
     return make_response(
         jsonify(info), 
+    200)
+
+# Hosts on which experiments can be run
+@app.route('/hosts', methods=['GET'])
+def list_hosts():
+    profiles = ['local']
+    remote_profiles = [profile[0] for profile in list_profiles()]
+    profiles.extend(remote_profiles)
+    return make_response(
+        jsonify(profiles), 
     200)
 
 if __name__ == '__main__':
