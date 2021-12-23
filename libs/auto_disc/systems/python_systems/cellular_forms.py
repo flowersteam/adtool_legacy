@@ -25,8 +25,10 @@ import io
 Utils
 ============================================================================================= """
 
-GEN_PATH = Path('~/Documents/workspace/work/AutoDiscTool/experiment_results/gens')
-EXEC_PATH = Path('~/Documents/workspace/work/AutoDiscTool/bin/cellularForms14_flowers_1.0')
+GEN_PATH = Path('/home/laetitia/Documents/workspace/work/AutomatedDiscoveryTool/experiment_results/gens')
+EXEC_PATH = Path('bin/cellularForms14_flowers_1.0')
+CWD = Path('home/laetitia/Documents/workspace/work/AutomatedDiscoveryTool')
+# EXEC_PATH = 'echo'
 
 class LogBoxSpace(BoxSpace):
 
@@ -49,12 +51,26 @@ def four_digit_str(n):
 
 # TODO adapt gaussian mutator
 
+def read_image(idx, timeout):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        # try to get the image file until timeout
+        imgpath = GEN_PATH / f'form_ambocc.{four_digit_str(idx)}.png'
+        try:
+            img = Image.open(str(imgpath)).convert('L')
+            img = torch.tensor(np.array(img))
+            return img
+        except FileNotFoundError:
+            time.sleep(0.5)
+    return None
+
+
 """ =============================================================================================
 System definition
 ============================================================================================= """
 @StringConfigParameter(name="version", default="14_flowers_1.0", possible_values=["14_flowers_1.0"])
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
-@IntegerConfigParameter(name="num_particles", default=200000)
+@IntegerConfigParameter(name="num_particles", default=2000)
 @IntegerConfigParameter(name="resolution", default=1024)
 @IntegerConfigParameter(name="frame_step", default=10)
 @IntegerConfigParameter(name="step_timeout", default=10)
@@ -93,6 +109,9 @@ class CellularForm(BasePythonSystem):
 
     def reset(self, run_parameters):
 
+        if not GEN_PATH.exists():
+            GEN_PATH.mkdir(parents=True)
+
         param_list = [str(v.item()) for v in list(run_parameters.values())]
         additional_params = [
             str(self.config.num_particles),
@@ -100,16 +119,29 @@ class CellularForm(BasePythonSystem):
             str(self.config.frame_step),
             str(GEN_PATH / 'form'),
         ]
-        bash_command = ' '.join([str(EXEC_PATH)] + param_list + additional_params)
+        bash_command = ' '.join([str(EXEC_PATH)] + param_list + additional_params).split()
 
-        cwd = Path(__file__).absolute().parent
-        process = subprocess.Popen(bash_command, stdout=subprocess.PIPE, cwd=str(cwd))
-        # output, error = process.communicate()
+        # TODO terminate the process if it takes too much time
+        process = subprocess.Popen(bash_command, stdout=subprocess.PIPE)
+        output, error = process.communicate()
 
-        return torch.zeros(
-            ConfigParameterBinding("resolution"),
-            ConfigParameterBinding("resolution")
+        self.step_idx = 0
+        self._observations = Dict()
+        self._observations.states = torch.empty(self.config.final_step,
+                                                self.config.resolution,
+                                                self.config.resolution)
+
+        output = torch.zeros(
+            self.config.resolution,
+            self.config.resolution,
         )
+        img = read_image(self.step_idx, self.config.step_timeout)
+        if img is not None:
+            output = img
+
+        self._observations.states[0] = output
+
+        return output
 
     def step(self, action=None):
 
@@ -118,27 +150,36 @@ class CellularForm(BasePythonSystem):
 
         self.step_idx += 1
 
-        timeout = ConfigParameterBinding('step_timeout')
-        t0 = time.time()
-        output = None
+        timeout = self.config.step_timeout
+        output = torch.zeros(
+            self.config.resolution,
+            self.config.resolution,
+        )
 
-        while time.time() - t0 < timeout:
-            # try to get the image file until timeout
-            imgpath = GEN_PATH / f'form_ambocc.{four_digit_str(self.step_idx)}.png'
-            try:
-                img = Image.open(str(imgpath))
-                output = torch.tensor(np.array(img))
-                break
-            except FileNotFoundError:
-                time.sleep(0.5)
+        img = read_image(self.step_idx, timeout)
+        if img is not None:
+            output = img
 
         current_observation = Dict()
         current_observation.state = output
 
-        return current_observation
+        self._observations.states[self.step_idx] = current_observation.state
+
+        return current_observation, 0, self.step_idx >= self.config.final_step - 1, None
 
     def observe(self):
         return self._observations
+
+    def render(self):
+        im_array = []
+        for img in self._observations.states:
+            im_array.append(Image.fromarray(img.cpu().detach().numpy()))
+
+        byte_img = io.BytesIO()
+        # TODO gif from np.array
+        im_array[0].save(byte_img, format='GIF', save_all=True, append_images=im_array[1:], duration=100, loop=0)
+        # return (Image.fromarray(im_array[0]), 'png')
+        return (byte_img, 'gif')
 
     def close(self):
         pass

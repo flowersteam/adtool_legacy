@@ -40,7 +40,7 @@ if __name__ == "__main__":
         checkpoint_id=0,
         seed=42,
         system=CellularForm(
-            final_step=200,
+            final_step=5,
         ),
         explorer=IMGEPExplorer(),
         input_wrappers=[DummyInputWrapper()], # Starting from the explorer !
