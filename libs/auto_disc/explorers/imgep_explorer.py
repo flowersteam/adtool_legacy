@@ -1,17 +1,20 @@
 from addict import Dict
 from auto_disc.explorers import BaseExplorer
 
-from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter, BooleanConfigParameter
+from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter
 
 import random
 import torch
 
-from copy import deepcopy
-
+#TODO: template for dict configs *_parameters
+@StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function"], default="random") #TODO: function
+@DictConfigParameter(name="goal_selection_parameters", default={})
+# TODO: source_policy_selection and policy_optimization might be different for each parameter key
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
-@StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function", None], default="random")
+@DictConfigParameter(name="source_policy_selection_parameters", default={})
+@StringConfigParameter(name="policy_optimization_type", possible_values=["random", None], default="random") #TODO: goal-conditionned optimizer like sgd, ea, etc
+@DictConfigParameter(name="policy_optimization_parameters", default={})
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
-@BooleanConfigParameter(name="use_exandable_goal_space", default=True)
 
 class IMGEPExplorer(BaseExplorer):
     """
@@ -29,20 +32,16 @@ class IMGEPExplorer(BaseExplorer):
             raise NotImplementedError("Only 1 vector can be accepted as input space")
         self._outter_input_space_key = list(self._input_space.spaces.keys())[0] # select first key in DictSpace
 
-    # def expand_box_goal_space(self, space, observations):
-    #     observations = observations.type(space.dtype)
-    #     is_nan_mask = torch.isnan(observations)
-    #     if is_nan_mask.sum() > 0:
-    #         observations[is_nan_mask] = space.low[is_nan_mask]
-    #         observations[is_nan_mask] = space.high[is_nan_mask]
-    #     space.low = torch.min(space.low, observations)
-    #     space.high = torch.max(space.high, observations)
 
     def _get_next_goal(self):
         """ Defines the next goal of the exploration. """
 
         if self.config.goal_selection_type == 'random':
             target_goal = self._input_space.sample()
+
+        elif self.config.goal_selection_type == 'specific':
+            target_goal = self.config.goal_selection_parameters.target_goal
+
         else:
             raise ValueError(
                 'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection_type))
@@ -64,23 +63,32 @@ class IMGEPExplorer(BaseExplorer):
         elif self.config.source_policy_selection_type == 'random':
             source_policy_idx = random.randint(0, len(goal_library)-1)
 
+
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
                 self.config.source_policy_selection_type))
 
         return source_policy_idx
 
+    def _optimize_policy(self, target_goal, source_policy):
+        if self.config.policy_optimization_type == 'random':
+            policy_parameters = self._output_space.mutate(source_policy)
+
+        elif self.config.policy_optimization_type == None:
+            policy_parameters = source_policy
+
+        else:
+            raise ValueError(
+                'Unknown policy optimization type {!r} in the configuration!'.format(self.config.policy_optimization))
+
+        return policy_parameters
+
+
     def emit(self):
-        target_goal = None
-        source_policy_idx = None
-        policy_parameters = Dict()  # policy parameters (output of IMGEP policy)
 
         # random sampling if not enough in library
         if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
-            # initialize the parameters
             policy_parameters = self._output_space.sample()
-            # for parameter_key, parameter_space in self._output_space.items():
-            #     policy_parameters[parameter_key] = sample_value(parameter_space)
 
         else:
             # sample a goal space from the goal space
@@ -91,22 +99,12 @@ class IMGEPExplorer(BaseExplorer):
             source_policy_idx = self._get_source_policy_idx(target_goal)
             source_policy = history[int(source_policy_idx)]['output']
 
-            policy_parameters = self._output_space.mutate(source_policy)
+            policy_parameters = self._optimize_policy(target_goal, source_policy)
 
-        # TODO: Target goal
-        # run with parameters
-        run_parameters = deepcopy(policy_parameters) #self._convert_policy_to_run_parameters(policy_parameters)
-
-        return run_parameters
+        return policy_parameters
 
 
     def archive(self, parameters, observations):
-        pass
-        #if self.config.use_exandable_goal_space:
-            #self._input_space[self._outter_input_space_key].expand(observations[self._outter_input_space_key])
-            #self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
-
-    def optimize(self):
         pass
 
     def save(self):
