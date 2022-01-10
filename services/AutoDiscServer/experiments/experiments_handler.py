@@ -1,5 +1,6 @@
+import traceback
 from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
-from AutoDiscServer.experiments import LocalExperiment
+from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
 from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
 import datetime
 import traceback
@@ -23,7 +24,7 @@ class ExperimentsHandler():
 #region main functions
     def add_experiment(self, parameters):
         try:
-            #Add experiment in DB and obtain the id
+            # Add experiment in DB and obtain the id
             exp_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M %Z")
             response = self._app_db_caller("/experiments", AppDBMethods.POST, {
                                         "name": parameters['experiment']['name'],
@@ -39,12 +40,23 @@ class ExperimentsHandler():
             id = int(id[1])
 
             # Create experiment
-            experiment = LocalExperiment(id, parameters, 
-                                         self.on_progress_callback,
-                                         self.on_checkpoint_needed_callback,
-                                         self.on_checkpoint_finished_callback,
-                                         self.on_checkpoint_update_callback,
-                                         self.on_experiment_update_callback)
+            #TODO: Remove first condition
+            if "host" not in parameters["experiment"] or parameters["experiment"]["host"] == "local":
+                experiment = LocalExperiment(id, parameters, 
+                                            self.on_progress_callback,
+                                            self.on_checkpoint_needed_callback,
+                                            self.on_checkpoint_finished_callback,
+                                            self.on_checkpoint_update_callback,
+                                            self.on_experiment_update_callback)
+            else:
+                experiment = RemoteExperiment(parameters["experiment"]["host"], 
+                                            id, parameters, 
+                                            self.on_progress_callback,
+                                            self.on_checkpoint_needed_callback,
+                                            self.on_checkpoint_finished_callback,
+                                            self.on_checkpoint_update_callback,
+                                            self.on_experiment_update_callback)
+
 
             # Start the experiment
             experiment.start()

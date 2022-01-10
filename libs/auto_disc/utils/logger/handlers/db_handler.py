@@ -5,7 +5,7 @@ import re
 
 class SetDBHandler(StreamHandler):
     
-    def __init__(self, formatter, base_url):
+    def __init__(self, base_url, experiment_id):
         StreamHandler.__init__(self)
         self.log_levels_id ={
             'NOTSET' : 1,
@@ -15,9 +15,10 @@ class SetDBHandler(StreamHandler):
             'ERROR' : 5,
             'CRITICAL' : 6
         }
+        self.experiment_id = experiment_id
         self.base_url = base_url # http://127.0.0.1:3000
         self.setLevel(logging.NOTSET)
-        self.setFormatter(formatter)
+        self.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
 
 
     def emit(self, record):
@@ -27,7 +28,7 @@ class SetDBHandler(StreamHandler):
             levelname = self.log_levels_id[record.levelname]
         requests.post(self.base_url+"/logs", 
                                     json={
-                                            "experiment_id":record.args["experiment_id"],
+                                            "experiment_id":self.experiment_id,
                                             "checkpoint_id":record.args["checkpoint_id"],
                                             "seed":record.args["seed"],
                                             "log_level_id":levelname,

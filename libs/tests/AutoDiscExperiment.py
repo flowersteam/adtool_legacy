@@ -12,17 +12,17 @@ from auto_disc.input_wrappers.specific import SimcellsMatnucleusInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
 from auto_disc import ExperimentPipeline
-from auto_disc import REGISTRATION
-from auto_disc.utils.logger import AutoDiscLogg
-import logging
 
 from auto_disc.utils.callbacks import CustomPrintCallback
 from auto_disc.utils.callbacks.on_discovery_callbacks import OnDiscoverySaveCallbackOnDisk
 from auto_disc.utils.callbacks.on_save_callbacks import OnSaveModulesOnDiskCallback
+from auto_disc.utils.logger import AutoDiscLogg
+from auto_disc.utils.logger.handlers import SetFileHandler
 
 from auto_disc.run import _set_seed
 
 if __name__ == "__main__":
+    experiment_id = 1
     seed = 42
     _set_seed(seed)
     representation_type = "VAE"
@@ -116,15 +116,8 @@ if __name__ == "__main__":
                                                expand_output_space=True,
                                                )
 
-    # Get logger
-    logger_key = 'logFile'
-    logger_class = REGISTRATION['logger'][logger_key]
-    logger = logger_class(file_log_path="file.log", formatter=logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-
-    logger = AutoDiscLogg(0, seed, 0, logger)
-
     experiment = ExperimentPipeline(
-        experiment_id=0,
+        experiment_id=experiment_id,
         checkpoint_id=0,
         seed=seed,
         save_frequency=20,
@@ -146,8 +139,8 @@ if __name__ == "__main__":
                                                                     #"Representation of system output",
                                                                     "Rendered system output"
                                                                 ])],
-        on_save_callbacks=[OnSaveModulesOnDiskCallback("./checkpoints/")],
-        logger=logger
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("/home/mperie/project/test/test_runpy/mes_modules_perso/")],
+        logger=AutoDiscLogg(experiment_id, seed, SetFileHandler("/home/mperie/project/test/test_runpy/", experiment_id))
     )
 
     if load_checkpoint:

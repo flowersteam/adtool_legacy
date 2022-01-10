@@ -97,7 +97,8 @@ class ExperimentPipeline():
         self._explorer.set_call_output_history_update_fn(self._update_outputs_history)
         # self._explorer.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
         self._explorer.initialize(input_space=self._output_representations[-1].output_space,
-                                  output_space=self._input_wrappers[0].input_space)
+                                  output_space=self._input_wrappers[0].input_space, 
+                                  input_distance_fn=self._output_representations[-1].calc_distance)
         self._explorer.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
                                                                             ['idx', 'output', 'raw_run_parameters'], 
                                                                             ['idx', 'input', 'output']))
@@ -115,6 +116,7 @@ class ExperimentPipeline():
         BaseAutoDiscModule.logger.experiment_id = experiment_id
         BaseAutoDiscModule.logger.checkpoint_id = checkpoint_id
         BaseAutoDiscModule.logger.seed = seed
+        logger.debug()
 
         BaseCallback.logger = logger
         BaseCallback.logger.experiment_id = experiment_id
@@ -248,8 +250,7 @@ class ExperimentPipeline():
                         checkpoint_id = self.checkpoint_id
                     )
                     BaseAutoDiscModule.logger.info("Experiment {} with seed {} and checkpoint_id {} saved".format(self.experiment_id, self.seed, self.checkpoint_id))
-                    # quick fix
-                    if 'checkpoint_id' in callbacks_res:
+                    if("checkpoint_id" in callbacks_res):
                         self.checkpoint_id = callbacks_res["checkpoint_id"]
                     BaseAutoDiscModule.logger.checkpoint_id = self.checkpoint_id
                     BaseCallback.logger.checkpoint_id = self.checkpoint_id
