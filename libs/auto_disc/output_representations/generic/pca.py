@@ -26,6 +26,7 @@ class PCA(BaseOutputRepresentation):
 
         self.algorithm = make_pipeline(StandardScaler(),
                                        decomposition.PCA(n_components=self.config.n_components))
+        # quick fix
         self.output_space[f"pca_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("pca")
 
     def map(self, observations, is_output_new_discovery, **kwargs):

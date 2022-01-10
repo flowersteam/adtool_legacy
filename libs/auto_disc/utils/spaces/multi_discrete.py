@@ -19,26 +19,28 @@ class MultiDiscreteSpace(BaseSpace):
         """
         nvec: vector of counts of each categorical variable
         """
-        self._nvec = nvec
-        self._indpb = indpb
+        self.nvec = nvec
+        self.indpb = indpb
 
         super(MultiDiscreteSpace, self).__init__(nvec, torch.int64, mutator)
 
     def initialize(self, parent_obj):
         # Apply potential binding
+        self.nvec = self.apply_binding_if_existing(self.nvec, parent_obj)
+        self.nvec = torch.as_tensor(self.nvec, dtype=torch.int64)
+        self.shape = self.nvec.shape
+        assert (self.nvec > 0).all(), 'nvec (counts) have to be positive'
+
         super().initialize(parent_obj)
-        self._nvec = self.apply_binding_if_existing(self._nvec, parent_obj)
-        self.shape = self._nvec
-        assert (torch.tensor(self._nvec) > 0).all(), 'nvec (counts) have to be positive'
-        self.nvec = torch.as_tensor(self._nvec, dtype=torch.int64)
+
 
         # indpb – independent probability for each attribute to be mutated.
-        if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(self.nvec.shape, self._indpb, dtype=torch.float64)
-        self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
+        if isinstance(self.indpb, numbers.Number):
+            self.indpb = torch.full(self.nvec.shape, self.indpb, dtype=torch.float64)
+        self.indpb = torch.as_tensor(self.indpb, dtype=torch.float64)
 
     def sample(self):
-        return (torch.rand(self.nvec.shape) * self.nvec).type(self.dtype)
+        return (torch.rand(self.shape) * self.nvec).type(self.dtype)
 
     def mutate(self, x):
         if self.mutator:

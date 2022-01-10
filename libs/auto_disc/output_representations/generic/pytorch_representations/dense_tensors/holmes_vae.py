@@ -3,7 +3,7 @@ from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.trunks.encoders import get_encoder, ConnectedEncoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.heads.decoders import get_decoder, ConnectedDecoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.vae import VAELoss
-from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter
+from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter, DictConfigParameter
 from auto_disc.utils.misc.dict_utils import map_nested_dicts
 from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper, get_weights_init
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
@@ -414,7 +414,6 @@ HOLMES CLASS
 ========================================================================================="""
 #@StringConfigParameter(name="input_tensors_layout", default="dense", possible_values=["dense", "minkowski", ])
 @StringConfigParameter(name="input_tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
-#TODO: Add device as part of spaces (?)
 
 @StringConfigParameter(name="encoder_name", default="Burgess", possible_values=["Burgess", "Dumoulin", ])
 @IntegerConfigParameter(name="encoder_n_latents", default=10, min=1)
@@ -422,29 +421,33 @@ HOLMES CLASS
 @IntegerConfigParameter(name="encoder_feature_layer", default=1, min=1)
 @IntegerConfigParameter(name="encoder_hidden_channels", default=32, min=1)
 @IntegerConfigParameter(name="encoder_hidden_dims", default=256, min=1)
-@StringConfigParameter(name="encoder_conditional_type", default="gaussian", possible_values=["gaussian", "deterministic", ])
+@StringConfigParameter(name="encoder_conditional_type", default="gaussian",
+                       possible_values=["gaussian", "deterministic", ])
 @BooleanConfigParameter(name="encoder_use_attention", default=False)
+@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pretrained", "null", "identity", "uniform", "pytorch", "xavierUniform", "xavierNormal", "kaimingUniform", "kaimingNormal"])
+@DictConfigParameter(name="weights_init_parameters", default={})
+@StringConfigParameter(name="weights_init_checkpoint_filepath", default="")
+@StringConfigParameter(name="weights_init_checkpoint_keys", default="")
 
-@StringConfigParameter(name="weights_init_name", default="pytorch", possible_values=["pretrain","null", "identity", "uniform", "pytorch", "xavier_uniform", "xavier_normal", "kaiming_uniform", "kaiming_normal"])
-# TODO: DictConfigParameter for weights_init_parameters
-@StringConfigParameter(name="weights_init_checkpoint_filepath", default="", possible_values="all")
-@StringConfigParameter(name="weights_init_checkpoint_keys", default="", possible_values="all")
-
+@BooleanConfigParameter(name="use_loss", default=True)
 @StringConfigParameter(name="loss_name", default="VAE", possible_values=["VAE", "betaVAE", "annealedVAE", ])
-#TODO: DictConfigParameter for loss_parameters
+@DictConfigParameter(name="loss_parameters", default={})
 
-@StringConfigParameter(name="optimizer_name", default="Adam", possible_values=["Adam"])
-#TODO: DictConfigParameter for optimizer_parameters
+@BooleanConfigParameter(name="use_optimizer", default=True)
+@StringConfigParameter(name="optimizer_name", default="Adam")
+@DictConfigParameter(name="optimizer_parameters", default={})
 
-#TODO: proper save function with AutoDiscTool
+@BooleanConfigParameter(name="use_scheduler", default=True)
+@StringConfigParameter(name="scheduler_name", default="CosineAnnealingLR")
+@DictConfigParameter(name="scheduler_parameters", default={})
 
-#@BooleanConfigParameter(name="tensorboard_active", default=True)
-# TODO: replace tensorboard frequency with callbacks
-@StringConfigParameter(name="tb_folder", default="./tensorboard", possible_values="all")
+@BooleanConfigParameter(name="use_tensorboard", default=True)
+@StringConfigParameter(name="tb_folder", default="./tensorboard")
+@IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1)
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
-@IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1) #TODO: do something better for this
+@IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1)
 
 @BooleanConfigParameter(name="create_connections_lf", default=True)
 @BooleanConfigParameter(name="create_connections_gf", default=False)
@@ -452,9 +455,6 @@ HOLMES CLASS
 @BooleanConfigParameter(name="create_connections_lfi", default=True)
 @BooleanConfigParameter(name="create_connections_recon", default=True)
 
-
-#TODO: think of HOLMES output space form: specific sample() and calc_distance()
-#TODO: save model before/after split callbacks
 
 @BooleanConfigParameter(name="split_active", default=False)
 @StringConfigParameter(name="split_loss_key", default="recon", possible_values=["total", "recon"])
@@ -467,7 +467,7 @@ HOLMES CLASS
 @IntegerConfigParameter(name="n_max_splits", default=1)
 
 @StringConfigParameter(name="boundary_name", default="cluster.KMeans", possible_values=["cluster.KMeans","svm.SVC"])
-#TODO: DictConfigParameter for boundary_parameters
+@DictConfigParameter(name="boundary_parameters", default={})
 
 @IntegerConfigParameter(name="train_period", default=20, min=1)
 @IntegerConfigParameter(name="n_epochs_per_train_period", default=20, min=1)
@@ -475,10 +475,13 @@ HOLMES CLASS
 @IntegerConfigParameter(name="alternated_backward_period", default=10, min=1)
 @IntegerConfigParameter(name="alternated_backward_connections", default=1, min=1)
 
-
+@StringConfigParameter(name="train_dset_filter", default="lambda x: ((x-x.min())<1e-3).all().item()")
+@StringConfigParameter(name="train_dset_transform", default="None")
 @IntegerConfigParameter(name="dataloader_batch_size", default=10, min=1)
 @IntegerConfigParameter(name="dataloader_num_workers", default=0, min=0)
 @BooleanConfigParameter(name="dataloader_drop_last", default=True)
+@StringConfigParameter(name="dataloader_sampler", default="None")
+@StringConfigParameter(name="dataloader_collate_fn", default="None")
 
 @BooleanConfigParameter(name="expand_output_space", default=True)
 
@@ -499,24 +502,30 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
     def initialize(self, input_space):
         BaseOutputRepresentation.initialize(self, input_space)
+        # quick fix
+        self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("holmes_vae")
 
         # Model
         self.set_model()
 
         # Loss
-        self.set_loss()
+        if self.config.use_loss:
+            self.set_loss()
 
         # Optimizer
-        self.set_optimizer()
+        if self.config.use_optimizer:
+            self.set_optimizer()
 
         # Scheduler
-        self.set_scheduler()
+        if self.config.use_optimizer and self.config.use_scheduler:
+            self.set_scheduler()
 
         # Compute
         self.set_input_tensors_compatibility()
 
         # Tensorboard Logger
-        self.set_tensorboard()
+        if self.config.use_tensorboard:
+            self.set_tensorboard()
 
         # set counters
         self.n_epochs = 0
@@ -546,21 +555,17 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
         self.init_network_weights()
 
-
     def init_network_weights(self):
-        weights_init_function = get_weights_init(self.config.weights_init_name)
-        if self.config.weights_init_name == "pretrain":
-            #TODO
-            network_dict = weights_init_function(self.config.weights_init_checkpoint_filepath, self.config.weights_init_checkpoint_keys)
-            self.load_state_dict(network_dict)
-        else:
-            self.apply(weights_init_function)
-
-        return
+        """
+        Initialize the torch module weights based on self.config.weights_init_*
+        :return:
+        """
+        weights_init_function = get_weights_init(self.config.weights_init_name, self.config.weights_init_parameters)
+        self.apply(weights_init_function)
 
     def set_loss(self):
         """
-        Instantiates the torch loss module based on self.config.loss
+        Instantiates the torch loss module based on self.config.loss_*
         :return:
         """
         loss_cls = eval(f"{self.config.loss_name}Loss")
@@ -569,7 +574,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
     def set_optimizer(self):
         """
-        Instantiates the torch optimizer based on self.config.optimizer
+        Instantiates the torch optimizer based on self.config.optimizer_*
         :return:
         """
         trainable_parameters = [p for p in self.root.parameters() if p.requires_grad]
@@ -580,12 +585,10 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
     def set_scheduler(self):
         """
-        Instantiates the torch scheduler based on self.config.scheduler
+        Instantiates the torch scheduler based on self.config.scheduler_*
         :return:
         """
-        #TODO: option for no scheduler
-        return
-        scheduler_class = eval(f"torch.optim.{self.config.scheduler_name}")
+        scheduler_class = eval(f"torch.optim.lr_scheduler.{self.config.scheduler_name}")
         self.scheduler = scheduler_class(self.optimizer,
                                          **self.config.scheduler_parameters)
 
@@ -598,19 +601,16 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         self.type(self.input_space[self.wrapped_input_space_key].dtype)
 
     def set_tensorboard(self):
-        if self.config.tb_folder is not None:
-            if not os.path.exists(self.config.tb_folder):
-                os.makedirs(self.config.tb_folder)
-            self.logger = SummaryWriter(self.config.tb_folder)
-        else:
-            self.logger = None
+        if not os.path.exists(self.config.tb_folder):
+            os.makedirs(self.config.tb_folder)
+        self.logger = SummaryWriter(self.config.tb_folder)
 
         self.add_graph_to_tensorboard()
 
 
     def add_graph_to_tensorboard(self):
         # Save the graph in the logger
-        if self.logger is not None:
+        if self.config.use_tensorboard:
             dummy_input = torch.Tensor(size=self.input_space[self.wrapped_input_space_key].shape).uniform_(0, 1)\
                 .type(self.input_space[self.wrapped_input_space_key].dtype)\
                 .to(self.config.input_tensors_device)\
@@ -756,7 +756,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
             train_losses = self.train_epoch(train_loader)
             t1 = time.time()
 
-            if self.logger is not None and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
+            if self.config.use_tensorboard and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
                 for k, v in train_losses.items():
                     self.logger.add_scalars('loss/{}'.format(k), {'train': v}, self.n_epochs)
                 self.logger.add_text('time/train', 'Train Epoch {}: {:.3f} secs'.format(self.n_epochs, t1 - t0),
@@ -766,7 +766,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 t2 = time.time()
                 valid_losses = self.valid_epoch(valid_loader)
                 t3 = time.time()
-                if self.logger is not None and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
+                if self.config.use_tensorboard and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
                     for k, v in valid_losses.items():
                         self.logger.add_scalars('loss/{}'.format(k), {'valid': v}, self.n_epochs)
                     self.logger.add_text('time/valid', 'Valid Epoch {}: {:.3f} secs'.format(self.n_epochs, t3 - t2), self.n_epochs)
@@ -890,10 +890,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
             self.output_space.holmes_vae.spaces[f"{leaf_path}1"].initialize(self)
 
             # 4) Update history
-            self._call_output_history_update()
-
-            # 5) Expand new goal spaces
-            #TODO
+            self._call_output_history_update() #TODO: check that goal spaces are expanded
 
             # save split history
             self.split_history[leaf_path] = {"boundary": leaf_node.boundary, "epoch": self.n_epochs}
@@ -950,7 +947,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 taken_pathes += [Node.id_to_path(int(node_id.item())) for node_id in model_outputs["node_id"]]
 
         # Logger save results per leaf
-        if self.logger is not None:
+        if self.config.use_tensorboard:
             for leaf_path in list(set(taken_pathes)):
                 if len(leaf_path) > 1:
                     leaf_x_ids = np.where(np.array(taken_pathes, copy=False) == leaf_path)[0]
@@ -975,7 +972,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         # Prepare logging
         record_valid_images = False
         record_embeddings = False
-        if self.logger is not None:
+        if self.config.use_tensorboard:
             if self.n_epochs % self.config.tb_record_images_frequency == 0:
                 record_valid_images = True
                 images = torch.empty((0, ) + self.input_space[self.wrapped_input_space_key].shape)
@@ -1022,7 +1019,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
 
         # LOGGER SAVE RESULT PER LEAF
-        if self.logger is not None:
+        if self.config.use_tensorboard:
             for leaf_path in list(set(taken_pathes)):
                 leaf_x_ids = np.where(np.array(taken_pathes, copy=False) == leaf_path)[0]
 
@@ -1066,44 +1063,31 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         return losses
 
     def train_update(self):
-        # TODO: pass filter, transform, sampler and collate_fn in config
-        filter = lambda x: ((x-x.min())<1e-3).all().item()
-        from auto_disc.utils.misc.torch_utils import TensorRandomCentroidCrop, TensorRandomRoll, TensorRandomSphericalRotation
-        from torchvision.transforms import Compose, ToTensor, ToPILImage, RandomHorizontalFlip, RandomVerticalFlip
-        img_size = self.input_space[self.wrapped_input_space_key].shape[1:]
-        random_center_crop = TensorRandomCentroidCrop(p=0.6, size=img_size, scale=(0.5, 1.0), ratio_x=(1., 1.), interpolation='bilinear')
-        random_roll = TensorRandomRoll(p=(0.6, 0.6), max_delta=(0.5,0.5))
-        random_spherical_rotation = TensorRandomSphericalRotation(p=0.6, max_degrees=20, img_size=img_size)
-        random_horizontal_flip = RandomHorizontalFlip(0.2)
-        random_vertical_flip = RandomVerticalFlip(0.2)
-        transform = Compose([random_roll, random_spherical_rotation, random_center_crop, ToPILImage(), random_horizontal_flip, random_vertical_flip, ToTensor()])
-        train_sampler = None
-        collate_fn = None
 
         train_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(self.CURRENT_RUN_INDEX)),
-                                                 filter=filter,
-                                                 transform=transform)
+                                                 filter=eval(self.config.train_dset_filter),
+                                                 transform=eval(self.config.train_dset_transform))
         train_loader = DataLoader(train_dataset,
-                                  sampler=train_sampler,
+                                  sampler=eval(self.config.dataloader_sampler),
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
                                   drop_last=self.config.dataloader_drop_last,
-                                  collate_fn=collate_fn,
+                                  collate_fn=eval(self.config.dataloader_collate_fn),
                                   )
 
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  key=f"input.{self.wrapped_input_space_key}",
                                                  history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
-                                                 filter=filter,
+                                                 filter=eval(self.config.train_dset_filter),
                                                  transform=None)
 
         valid_loader = DataLoader(valid_dataset,
                                   batch_size=self.config.dataloader_batch_size,
                                   num_workers=self.config.dataloader_num_workers,
                                   drop_last=False,
-                                  collate_fn=collate_fn,
+                                  collate_fn=eval(self.config.dataloader_collate_fn),
                                   )
 
         self.run_training(train_loader=train_loader, n_epochs=self.config.n_epochs_per_train_period, valid_loader=valid_loader)

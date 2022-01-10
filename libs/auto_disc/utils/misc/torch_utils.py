@@ -205,129 +205,130 @@ class ModelWrapper(torch.nn.Module):
 """===================================================================
 Weights init utils
 ====================================================================="""
-def get_weights_init(initialization_name):
+def get_weights_init(initialization_name, initialization_parameters={}):
     '''
     initialization_name: string such that the function called is weights_init_<initialization_name>
     '''
-    initialization_name = initialization_name.lower()
-    return eval("weights_init_{}".format(initialization_name))
+    initialization_name = initialization_name.lower().capitalize()
+    initialization_class = eval("{}Weights(**{})".format(initialization_name, initialization_parameters))
+    return initialization_class.__call__
 
-def weights_init_pretrain(checkpoint_filepath, chekpoint_keys=[]):
-    if os.path.exists(checkpoint_filepath):
+class PretrainedWeights():
+    def __init__(self, checkpoint_filepath, checkpoint_keys=[]):
+        assert os.path.exists(checkpoint_filepath)
         with open(checkpoint_filepath, "rb") as f:
             network_dict = pickle.load(f)
-        if isinstance(chekpoint_keys, str):
-            checkpoint_keys = chekpoint_keys.split(".")
+        if isinstance(checkpoint_keys, str):
+            checkpoint_keys = checkpoint_keys.split(".")
         for key in checkpoint_keys:
             network_dict = network_dict[key]
-    else:
-        print("WARNING: the checkpoint filepath for a pretrain initialization has not been found, skipping the initialization")
-    return network_dict
+        self.network_dict = network_dict
+
+    def __call__(self, m):
+        for n, sub_m in m.named_parameters():
+            if n in self.network_dict.keys():
+                data = self.network_dict[n].data
+                assert sub_m.data.shape == data.shape
+                sub_m.data = data.type(sub_m.data.dtype).to(sub_m.device)
 
 
-def weights_init_null(m):
-    """
-    For HOLMES: initialize zero net (child born with no knowledge) and identity connections from parent (child start by copying parent)
-    """
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
-        m.weight.data.fill_(0)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
+class NullWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
+            m.weight.data.fill_(0)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
 
 
-def weights_init_connections_identity(m):
-    """
-    For HOLMES: initialize identity connections
-    """
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        m.weight.data.fill_(1)  # for 1*1 convolution is equivalent to identity
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('Linear') != -1:
-        eye_(m.weight.data)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
+class IdentityWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if classname.find('Conv') != -1:
+            m.weight.data.fill_(1)  # for 1*1 convolution is equivalent to identity
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('Linear') != -1:
+            eye_(m.weight.data)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
+
+class UniformWeights():
+    def __init__(self, a=0., b=0.01):
+        self.a = a
+        self.b = b
+
+    def __call__(self, m):
+        classname = m.__class__.__name__
+        if classname.find('Conv') != -1:
+            uniform_(m.weight.data, self.a, self.b)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('Linear') != -1:
+            uniform_(m.weight.data, self.a, self.b)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
+
+class PytorchWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
+            m.reset_parameters()
 
 
-def weights_init_uniform(m, a=0., b=0.01):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        uniform_(m.weight.data, a, b)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('Linear') != -1:
-        uniform_(m.weight.data, a, b)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
+class XavierUniformWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+            xavier_uniform_(m.weight.data)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
 
 
-def weights_init_pytorch(m):
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1) or (classname.find('BatchNorm') != -1):
-        m.reset_parameters()
+class XavierNormalWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+            xavier_normal_(m.weight.data)
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
 
 
-def weights_init_xavier_uniform(m):
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
-        xavier_uniform_(m.weight.data)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
+class KaimingUniformWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+            kaiming_uniform_(m.weight.data, mode='fan_in', nonlinearity='relu')
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
 
 
-def weights_init_xavier_normal(m):
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
-        xavier_normal_(m.weight.data)
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
-
-
-def weights_init_kaiming_uniform(m):
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
-        kaiming_uniform_(m.weight.data, mode='fan_in', nonlinearity='relu')
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
-
-
-def weights_init_kaiming_normal(m):
-    classname = m.__class__.__name__
-    if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
-        kaiming_normal_(m.weight.data, mode='fan_in', nonlinearity='relu')
-        if m.bias is not None:
-            m.bias.data.fill_(0)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
-
-
-def weights_init_custom_uniform(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        # m.weight.data.uniform_(-1,1)
-        m.weight.data.uniform_(-1 / (m.weight.size(2)), 1 / (m.weight.size(2)))
-        if m.bias is not None:
-            m.bias.data.uniform_(-0.1, 0.1)
-    elif classname.find('Linear') != -1:
-        m.weight.data.uniform_(-1 / math.sqrt(m.weight.size(0)), 1 / math.sqrt(m.weight.size(0)))
-        if m.bias is not None:
-            m.bias.data.uniform_(-0.1, 0.1)
-    elif classname.find('BatchNorm') != -1:
-        m.reset_parameters()
-
-
+class KaimingNormalWeights():
+    @staticmethod
+    def __call__(m):
+        classname = m.__class__.__name__
+        if (classname.find('Conv') != -1) or (classname.find('Linear') != -1):
+            kaiming_normal_(m.weight.data, mode='fan_in', nonlinearity='relu')
+            if m.bias is not None:
+                m.bias.data.fill_(0)
+        elif classname.find('BatchNorm') != -1:
+            m.reset_parameters()
 
 
 ''' ---------------------------------------------

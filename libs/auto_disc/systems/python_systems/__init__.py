@@ -1,3 +1,3 @@
 from auto_disc.systems.python_systems.base_python_system import BasePythonSystem
 from auto_disc.systems.python_systems.lenia import Lenia as PythonLenia
-from auto_disc.systems.python_systems.lenia_expanded import LeniaExpandedDiff as LeniaExpandedDiff
+from auto_disc.systems.python_systems.lenia_expanded import Lenia as PytorchLenia

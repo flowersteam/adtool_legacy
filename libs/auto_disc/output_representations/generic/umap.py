@@ -35,7 +35,7 @@ class UMAP(BaseOutputRepresentation):
                                                  init=self.config.init,
                                                  metric=self.config.metric,
                                                  ))
-
+        # quick fix
         self.output_space[f"umap_{self.wrapped_input_space_key}"] = self.output_space.spaces.pop("umap")
 
     def map(self, observations, is_output_new_discovery, **kwargs):

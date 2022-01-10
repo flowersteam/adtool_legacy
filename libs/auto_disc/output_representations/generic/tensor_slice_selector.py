@@ -16,6 +16,7 @@ class SliceSelector(BaseOutputRepresentation):
 
     def initialize(self, input_space):
         super().initialize(input_space)
+        # quick fix
         output_shape = self.input_space[self.wrapped_input_space_key].shape[1:]
         del self.output_space["slice"]
         self.output_space[f"slice_{self.wrapped_input_space_key}"] = BoxSpace(low=0., high=1.0, shape=output_shape)

@@ -5,7 +5,7 @@ import torch
 import yaml
 
 from auto_disc.systems import BaseSystem
-from auto_disc.utils.config_parameters import IntegerConfigParameter
+from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter
 from auto_disc.utils.spaces import BoxSpace, DictSpace, MultiDiscreteSpace, MultiBinarySpace
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.misc.torch_utils import to_sparse_tensor
@@ -24,7 +24,7 @@ SimCells Main
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 @IntegerConfigParameter(name="n_cells_type", default=2, min=1)
 @IntegerConfigParameter(name="observations_export_interval", default=10, min=1)
-#TODO: @ListConfigParameter(name="observations_export_matrices", default=["MatRender"]
+@StringConfigParameter(name="observations_export_matrices", default="MatRender,")
 
 class SimCells(BaseSystem):
     input_space = DictSpace(
@@ -40,19 +40,24 @@ class SimCells(BaseSystem):
                         intensity=BoxSpace(low=0.0, high=1.0, shape=(), mutator=GaussianMutator(mean=0.0, std=0.05), indpb=1.0)
                     ))),
         ),
-        matnucleus_phenotype = BoxSpace(low=0., high=2, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")), dtype=torch.int8)
-        #TODO matnucleus_phenotype = matnucleus_phenotype =BoxSpace(low=0., high=ConfigParameterBinding("n_cells_type"), shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")), dtype=torch.int8)
+        matnucleus_phenotype = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")), dtype=torch.int8)
     )
 
     output_space = DictSpace(
-        #timepoints = MultiBinarySpace(n=ConfigParameterBinding("final_step")),
-        #TODO: use the config to specify the output space
-        MatRender = BoxSpace(low=0, high=255, shape=(ConfigParameterBinding("final_step") // ConfigParameterBinding("observations_export_interval"),
+        MatRender=BoxSpace(low=0, high=255, shape=(ConfigParameterBinding("final_step") // ConfigParameterBinding("observations_export_interval"),
                                                      ConfigParameterBinding("SX"), ConfigParameterBinding("SY")))
+        # TODO: "MatRender,MatNucleus,MatNucleusX,MatNucleusY,MatMembraneField"
     )
 
     def __init__(self):
         BaseSystem.__init__(self)
+
+        #quick fix
+        self.input_space["matnucleus_phenotype"].hight = self.config.n_cells_type
+        self.config.observations_export_matrices = self.config.observations_export_matrices.split(",")
+        for k in self.output_space.spaces.keys():
+            if k not in self.config.observations_export_matrices:
+                del self.output_space.spaces[k]
 
         self.executable_folder = "/home/mayalen/code/07-SimCells/resources/512/SimCells/bin/"
         self.scs_template_filepath = "/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/specific/simcells_config_template.scs"
@@ -60,8 +65,7 @@ class SimCells(BaseSystem):
         self.observations_export_folder = "tmp_h5_observations/"
         self.run_idx = 0
 
-        #TODO: move in config
-        self.config.observations_export_matrices = ["MatRender"] #["MatRender", "MatNucleus", "MatNucleusX", "MatNucleusY", "MatMembraneField"]
+
 
 
     def reset(self, run_parameters):

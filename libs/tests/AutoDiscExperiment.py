@@ -12,6 +12,9 @@ from auto_disc.input_wrappers.specific import SimcellsMatnucleusInputWrapper
 from auto_disc.explorers import IMGEPExplorer
 
 from auto_disc import ExperimentPipeline
+from auto_disc import REGISTRATION
+from auto_disc.utils.logger import AutoDiscLogg
+import logging
 
 from auto_disc.utils.callbacks import CustomPrintCallback
 from auto_disc.utils.callbacks.on_discovery_callbacks import OnDiscoverySaveCallbackOnDisk
@@ -37,8 +40,10 @@ if __name__ == "__main__":
                                                encoder_conditional_type="gaussian",
 
                                                weights_init_name="pytorch",
-                                               #weights_init_checkpoint_filepath="./checkpoints/output_representations/exp_0_idx_39.pickle",
-                                               #weights_init_checkpoint_keys="network_state_dict",
+                                               # weights_init_name="pretrained",
+                                               # weights_init_parameters=dict(
+                                               #     checkpoint_filepath=os.path.join(dir_path, "checkpoints/output_representations/exp_0_idx_19.pickle"),
+                                               #     checkpoint_keys=[1, "network_state_dict"],),
 
                                                loss_name="VAE",
                                                optimizer_name="Adam",
@@ -98,8 +103,8 @@ if __name__ == "__main__":
 
                                                boundary_name="cluster.KMeans",
 
-                                               train_period=20,
-                                               n_epochs_per_train_period=20,
+                                               train_period=5,
+                                               n_epochs_per_train_period=5,
                                                alternated_backward_active=True,
                                                alternated_backward_period=10,
                                                alternated_backward_connections=2,
@@ -111,6 +116,13 @@ if __name__ == "__main__":
                                                expand_output_space=True,
                                                )
 
+    # Get logger
+    logger_key = 'logFile'
+    logger_class = REGISTRATION['logger'][logger_key]
+    logger = logger_class(file_log_path="file.log", formatter=logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+
+    logger = AutoDiscLogg(0, seed, 0, logger)
+
     experiment = ExperimentPipeline(
         experiment_id=0,
         checkpoint_id=0,
@@ -118,8 +130,8 @@ if __name__ == "__main__":
         save_frequency=20,
         #system=PythonLenia(final_step=200, scale_init_state=1.0),
         #system=SimCells(final_step=20),
-        system=LeniaExpandedDiff(final_step=200, scale_init_state=3),
-        explorer=IMGEPExplorer(num_of_random_initialization=20),
+        system=LeniaExpandedDiff(final_step=200, scale_init_state=3, size="(256,256)"),
+        explorer=IMGEPExplorer(num_of_random_initialization=5),
         input_wrappers=[CppnInputWrapper("init_wall")], #SimcellsMatnucleusInputWrapper()],
         output_representations=[SliceSelector(wrapped_input_space_key="states"),
                                 #SimCellsMatRenderToRGB(),
@@ -134,7 +146,8 @@ if __name__ == "__main__":
                                                                     #"Representation of system output",
                                                                     "Rendered system output"
                                                                 ])],
-        on_save_callbacks=[OnSaveModulesOnDiskCallback("./checkpoints/")]
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("./checkpoints/")],
+        logger=logger
     )
 
     if load_checkpoint:

@@ -1,25 +1,32 @@
-from addict import Dict
-from auto_disc.utils.spaces import DictSpace, BoxSpace
+from auto_disc.utils.spaces import DictSpace
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter
-from auto_disc.utils.spaces.utils import ConfigParameterBinding
+from os import path
 
 
-#TODO: @StringConfigParameter(name="neat_config_filepath", default="config.cfg", possible_values="all")
+@StringConfigParameter(name="neat_config_filepath", default=path.join(path.dirname(path.realpath(__file__)), "config.cfg"))
 @IntegerConfigParameter(name="n_passes", default=2, min=1)
 
 class CppnInputWrapper(BaseInputWrapper):
     input_space = DictSpace(
         genome=CPPNGenomeSpace(
-            neat_config_filepath="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/generic/cppn/config.cfg"
+            neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "config.cfg")
         )
     )
 
     def initialize(self, output_space):
         super().initialize(output_space)
+        # quick fix
+        import neat
         self.input_space[f"genome_{self.wrapped_output_space_key}"] = self.input_space.spaces.pop("genome")
+        self.input_space[f"genome_{self.wrapped_output_space_key}"].neat_config = neat.Config(pytorchneat.selfconnectiongenome.SelfConnectionGenome,
+                                       neat.DefaultReproduction,
+                                       neat.DefaultSpeciesSet,
+                                       neat.DefaultStagnation,
+                                       self.config.neat_config_filepath
+                                       )
 
     def map(self, parameters, is_input_new_discovery, **kwargs):
         cppn_genome = parameters[f"genome_{self.wrapped_output_space_key}"]

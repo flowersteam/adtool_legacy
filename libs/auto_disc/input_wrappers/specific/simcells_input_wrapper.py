@@ -1,14 +1,14 @@
 from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
-from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter, StringConfigParameter
+from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter, StringConfigParameter, DictConfigParameter
 from auto_disc.utils.spaces import DictSpace, BoxSpace, MultiBinarySpace
-from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.misc.torch_utils import PI
 from auto_disc.utils.mutators import GaussianMutator
 
 import math
 import numbers
+from os import path
 import random
 import torch
 
@@ -30,21 +30,22 @@ class BiasedMultiBinarySpace(MultiBinarySpace):
         return torch.bernoulli(self.indpb_sample).to(self.dtype)
 
 
+
 @IntegerConfigParameter(name="n_cells_type", default=2, min=1)
-#TODO: @StringConfigParameter(name="neat_config_filepath", default="config.cfg", possible_values="all")
+@StringConfigParameter(name="neat_config_filepath", default=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg"))
 @IntegerConfigParameter(name="cppn_n_passes", default=2, min=1)
 @IntegerConfigParameter(name="drop_spacing", default=70)
 @IntegerConfigParameter(name="drop_radius", default=20)
 @IntegerConfigParameter(name="drop_ncells_min", default=0)
 @IntegerConfigParameter(name="drop_ncells_max", default=20)
-#TODO @IntegerConfigParameter(name="p_per_type", default=[0.8,0.2])
+@DictConfigParameter(name="p_per_type", default={0: 0.8, 1:0.2})
 @DecimalConfigParameter(name="p_collagen", default=0.005)
 @IntegerConfigParameter(name="collagen_spacing", default=40)
 @IntegerConfigParameter(name="collagen_radius", default=15)
 class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
 
     input_space = DictSpace(
-        cell_pattern_genome = CPPNGenomeSpace(neat_config_filepath="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/specific/simcells_neat_config.cfg"),
+        cell_pattern_genome = CPPNGenomeSpace(neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg")),
         collagen_concentration = BoxSpace(low=0.1, high=0.8, shape=(), mutator=GaussianMutator(mean=0.0, std=0.05), indpb=1.0),
         fibro_majority = BiasedMultiBinarySpace(n=1, indpb_sample=0.8, indpb=0.05),  # 1=majority fibro, 0=majority myofibro
     )
@@ -52,8 +53,19 @@ class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
 
     def __init__(self, wrapped_output_space_key=None):
         super().__init__("matnucleus_phenotype")
-        #TODO: move in config
-        self.config.p_per_type = [0.8,0.2]
+        assert list(self.config.p_per_type.keys()) == list(range(self.config.n_cell_types))
+        assert sum(self.config.p_per_type.values()) == 1.0
+
+    def initialize(self, output_space):
+        super().initialize(output_space)
+        # quick fix
+        import neat
+        self.input_space["cell_pattern_genome"].neat_config = neat.Config(pytorchneat.selfconnectiongenome.SelfConnectionGenome,
+                                       neat.DefaultReproduction,
+                                       neat.DefaultSpeciesSet,
+                                       neat.DefaultStagnation,
+                                       self.config.neat_config_filepath
+                                       )
 
 
     def map(self, parameters, is_input_new_discovery, **kwargs):
@@ -117,7 +129,6 @@ class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
         phenotype_matnucleus = torch.sparse.IntTensor(matnucleus_coords.t().long(), matnucleus_feats.squeeze(), (SX,SY)).coalesce()
         phenotype_matnucleus = phenotype_matnucleus.to_dense()
 
-        # TODO: why that? what if we need several CPPN wrappers in parallel (different keys than "genome")
         parameters[self.wrapped_output_space_key] = phenotype_matnucleus
         del parameters['cell_pattern_genome']
         del parameters['collagen_concentration']
