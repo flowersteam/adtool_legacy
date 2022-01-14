@@ -21,7 +21,8 @@ class BaseSystem(BaseAutoDiscModule):
     output_space = DictSpace()
     step_output_space = DictSpace()
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.input_space = deepcopy(self.input_space)
         self.input_space.initialize(self)
 

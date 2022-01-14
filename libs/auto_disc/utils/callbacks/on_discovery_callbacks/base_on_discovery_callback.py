@@ -8,7 +8,8 @@ class BaseOnDiscoveryCallback(BaseCallback):
                         "rendered_output",
                         "step_observations"]
 
-    def __init__(self, to_save_outputs):
+    def __init__(self, to_save_outputs, **kwargs):
+        super().__init__(**kwargs)
         self.to_save_outputs = to_save_outputs
 
 

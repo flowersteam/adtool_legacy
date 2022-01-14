@@ -8,11 +8,12 @@ import json
 import os
 
 class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
-    def __init__(self, folder_path):
+    def __init__(self, folder_path, **kwargs):
         """
         brief:  init the callback 
         param:  folder_path: string, path to save discoveries on disk
         """
+        super().__init__(**kwargs)
         self.folder_path = folder_path
                         
     def __call__(self, **kwargs):

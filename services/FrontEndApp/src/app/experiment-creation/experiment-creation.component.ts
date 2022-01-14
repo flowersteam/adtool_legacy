@@ -33,6 +33,7 @@ export class ExperimentCreationComponent implements OnInit {
   output_representations: OutputRepresentationSettings[] = [];
   discovery_saving_keys: string[] = []
   callbacks: Callback[] = [];
+  hosts: string[] = [];
 
   discovery_saving_keys_used: { [name: string]: boolean } = {};
   
@@ -53,6 +54,7 @@ export class ExperimentCreationComponent implements OnInit {
     this.getOutputRepresentations();
     this.getDiscoverySavingKeys();
     this.getCallbacks();
+    this.getHosts();
     
   }
 
@@ -91,6 +93,11 @@ export class ExperimentCreationComponent implements OnInit {
     .subscribe(callbacks => this.callbacks = callbacks);
   }
 
+  getHosts(): void {
+    this.AutoDiscServerService.getHosts()
+    .subscribe(hosts => this.hosts = hosts);
+  }
+
 
   setDiscoverySavingKeysUsed():void{
   for (let key of this.discovery_saving_keys) {
@@ -121,6 +128,10 @@ export class ExperimentCreationComponent implements OnInit {
     for (let item in temp_system_config){
       this.newExperiment.system.config[item] = temp_system_config[item].default
     }
+  }
+
+  setHostUsed(host: string){
+    this.newExperiment.experiment.config.host = host;
   }
 
   setExplorerUsed(explorer: string){
@@ -189,6 +200,7 @@ export class ExperimentCreationComponent implements OnInit {
         nb_iterations:1,
         nb_seeds:1,
         save_frequency:1,
+        host: "CHOOSE AN HOST",
       }
     }
     if(this.discovery_saving_keys_used != undefined){
@@ -210,7 +222,6 @@ export class ExperimentCreationComponent implements OnInit {
     this.newExperiment.output_representations = []
     this.newExperiment.callbacks = []
     this.newExperiment.logger_handlers = []
-
   }
 
   drop(event: CdkDragDrop<string[]>, my_dragdrop_array: any[]) {
@@ -226,11 +237,16 @@ export class ExperimentCreationComponent implements OnInit {
 
 // ##################   create exp ####################    
   createExp(){
-    this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
-      this.experiment_id = res["ID"]; 
-      this.JupyterService.createNotebookDir(this.newExperiment.experiment.name, this.experiment_id, this.path_template_folder).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
-      
-    });
+    (<HTMLInputElement> document.getElementById("btn_create_exp")).disabled = true;
+    var response = this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
+      if(res == undefined){
+        (<HTMLInputElement> document.getElementById("btn_create_exp")).disabled = false;
+      }
+      else{
+        this.experiment_id = res["ID"]; 
+        this.JupyterService.createNotebookDir(this.newExperiment.experiment.name, this.experiment_id, this.path_template_folder).subscribe(res => {this.router.navigate(["/experiment/"+this.experiment_id.toString()]);})
+      }
+    });    
   }
 
 }

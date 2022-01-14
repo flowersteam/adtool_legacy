@@ -16,8 +16,8 @@ class CppnInputWrapper(BaseInputWrapper):
         genome = CPPNGenomeSpace()
     )
 
-    def __init__(self, wrapped_output_space_key):
-        super().__init__(wrapped_output_space_key)
+    def __init__(self, wrapped_output_space_key, **kwargs):
+        super().__init__(wrapped_output_space_key, **kwargs)
 
     def map(self, parameters, is_input_new_discovery, **kwargs):
         cppn_genome = parameters['genome']

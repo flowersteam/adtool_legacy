@@ -26,7 +26,7 @@ class LocalExperiment(BaseExperiment):
         }
         
         
-        additional_handlers = [AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self.__get_current_checkpoint_id)]
+        additional_handlers = [AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)]
 
         self._expe_db_caller = ExpeDBCaller('http://127.0.0.1:5001')
 
@@ -55,14 +55,13 @@ class LocalExperiment(BaseExperiment):
 
     def on_save(self, **kwargs):
         self.threading_lock.acquire()
-        super().on_save(kwargs["seed"], self.__get_current_checkpoint_id(kwargs["seed"]))
+        super().on_save(kwargs["seed"], self._get_current_checkpoint_id(kwargs["seed"]))
         self.threading_lock.release()
 
     def on_error(self, **kwargs):
         self.threading_lock.acquire()
-        res =  super().on_error(kwargs["seed"], kwargs["checkpoint_id"])
+        super().on_error(kwargs["seed"], self._get_current_checkpoint_id(kwargs["seed"]))
         self.threading_lock.release()
-        return res
 
     def on_finished(self, **kwargs):
         self.threading_lock.acquire()
@@ -107,7 +106,6 @@ class LocalExperiment(BaseExperiment):
         self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
 
     def save_modules_to_expe_db(self, **kwargs):
-        #TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
         to_save_modules = ["system","explorer","input_wrappers","output_representations","in_memory_db"]
 
         files_to_save={} 
@@ -124,20 +122,12 @@ class LocalExperiment(BaseExperiment):
         
         module_id = self._expe_db_caller("/checkpoint_saves", 
                                     request_dict={
-                                        "checkpoint_id": self.__get_current_checkpoint_id(kwargs["seed"]),
+                                        "checkpoint_id": self._get_current_checkpoint_id(kwargs["seed"]),
                                         "run_idx": kwargs["run_idx"],
                                         "seed": kwargs["seed"]
                                     }
                                 )["ID"]
         self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
-
-    def __get_current_checkpoint_id(self, seed):
-        current_checkpoint_id = next(
-            checkpoint_id 
-            for checkpoint_id, history in self.checkpoints_history.items()
-            if seed not in history["seeds_status"]
-            )
-        return current_checkpoint_id
 
     def clean_after_experiment(self, **kwargs):
         super().clean_after_experiment()

@@ -27,7 +27,7 @@ class ExperimentPipeline():
     '''
     def __init__(self, experiment_id, seed, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
                  save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[],
-                  on_save_callbacks=[], on_error_callbacks=[], logger=None):
+                  on_save_callbacks=[], on_error_callbacks=[]):
         self.experiment_id = experiment_id
         self.seed = seed
         self.save_frequency = save_frequency
@@ -111,13 +111,6 @@ class ExperimentPipeline():
         self._on_save_callbacks = on_save_callbacks
         self.cancellation_token = CancellationToken()
 
-        BaseAutoDiscModule.logger = logger
-        BaseAutoDiscModule.logger.experiment_id = experiment_id
-        BaseAutoDiscModule.logger.seed = seed
-
-        BaseCallback.logger = logger
-        BaseCallback.logger.experiment_id = experiment_id
-        BaseCallback.logger.seed = seed
 
     def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
         for i, output_representation in enumerate(self._output_representations[starting_index:]):
@@ -216,7 +209,7 @@ class ExperimentPipeline():
                     step_observations=step_observations,
                     experiment_id=self.experiment_id
                 )
-                BaseAutoDiscModule.logger.info("[DISCOVERY] - New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
+                self._system.logger.info("[DISCOVERY] - New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
                 self._explorer.optimize() # TODO callbacks
 
                 if (run_idx+1) % self.save_frequency == 0:
@@ -232,12 +225,12 @@ class ExperimentPipeline():
                         in_memory_db=self.db
                     )
                     self._raise_callbacks(
-                        self._on_save_finished_callbacks,# TODO
+                        self._on_save_finished_callbacks,
                         run_idx=run_idx,
                         seed=self.seed,
                         experiment_id=self.experiment_id
                     )
-                    BaseAutoDiscModule.logger.info("[SAVED] - experiment {} with seed {} saved".format(self.experiment_id, self.seed))
+                    self._system.logger.info("[SAVED] - experiment {} with seed {} saved".format(self.experiment_id, self.seed))
 
                 run_idx += 1
                 BaseAutoDiscModule.CURRENT_RUN_INDEX += 1
@@ -246,7 +239,7 @@ class ExperimentPipeline():
             message = "error in experiment {} run_idx {} seed {} = {}".format(self.experiment_id, run_idx, self.seed, traceback.format_exc())
             if len(message) > 8000: # Cut message to match varchar length of AppDB
                 message = message[:7997] + '...'
-            BaseAutoDiscModule.logger.error("[ERROR] - " + message)
+            self._system.logger.error("[ERROR] - " + message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=run_idx,
@@ -257,7 +250,10 @@ class ExperimentPipeline():
             raise
 
         self._system.close()
-        BaseAutoDiscModule.logger.info("[FINISHED] - experiment {} with seed {} finished".format(self.experiment_id, self.seed))
+        if self.cancellation_token.get():
+            self._system.logger.info("[CANCELLED] - experiment {} with seed {} cancelled".format(self.experiment_id, self.seed))
+        else:
+            self._system.logger.info("[FINISHED] - experiment {} with seed {} finished".format(self.experiment_id, self.seed))
         self._raise_callbacks(
             self._on_cancelled_callbacks if self.cancellation_token.get() else self._on_finished_callbacks,
             run_idx=run_idx,

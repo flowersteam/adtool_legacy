@@ -16,20 +16,32 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
     _set_seed(seed)
     save_frequency = parameters['experiment']['save_frequency']
 
+    # Get logger
+    handlers = []
+    for logger_handler in parameters['logger_handlers']:
+        hanlder_key =  logger_handler['name']
+        handler_class = REGISTRATION['logger_handlers'][hanlder_key]
+        handler = handler_class(**logger_handler['config'], experiment_id=experiment_id)
+        handlers.append(handler)
+    if additional_handlers is not None:
+        handlers.extend(additional_handlers)
+
+    logger = AutoDiscLogger(experiment_id, seed, handlers)
+
     # Get explorer
     explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
-    explorer = explorer_class(**parameters['explorer']['config'])
+    explorer = explorer_class(logger=logger, **parameters['explorer']['config'])
 
     # Get system
     system_class = REGISTRATION['systems'][parameters['system']['name']]
-    system = system_class(**parameters['system']['config'])
+    system = system_class(logger=logger, **parameters['system']['config'])
 
     # Get input wrappers
     input_wrappers = []
     for _input_wrapper in parameters['input_wrappers']:
         input_wrapper_class = REGISTRATION['input_wrappers'][_input_wrapper['name']]
         input_wrappers.append(
-            input_wrapper_class(**_input_wrapper['config'])
+            input_wrapper_class(logger=logger, **_input_wrapper['config'])
         )
 
     # Get output representations
@@ -37,7 +49,7 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
     for _output_representation in parameters['output_representations']:
         output_representation_class = REGISTRATION['output_representations'][_output_representation['name']]
         output_representations.append(
-            output_representation_class(**_output_representation['config'])
+            output_representation_class(logger=logger, **_output_representation['config'])
         )
 
     # Get callbacks
@@ -56,20 +68,8 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
             callbacks[callback_key].append(
-                callback_class(**_callback['config'])
+                callback_class(logger=logger, **_callback['config'])
             )
-    
-    # Get logger
-    handlers = []
-    for logger_handler in parameters['logger_handlers']:
-        hanlder_key =  logger_handler['name']
-        handler_class = REGISTRATION['logger_handlers'][hanlder_key]
-        handler = handler_class(**logger_handler['config'], experiment_id=experiment_id)
-        handlers.append(handler)
-    if additional_handlers is not None:
-        handlers.extend(additional_handlers)
-
-    logger = AutoDiscLogger(experiment_id, seed, handlers)
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
@@ -86,7 +86,6 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
-        logger = logger
     )
 
     return experiment

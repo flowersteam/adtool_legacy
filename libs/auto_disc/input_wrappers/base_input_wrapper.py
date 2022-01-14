@@ -8,7 +8,8 @@ class BaseInputWrapper(BaseAutoDiscModule):
     
     input_space = DictSpace()
 
-    def __init__(self, wrapped_output_space_key=None):
+    def __init__(self, wrapped_output_space_key=None, **kwargs):
+        super().__init__(**kwargs)
         self.input_space = deepcopy(self.input_space)
         self.input_space.initialize(self)
         self.wrapped_output_space_key = wrapped_output_space_key

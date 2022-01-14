@@ -13,4 +13,5 @@ export interface ExperimentSettings {
     output_representations: Config[];
     callbacks: string[];
     logger_handlers: any[];
+    host:string;
   }

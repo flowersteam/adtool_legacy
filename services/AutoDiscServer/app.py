@@ -21,9 +21,9 @@ experiments_handler = ExperimentsHandler() # Singleton handling experiments
 
 @app.route('/experiments', methods=['GET'])
 def list_experiments():
-    expeperiment_ids = experiments_handler.list_running_experiments()
+    experiment_ids = experiments_handler.list_running_experiments()
     return make_response(jsonify({
-        "ID": expeperiment_ids
+        "ID": experiment_ids
     }), 200)
 
 @app.route('/experiments', methods=['POST'])

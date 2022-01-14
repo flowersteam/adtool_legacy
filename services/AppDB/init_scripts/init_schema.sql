@@ -64,6 +64,7 @@ CREATE TABLE logs (
 	checkpoint_id INT NOT NULL,
 	seed INT,
 	log_level_id INT NOT NULL,
+	name VARCHAR (255) NOT NULL,
 	error_message VARCHAR (8000) NOT NULL,
 	FOREIGN KEY (experiment_id)
     	REFERENCES experiments (id),

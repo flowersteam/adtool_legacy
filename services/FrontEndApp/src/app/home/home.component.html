@@ -30,7 +30,8 @@
                 System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}} | 
                 Explorer: {{experiment.explorers.length > 0 ? experiment.explorers[0].name : 'None'}} | 
                 {{experiment.input_wrappers.length}} input wrappers | 
-                {{experiment.output_representations.length}} output representations
+                {{experiment.output_representations.length}} output representations |
+                Host:{{experiment.config["host"] != null ? experiment.config["host"] : 'None'}}
             </p>
             <a routerLink="/experiment/{{experiment.id}}" class="card-link stretched-link"></a>
         </div>

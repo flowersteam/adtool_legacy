@@ -28,12 +28,18 @@ class AppDBLoggerHandler(StreamHandler):
                 levelname = int(re.sub("[^0-9]", "", record.levelname))
             else:
                 levelname = self.log_levels_id[record.levelname]
-            requests.post(self.base_url+"/logs", 
-                                        json={
-                                                "experiment_id":self.experiment_id,
-                                                "checkpoint_id":self.get_checkpoint_id_from_seed_fn(record.args["seed"]),
-                                                "seed":record.args["seed"],
-                                                "log_level_id":levelname,
-                                                "error_message":"{} - {} \n".format(record.levelname, record.msg)
-                                            }
-                                    )
+            checkpoint_id = self.get_checkpoint_id_from_seed_fn(record.args["seed"])
+            self.save(checkpoint_id, record.args["seed"], levelname, record.args["id"], record.msg)
+            
+    
+    def save(self, checkpoint_id, seed, level_name, log_id, message):
+        response = requests.post(self.base_url+"/logs", 
+            json={
+                    "experiment_id":self.experiment_id,
+                    "checkpoint_id":checkpoint_id,
+                    "name":log_id,
+                    "seed":seed,
+                    "log_level_id":level_name,
+                    "error_message":"{} - {} \n".format(list(self.log_levels_id.keys())[list(self.log_levels_id.values()).index(level_name)], message)
+                }
+        )
