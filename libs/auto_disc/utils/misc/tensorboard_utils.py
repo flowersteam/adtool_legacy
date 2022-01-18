@@ -42,7 +42,7 @@ def logger_add_image_list(logger, image_list, tag, global_step=0, nrow=None, pad
     img_shape = image_tensor.shape[2:]
     spatial_dims = len(img_shape)
 
-    if n_channels != 1 or n_channels != 3:  # nor grey scale nor RGB, convert to RGB from list of color per channel
+    if n_channels != 1 and n_channels != 3:  # nor grey scale nor RGB, convert to RGB from list of color per channel
         channel_colors = [colors.to_rgb(color) for color in colors.TABLEAU_COLORS.values()][:n_channels]
         channel_colors = torch.as_tensor(channel_colors).t().type(image_tensor.dtype)  # shape(3,n_channels)
         image_tensor = (channel_colors @ image_tensor.view(batch_size, n_channels, -1)).view(batch_size, 3, *img_shape)
