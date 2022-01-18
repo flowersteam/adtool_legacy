@@ -47,7 +47,6 @@ from tensorboardX import SummaryWriter
 @BooleanConfigParameter(name="use_tensorboard", default=True)
 @StringConfigParameter(name="tb_folder", default="./tensorboard")
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
-@IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1)
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1)
@@ -179,7 +178,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
     def set_tensorboard(self):
         if not os.path.exists(self.config.tb_folder):
                 os.makedirs(self.config.tb_folder)
-        self.logger = SummaryWriter(self.config.tb_folder)
+        self.tensorboard_logger = SummaryWriter(self.config.tb_folder)
 
         # Save the graph in the logger
         dummy_input = torch.Tensor(size=self.input_space[self.wrapped_input_space_key].shape).uniform_(0, 1) \
@@ -189,7 +188,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
         self.eval()
         with torch.no_grad():
             model_wrapper = ModelWrapper(self)
-            self.logger.add_graph(model_wrapper, dummy_input, verbose=False)
+            self.tensorboard_logger.add_graph(model_wrapper, dummy_input, verbose=False)
 
     def forward_from_encoder(self, encoder_outputs):
         decoder_outputs = self.decoder(encoder_outputs["z"])
@@ -217,8 +216,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
             if self.config.use_tensorboard and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
                 for k, v in train_losses.items():
-                    self.logger.add_scalars('loss/{}'.format(k), {'train': v}, self.n_epochs)
-                self.logger.add_text('time/train', 'Train Epoch {}: {:.3f} secs'.format(self.n_epochs, t1 - t0),
+                    self.tensorboard_logger.add_scalars('loss/{}'.format(k), {'train': v}, self.n_epochs)
+                self.tensorboard_logger.add_text('time/train', 'Train Epoch {}: {:.3f} secs'.format(self.n_epochs, t1 - t0),
                                      self.n_epochs)
 
             if do_validation:
@@ -227,8 +226,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 t3 = time.time()
                 if self.config.use_tensorboard and (self.n_epochs % self.config.tb_record_loss_frequency == 0):
                     for k, v in valid_losses.items():
-                        self.logger.add_scalars('loss/{}'.format(k), {'valid': v}, self.n_epochs)
-                    self.logger.add_text('time/valid', 'Valid Epoch {}: {:.3f} secs'.format(self.n_epochs, t3 - t2),
+                        self.tensorboard_logger.add_scalars('loss/{}'.format(k), {'valid': v}, self.n_epochs)
+                    self.tensorboard_logger.add_text('time/valid', 'Valid Epoch {}: {:.3f} secs'.format(self.n_epochs, t3 - t2),
                                          self.n_epochs)
 
     def train_epoch(self, train_loader):
@@ -332,12 +331,12 @@ class VAE(nn.Module, BaseOutputRepresentation):
             vizu_tensor_list = [None] * (2 * n_images)
             vizu_tensor_list[0::2] = [input_images[n] for n in range(n_images)]
             vizu_tensor_list[1::2] = [output_images[n] for n in range(n_images)]
-            logger_add_image_list(self.logger, vizu_tensor_list, "reconstructions",
+            logger_add_image_list(self.tensorboard_logger, vizu_tensor_list, "reconstructions",
                                   global_step=self.n_epochs)
 
         if record_embeddings:
             images = resize_embeddings(images)
-            self.logger.add_embedding(
+            self.tensorboard_logger.add_embedding(
                 embeddings,
                 metadata=labels,
                 label_img=images,
