@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from AutoDiscServer.experiments import ExperimentsHandler
 from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles
+from AutoDiscServer.utils.DB.expe_db_utils import SavableOutputs
 
 from auto_disc import REGISTRATION
 
@@ -20,9 +21,9 @@ experiments_handler = ExperimentsHandler() # Singleton handling experiments
 
 @app.route('/experiments', methods=['GET'])
 def list_experiments():
-    expeperiment_ids = experiments_handler.list_running_experiments()
+    experiment_ids = experiments_handler.list_running_experiments()
     return make_response(jsonify({
-        "ID": expeperiment_ids
+        "ID": experiment_ids
     }), 200)
 
 @app.route('/experiments', methods=['POST'])
@@ -80,7 +81,7 @@ def list_input_wrappers():
 # On discovery callback
 @app.route('/discovery-saving-keys', methods=['GET'])
 def list_keys_to_save_on_discovery():
-    info = list(REGISTRATION['callbacks']['on_discovery']['base'].SAVABLE_OUTPUTS.keys())
+    info = [member.value for member in list(SavableOutputs)]
     return make_response(
         jsonify(info), 
     200)

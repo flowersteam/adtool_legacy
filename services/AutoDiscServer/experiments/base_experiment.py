@@ -1,4 +1,5 @@
 from AutoDiscServer.utils import SeedStatusEnum, ExperimentStatusEnum
+from AutoDiscServer.utils import clear_dict_config_parameter
 
 class BaseExperiment():
     def __init__(self, id, experiment_config, on_progress_callback, on_checkpoint_needed_callback, on_checkpoint_finished_callback,
@@ -27,52 +28,50 @@ class BaseExperiment():
         self.experiment_config['experiment']['save_frequency'] = self.experiment_config['experiment']['config']['save_frequency']
         del self.experiment_config['experiment']['config']['save_frequency']
 
-        self.experiment_config['callbacks'] = {
-            'on_discovery': [
-                {
-                    'name' : 'base',
-                    'config': {
-                        'to_save_outputs': self.experiment_config['experiment']['config']['discovery_saving_keys']
+        #TODO when the user can choose callbacks delete this
+        if self.experiment_config['callbacks'] == []:
+            self.experiment_config['callbacks'] = {
+                'on_discovery': [
+                    {
+                        'name' : 'base',
+                        'config': {
+                            'to_save_outputs': self.experiment_config['experiment']['config']['discovery_saving_keys']
+                        }
                     }
-                }
-            ],
-            'on_save_finished': [
-                {
-                    'name' : 'base',
-                    'config': {}
-                }
-            ],
-            'on_cancelled': [
-                {
-                    'name' : 'base',
-                    'config': {}
-                }
-            ],
-            'on_finished': [
-                {
-                    'name' : 'base',
-                    'config': {}
-                }
-            ],
-            'on_error': [
-                {
-                    'name' : 'base',
-                    'config': {}
-                }
-            ],
-            'on_saved': [
-                {
-                    'name' : 'base',
-                    'config': {}
-                }
-            ],
-        }
+                ],
+                'on_save_finished': [
+                    {
+                        'name' : 'base',
+                        'config': {}
+                    }
+                ],
+                'on_cancelled': [
+                    {
+                        'name' : 'base',
+                        'config': {}
+                    }
+                ],
+                'on_finished': [
+                    {
+                        'name' : 'base',
+                        'config': {}
+                    }
+                ],
+                'on_error': [
+                    {
+                        'name' : 'base',
+                        'config': {}
+                    }
+                ],
+                'on_saved': [
+                    {
+                        'name' : 'base',
+                        'config': {}
+                    }
+                ],
+            }
 
-        self.experiment_config['logger'] = {
-            'name' : 'base',
-            'config': {}
-        }
-
+        self.cleared_config = clear_dict_config_parameter(self.experiment_config)
     
     def start():
         raise NotImplementedError()
@@ -127,14 +126,28 @@ class BaseExperiment():
         self._on_checkpoint_update_callback(current_checkpoint_id, error)
         if error:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
+            self.clean_after_experiment()
 
 
     def on_finished(self, seed):
         del self.progresses[seed]
         if len(self.progresses) == 0:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.DONE)})
+            self.clean_after_experiment()
     
     def on_cancelled(self, seed):
         del self.progresses[seed]
         if len(self.progresses) == 0:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.CANCELLED)})
+            self.clean_after_experiment()
+
+    def _get_current_checkpoint_id(self, seed):
+        current_checkpoint_id = next(
+            checkpoint_id 
+            for checkpoint_id, history in self.checkpoints_history.items()
+            if seed not in history["seeds_status"] or history["seeds_status"][seed] == int(SeedStatusEnum.ERROR)
+            )
+        return current_checkpoint_id
+
+    def clean_after_experiment(self):
+        pass

@@ -11,8 +11,8 @@ class TimesNInputWrapper(BaseInputWrapper):
         input_parameter = BoxSpace(low=-np.inf, high=np.inf, shape=())
     )
 
-    def __init__(self, n, wrapped_output_space_key):
-        super().__init__(wrapped_output_space_key)
+    def __init__(self, n, wrapped_output_space_key, **kwargs):
+        super().__init__(wrapped_output_space_key, **kwargs)
         assert len(self.input_space) == 1
         if not isinstance(wrapped_output_space_key, str):
             raise TypeError("wrapped_output_space_key must be a single string indicating the key of the space to wrap.")

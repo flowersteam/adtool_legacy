@@ -1,3 +1,4 @@
+from addict import Dict
 from auto_disc.utils.spaces import DictSpace
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat

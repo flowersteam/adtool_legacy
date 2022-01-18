@@ -220,8 +220,8 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
         embedding = BoxSpace(low=0, high=0, shape=(17,))
     )
 
-    def __init__(self, wrapped_input_space_key=None):
-        super().__init__('states')
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        super().__init__('states', **kwargs)
 
         # model
         self.statistic_names = ['activation_mass', 'activation_volume',

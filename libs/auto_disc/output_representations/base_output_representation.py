@@ -8,7 +8,8 @@ class BaseOutputRepresentation (BaseAutoDiscModule):
 
     output_space = DictSpace()
 
-    def __init__(self, wrapped_input_space_key=None):
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        super().__init__(**kwargs)
         self.output_space = deepcopy(self.output_space)
         self.output_space.initialize(self)
         self.wrapped_input_space_key = wrapped_input_space_key

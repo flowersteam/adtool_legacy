@@ -9,6 +9,9 @@ class BaseAutoDiscModule:
     _call_run_parameters_history_update = None # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
     CURRENT_RUN_INDEX = 0
 
+    def __init__(self, logger=None, **kwargs) -> None:
+        self.logger = logger
+
     def set_history_access_fn(self, function):
         '''
             Set the function allowing module to access (readonly) its history of (input, output) pairs.

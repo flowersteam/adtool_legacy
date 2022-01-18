@@ -1,7 +1,8 @@
 import traceback
 from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
 from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
-from AutoDiscServer.utils import CheckpointsStatusEnum, AppDBCaller, AppDBMethods
+from AutoDiscServer.utils import CheckpointsStatusEnum
+from AutoDiscServer.utils.DB import  AppDBCaller, AppDBMethods
 import datetime
 import traceback
 
@@ -40,8 +41,7 @@ class ExperimentsHandler():
             id = int(id[1])
 
             # Create experiment
-            #TODO: Remove first condition
-            if "host" not in parameters["experiment"] or parameters["experiment"]["host"] == "local":
+            if parameters["experiment"]["config"]["host"] == "local":
                 experiment = LocalExperiment(id, parameters, 
                                             self.on_progress_callback,
                                             self.on_checkpoint_needed_callback,
@@ -49,7 +49,7 @@ class ExperimentsHandler():
                                             self.on_checkpoint_update_callback,
                                             self.on_experiment_update_callback)
             else:
-                experiment = RemoteExperiment(parameters["experiment"]["host"], 
+                experiment = RemoteExperiment(parameters["experiment"]["config"]["host"], 
                                             id, parameters, 
                                             self.on_progress_callback,
                                             self.on_checkpoint_needed_callback,

@@ -23,7 +23,7 @@ export class AppDbService {
 
     return this.http.get<Experiment[]>(
       this.appDBUrl + 
-      "/experiments?select=id,name,created_on,progress,exp_status,archived," + 
+      "/experiments?select=id,name,created_on,progress,exp_status,archived,config," + 
       "systems(name)," +
       "explorers(name)," +
       "input_wrappers(name)," +

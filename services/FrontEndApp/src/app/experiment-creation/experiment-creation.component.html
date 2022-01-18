@@ -34,6 +34,20 @@
                     <label class="card-title col-12" for="save_frequency">Enter the frequence to save:</label>
                     <input type="number" min="1" class="form-control" id="save_frequency"
                     [(ngModel)]="this.newExperiment.experiment.config.save_frequency">
+
+                    <!-- choose host -->
+                    <div class="dropdown my-2">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownSystem" name="dropdownSystem" 
+                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
+                            {{this.newExperiment.experiment.config.host}}
+                        </button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownSystem">
+                            <li *ngFor="let host of hosts" class="dropdown-item" (click)="setHostUsed(host)">
+                                {{host}}
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -421,6 +435,6 @@
                 </div>
             </div>
         </div>            
-        <button type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
+        <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
     </div>
 </div>

@@ -1,12 +1,12 @@
 name: 
-  remote_server
+  docker
 ssh_configuration: 
-  remote_test
+  docker
 work_path:
-  ~/experiments/
+  /home/auto_disc
 local_tmp_path:
   /tmp/auto_disc
 execution:
-  ./multi_seeds_run.sh $NB_SEEDS $ARGS
+  bash additional_files/docker.sh $NB_SEEDS $ARGS
 cancellation:
   for pid in $RUN_ID; do kill -9 $pid; done

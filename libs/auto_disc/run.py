@@ -6,31 +6,42 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
-from auto_disc.utils.logger import AutoDiscLogg
+from auto_disc.utils.logger import AutoDiscLogger
 
 import numpy as np
 import random
 import torch
 
-def create(parameters, experiment_id, seed, additional_callbacks = None):
+def create(parameters, experiment_id, seed, additional_callbacks = None, additional_handlers=None):
     _set_seed(seed)
-    checkpoint_id = parameters['experiment']['checkpoint_id']
     save_frequency = parameters['experiment']['save_frequency']
+
+    # Get logger
+    handlers = []
+    for logger_handler in parameters['logger_handlers']:
+        hanlder_key =  logger_handler['name']
+        handler_class = REGISTRATION['logger_handlers'][hanlder_key]
+        handler = handler_class(**logger_handler['config'], experiment_id=experiment_id)
+        handlers.append(handler)
+    if additional_handlers is not None:
+        handlers.extend(additional_handlers)
+
+    logger = AutoDiscLogger(experiment_id, seed, handlers)
 
     # Get explorer
     explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
-    explorer = explorer_class(**parameters['explorer']['config'])
+    explorer = explorer_class(logger=logger, **parameters['explorer']['config'])
 
     # Get system
     system_class = REGISTRATION['systems'][parameters['system']['name']]
-    system = system_class(**parameters['system']['config'])
+    system = system_class(logger=logger, **parameters['system']['config'])
 
     # Get input wrappers
     input_wrappers = []
     for _input_wrapper in parameters['input_wrappers']:
         input_wrapper_class = REGISTRATION['input_wrappers'][_input_wrapper['name']]
         input_wrappers.append(
-            input_wrapper_class(**_input_wrapper['config'])
+            input_wrapper_class(logger=logger, **_input_wrapper['config'])
         )
 
     # Get output representations
@@ -38,7 +49,7 @@ def create(parameters, experiment_id, seed, additional_callbacks = None):
     for _output_representation in parameters['output_representations']:
         output_representation_class = REGISTRATION['output_representations'][_output_representation['name']]
         output_representations.append(
-            output_representation_class(**_output_representation['config'])
+            output_representation_class(logger=logger, **_output_representation['config'])
         )
 
     # Get callbacks
@@ -52,26 +63,18 @@ def create(parameters, experiment_id, seed, additional_callbacks = None):
     }
 
     for callback_key in callbacks:
-        if(additional_callbacks):
+        if additional_callbacks is not None:
             callbacks[callback_key].extend(additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
             callbacks[callback_key].append(
-                callback_class(**_callback['config'])
+                callback_class(logger=logger, **_callback['config'])
             )
-    
-    # Get logger
-    logger_key = parameters['logger']['name']
-    logger_class = REGISTRATION['logger'][logger_key]
-    logger = logger_class(**parameters['logger']['config'], experiment_id=experiment_id)
-
-    logger = AutoDiscLogg(seed, checkpoint_id, logger)
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
         seed=seed,
-        checkpoint_id=checkpoint_id,
         save_frequency=save_frequency,
         system=system,
         explorer=explorer,
@@ -83,7 +86,6 @@ def create(parameters, experiment_id, seed, additional_callbacks = None):
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
-        logger = logger
     )
 
     return experiment

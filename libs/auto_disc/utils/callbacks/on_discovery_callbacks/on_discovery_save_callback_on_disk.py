@@ -4,13 +4,13 @@ import pickle
 import os
 
 class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
-    def __init__(self, folder_path, to_save_outputs):
+    def __init__(self, folder_path, to_save_outputs, **kwargs):
         """
         brief:  init the callback with a path to a folder to save discoveries
         param:  folder_path: string, path to folder
         param:  to_save_outputs: string list, key of "SAVABLE_OUTPUTS" (parent's attribute) to select the outpouts who we want to save
         """
-        super().__init__(to_save_outputs)
+        super().__init__(to_save_outputs, **kwargs)
         self.folder_path = folder_path
 
     def __call__(self, **kwargs):

@@ -3,7 +3,9 @@ name:
 ssh_configuration: 
   curta
 work_path:
-  /home/cromac/experiments/
+  /gpfs/home/mperie/experiments/
+local_tmp_path:
+  /tmp/auto_disc
 execution:
   sbatch curta.slurm $NB_SEEDS $ARGS | egrep "[0-9]*" -o
 cancellation:
