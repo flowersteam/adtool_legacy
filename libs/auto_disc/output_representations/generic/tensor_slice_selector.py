@@ -1,8 +1,7 @@
 from auto_disc.output_representations import BaseOutputRepresentation
-from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter
-from auto_disc.utils.spaces.utils import ConfigParameterBinding
+from auto_disc.utils.config_parameters import IntegerConfigParameter
 from auto_disc.utils.spaces import DictSpace, BoxSpace
-from copy import deepcopy
+from copy import copy
 
 @IntegerConfigParameter(name="timestep", default=-1)
 class SliceSelector(BaseOutputRepresentation):
@@ -20,10 +19,11 @@ class SliceSelector(BaseOutputRepresentation):
         output_shape = self.input_space[self.wrapped_input_space_key].shape[1:]
         del self.output_space["slice"]
         self.output_space[f"slice_{self.wrapped_input_space_key}"] = BoxSpace(low=0., high=1.0, shape=output_shape)
+        self.output_space[f"slice_{self.wrapped_input_space_key}"].initialize(self)
 
 
     def map(self, observations, is_output_new_discovery, **kwargs):
-        output = deepcopy(observations)
+        output = copy(observations)
         output[f"slice_{self.wrapped_input_space_key}"] = output[self.wrapped_input_space_key][self.config.timestep]
         del output[self.wrapped_input_space_key]
         return output
