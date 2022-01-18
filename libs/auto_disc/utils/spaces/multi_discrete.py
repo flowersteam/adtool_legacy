@@ -70,7 +70,7 @@ class MultiDiscreteSpace(BaseSpace):
             x = torch.tensor(x)  # Promote list to array for contains check
         # if nvec is uint32 and space dtype is uint32, then 0 <= x < self.nvec guarantees that x
         # is within correct bounds for space dtype (even though x does not have to be unsigned)
-        return x.shape == self.shape and (0 <= x).all() and (x < self.nvec).all()
+        return x.shape == self.shape and (0 <= x).all() and (x < self.nvec.to(x.device)).all()
 
     def clamp(self, x):
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))

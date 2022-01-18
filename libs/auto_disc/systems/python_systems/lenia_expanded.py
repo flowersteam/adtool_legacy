@@ -32,7 +32,7 @@ System definition
 @BooleanConfigParameter(name="wall_c", default=True)
 
 #TODO: other env kernels
-class LeniaExpandedDiff(BasePythonSystem):
+class Lenia(BasePythonSystem):
     CONFIG_DEFINITION = {}
     config = Dict()
     
@@ -83,25 +83,30 @@ class LeniaExpandedDiff(BasePythonSystem):
         super().__init__() #after quick fix because need to call initialize()
 
     def reset(self, run_parameters):
-        #TODO: clamp parameters if not contained in space definition
+        #clamp parameters if not contained in space definition
+        if not self.input_space.contains(run_parameters):
+            run_parameters = self.input_space.clamp(run_parameters)
 
-        init_state = torch.zeros(1, self.config.nb_c, *self.config.size, dtype=torch.float64)
+        init_state = torch.zeros(1, self.config.nb_c, *self.config.size, dtype=torch.float64, device=run_parameters.init_state.device)
         init_mask = [0, slice(0, self.config.nb_c)] + [slice(s//2 - math.ceil(run_parameters.init_state.shape[i+1]/2), s//2+run_parameters.init_state.shape[i+1]//2) for i,s in enumerate(self.config.size)]
         init_state[init_mask] = run_parameters.init_state
+        self.state = init_state
 
         # wall init
         if self.config.wall_c:
             init_wall = run_parameters.init_wall.unsqueeze(0)
             init_wall[init_wall<0.7] = 0.0
+            self.state = torch.cat([self.state, init_wall], 1)
 
-        self.state = torch.cat([init_state, init_wall], 1)
-        del run_parameters.init_state
-        del run_parameters.init_wall
-
-        self.lenia_step = LeniaStepFFT(nb_c=self.config.nb_c, wall_c=self.config.wall_c, size=self.config.size, **run_parameters)
+        self.lenia_step = LeniaStepFFT(nb_c=self.config.nb_c, wall_c=self.config.wall_c, size=self.config.size,
+                                       R=run_parameters.R, T=run_parameters.T,
+                                       c0=run_parameters.c0, c1=run_parameters.c1,
+                                       r=run_parameters.r, rk=run_parameters.rk,
+                                       b=run_parameters.b, w=run_parameters.w, h=run_parameters.h,
+                                       m=run_parameters.m, s=run_parameters.s)
 
         self._observations = Dict()
-        self._observations.states = torch.empty((self.config.final_step, self.config.nb_c+int(self.config.wall_c), *self.config.size))
+        self._observations.states = torch.empty((self.config.final_step, self.config.nb_c+int(self.config.wall_c), *self.config.size), device=self.state.device)
         self._observations.states[0] = self.state[0]
 
         self.step_idx = 0
@@ -178,24 +183,34 @@ field_func = {
     3: lambda n, m, s: - torch.clamp(n-m,0,1)*s #food eating kernl
 }
 
-# TODO: .to(self.device)
 class LeniaStepFFT(torch.nn.Module):
     """ Module pytorch that computes one Lenia Step with the fft version"""
 
     def __init__(self, nb_c, R, T, c0, c1, r, rk, b, w, h, m, s, kn=0, gn=1, wall_c=False, is_soft_clip=False, size=(256, 256)):
         torch.nn.Module.__init__(self)
 
-        self.register_buffer('R', R)
-        self.register_buffer('T', T)
-        self.register_buffer('c0', c0)
-        self.register_buffer('c1', c1)
-        self.register_parameter('r', torch.nn.Parameter(r))
-        self.register_parameter('rk', torch.nn.Parameter(rk))
-        self.register_parameter('b', torch.nn.Parameter(b))
-        self.register_parameter('w', torch.nn.Parameter(w))
-        self.register_parameter('h', torch.nn.Parameter(h))
-        self.register_parameter('m', torch.nn.Parameter(m))
-        self.register_parameter('s', torch.nn.Parameter(s))
+        # self.register_buffer('R', R)
+        # self.register_buffer('T', T)
+        # self.register_buffer('c0', c0)
+        # self.register_buffer('c1', c1)
+        # self.register_parameter('r', torch.nn.Parameter(r))
+        # self.register_parameter('rk', torch.nn.Parameter(rk))
+        # self.register_parameter('b', torch.nn.Parameter(b))
+        # self.register_parameter('w', torch.nn.Parameter(w))
+        # self.register_parameter('h', torch.nn.Parameter(h))
+        # self.register_parameter('m', torch.nn.Parameter(m))
+        # self.register_parameter('s', torch.nn.Parameter(s))
+        self.R = R
+        self.T = T
+        self.c0 = c0
+        self.c1 = c1
+        self.r = r
+        self.rk = rk
+        self.b = b
+        self.w = w
+        self.h = h
+        self.m = m
+        self.s = s
 
         self.kn = kn
         self.gn = gn
@@ -213,14 +228,14 @@ class LeniaStepFFT(torch.nn.Module):
     def compute_kernel(self):
 
         if torch.__version__ >= "1.7.1":
-            self.kernels = torch.zeros((self.nb_k, *[s for s in self.size[:-1]], self.size[-1]//2+1))
+            self.kernels = torch.zeros((self.nb_k, *[s for s in self.size[:-1]], self.size[-1]//2+1), device=self.R.device)
         else:
-            self.kernels = torch.zeros((self.nb_k, *self.size, 2))
+            self.kernels = torch.zeros((self.nb_k, *self.size, 2), device=self.R.device)
 
         dims = [slice(0, s) for s in self.size]
         I = list(reversed(np.mgrid[list(reversed(dims))]))  # I, J, K, L
         MID = [int(s / 2) for s in self.size]
-        X = [torch.from_numpy(i - mid) for i, mid in zip(I, MID)]  # X, Y, Z, S #TODO: removed division by self.R
+        X = [torch.from_numpy(i - mid).to(self.R.device) for i, mid in zip(I, MID)]  # X, Y, Z, S #TODO: removed division by self.R
 
         for k in range(self.nb_k):
             # distance to center in normalized space
@@ -264,7 +279,7 @@ class LeniaStepFFT(torch.nn.Module):
     def forward(self, input):
 
         # intra-creature updates
-        self.D = torch.zeros(input.shape)
+        self.D = torch.zeros(input.shape, device=self.R.device)
 
         if torch.__version__ >= "1.7.1":
             world_FFT = [torch.fft.rfftn(input[:, i, :], dim=tuple(range(-len(self.size), 0))) for i in range(self.nb_c)]

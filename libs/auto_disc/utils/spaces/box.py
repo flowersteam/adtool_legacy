@@ -148,7 +148,7 @@ class BoxSpace(BaseSpace):
     def contains(self, x):
         if isinstance(x, list):
             x = torch.tensor(x)  # Promote list to array for contains check
-        return x.shape == self.shape and torch.all(x >= self.low) and torch.all(x <= self.high)
+        return x.shape == self.shape and torch.all(x >= self.low.to(x.device)) and torch.all(x <= self.high.to(x.device))
 
     def clamp(self, x):
         if self.is_bounded(manner="below"):
@@ -158,10 +158,10 @@ class BoxSpace(BaseSpace):
         return x
 
     def calc_distance(self, x1, x2):
-        x2 = torch.stack(x2)
-        scale = (self.high - self.low)
+        x2 = torch.stack(x2).to(x1.device) #TODO: deal with device
+        scale = (self.high - self.low).to(x1.device)
         scale[torch.where(scale == 0.0)] = 1.0
-        low = self.low
+        low = self.low.to(x1.device)
 
         # L2 by default
         x1 = (x1 - low) / scale
