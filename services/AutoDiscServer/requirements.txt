@@ -2,3 +2,4 @@ flask
 flask-cors
 pyyaml
 torch==1.7.1
+pexpect
