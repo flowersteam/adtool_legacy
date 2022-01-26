@@ -15,11 +15,13 @@ from copy import copy, deepcopy
 class RemoteExperiment(BaseExperiment):
 
     def __init__(self, host_profile_name, *args, **kwargs):
-        args[1]["logger_handlers"] = [{"name": "logFile", "config": {"folder_log_path": "/home/auto_disc/logs/"}}]
+        self.__host_profile = parse_profile(next(profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
+
+        args[1]["logger_handlers"] = [{"name": "logFile", "config": {"folder_log_path": self.__host_profile["work_path"]+"/logs/"}}]
         args[1]["callbacks"] = {"on_discovery": [
                                 {"name": "disk", 
-                                "config": {"to_save_outputs": ["Parameters sent by the explorer before input wrappers", "Parameters sent by the explorer after input wrappers", "Raw system output", "Representation of system output", "Rendered system output"], 
-                                           "folder_path": "/home/auto_disc/outputs/"
+                                "config": {"to_save_outputs": args[1]["experiment"]["config"]["discovery_saving_keys"], 
+                                           "folder_path": self.__host_profile["work_path"]+"/outputs/"
                                           }
                                 }
                               ], 
@@ -27,7 +29,7 @@ class RemoteExperiment(BaseExperiment):
             "on_cancelled": [], 
             "on_finished": [], 
             "on_error": [], 
-            "on_saved": [{"name": "disk", "config": {"folder_path": "/home/auto_disc/checkpoints/"}}]
+            "on_saved": [{"name": "disk", "config": {"folder_path": self.__host_profile["work_path"]+"/checkpoints/"}}]
             }
         super().__init__(*args, **kwargs)
 
@@ -35,7 +37,7 @@ class RemoteExperiment(BaseExperiment):
         self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
 
         self.nb_seeds_finished = 0
-        self.__host_profile = parse_profile(next(profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
+        
 
         self.app_db_logger_handler = AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)
         
@@ -100,7 +102,7 @@ class RemoteExperiment(BaseExperiment):
         # execute command
         self.shell.sendline(exec_command)
         # get run id of each python who have been launched
-        self.__run_id = self.__get_run_id()
+        self.__run_id = self.__get_run_id() #TODO save run_id in db 
         # read log file to manege remote experiment
         self._monitor()
 
@@ -307,7 +309,7 @@ class RemoteExperiment(BaseExperiment):
 
     def __get_run_id(self):
         self.shell.prompt()
-        self.shell.expect('ad_tool_logger') # wait experiment start
+        self.shell.expect('\n')
         lines = self.shell.before.decode().split("\n")
         for line in lines:
             if "RUN_ID=" in line:
