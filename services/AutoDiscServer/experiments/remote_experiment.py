@@ -1,3 +1,4 @@
+from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils import list_profiles, parse_profile, get_numbers_in_string, match_except_number
 from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBLoggerHandler, AppDBCaller, AppDBMethods
@@ -104,7 +105,8 @@ class RemoteExperiment(BaseExperiment):
         # get run id of each python who have been launched
         self.__run_id = self.__get_run_id() #TODO save run_id in db 
         # read log file to manege remote experiment
-        self._monitor()
+        self._monitor_async = threading.Thread(target=self._monitor)
+        self._monitor_async.start()
 
     def stop(self):
         ### create new shell who will kills process launched by first shell
@@ -132,12 +134,13 @@ class RemoteExperiment(BaseExperiment):
         if(not os.path.exists(local_folder)):
             os.makedirs(local_folder)
         ## listen log file and do the appropriate action
+        while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
+            sleep(self.__host_profile["waiting_time_between_two_requests"]) # TODO set time in profile file
         self.shell.sendline(
             'tail -F -n +1 {}'
             .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
         )
-        self._listen_log_file_async = threading.Thread(target=self.__listen_log_file, args=(local_folder, ))
-        self._listen_log_file_async.start()
+        self.__listen_log_file(local_folder)
 
     def __tar_local_folder(self, folder_src, tar_path):
         folder_src_split = folder_src.split("/")
@@ -208,6 +211,19 @@ class RemoteExperiment(BaseExperiment):
             self.threading_lock.release()
         
         return logger_name, log_level_name, seed_number, log_id, message
+
+    def test_file_exist(self, file_path):
+            self.shell.prompt(timeout=2)
+            self.shell.sendline('test -f '+file_path + '&& echo "File exist" || echo "File does not exist"')
+            self.shell.sendline('echo "test_file_end"')
+            self.shell.expect('test_file_end')
+            lines = self.shell.before.decode().split("\n")
+            for line in lines:
+                if "File exist" == line.strip():
+                    return True
+                if "File does not exist" == line.strip():
+                    return False
+            return False
 
     def __listen_log_file(self, local_folder):
         """
@@ -341,8 +357,8 @@ class RemoteExperiment(BaseExperiment):
 
                 for save_item in to_save_outputs:
                     if save_item in kwargs["sub_folders"]:
-                        if save_item == "step_observations":
-                            kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
+                        # if save_item == "step_observations":
+                        #     kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
 
                         if save_item == "raw_output" or save_item == "step_observations":
                             files_to_save[save_item] = ('{}_{}_{}'.format(
