@@ -3,11 +3,11 @@
 PIDS=""
 for ((i=1; i<=$1; i++))
 do
-   PID=$(python run.py --seed ${i} ${@:2} >> experiment_logs.log & echo $!)
+   PID=$(python libs/auto_disc/run.py --seed ${i} ${@:2} >> experiment_logs.log & echo $!)
    if [[ $PIDS != "" ]]
    then
        PIDS+=" "
    fi
    PIDS+="${PID}"
 done
-echo $PIDS
+echo "[RUN_ID_start]$PIDS[RUN_ID_stop]"

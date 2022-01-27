@@ -12,4 +12,4 @@ do
    fi
    PIDS+="${PID}"
 done
-echo "RUN_ID= $PIDS"
+echo "[RUN_ID_start]$PIDS[RUN_ID_stop]"

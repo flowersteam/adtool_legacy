@@ -10,3 +10,5 @@ execution:
   ./multi_seeds_run.sh $NB_SEEDS $ARGS
 cancellation:
   for pid in $RUN_ID; do kill -9 $pid; done
+check_experiment_launched_every:
+  1

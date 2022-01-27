@@ -1,0 +1,14 @@
+name: 
+  jeanzay
+ssh_configuration: 
+  jeanzay
+work_path:
+  /gpfsscratch/rech/imi/ucy39hi/auto_disc/experiments/
+local_tmp_path:
+  /tmp/auto_disc/experiments/
+execution:
+  chmod +x additional_files/jeanzay.sh; additional_files/jeanzay.sh $NB_SEEDS $ARGS | egrep "[0-9]*" -o | xargs -I id echo "[RUN_ID_start]"id"[RUN_ID_stop]"
+cancellation:
+  scancel $RUN_ID
+check_experiment_launched_every:
+  60
