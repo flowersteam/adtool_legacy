@@ -135,7 +135,7 @@ class RemoteExperiment(BaseExperiment):
             os.makedirs(local_folder)
         ## listen log file and do the appropriate action
         while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
-            sleep(self.__host_profile["waiting_time_between_two_requests"]) # TODO set time in profile file
+            sleep(self.__host_profile["check_experiment_launched_every"])
         self.shell.sendline(
             'tail -F -n +1 {}'
             .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
@@ -325,11 +325,11 @@ class RemoteExperiment(BaseExperiment):
 
     def __get_run_id(self):
         self.shell.prompt()
-        self.shell.expect('\n')
-        lines = self.shell.before.decode().split("\n")
+        self.shell.expect('RUN_ID_start')
+        lines = self.shell.buffer.decode().split("\n")
         for line in lines:
-            if "RUN_ID=" in line:
-                return line.replace("RUN_ID=", "").strip()
+            if "RUN_ID_stop" in line:
+                return line.replace("RUN_ID_stop", "").replace("[", "").replace("]", "").strip()
 
     def __close_ssh(self):
         self._listen_log_file_async.join()
