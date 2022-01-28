@@ -1,0 +1,14 @@
+name: 
+  curta
+ssh_configuration: 
+  curta
+work_path:
+  /gpfs/home/mperie/auto_disc
+local_tmp_path:
+  /tmp/auto_disc/remote_experiment/
+execution:
+  chmod +x additional_files/curta.sh; additional_files/curta.sh $NB_SEEDS $ARGS | egrep "[0-9]*" -o | xargs -I id echo "[RUN_ID_start]"id"[RUN_ID_stop]"
+cancellation:
+  scancel $RUN_ID
+check_experiment_launched_every:
+  60

@@ -1,3 +1,4 @@
+from logging import exception
 from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils import list_profiles, parse_profile, get_numbers_in_string, match_except_number
@@ -213,17 +214,17 @@ class RemoteExperiment(BaseExperiment):
         return logger_name, log_level_name, seed_number, log_id, message
 
     def test_file_exist(self, file_path):
-            self.shell.prompt(timeout=2)
-            self.shell.sendline('test -f '+file_path + '&& echo "File exist" || echo "File does not exist"')
-            self.shell.sendline('echo "test_file_end"')
-            self.shell.expect('test_file_end')
-            lines = self.shell.before.decode().split("\n")
-            for line in lines:
-                if "File exist" == line.strip():
-                    return True
-                if "File does not exist" == line.strip():
-                    return False
-            return False
+        self.shell.prompt(timeout=2)
+        self.shell.sendline('test -f '+file_path + '&& echo "File exist" || echo "File does not exist"')
+        self.shell.sendline('echo "test_file_end"')
+        self.shell.expect('test_file_end')
+        lines = self.shell.before.decode().split("\n")
+        for line in lines:
+            if "File exist" == line.strip():
+                return True
+            if "File does not exist" == line.strip():
+                return False
+        return False
 
     def __listen_log_file(self, local_folder):
         """
@@ -280,7 +281,7 @@ class RemoteExperiment(BaseExperiment):
         except pxssh.ExceptionPxssh as e:
             print("pxssh failed on login.")
             print(e)
-
+        
     def __is_finished(self, log):
         return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
                
@@ -324,12 +325,17 @@ class RemoteExperiment(BaseExperiment):
         return path, sub_folders, int(run_idx)
 
     def __get_run_id(self):
-        self.shell.prompt()
-        self.shell.expect('RUN_ID_start')
+        while not "[RUN_ID_start]" in self.shell.buffer.decode():
+            self.shell.prompt()
         lines = self.shell.buffer.decode().split("\n")
         for line in lines:
-            if "RUN_ID_stop" in line:
-                return line.replace("RUN_ID_stop", "").replace("[", "").replace("]", "").strip()
+            if line.startswith("[RUN_ID_start]") and "[RUN_ID_stop]" in line:
+                line = line.replace("RUN_ID_stop", "")
+                line = line.replace("RUN_ID_start", "")
+                line = line.replace("[", "")
+                line = line.replace("]", "")
+                line = line.strip()
+                return line
 
     def __close_ssh(self):
         self._listen_log_file_async.join()
