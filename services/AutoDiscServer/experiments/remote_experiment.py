@@ -49,7 +49,7 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
         
         ### push to server
@@ -100,6 +100,8 @@ class RemoteExperiment(BaseExperiment):
                  self.experiment_config["experiment"]["config"]["nb_iterations"]
              )
         )
+        exec_command = exec_command.replace("$EXPE_ID", str(self.id))
+
         self.finished_seeds = []
         # execute command
         self.shell.sendline(exec_command)
