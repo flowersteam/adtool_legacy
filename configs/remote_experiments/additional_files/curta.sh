@@ -3,9 +3,9 @@ sbatch <<EOT
 #!/bin/sh
 #SBATCH -p inria
 #SBATCH -t 00:30:00
-#SBATCH --job-name=test_job
-#SBATCH -o %j.out
-#SBATCH -e %j.err
+#SBATCH --job-name=auto_disc_experiment
+#SBATCH -o %x-%j.out
+#SBATCH -e %x-%j.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --array=0-$(($1-1))
