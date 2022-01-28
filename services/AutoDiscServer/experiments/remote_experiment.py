@@ -188,7 +188,8 @@ class RemoteExperiment(BaseExperiment):
 
         if self.__new_files_saved_on_remote_disk(message):
             remote_path, sub_folders, run_idx = self.__get_saved_files_to_pull(message)
-            self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
+            if sub_folders is not None:
+                self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
             if remote_path.split("/")[-4] == "outputs":
                 self.save_discovery_to_expe_db(sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
             elif remote_path.split("/")[-4] == "checkpoints":
@@ -278,9 +279,12 @@ class RemoteExperiment(BaseExperiment):
                 previous_message)
             ## close properly ssh connection
             self.shell.close()
-        except pxssh.ExceptionPxssh as e:
-            print("pxssh failed on login.")
-            print(e)
+        except Exception as ex:
+            print("unexpected error occurred. checked the logs of your remote server")
+            print(ex)
+            for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
+                if i not in self.finished_seeds:
+                    super().on_error(i, self._get_current_checkpoint_id(i))
         
     def __is_finished(self, log):
         return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
@@ -322,6 +326,8 @@ class RemoteExperiment(BaseExperiment):
         sub_folders = sub_folders.replace('\'', '')
         sub_folders = sub_folders.replace(' ', '')
         sub_folders = sub_folders.split(',')
+        if '' in sub_folders:
+            sub_folders = sub_folders.remove('')
         return path, sub_folders, int(run_idx)
 
     def __get_run_id(self):
@@ -358,11 +364,14 @@ class RemoteExperiment(BaseExperiment):
                 saves={}
                 files_to_save={}
                 to_save_outputs = copy(kwargs["sub_folders"])
-                to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+                if to_save_outputs is not None:
+                    to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+                else:
+                    to_save_outputs = ["run_idx", "experiment_id", "seed"]
                 folder = "{}/outputs/{}/{}/".format(kwargs["folder"],self.id,  kwargs["seed"])
 
                 for save_item in to_save_outputs:
-                    if save_item in kwargs["sub_folders"]:
+                    if kwargs["sub_folders"] is not None and save_item in kwargs["sub_folders"]:
                         # if save_item == "step_observations":
                         #     kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
 
@@ -378,7 +387,9 @@ class RemoteExperiment(BaseExperiment):
                     else:
                         saves[save_item] = serialize_autodisc_space(kwargs[save_item])
                 discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]
-                self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
+                #check dict files_to_saves is empty or not
+                if files_to_save:
+                    self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
             except Exception as ex:
                 print("ERROR : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
     
