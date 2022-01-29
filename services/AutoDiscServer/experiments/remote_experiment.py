@@ -49,7 +49,7 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
         
         ### push to server
@@ -85,6 +85,7 @@ class RemoteExperiment(BaseExperiment):
         
         # make logs folder on remote server
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
 
     def start(self):
         # move to work directory
@@ -100,7 +101,7 @@ class RemoteExperiment(BaseExperiment):
                  self.experiment_config["experiment"]["config"]["nb_iterations"]
              )
         )
-        exec_command = exec_command.replace("$EXPE_ID", str(self.id))
+        exec_command = exec_command.replace("$EXPE_ID", self.__host_profile["work_path"]+"/run_ids/"+str(self.id))
 
         self.finished_seeds = []
         # execute command
@@ -333,9 +334,19 @@ class RemoteExperiment(BaseExperiment):
         return path, sub_folders, int(run_idx)
 
     def __get_run_id(self):
-        while not "[RUN_ID_start]" in self.shell.buffer.decode():
-            self.shell.prompt()
-        lines = self.shell.buffer.decode().split("\n")
+        self.shell_to_get_run_id = pxssh.pxssh()
+        self.shell_to_get_run_id.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+
+        while not self.test_file_exist(self.__host_profile["work_path"]+"/run_ids/{}".format(self.id)):
+            sleep(self.__host_profile["check_experiment_launched_every"])
+
+        while not "[RUN_ID_start]" in self.shell_to_get_run_id.before.decode():
+            self.shell_to_get_run_id.prompt()
+            self.shell_to_get_run_id.sendline('cat '+self.__host_profile["work_path"]+"/run_ids/{}".format(self.id))
+
+        lines = self.shell_to_get_run_id.before.decode().split("\n")
+        self.shell_to_get_run_id.close()
+        
         for line in lines:
             if line.startswith("[RUN_ID_start]") and "[RUN_ID_stop]" in line:
                 line = line.replace("RUN_ID_stop", "")
