@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray }from '@angular/cdk/drag-drop';
 
 import { JupyterService } from '../services/jupyter.service';
+import { Config } from '../entities/config';
 
 @Component({
   selector: 'app-experiment-creation',
@@ -235,8 +236,44 @@ export class ExperimentCreationComponent implements OnInit {
     // }
   }
 
+  parseModuleDictStringToDict(module: any, module_categorie: keyof ExperimentSettings){
+    let name = module.name;
+    let config = module.config;
+    for (let key in config) {
+      if(config[key].type == 'DICT'){
+        if(Array.isArray(this.newExperiment[module_categorie])){
+          for(let elt of this.newExperiment[module_categorie]){
+            if(elt.config[key].length > 0){
+              elt.config[key] = JSON.parse(elt.config[key]);
+            }
+          }
+        }
+        else{
+          if(this.newExperiment[module_categorie].config[key].length > 0){
+            this.newExperiment[module_categorie].config[key]
+          = JSON.parse(this.newExperiment[module_categorie].config[key]);
+          }
+        }
+      }
+    }
+  }
+
+  parseAllModuleDictStringToDict(){
+    this.parseModuleDictStringToDict(this.getModuleByName(this.systems, this.newExperiment["system"]["name"]), "system");
+    this.parseModuleDictStringToDict(this.getModuleByName(this.explorers, this.newExperiment["explorer"]["name"]), "explorer");
+    for (let input_wrapper of this.newExperiment["input_wrappers"]){
+      this.parseModuleDictStringToDict(this.getModuleByName(this.input_wrappers, input_wrapper.name), "input_wrappers");
+    }
+    for (let output_representation of this.newExperiment["output_representations"]){
+      this.parseModuleDictStringToDict(this.getModuleByName(this.output_representations, output_representation.name), "output_representations");
+    }
+
+    
+  }
+
 // ##################   create exp ####################    
   createExp(){
+    this.parseAllModuleDictStringToDict();
     (<HTMLInputElement> document.getElementById("btn_create_exp")).disabled = true;
     var response = this.AutoDiscServerService.createExp(this.newExperiment).subscribe(res => {
       if(res == undefined){
