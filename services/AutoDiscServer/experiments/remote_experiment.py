@@ -357,7 +357,7 @@ class RemoteExperiment(BaseExperiment):
                 return line
 
     def __close_ssh(self):
-        self._listen_log_file_async.join()
+        self._monitor_async.join()
         self.shell.close()
         if self.killer_shell is not None:
             self.killer_shell.close()
