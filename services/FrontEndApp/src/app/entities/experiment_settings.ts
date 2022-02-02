@@ -14,4 +14,5 @@ export interface ExperimentSettings {
     callbacks: string[];
     logger_handlers: any[];
     host:string;
+    [key: string]: any;
   }

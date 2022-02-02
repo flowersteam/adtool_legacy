@@ -1,3 +1,5 @@
+from logging import exception
+from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils import list_profiles, parse_profile, get_numbers_in_string, match_except_number
 from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBLoggerHandler, AppDBCaller, AppDBMethods
@@ -15,11 +17,13 @@ from copy import copy, deepcopy
 class RemoteExperiment(BaseExperiment):
 
     def __init__(self, host_profile_name, *args, **kwargs):
-        args[1]["logger_handlers"] = [{"name": "logFile", "config": {"folder_log_path": "/home/auto_disc/logs/"}}]
+        self.__host_profile = parse_profile(next(profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
+
+        args[1]["logger_handlers"] = [{"name": "logFile", "config": {"folder_log_path": self.__host_profile["work_path"]+"/logs/"}}]
         args[1]["callbacks"] = {"on_discovery": [
                                 {"name": "disk", 
-                                "config": {"to_save_outputs": ["Parameters sent by the explorer before input wrappers", "Parameters sent by the explorer after input wrappers", "Raw system output", "Representation of system output", "Rendered system output"], 
-                                           "folder_path": "/home/auto_disc/outputs/"
+                                "config": {"to_save_outputs": args[1]["experiment"]["config"]["discovery_saving_keys"], 
+                                           "folder_path": self.__host_profile["work_path"]+"/outputs/"
                                           }
                                 }
                               ], 
@@ -27,7 +31,7 @@ class RemoteExperiment(BaseExperiment):
             "on_cancelled": [], 
             "on_finished": [], 
             "on_error": [], 
-            "on_saved": [{"name": "disk", "config": {"folder_path": "/home/auto_disc/checkpoints/"}}]
+            "on_saved": [{"name": "disk", "config": {"folder_path": self.__host_profile["work_path"]+"/checkpoints/"}}]
             }
         super().__init__(*args, **kwargs)
 
@@ -35,7 +39,7 @@ class RemoteExperiment(BaseExperiment):
         self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
 
         self.nb_seeds_finished = 0
-        self.__host_profile = parse_profile(next(profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
+        
 
         self.app_db_logger_handler = AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)
         
@@ -81,6 +85,7 @@ class RemoteExperiment(BaseExperiment):
         
         # make logs folder on remote server
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
 
     def start(self):
         # move to work directory
@@ -96,13 +101,16 @@ class RemoteExperiment(BaseExperiment):
                  self.experiment_config["experiment"]["config"]["nb_iterations"]
              )
         )
+        exec_command = exec_command.replace("$EXPE_ID", self.__host_profile["work_path"]+"/run_ids/"+str(self.id))
+
         self.finished_seeds = []
         # execute command
         self.shell.sendline(exec_command)
         # get run id of each python who have been launched
-        self.__run_id = self.__get_run_id()
+        self.__run_id = self.__get_run_id() #TODO save run_id in db 
         # read log file to manege remote experiment
-        self._monitor()
+        self._monitor_async = threading.Thread(target=self._monitor)
+        self._monitor_async.start()
 
     def stop(self):
         ### create new shell who will kills process launched by first shell
@@ -130,12 +138,13 @@ class RemoteExperiment(BaseExperiment):
         if(not os.path.exists(local_folder)):
             os.makedirs(local_folder)
         ## listen log file and do the appropriate action
+        while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
+            sleep(self.__host_profile["check_experiment_launched_every"])
         self.shell.sendline(
             'tail -F -n +1 {}'
             .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
         )
-        self._listen_log_file_async = threading.Thread(target=self.__listen_log_file, args=(local_folder, ))
-        self._listen_log_file_async.start()
+        self.__listen_log_file(local_folder)
 
     def __tar_local_folder(self, folder_src, tar_path):
         folder_src_split = folder_src.split("/")
@@ -182,7 +191,8 @@ class RemoteExperiment(BaseExperiment):
 
         if self.__new_files_saved_on_remote_disk(message):
             remote_path, sub_folders, run_idx = self.__get_saved_files_to_pull(message)
-            self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
+            if sub_folders is not None:
+                self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
             if remote_path.split("/")[-4] == "outputs":
                 self.save_discovery_to_expe_db(sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
             elif remote_path.split("/")[-4] == "checkpoints":
@@ -206,6 +216,19 @@ class RemoteExperiment(BaseExperiment):
             self.threading_lock.release()
         
         return logger_name, log_level_name, seed_number, log_id, message
+
+    def test_file_exist(self, file_path):
+        self.shell.prompt(timeout=2)
+        self.shell.sendline('test -f '+file_path + '&& echo "File exist" || echo "File does not exist"')
+        self.shell.sendline('echo "test_file_end"')
+        self.shell.expect('test_file_end')
+        lines = self.shell.before.decode().split("\n")
+        for line in lines:
+            if "File exist" == line.strip():
+                return True
+            if "File does not exist" == line.strip():
+                return False
+        return False
 
     def __listen_log_file(self, local_folder):
         """
@@ -259,10 +282,13 @@ class RemoteExperiment(BaseExperiment):
                 previous_message)
             ## close properly ssh connection
             self.shell.close()
-        except pxssh.ExceptionPxssh as e:
-            print("pxssh failed on login.")
-            print(e)
-
+        except Exception as ex:
+            print("unexpected error occurred. checked the logs of your remote server")
+            print(ex)
+            for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
+                if i not in self.finished_seeds:
+                    super().on_error(i, self._get_current_checkpoint_id(i))
+        
     def __is_finished(self, log):
         return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
                
@@ -303,15 +329,32 @@ class RemoteExperiment(BaseExperiment):
         sub_folders = sub_folders.replace('\'', '')
         sub_folders = sub_folders.replace(' ', '')
         sub_folders = sub_folders.split(',')
+        if '' in sub_folders:
+            sub_folders = sub_folders.remove('')
         return path, sub_folders, int(run_idx)
 
     def __get_run_id(self):
-        self.shell.prompt()
-        self.shell.expect('ad_tool_logger') # wait experiment start
-        lines = self.shell.before.decode().split("\n")
+        self.shell_to_get_run_id = pxssh.pxssh()
+        self.shell_to_get_run_id.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+
+        while not self.test_file_exist(self.__host_profile["work_path"]+"/run_ids/{}".format(self.id)):
+            sleep(self.__host_profile["check_experiment_launched_every"])
+
+        while not "[RUN_ID_start]" in self.shell_to_get_run_id.before.decode():
+            self.shell_to_get_run_id.prompt()
+            self.shell_to_get_run_id.sendline('cat '+self.__host_profile["work_path"]+"/run_ids/{}".format(self.id))
+
+        lines = self.shell_to_get_run_id.before.decode().split("\n")
+        self.shell_to_get_run_id.close()
+        
         for line in lines:
-            if "RUN_ID=" in line:
-                return line.replace("RUN_ID=", "").strip()
+            if line.startswith("[RUN_ID_start]") and "[RUN_ID_stop]" in line:
+                line = line.replace("RUN_ID_stop", "")
+                line = line.replace("RUN_ID_start", "")
+                line = line.replace("[", "")
+                line = line.replace("]", "")
+                line = line.strip()
+                return line
 
     def __close_ssh(self):
         self._listen_log_file_async.join()
@@ -334,13 +377,16 @@ class RemoteExperiment(BaseExperiment):
                 saves={}
                 files_to_save={}
                 to_save_outputs = copy(kwargs["sub_folders"])
-                to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+                if to_save_outputs is not None:
+                    to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+                else:
+                    to_save_outputs = ["run_idx", "experiment_id", "seed"]
                 folder = "{}/outputs/{}/{}/".format(kwargs["folder"],self.id,  kwargs["seed"])
 
                 for save_item in to_save_outputs:
-                    if save_item in kwargs["sub_folders"]:
-                        if save_item == "step_observations":
-                            kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
+                    if kwargs["sub_folders"] is not None and save_item in kwargs["sub_folders"]:
+                        # if save_item == "step_observations":
+                        #     kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
 
                         if save_item == "raw_output" or save_item == "step_observations":
                             files_to_save[save_item] = ('{}_{}_{}'.format(
@@ -354,7 +400,9 @@ class RemoteExperiment(BaseExperiment):
                     else:
                         saves[save_item] = serialize_autodisc_space(kwargs[save_item])
                 discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]
-                self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
+                #check dict files_to_saves is empty or not
+                if files_to_save:
+                    self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
             except Exception as ex:
                 print("ERROR : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
     
