@@ -21,6 +21,11 @@ class UMAP(BaseOutputRepresentation):
     '''
     UMAP OutputRepresentation.
     '''
+
+    from addict import Dict  # TODO: put config init in Base Module
+    CONFIG_DEFINITION = {}
+    config = Dict()
+
     output_space = DictSpace(
         umap=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
     )

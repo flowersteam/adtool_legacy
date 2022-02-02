@@ -69,6 +69,10 @@ class VAE(nn.Module, BaseOutputRepresentation):
     VAE Output Representation
     """
 
+    from addict import Dict  # TODO: put config init in Base Module
+    CONFIG_DEFINITION = {}
+    config = Dict()
+
     output_space = DictSpace(
         vae=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
     )

@@ -97,6 +97,6 @@ class MultiDiscreteSpace(BaseSpace):
 
     def to_json(self):
         dict = super().to_json()
-        dict['nvec'] = self._nvec
-        dict['indpb'] = self._indpb
+        dict['nvec'] = self.nvec
+        dict['indpb'] = self.indpb
         return dict

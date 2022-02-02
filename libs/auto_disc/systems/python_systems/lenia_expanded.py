@@ -37,11 +37,12 @@ class Lenia(BasePythonSystem):
     config = Dict()
     
     input_spaces = dict(
-        #init_state=BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.0, dtype=torch.float32, shape=()),
+        init_state=BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.0, dtype=torch.float32, shape=()),
+        init_wall=BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.0, dtype=torch.float32, shape=()),
         R=DiscreteSpace(n=25, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.01),
         T=BoxSpace(low=1.0, high=10.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(), indpb=0.01, dtype=torch.float32),
-        #c0=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
-        #c1=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
+        c0=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
+        c1=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
         rk=BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
         b=BoxSpace(low=0.0, high=1.0, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
         w=BoxSpace(low=0.01, high=0.5, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),

@@ -1,3 +1,4 @@
+from auto_disc.systems.executable_systems import *
 from auto_disc.systems.python_systems import *
 from auto_disc.explorers import *
 from auto_disc.input_wrappers.generic import *
@@ -13,19 +14,28 @@ import auto_disc.utils.callbacks.on_save_finished_callbacks as on_save_finished_
 from auto_disc.utils.logger.handlers import *
 
 REGISTRATION = {
-    'systems':{
-        'PythonLenia': PythonLenia
+    'systems': {
+        'PythonLenia': PythonLenia,
+        'PytorchLenia': PytorchLenia,
+        'SimCells': SimCells,
     },
-    'explorers':{
-        'IMGEPExplorer': IMGEPExplorer
+    'explorers': {
+        'IMGEPExplorer': IMGEPExplorer,
+        'IMGEPSGDExplorer': IMGEPSGDExplorer,
     },
-    'input_wrappers':{
+    'input_wrappers': {
         'generic.CPPN': CppnInputWrapper,
-        'generic.TimesN': TimesNInputWrapper 
+        'specific.SimcellsMatnucleusInputWrapper': SimcellsMatnucleusInputWrapper,
     },
-    'output_representations':{
+    'output_representations': {
+        'generic.PCA': PCA,
+        'generic.UMAP': UMAP,
+        'generic.SliceSelector': SliceSelector,
+        'generic.Flatten': Flatten,
+        'generic.VAE': VAE,
+        'generic.HOLMES_VAE': HOLMES_VAE,
         'specific.LeniaFlattenImage': LeniaImageRepresentation,
-        'specific.LeniaStatistics': LeniaHandDefinedRepresentation
+        'specific.LeniaStatistics': LeniaHandDefinedRepresentation,
     },
     'callbacks': {
         'on_discovery':{

@@ -9,6 +9,10 @@ class SliceSelector(BaseOutputRepresentation):
         Selects a single slice from Lenia states output.
     '''
 
+    from addict import Dict  # TODO: put config init in Base Module
+    CONFIG_DEFINITION = {}
+    config = Dict()
+
     output_space = DictSpace(
         slice = BoxSpace(low=0.0, high=1.0, shape=()),
     )# TODO: we dont know shape before initialize here

@@ -489,6 +489,10 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
     HOLMES_VAE Output Representation
     """
 
+    from addict import Dict  # TODO: put config init in Base Module
+    CONFIG_DEFINITION = {}
+    config = Dict()
+
     output_space = DictSpace(
         holmes_vae = DictSpace (
             spaces={"0": BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))}

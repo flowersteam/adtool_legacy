@@ -19,7 +19,7 @@ import torch
 @StringConfigParameter(name="tb_folder", default="./tensorboard_imgep/")
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
-class IMGEPExplorerGecko(IMGEPExplorer):
+class IMGEPSGDExplorer(IMGEPExplorer):
     def initialize(self, input_space, output_space):
         super().initialize(input_space,output_space)
 
