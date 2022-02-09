@@ -17,6 +17,13 @@ import { DragDropModule }from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
+import { SelectInputAccordingToTypeComponent } from './experiment-creation/select-input-according-to-type/select-input-according-to-type.component';
+import { SetDiscoverySavingKeyComponent } from './experiment-creation/set-discovery-saving-key/set-discovery-saving-key.component';
+import { SetModuleComponent } from './experiment-creation/set-module/set-module.component';
+import { SetModuleListComponent } from './experiment-creation/set-module-list/set-module-list.component';
+import { DisplayInputspaceOutputspaceComponent } from './experiment-creation/display-inputspace-outputspace/display-inputspace-outputspace.component';
+import { SetExperimentConfigComponent } from './experiment-creation/set-experiment-config/set-experiment-config.component';
+import { LoadExperimentConfigToCreateComponent } from './experiment-creation/load-experiment-config-to-create/load-experiment-config-to-create.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +33,13 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
     ExperimentMonitoringComponent,
     FilterPipe,
     ArchiveExperimentComponent,
+    SelectInputAccordingToTypeComponent,
+    SetDiscoverySavingKeyComponent,
+    SetModuleComponent,
+    SetModuleListComponent,
+    DisplayInputspaceOutputspaceComponent,
+    SetExperimentConfigComponent,
+    LoadExperimentConfigToCreateComponent,
   ],
   imports: [
     BrowserModule,
@@ -37,7 +51,7 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
     ReactiveFormsModule,
     NgxSliderModule
   ],
-  providers: [],
+  providers: [SetModuleComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

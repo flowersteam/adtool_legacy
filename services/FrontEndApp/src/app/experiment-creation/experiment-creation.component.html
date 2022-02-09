@@ -6,467 +6,136 @@
 </nav>
 
 <div class="container">
-    
-    <div class="accordion" id="accordionExample">
-
-
-        <!-- general information accordion -->
-        <div class="accordion-item mt-5">
-            <h2 class="accordion-header" id="headingGeneralInformation">
-            <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneralInformation" aria-expanded="false" aria-controls="collapseGeneralInformation">
-                GENERAL INFORMATION
-            </button>
-            </h2>
-            <div id="collapseGeneralInformation" class="accordion-collapse collapse show" aria-labelledby="headingGeneralInformation">
-                <div class="accordion-body">
-                    <label class="card-title col-12" for="experiment_name">Enter the exeperiment name:</label>
-                    <input type="text" class="form-control" id="experiment_name" placeholder="My beautifull new experiment" 
-                           [(ngModel)]="this.newExperiment.experiment.name">
-    
-                    <label class="card-title col-12" for="nb_iteration">Enter the number of iteration:</label>
-                    <input type="number" min="1" class="form-control" id="nb_iteration" 
-                    [(ngModel)]="this.newExperiment.experiment.config.nb_iterations">
-    
-                    <label class="card-title col-12" for="nb_seed">Enter the number of seed:</label>
-                    <input type="number" min="1" class="form-control" id="nb_seed"
-                    [(ngModel)]="this.newExperiment.experiment.config.nb_seeds">
-
-                    <label class="card-title col-12" for="save_frequency">Enter the frequence to save:</label>
-                    <input type="number" min="1" class="form-control" id="save_frequency"
-                    [(ngModel)]="this.newExperiment.experiment.config.save_frequency">
-
-                    <!-- choose host -->
-                    <div class="dropdown my-2">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownSystem" name="dropdownSystem" 
-                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-                            {{this.newExperiment.experiment.config.host}}
-                        </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownSystem">
-                            <li *ngFor="let host of hosts" class="dropdown-item" (click)="setHostUsed(host)">
-                                {{host}}
-                            </li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-
-        <!-- system accordion -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingSystem">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="true" aria-controls="collapseSystem">
-                SYSTEM
-                </button>
-            </h2>
-            <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
-                <div class="accordion-body">
-                    <!-- choose system -->
-                    <div class="dropdown my-2">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownSystem" name="dropdownSystem" 
-                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-                            {{this.newExperiment.system.name}}
-                        </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownSystem">
-                            <li *ngFor="let system of systems" class="dropdown-item" (click)="setSystemUsed(system.name)">
-                                {{system.name}}
-                            </li>
-                        </ul>
-                    </div>
-                    <!-- set config system -->
-                    <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM'" class="container">
-                        <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).config)">
-                            {{this.setActualConfigElt(this.getModuleByName(this.systems, this.newExperiment.system.name).config[elt_config_key])}}
-                            <label class="card-title col-12" for="experiment_name">Enter {{elt_config_key}}:</label>
-                            <!-- type integer -->
-                            <input *ngIf="this.actual_config_elt.type == 'INTEGER'" type="number" min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                    class="form-control" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                            <!-- type float -->
-                            <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                    class="form-control" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                            <!-- type boolean -->
-                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
-                                Yes : 
-                                <input type="checkbox" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                            </label>
-                            <!-- type string -->
-                            <div *ngIf="this.actual_config_elt.type == 'STRING'">
-                                <div *ngIf="this.actual_config_elt.possible_values == null;else choose_in_list_system">
-                                    <input type="text" class="form-control" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                                </div>
-                                <ng-template #choose_in_list_system class="dropdown"> 
-                                    <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                                        <option *ngFor="let choice of this.actual_config_elt.possible_values" >{{choice}}</option>
-                                    </select>
-                                </ng-template>
-                            </div>
-                            <label *ngIf="this.actual_config_elt.type == 'DICT'">
-                                <input type="text" [(ngModel)]="this.newExperiment.system.config[elt_config_key]">
-                            </label>
-                        </div>
-
-                        <!-- more informations -->
-                        <div class="card-group">
-                            <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Input Space</h5>
-                                <p class="card-text" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)">{{elt_input_space}}</p>
-                            </div>
-                            </div>
-                            <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Output Space</h5>
-                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)">{{elt_output_space}}</p>
-                            </div>
-                            </div>
-                        </div>
-                    </div>   
-                </div>
-            </div>
-        </div>
-
-
-        <!-- explorer accordion -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingExplorer">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="true" aria-controls="collapseExplorer">
-                Explorer
-                </button>
-            </h2>
-            <div id="collapseExplorer" class="accordion-collapse collapse" aria-labelledby="headingExplorer">
-                <div class="accordion-body">
-                    <div class="dropdown my-2">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownExplorer" name="dropdownExplorer" 
-                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-                            {{this.newExperiment.explorer.name}}
-                        </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownExplorer">
-                            <li *ngFor="let explorer of explorers" class="dropdown-item" (click)="setExplorerUsed(explorer.name)">
-                                {{explorer.name}}
-                            </li>
-                        </ul>
-                    </div> 
-                    <!-- set config explorer -->
-                    <div *ngIf="this.newExperiment.explorer.name != 'CHOOSE AN EXPLORER'" class="card-title col-12" class="container">
-                        <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.getModuleByName(this.explorers, this.newExperiment.explorer.name).config)">
-                            {{this.setActualConfigElt(this.getModuleByName(this.explorers, this.newExperiment.explorer.name).config[elt_config_key])}}
-                            <label class="card-title col-12" for="experiment_name">Enter {{elt_config_key}}:</label>
-                            <!-- type integer -->
-                            <input *ngIf="this.actual_config_elt.type == 'INTEGER'" type="number" min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                    class="form-control" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                            <!-- type float -->
-                            <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                    class="form-control" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                            <!-- type boolean -->
-                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
-                                Yes : 
-                                <input type="checkbox" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                            </label>
-                            <!-- type string -->
-                            <div *ngIf="this.actual_config_elt.type == 'STRING'">
-                                <div *ngIf="this.actual_config_elt.possible_values == null;else choose_in_list_explorer">
-                                    <input type="text" class="form-control" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                                </div>
-                                <ng-template #choose_in_list_explorer class="dropdown"> 
-                                    <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                                        <option *ngFor="let choice of this.actual_config_elt.possible_values" >{{choice}}</option>
-                                    </select>
-                                </ng-template>
-                            </div>
-                            <label *ngIf="this.actual_config_elt.type == 'DICT'">
-                                <input type="text" [(ngModel)]="this.newExperiment.explorer.config[elt_config_key]">
-                            </label>
-                        </div>
-                    </div> 
-                </div>
-            </div>
-        </div>
-
-
-        <!-- input-wrapper accordion -->
+    <div class="row">
         
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingInputWrapper">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="true" aria-controls="collapseInputWrapper">
-                InputWrapper
+        <div class="accordion col-9" id="accordionExample">
+
+            <!-- general information accordion -->
+            <div class="accordion-item mt-5">
+                <h2 class="accordion-header" id="headingGeneralInformation">
+                <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneralInformation" aria-expanded="false" aria-controls="collapseGeneralInformation">
+                    GENERAL INFORMATION
                 </button>
-            </h2>
-            <div id="collapseInputWrapper" class="accordion-collapse collapse" aria-labelledby="headingInputWrapper">
-                <div class="accordion-body">
-                    <!-- possible input_wrappers -->
-                    <div class="dropdown my-2">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownInputWrapper" name="dropdownInputWrapper" 
-                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-                            ADD AN INPUT WRAPPER
-                        </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownInputWrapper">
-                            <li *ngFor="let inputWrapper of this.input_wrappers" class="dropdown-item" (click)="this.addNewInputWrapperToUsed(inputWrapper.name)">
-                                {{inputWrapper.name}}
-                            </li>
-                        </ul>
+                </h2>
+                <div id="collapseGeneralInformation" class="accordion-collapse collapse show" aria-labelledby="headingGeneralInformation">
+                    <div class="accordion-body">
+                        <app-set-experiment-config 
+                            [currentConfig]="this.newExperiment.experiment"
+                            [hosts]="this.hosts">
+                        </app-set-experiment-config>
                     </div>
-                    <!-- list accordion input wrappers -->
-                    <div  class="accordion" id="accordionListInputwrapperList" cdkDropList (cdkDropListDropped)="drop($event, this.newExperiment.input_wrappers)">
+                </div>
+            </div>
+
+            <!-- system accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSystem">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="true" aria-controls="collapseSystem">
+                    SYSTEM
+                    </button>
+                </h2>
+                <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
+                    <div class="accordion-body">
+                        <app-set-module 
+                            [currentModule]="this.newExperiment.system"
+                            [modules]="this.systems"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module>
+                    </div>
+                </div>
+            </div>
+
+            <!-- explorer accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingExplorer">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="true" aria-controls="collapseExplorer">
+                    Explorer
+                    </button>
+                </h2>
+                <div id="collapseExplorer" class="accordion-collapse collapse" aria-labelledby="headingExplorer">
+                    <div class="accordion-body">
+                        <app-set-module 
+                            [currentModule]="this.newExperiment.explorer"
+                            [modules]="this.explorers"
+                            [displayInputOutputSpace]="false">
+                        </app-set-module>
+                    </div>
+                </div>
+            </div>
+
+            <!-- input-wrapper accordion -->        
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingInputWrapper">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="true" aria-controls="collapseInputWrapper">
+                    InputWrapper
+                    </button>
+                </h2>
+                <div id="collapseInputWrapper" class="accordion-collapse collapse" aria-labelledby="headingInputWrapper">
+                    <div class="accordion-body">
                         <!-- general information accordion -->
-                        <div *ngFor="let input_wrapper of this.newExperiment.input_wrappers; let index=index" class="accordion-item"
-                             cdkDrag>
-                            <h2 class="accordion-header" id="{{'headingInputWrapperList' + index}}">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapseInputWrapperList' + index" aria-expanded="true" [attr.aria-controls]="'collapseInputWrapperList' + index">
-                                    {{input_wrapper.name}}
-                                </button>
-                            </h2>
-                            <div [attr.id]="'collapseInputWrapperList' + index" class="accordion-collapse collapse" aria-labelledby="headingInputWrapperList">
-                                <div class="accordion-body">
-                                    <!-- set config one inputwrapper -->
-                                    <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM'" class="card-title col-12" class="container">
-                                        <label class="card-title col-12" for="experiment_name">Enter wrapped output space key:</label>
-                                        <div class="dropdown">
-                                            <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.input_wrappers[index].config['wrapped_output_space_key']">
-                                                <option *ngFor="let choice of this.objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)" >
-                                                    {{choice}}
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[index].name).config)">
-                                            {{this.setActualConfigElt(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[index].name).config[elt_config_key])}}
-                                            <label class="card-title col-12" for="experiment_name">Enter {{elt_config_key}}:</label>
-                                            <!-- type integer -->
-                                            <input *ngIf="this.actual_config_elt.type == 'INTEGER'" type="number" min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                                    class="form-control" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                            <!-- type float -->
-                                            <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                                    class="form-control" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                            <!-- type boolean -->
-                                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
-                                                Yes : 
-                                                <input type="checkbox" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                            </label>
-                                            <!-- type string -->
-                                            <div *ngIf="this.actual_config_elt.type == 'STRING'">
-                                                <div *ngIf="this.actual_config_elt.possible_values == null;else choose_in_list_input_wrappers">
-                                                    <input type="text" class="form-control" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                                </div>
-                                                <ng-template #choose_in_list_input_wrappers class="dropdown"> 
-                                                    <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                                        <option *ngFor="let choice of this.actual_config_elt.possible_values" >{{choice}}</option>
-                                                    </select>
-                                                </ng-template>
-                                            </div>
-                                            <label *ngIf="this.actual_config_elt.type == 'DICT'">
-                                                <input type="text" [(ngModel)]="this.newExperiment.input_wrappers[index].config[elt_config_key]">
-                                            </label>
-                                        </div>
-
-                                        <!-- more informations -->
-                                        <div class="card-group">
-                                            <div class="card">
-                                            <div class="card-body">
-                                                <h5 class="card-title">Input Space</h5>
-                                                <p class="card-text" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)"
-                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
-                                                    {{elt_input_space == this.newExperiment.input_wrappers[index].config['wrapped_output_space_key']?
-                                                    objectKeys(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[index].name).input_space)[0]
-                                                     : elt_input_space}}
-                                                </p>
-                                            </div>
-                                            </div>
-                                            <div class="card">
-                                            <div class="card-body">
-                                                <h5 class="card-title">Output Space</h5>
-                                                <p class="card-text" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space)"
-                                                [ngClass]="elt_input_space != this.newExperiment.input_wrappers[index].config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
-                                                    {{elt_input_space}}
-                                                </p>
-                                            </div>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-danger btn-lg bi bi-trash my-2" (click)="removeInputwrapperToUsed(index)"></button>
-                                    </div>
-                                </div>
-                            </div>  
-                        </div>
+                        <app-set-module-list
+                            moduleType = "INPUT WRAPPER"
+                            [currentModuleList]="this.newExperiment.input_wrappers"
+                            [modules]="this.input_wrappers"
+                            [currentSystem]="this.newExperiment.system"
+                            [systems]="this.systems"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module-list>    
                     </div>
                 </div>
             </div>
+
+            <!-- output-representation accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOutputRepresentation">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="true" aria-controls="collapseOutputRepresentation">
+                    OutputRepresentation
+                    </button>
+                </h2>
+                <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
+                    <div class="accordion-body">
+                        <app-set-module-list
+                            moduleType = "OUTPUT REPRESENTATION"
+                            [currentModuleList]="this.newExperiment.output_representations"
+                            [modules]="this.output_representations"
+                            [currentSystem]="this.newExperiment.system"
+                            [systems]="this.systems"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module-list>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatDoYouWantToSave accordion -->
+            <div class="accordion-item mb-5">
+                <h2 class="accordion-header" id="headingWhatDoYouWantToSave">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatDoYouWantToSave" aria-expanded="true" aria-controls="collapseWhatDoYouWantToSave">
+                    WHAT DO YOU WANT TO SAVE ?
+                    </button>
+                </h2>
+                <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">
+                    <div class="accordion-body">
+                        <app-set-discovery-saving-key 
+                            [(inputValueCheckBox)]="this.newExperiment.experiment.config.discovery_saving_keys"
+                            [system_name]="this.newExperiment.system.name"
+                            [system_settings]="this.newExperiment.system != undefined ? this.setModuleComponent.getModuleByName(this.systems, this.newExperiment.system.name) : undefined"
+                            [input_wrappers]="this.newExperiment.input_wrappers"
+                            [input_wrappers_settings]="this.newExperiment.input_wrappers.length > 0 ? this.setModuleComponent.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[0].name) : undefined"
+                            [output_representations]="this.newExperiment.output_representations"
+                            [output_representations_settings]="this.newExperiment.output_representations.length > 0 ? this.setModuleComponent.getModuleByName(this.output_representations, this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].name) : undefined">
+                        </app-set-discovery-saving-key>
+                    </div>
+                </div>
+            </div>    
+        </div>
+        <!-- accordion is finished -->
+
+        <div class="col-3">
+            <app-load-experiment-config-to-create 
+                [currentExperiment]="this.newExperiment">
+            </app-load-experiment-config-to-create>
         </div>
 
-
-
-
-        <!-- output-representation accordion -->
-        
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOutputRepresentation">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="true" aria-controls="collapseOutputRepresentation">
-                OutputRepresentation
-                </button>
-            </h2>
-            <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
-                <div class="accordion-body">
-                    <!-- possible output_representations -->
-                    <div class="dropdown my-2">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownOutputRepresentation" name="dropdownOutputRepresentation" 
-                                data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-                            ADD AN OUTPUT REPRESENTATION
-                        </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownOutputRepresentation">
-                            <li *ngFor="let outputRepresentation of this.output_representations" class="dropdown-item" (click)="this.addNewOutputRepresentationToUsed(outputRepresentation.name)">
-                                {{outputRepresentation.name}}
-                            </li>
-                        </ul>
-                    </div>
-                    <!-- list accordion output representations -->
-                    <div  class="accordion" id="accordionListOutputRepresentationList" cdkDropList (cdkDropListDropped)="drop($event, this.newExperiment.output_representations)">
-                        <!-- all selected output representations accordion -->
-                        <div *ngFor="let output_representation of this.newExperiment.output_representations; let index=index" class="accordion-item"
-                             cdkDrag>
-                            <h2 class="accordion-header" id="{{'headingOutputRepresentationList' + index}}">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapseOutputRepresentationList' + index" aria-expanded="true" [attr.aria-controls]="'collapseOutputRepresentationList' + index">
-                                    {{output_representation.name}}
-                                </button>
-                            </h2>
-                            <div [attr.id]="'collapseOutputRepresentationList' + index" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentationList">
-                                <div class="accordion-body">
-                                    <!-- set config one outputRepresentation -->
-                                    <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM'" class="card-title col-12" class="container">
-                                        <label class="card-title col-12" for="experiment_name">Enter wrapped output space key:</label>
-                                        <div class="dropdown">
-                                            <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.output_representations[index].config['wrapped_input_space_key']">
-                                                <option *ngFor="let choice of this.objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)" >
-                                                    {{choice}}
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[index].name).config)">
-                                            {{this.setActualConfigElt(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[index].name).config[elt_config_key])}}
-                                            <label class="card-title col-12" for="experiment_name">Enter {{elt_config_key}}:</label>
-                                            <!-- type integer -->
-                                            <input *ngIf="this.actual_config_elt.type == 'INTEGER'" type="number" min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                                    class="form-control" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                            <!-- type float -->
-                                            <input *ngIf="this.actual_config_elt.type == 'FLOAT'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
-                                                    class="form-control" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                            <!-- type boolean -->
-                                            <label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
-                                                Yes : 
-                                                <input type="checkbox" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                            </label>
-                                            <!-- type string -->
-                                            <div *ngIf="this.actual_config_elt.type == 'STRING'">
-                                                <div *ngIf="this.actual_config_elt.possible_values == null;else choose_in_list_output_representations">
-                                                    <input type="text" class="form-control" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                                </div>
-                                                <ng-template #choose_in_list_output_representations class="dropdown"> 
-                                                    <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                                        <option *ngFor="let choice of this.actual_config_elt.possible_values" >{{choice}}</option>
-                                                    </select>
-                                                </ng-template>
-                                            </div>
-                                            <label *ngIf="this.actual_config_elt.type == 'DICT'">
-                                                <input type="text" [(ngModel)]="this.newExperiment.output_representations[index].config[elt_config_key]">
-                                            </label>
-                                        </div>
-
-                                        <!-- more informations -->
-                                        <div class="card-group">
-                                            <div class="card">
-                                            <div class="card-body">
-                                                <h5 class="card-title">Input Space</h5>
-                                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)"
-                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
-                                                    {{elt_output_space}}
-                                                </p>
-                                            </div>
-                                            </div>
-                                            <div class="card">
-                                            <div class="card-body">
-                                                <h5 class="card-title">Output Space</h5>
-                                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)"
-                                                [ngClass]="elt_output_space != this.newExperiment.output_representations[index].config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
-                                                    {{elt_output_space == this.newExperiment.output_representations[index].config['wrapped_input_space_key']?
-                                                    objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[index].name).output_space)[0]
-                                                    : elt_output_space}}
-                                                </p>
-                                            </div>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-danger btn-lg bi bi-trash my-2" (click)="removeOutputRepresentationToUsed(index)"></button>
-                                    </div>
-                                </div>
-                            </div>  
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- WhatDoYouWantToSave accordion -->
-        <div class="accordion-item mb-5">
-            <h2 class="accordion-header" id="headingWhatDoYouWantToSave">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatDoYouWantToSave" aria-expanded="true" aria-controls="collapseWhatDoYouWantToSave">
-                WHAT DO YOU WANT TO SAVE ?
-                </button>
-            </h2>
-            <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">
-                <div class="accordion-body">
-                    <h5 class="card-title col-12 mt-5">What do you want to save ?</h5>
-                
-                    <div *ngFor="let discovery_saving_key_used of discovery_saving_keys_used | keyvalue" class="card my-3">
-                        <div class="card-body">
-                            <div class="row">             
-                                <label class="form-control" class="card-title col-12"  id="oui"
-                                        required name="oui">
-                                        <input type="checkbox" (change)="this.onCheckboxChange(discovery_saving_key_used.key)"
-                                                name={{discovery_saving_key_used.key}} [checked]=discovery_saving_key_used.value/>
-                                        {{discovery_saving_key_used.key}}
-                                        <!-- print space Raw system output -->
-                                        <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && discovery_saving_key_used.key == 'Raw system output'" class="card">
-                                            <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space); let index = index">
-                                                    <span *ngIf="index > 0"> | </span>{{elt_output_space}}</p>
-                                            </div>
-                                        </div>
-                                        <!-- print space Parameters sent by the explorer before input wrappers -->
-                                        <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && 
-                                                    this.newExperiment.input_wrappers.length > 0 && 
-                                                    discovery_saving_key_used.key == 'Parameters sent by the explorer before input wrappers'" class="card">
-                                            <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space); let index = index">
-                                                    <span *ngIf="index > 0"> | </span>{{elt_input_space == this.newExperiment.input_wrappers[0].config['wrapped_output_space_key']?
-                                                    objectKeys(this.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[0].name).input_space)[0]
-                                                        : elt_input_space}}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <!-- print space Parameters sent by the explorer after input wrappers -->
-                                        <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && discovery_saving_key_used.key == 'Parameters sent by the explorer after input wrappers'" class="card">
-                                            <div class="card-body">
-                                                <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).input_space); let index = index">
-                                                    <span *ngIf="index > 0"> | </span>{{elt_input_space +' '}}</p>
-                                            </div>
-                                        </div>
-                                        <!-- print space  Representation of system output -->
-                                        <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM' && 
-                                                    this.newExperiment.output_representations.length > 0 && 
-                                                    discovery_saving_key_used.key == 'Representation of system output'" class="card">
-                                            <div class="card-body">
-                                                <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space); let index = index">
-                                                    <span *ngIf="index > 0"> | </span>{{elt_output_space == this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].config['wrapped_input_space_key']?
-                                                    objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].name).output_space)[0]
-                                                    : elt_output_space}}
-                                                </p>
-                                            </div>
-                                        </div>
-                                </label>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>            
-        <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
     </div>
+    <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
 </div>
