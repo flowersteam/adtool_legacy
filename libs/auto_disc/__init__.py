@@ -1,3 +1,4 @@
 from auto_disc.base_autodisc_module import BaseAutoDiscModule
 from auto_disc.experiment_pipeline import ExperimentPipeline
+from auto_disc.experiment_pipeline_grad import ExperimentPipelineGrad
 from auto_disc.registration import REGISTRATION

@@ -5,7 +5,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 from auto_disc import REGISTRATION
-from auto_disc import ExperimentPipeline
+from auto_disc import ExperimentPipelineGrad
 from auto_disc.utils.logger import AutoDiscLogger
 
 import numpy as np
@@ -72,7 +72,7 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
             )
 
     # Create experiment pipeline
-    experiment = ExperimentPipeline(
+    experiment = ExperimentPipelineGrad(
         experiment_id=experiment_id,
         seed=seed,
         save_frequency=save_frequency,

@@ -2,7 +2,7 @@ from auto_disc.explorers import IMGEPExplorer
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter, BooleanConfigParameter
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list
 
-from copy import copy
+from copy import deepcopy
 import io
 import numpy as np
 import os
@@ -20,21 +20,24 @@ import torch
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 class IMGEPSGDExplorer(IMGEPExplorer):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def initialize(self, input_space, output_space):
         super().initialize(input_space,output_space)
 
         # Custom for GECKO
         self.load_target_img()
         self.set_optimizer()
+        self.loss_buffer_size = 50
         self.policy_parameters = {}
 
         self.set_tensorboard()
 
 
     def load_target_img(self):
-        url = "https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/emoji_u1f98e.png"
-        r = requests.get(url)
-        img = Image.open(io.BytesIO(r.content))
+        img = Image.open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gecko.png"))
         img = img.resize((256,256), Image.ANTIALIAS)
         with torch.no_grad():
             img = torch.as_tensor(np.float64(img)) / 255.0
@@ -45,8 +48,20 @@ class IMGEPSGDExplorer(IMGEPExplorer):
             gray_target_img = img.matmul(torch.DoubleTensor([[0.2989, 0.5870, 0.1140]]).t()).squeeze()
             self.target_img  = (1.0 - gray_target_img).flatten().unsqueeze(0).to(self.config.tensors_device)
 
-    def set_optimizer(self):
-        self.optimized_parameters = torch.nn.ParameterDict({
+    def set_optimizer(self, source_policy=None):
+        if source_policy is not None:
+            self.optimized_parameters = torch.nn.ParameterDict({
+                'init_state': torch.nn.Parameter(deepcopy(source_policy['init_state'])),
+                'r': torch.nn.Parameter(deepcopy(source_policy['r'])),
+                'rk': torch.nn.Parameter(deepcopy(source_policy['rk'])),
+                'b': torch.nn.Parameter(deepcopy(source_policy['b'])),
+                'w': torch.nn.Parameter(deepcopy(source_policy['w'])),
+                'h': torch.nn.Parameter(deepcopy(source_policy['h'])),
+                'm': torch.nn.Parameter(deepcopy(source_policy['m'])),
+                's': torch.nn.Parameter(deepcopy(source_policy['s']))
+            }).to(self.config.tensors_device)
+        else:
+            self.optimized_parameters = torch.nn.ParameterDict({
                                     'init_state': torch.nn.Parameter(self._output_space['init_state'].sample()),
                                     'r': torch.nn.Parameter(self._output_space['r'].sample()),
                                     'rk': torch.nn.Parameter(self._output_space['rk'].sample()),
@@ -57,7 +72,7 @@ class IMGEPSGDExplorer(IMGEPExplorer):
                                     's': torch.nn.Parameter(self._output_space['s'].sample())
                                     }).to(self.config.tensors_device)
         #TODO: differentiable and not differentiable
-        self.optimizer = torch.optim.Adam([{'params': self.optimized_parameters.init_state, 'lr': 0.5e-1},
+        self.optimizer = torch.optim.Adam([{'params': self.optimized_parameters.init_state, 'lr': 8e-3},
                                           {'params': self.optimized_parameters.r},
                                           {'params': self.optimized_parameters.rk},
                                           {'params': self.optimized_parameters.b},
@@ -65,10 +80,11 @@ class IMGEPSGDExplorer(IMGEPExplorer):
                                           {'params': self.optimized_parameters.h},
                                           {'params': self.optimized_parameters.m},
                                           {'params': self.optimized_parameters.s},
-                                           ], lr=1e-3)
+                                           ], lr=2e-3)
 
+        self.reset_source_policy = False
         self.loss_buffer = []
-        self.loss_buffer_size = 10
+        self.loss_running_average = torch.FloatTensor([float('nan')])
 
     def set_tensorboard(self):
         if not os.path.exists(self.config.tb_folder):
@@ -88,7 +104,12 @@ class IMGEPSGDExplorer(IMGEPExplorer):
             source_policy_idx = torch.argmin(goal_distances)
 
         elif self.config.source_policy_selection_type == 'random':
-            source_policy_idx = random.randint(0, len(goal_library)-1)
+            #filter non dead : here with select randomly among non dead (specific to Lenia Diff)
+            non_dead_inds = torch.where(torch.stack(goal_library[:self.config.num_of_random_initialization]).sum(-1).squeeze()>400)[0]
+            source_policy_idx = non_dead_inds[(torch.rand(()) * len(non_dead_inds)).int().item()]
+            #TODO: put filter as function in config?
+            #source_policy_idx = random.randint(0, len(goal_library)-1)
+
 
 
         else:
@@ -108,20 +129,22 @@ class IMGEPSGDExplorer(IMGEPExplorer):
                 for k,v in self.policy_parameters.items():
                     self.policy_parameters[k] = v.to(self.config.tensors_device)
         else:
-            if (self.CURRENT_RUN_INDEX == self.config.num_of_random_initialization) or (len(self.loss_buffer)==self.loss_buffer_size and self.loss_running_average < 0.1):
+            if (self.CURRENT_RUN_INDEX == self.config.num_of_random_initialization) \
+                    or (len(self.loss_buffer)==self.loss_buffer_size and self.loss_running_average < 1e-3)\
+                    or self.reset_source_policy:
                 # get source policy which should be mutated
                 history = self._access_history()
                 source_policy_idx = self._get_source_policy_idx(self.target_img)
                 source_policy = history[int(source_policy_idx)]['output']
 
+                self.set_optimizer(source_policy=source_policy)
 
-                for k,v in source_policy.items():
-                    if k in self.optimized_parameters.keys():
-                        self.optimized_parameters[k].data = v.to(self.config.tensors_device)
+                for k, v in source_policy.items():
+                    if k not in self.optimized_parameters.keys():
+                        self.policy_parameters[k].data = v.to(self.config.tensors_device)
 
-            for k,v in self.optimized_parameters.items():
-                self.policy_parameters[k] = v
-
+            for k in self.optimized_parameters.keys():
+                self.policy_parameters[k] = self.optimized_parameters[k]
 
         return self.policy_parameters
 
@@ -130,35 +153,39 @@ class IMGEPSGDExplorer(IMGEPExplorer):
         if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
             torch.cuda.empty_cache()
         else:
-            #loss = (0.9*self.target_img - observations[self._outter_input_space_key]).pow(2).sum().sqrt()
-            loss = self._input_space[self._outter_input_space_key].calc_distance(self.target_img, [observations[self._outter_input_space_key]])
-            loss.backward()
-            # for k,v in self.optimized_parameters.items():
-            #     assert v.grad is not None
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            torch.cuda.empty_cache()
+            if observations[self._outter_input_space_key].detach().cpu().sum().item() <300: #TODO: is_dead is specific to Lenia
+                self.reset_source_policy = True
+
+            else:
+                #loss = (0.9*self.target_img - observations[self._outter_input_space_key]).pow(2).sum().sqrt()
+                loss = self._input_space[self._outter_input_space_key].calc_distance(self.target_img, [observations[self._outter_input_space_key]])
+                loss.backward()
+                # for k,v in self.optimized_parameters.items():
+                #     assert v.grad is not None
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                torch.cuda.empty_cache()
 
 
-            # update loss running average
-            self.loss_buffer.append(loss.item())
-            self.loss_buffer = self.loss_buffer[-self.loss_buffer_size:]
-            loss_speed = torch.FloatTensor(self.loss_buffer[1:]) - torch.FloatTensor(self.loss_buffer[:-1])
-            self.loss_running_average = loss_speed.mean().abs()
+                # update loss running average
+                self.loss_buffer.append(loss.item())
+                self.loss_buffer = self.loss_buffer[-self.loss_buffer_size:]
+                loss_speed = torch.FloatTensor(self.loss_buffer[:-1]) - torch.FloatTensor(self.loss_buffer[1:])
+                self.loss_running_average = loss_speed.mean().abs()
 
-            self.end_run_time = time.time()
+                self.end_run_time = time.time()
 
-            # Tensorboard log loss
-            if self.config.use_tensorboard and (self.CURRENT_RUN_INDEX % self.config.tb_record_loss_frequency == 0):
-                self.tensorboard_logger.add_scalar('loss/', loss.item(), self.CURRENT_RUN_INDEX)
-                self.tensorboard_logger.add_scalar('loss_running_average/', self.loss_running_average.item(), self.CURRENT_RUN_INDEX)
-                self.tensorboard_logger.add_text('time/',
-                                                 f'Run {self.CURRENT_RUN_INDEX}: {self.end_run_time - self.start_run_time} secs')
+                # Tensorboard log loss
+                if self.config.use_tensorboard and (self.CURRENT_RUN_INDEX % self.config.tb_record_loss_frequency == 0):
+                    self.tensorboard_logger.add_scalar('loss/', loss.item(), self.CURRENT_RUN_INDEX)
+                    self.tensorboard_logger.add_scalar('loss_running_average/', self.loss_running_average.item(), self.CURRENT_RUN_INDEX)
+                    self.tensorboard_logger.add_text('time/',
+                                                     f'Run {self.CURRENT_RUN_INDEX}: {self.end_run_time - self.start_run_time} secs')
 
-            # Tensorboard log reconstruction accuracy
-            logger_add_image_list(self.tensorboard_logger,
-                                  [self.target_img.view(1,256,256).cpu(), observations[self._outter_input_space_key].view(1,256,256).cpu()],
-                                  "reconstructions", global_step=self.CURRENT_RUN_INDEX)
+                # Tensorboard log reconstruction accuracy
+                logger_add_image_list(self.tensorboard_logger,
+                                      [self.target_img.view(1,256,256).cpu(), observations[self._outter_input_space_key].view(1,256,256).cpu()],
+                                      "reconstructions", global_step=self.CURRENT_RUN_INDEX)
 
 
     def optimize(self):

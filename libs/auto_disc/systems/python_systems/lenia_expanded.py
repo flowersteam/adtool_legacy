@@ -57,31 +57,44 @@ class Lenia(BasePythonSystem):
     input_space = DictSpace(spaces=input_spaces)
 
     output_space = DictSpace(
-        #states=BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("nb_c") + ConfigParameterBinding("wall_c"), 256, 256))
+        states=BoxSpace(low=0, high=1, shape=())
     )
 
     step_output_space = DictSpace(
-        #state=BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("nb_c") + ConfigParameterBinding("wall_c"), *eval(ConfigParameterBinding("size"))))
+        state=BoxSpace(low=0, high=1, shape=())
     )
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs) #after quick fix because need to call initialize()
 
         #quick fix
         self.config.size = eval(self.config.size) #convert string to tuple
         self.input_space.spaces["init_state"] = BoxSpace(low=0.0, high=1.0,
                                                          mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.0, dtype=torch.float32,
                                                          shape=(self.config.nb_c, *tuple([s//self.config.scale_init_state for s in self.config.size])))
+        self.input_space.spaces["init_state"].initialize(self)
+
         self.input_space.spaces["c0"] = MultiDiscreteSpace(nvec=[self.config.nb_c] * self.config.nb_k, mutator = GaussianMutator(mean=0.0, std=0.1), indpb = 0.1)
+        self.input_space.spaces["c0"].initialize(self)
+
         self.input_space.spaces["c1"] = MultiDiscreteSpace(nvec=[self.config.nb_c] * self.config.nb_k, mutator = GaussianMutator(mean=0.0, std=0.1), indpb = 0.1)
+        self.input_space.spaces["c1"].initialize(self)
+
         if self.config.wall_c:
             self.input_space.spaces["init_wall"] = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.01),
                                                  shape=(1, *self.config.size), indpb=0.0, dtype=torch.float32)
+            self.input_space.spaces["init_wall"].initialize(self)
+        else:
+            del self.input_space["init_wall"]
 
         self.output_space.spaces["states"] = BoxSpace(low=0, high=1, shape=(self.config.final_step, self.config.nb_c + int(self.config.wall_c), *self.config.size))
+        self.output_space.spaces["states"].initialize(self)
 
         self.step_output_space.spaces["state"] = BoxSpace(low=0, high=1, shape=(self.config.nb_c + int(self.config.wall_c), *self.config.size))
+        self.step_output_space.spaces["state"].initialize(self)
 
-        super().__init__() #after quick fix because need to call initialize()
+        
 
     def reset(self, run_parameters):
         #clamp parameters if not contained in space definition
