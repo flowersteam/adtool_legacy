@@ -3,7 +3,7 @@ name:
 ssh_configuration: 
   jeanzay
 work_path:
-  /gpfsscratch/rech/imi/ucy39hi/auto_disc/experiments/
+  /gpfsscratch/rech/zaj/ucf28eq/code/09-AutoDisc/experiments/
 local_tmp_path:
   /tmp/auto_disc/experiments/
 execution:

@@ -49,7 +49,7 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/mayalen/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
         
         ### push to server
