@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-select-input-according-to-type',
@@ -14,8 +13,6 @@ export class SelectInputAccordingToTypeComponent implements OnInit {
 
   @Output() inputValueChange = new EventEmitter();
 
-
-
   constructor() { }
 
   ngOnInit(): void {}
@@ -29,13 +26,7 @@ export class SelectInputAccordingToTypeComponent implements OnInit {
   }
 
   return_to_parent(){
-    if(this.inputValue == "other"){
-      var myModal = new bootstrap.Modal(<HTMLInputElement>document.getElementById('exampleModal'))
-      myModal.show()
-    }else{
-      this.inputValueChange.emit(this.inputValue);
-    }
-    
+    this.inputValueChange.emit(this.inputValue);
   }
 
 }
