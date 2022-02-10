@@ -333,11 +333,12 @@
                                     <div *ngIf="this.newExperiment.system.name != 'CHOOSE A SYSTEM'" class="card-title col-12" class="container">
                                         <label class="card-title col-12" for="experiment_name">Enter wrapped output space key:</label>
                                         <div class="dropdown">
-                                            <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.output_representations[index].config['wrapped_input_space_key']">
+                                            <!-- <select class="form-select" aria-label="Default select example" [(ngModel)]="this.newExperiment.output_representations[index].config['wrapped_input_space_key']">
                                                 <option *ngFor="let choice of this.objectKeys(this.getModuleByName(this.systems, this.newExperiment.system.name).output_space)" >
                                                     {{choice}}
                                                 </option>
-                                            </select>
+                                            </select> -->
+                                            <input type="text" [(ngModel)]="this.newExperiment.output_representations[index].config['wrapped_input_space_key']">
                                         </div>
 
                                         <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.getModuleByName(this.output_representations, this.newExperiment.output_representations[index].name).config)">
