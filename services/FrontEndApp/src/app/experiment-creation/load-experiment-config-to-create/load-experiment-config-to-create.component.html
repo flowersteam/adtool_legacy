@@ -1,0 +1,11 @@
+<div class="card position-fixed z-index-master m-5">
+    <div class="card-body">
+        <h5 class="card-title">Some Tools</h5>
+        <p class="card-text">
+            Use JSON file to setup the experiment:
+        </p>
+        <input type="file" class="file-input" (change)="onFileSelected($event)">
+        <button (click)="this.downloadJson()"> Download current config as JSON</button>
+
+    </div>
+</div>

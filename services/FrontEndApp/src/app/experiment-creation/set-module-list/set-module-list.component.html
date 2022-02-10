@@ -1,0 +1,38 @@
+<!-- possible modules -->
+<div class="dropdown my-2">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownModule" name="dropdownModule" 
+            data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
+        ADD AN {{this.moduleType}}
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownModule">
+        <li *ngFor="let module of this.modules" class="dropdown-item" (click)="this.addNewModuleToUsed(module.name)">
+            {{module.name}}
+        </li>
+    </ul>
+</div>
+<!-- list accordion modules -->
+<div  class="accordion" id="accordionListModuleList" cdkDropList (cdkDropListDropped)="drop($event, this.currentModuleList)">
+
+    <div *ngFor="let module of currentModuleList; let index=index" class="accordion-item"
+            cdkDrag>
+        <h2 class="accordion-header" id="{{'headingModuleList' + index}}">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapseModuleList' + index" aria-expanded="true" [attr.aria-controls]="'collapseModuleList' + index">
+                {{module.name}}
+            </button>
+        </h2>
+        <div [attr.id]="'collapseModuleList' + index" class="accordion-collapse collapse" aria-labelledby="headingModuleList">
+            <div class="accordion-body">
+                <!-- set one module config -->
+                <div *ngIf="currentSystem.name != 'CHOOSE A SYSTEM'" class="card-title col-12" class="container">
+                    <app-set-module 
+                        [currentModule]="this.currentModuleList[index]"
+                        [modules]="this.modules"
+                        [moduleItDependsOn]="this.setModuleComponent.getModuleByName(this.systems, currentSystem.name)"
+                        [displayInputOutputSpace]="displayInputOutputSpace">
+                    </app-set-module>
+                    <button type="button" class="btn btn-danger btn-lg bi bi-trash my-2" (click)="removeModuleToUsed(index)"></button>
+                </div>
+            </div>
+        </div>  
+    </div>
+</div>
