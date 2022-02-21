@@ -83,9 +83,9 @@ export class AutoDiscServerService {
       );
   }
 
-  createExp(newExperiment: ExperimentSettings): Observable<any>{
+  createExperiment(newExperiment: ExperimentSettings): Observable<any>{
     return this.http.post<ExperimentSettings>(this.autodiscServerUrl + "/experiments", newExperiment).pipe(
-      catchError(this.handleError<ExperimentSettings>('createExp'))
+      catchError(this.handleError<ExperimentSettings>('createExperiment'))
       );
   }
 

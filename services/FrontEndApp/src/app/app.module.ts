@@ -24,6 +24,7 @@ import { SetModuleListComponent } from './experiment-creation/set-module-list/se
 import { DisplayInputspaceOutputspaceComponent } from './experiment-creation/display-inputspace-outputspace/display-inputspace-outputspace.component';
 import { SetExperimentConfigComponent } from './experiment-creation/set-experiment-config/set-experiment-config.component';
 import { LoadExperimentConfigToCreateComponent } from './experiment-creation/load-experiment-config-to-create/load-experiment-config-to-create.component';
+import { SetModuleConfigComponent } from './experiment-creation/set-module-config/set-module-config.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { LoadExperimentConfigToCreateComponent } from './experiment-creation/loa
     DisplayInputspaceOutputspaceComponent,
     SetExperimentConfigComponent,
     LoadExperimentConfigToCreateComponent,
+    SetModuleConfigComponent,
   ],
   imports: [
     BrowserModule,

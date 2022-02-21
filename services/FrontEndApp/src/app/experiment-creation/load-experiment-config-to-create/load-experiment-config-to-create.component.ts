@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, Input } from '@angular/core';
 
+import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
+
 @Component({
   selector: 'app-load-experiment-config-to-create',
   templateUrl: './load-experiment-config-to-create.component.html',
@@ -12,7 +14,7 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
 
   fileName = '';
   fileContent : string | ArrayBuffer = '';
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, public createNewExperimentService: CreateNewExperimentService) { }
   
   ngOnInit(): void {}
 
@@ -23,34 +25,23 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     element.setAttribute('download', this.currentExperiment.experiment.name);
     element.style.display = 'none';
     document.body.appendChild(element);
-    element.click(); // simulate click
+    element.click();
     document.body.removeChild(element);
   }
 
   onFileSelected(event:any) {
-
     const file:File = event.target.files[0];
-
     const fr = new FileReader();
     fr.onload = () => {
       if(fr.result != null){this.fileContent = fr.result};
       console.log('Commands', this.fileContent);
       this.setExperimentWithJSON();
     }
-
       if (file) {
-
           this.fileName = file.name;
-
           const formData = new FormData();
-
           formData.append("thumbnail", file);
-
-          // const upload$ = this.http.post("/api/thumbnail-upload", formData);
-
-          // upload$.subscribe();
-          fr.readAsText(file);
-          
+          fr.readAsText(file);  
       }
   }
 
@@ -63,7 +54,7 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     this.currentExperiment.logger_handlers = loadedExperiment.logger_handlers;
     this.currentExperiment.output_representations = loadedExperiment.output_representations;
     this.currentExperiment.system = loadedExperiment.system;
-
+    this.createNewExperimentService.setAllCustomModulesFromUseModule()
   }
 
 }

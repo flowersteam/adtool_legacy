@@ -9,16 +9,12 @@ export class SetExperimentConfigComponent implements OnInit {
   
   objectKeys = Object.keys;
   
-  @Input() currentConfig?: any; // return by reference
-  @Input() hosts?: any; // return by reference
+  @Input() currentConfig?: any;
+  @Input() hosts?: any;
 
   constructor() { }
 
   ngOnInit(): void {
-  }
-
-  setHostUsed(host: string){
-    this.currentConfig.config.host = host;
   }
 
 }

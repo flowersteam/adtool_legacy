@@ -25,7 +25,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   
   discovery_saving_keys: string[] = []
-  discovery_saving_keys_used: { [name: string]: boolean } = {};
+  discovery_saving_keys_use: { [name: string]: boolean } = {};
 
   constructor(private AutoDiscServerService: AutoDiscServerService) { }
 
@@ -36,20 +36,20 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
   getDiscoverySavingKeys(): void {
     this.AutoDiscServerService.getDiscoverySavingKeys()
     .subscribe(discovery_saving_keys => {this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-      this.setDiscoverySavingKeysUsed(),
-      this.getDiscoverySavingKeysUsed()});
+      this.setDiscoverySavingKeysUse(),
+      this.getDiscoverySavingKeysUse()});
   }
 
-  setDiscoverySavingKeysUsed():void{
+  setDiscoverySavingKeysUse():void{
     for (let key of this.discovery_saving_keys) {
-        this.discovery_saving_keys_used[key.toString()] = true;   
+        this.discovery_saving_keys_use[key.toString()] = true;   
       }
   }
 
-  getDiscoverySavingKeysUsed(){
+  getDiscoverySavingKeysUse(){
     this.inputValueCheckBox = []
-    for (let key in this.discovery_saving_keys_used) {
-      if (this.discovery_saving_keys_used[key]){
+    for (let key in this.discovery_saving_keys_use) {
+      if (this.discovery_saving_keys_use[key]){
         this.inputValueCheckBox.push(key)
       }
     }
@@ -57,8 +57,8 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
   }
 
   onCheckboxChange(key: string) {
-    this.discovery_saving_keys_used[key] = !this.discovery_saving_keys_used[key]
-    this.getDiscoverySavingKeysUsed()  
+    this.discovery_saving_keys_use[key] = !this.discovery_saving_keys_use[key]
+    this.getDiscoverySavingKeysUse()  
   }
 
   

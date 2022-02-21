@@ -2,44 +2,17 @@
 <div class="dropdown my-2">
     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownModule" name="dropdownModule" 
             data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-        {{this.currentModule.name}}
+        {{this.currentModule.name != undefined ? this.currentModule.name : 'CHOOSE'}}
     </button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownModule">
-        <li *ngFor="let module of this.modules" class="dropdown-item" (click)="setModuleUsed(module.name)">
+        <li *ngFor="let module of this.modules" class="dropdown-item" (click)="this.createNewExperimentService.setModuleUse(this.currentModule, module.name, this.modules)">
             {{module.name}}
         </li>
     </ul>
 </div>
-<!-- set config module -->
-<div *ngIf="!this.currentModule.name.startsWith('CHOOSE A') || this.moduleItDependsOn" class="container">
-    
-    <div *ngIf="this.moduleItDependsOn != undefined">
-        <app-select-input-according-to-type
-            *ngIf="this.currentModule.config.hasOwnProperty('wrapped_output_space_key')"
-            [(inputValue)]="this.currentModule.config['wrapped_output_space_key']"
-            elt_config_key='wrapped_output_space_key'
-            [actual_config_elt]="{default:this.objectKeys(this.moduleItDependsOn.input_space)[0], possible_values: this.objectKeys(this.moduleItDependsOn.input_space),  type: 'STRING'}">
-        </app-select-input-according-to-type>
-        <app-select-input-according-to-type
-            *ngIf="this.currentModule.config.hasOwnProperty('wrapped_input_space_key')"
-            [(inputValue)]="this.currentModule.config['wrapped_input_space_key']"
-            elt_config_key='wrapped_input_space_key'
-            [actual_config_elt]="{default:this.objectKeys(this.moduleItDependsOn.output_space)[0], possible_values: this.objectKeys(this.moduleItDependsOn.output_space),  type: 'STRING'}">
-        </app-select-input-according-to-type>
-    </div>
-    <div class="my-2" *ngFor="let elt_config_key of objectKeys(getModuleByName(this.modules, this.currentModule.name).config)">
-        <app-select-input-according-to-type 
-            [(inputValue)]="this.currentModule.config[elt_config_key]"
-            elt_config_key={{elt_config_key}}
-            [actual_config_elt]="getModuleByName(this.modules, this.currentModule.name).config[elt_config_key]">
-        </app-select-input-according-to-type>
-    </div>
-    
-    <!-- more informations -->
-    <app-display-inputspace-outputspace
-        [currentModule]="this.currentModule"
-        [currentModuleSetting]="getModuleByName(this.modules, this.currentModule.name)"
-        [displayInputOutputSpace]="this.displayInputOutputSpace"
-        [moduleItDependsOn]="this.moduleItDependsOn">
-    </app-display-inputspace-outputspace>
-</div>
+
+<app-set-module-config 
+    [(currentModule)]="this.currentModule"
+    [module]="this.createNewExperimentService.getModuleByName(this.modules, this.currentModule.name)"
+    [displayInputOutputSpace]="displayInputOutputSpace">
+</app-set-module-config>

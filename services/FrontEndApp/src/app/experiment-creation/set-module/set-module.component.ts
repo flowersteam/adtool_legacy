@@ -1,4 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { ExperimentCreationComponent } from '../experiment-creation.component';
+import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
+
+import { Observable, of, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-set-module',
@@ -13,38 +17,10 @@ export class SetModuleComponent implements OnInit {
 
   @Input() modules?: any;
   @Input() moduleItDependsOn?: any;
-
   @Input() displayInputOutputSpace? : Boolean;
 
-  constructor() { }
+  constructor(public createNewExperimentService: CreateNewExperimentService) { }
 
   ngOnInit(): void {
   }
-
-  static getModuleByName(modules: any, name: string):any{
-    for (let module of modules) {
-      if(module.name == name)
-        return(module)      
-    }
-  }
-
-  getModuleByName = SetModuleComponent.getModuleByName
-
-  setModuleUsed(module: string){
-    if(this.currentModule.config.wrapped_output_space_key != undefined){
-      this.currentModule.config = {wrapped_output_space_key:"empty"}
-    }
-    else if(this.currentModule.config.wrapped_input_space_key != undefined){
-      this.currentModule.config = {wrapped_input_space_key:"empty"}
-    }
-    else{
-      this.currentModule.config = {}
-    }
-    this.currentModule.name = module; 
-    let temp_module_config = this.getModuleByName(this.modules, module).config;
-    for (let item in temp_module_config){
-      this.currentModule.config[item] = temp_module_config[item].default
-    }
-  }
-
 }

@@ -1,72 +1,21 @@
-<!-- system -->
-<div *ngIf="this.displayInputOutputSpace && this.moduleItDependsOn == undefined" class="card-group">
+<!--display two list-->
+<div class="card-group">
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Input Space</h5>
-            <p class="card-text" *ngFor="let elt_input_space of objectKeys(currentModuleSetting.input_space)">
-                {{elt_input_space}}
+            <p class="card-text" *ngFor="let input of this.inputList"
+            [ngClass]="this.inputOutput == undefined || this.inputOutput[0].indexOf(input) < 0 ? 'active' : 'text-warning'">
+                {{input}}
             </p>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Output Space</h5>
-            <p class="card-text" *ngFor="let elt_output_space of objectKeys(currentModuleSetting.output_space)">
-                {{elt_output_space}}
+            <p class="card-text" *ngFor="let output of this.outputList"
+            [ngClass]="this.inputOutput == undefined || this.inputOutput[1].indexOf(output) < 0 ? 'active' : 'text-warning'">
+                {{output}}
             </p>
-        </div>
-    </div>
-</div>
-
-
-<!-- input_wrapper -->
-<div *ngIf="this.displayInputOutputSpace && this.moduleItDependsOn != undefined 
-            && this.currentModule.config.hasOwnProperty('wrapped_output_space_key')" class="card-group">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Input Space</h5>
-            <p class="card-text" *ngFor="let elt_input_space of this.objectKeys(this.moduleItDependsOn.input_space)"
-            [ngClass]="elt_input_space != this.currentModule.config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
-                {{elt_input_space == this.currentModule.config['wrapped_output_space_key']?
-                objectKeys(this.currentModuleSetting.input_space)[0]
-                    : elt_input_space}}
-            </p>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Output Space</h5>
-            <p class="card-text" *ngFor="let elt_input_space of this.objectKeys(this.moduleItDependsOn.input_space)"
-            [ngClass]="elt_input_space != this.currentModule.config['wrapped_output_space_key'] ? 'active' : 'text-warning'">
-                {{elt_input_space}}
-            </p>
-        </div>
-    </div>
-</div>
-
-<!--output representations-->
-<div *ngIf="this.displayInputOutputSpace && this.moduleItDependsOn != undefined &&
-            this.currentModule.config.hasOwnProperty('wrapped_input_space_key')">
-    <div class="card-group">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Input Space</h5>
-                <p class="card-text" *ngFor="let elt_output_space of this.objectKeys(this.moduleItDependsOn.output_space)"
-                [ngClass]="elt_output_space != this.currentModule.config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
-                    {{elt_output_space}}
-                </p>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Output Space</h5>
-                <p class="card-text" *ngFor="let elt_output_space of this.objectKeys(this.moduleItDependsOn.output_space)"
-                [ngClass]="elt_output_space != this.currentModule.config['wrapped_input_space_key'] ? 'active' : 'text-warning'">
-                    {{elt_output_space == this.currentModule.config['wrapped_input_space_key']?
-                    objectKeys(this.currentModuleSetting.output_space)[0]
-                    : elt_output_space}}
-                </p>
-            </div>
         </div>
     </div>
 </div>

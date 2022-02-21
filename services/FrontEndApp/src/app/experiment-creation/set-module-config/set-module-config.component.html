@@ -1,0 +1,20 @@
+<!-- set config module -->
+<div *ngIf="this.currentModule.name != undefined || this.moduleItDependsOn" class="container">
+
+    <div class="my-2" *ngFor="let elt_config_key of objectKeys(this.module.config)">
+        <app-select-input-according-to-type 
+            [(inputValue)]="this.currentModule.config[elt_config_key]"
+            elt_config_key={{elt_config_key}}
+            [actual_config_elt]="this.module.config[elt_config_key]">
+        </app-select-input-according-to-type>
+    </div>
+    
+    <!-- more informations -->
+
+    <app-display-inputspace-outputspace
+        *ngIf="this.displayInputOutputSpace"
+        [inputList]="this.getInputList()"
+        [outputList]="this.getOtputList()"
+        [inputOutput]="this.getInputOutput()">
+    </app-display-inputspace-outputspace>
+</div>

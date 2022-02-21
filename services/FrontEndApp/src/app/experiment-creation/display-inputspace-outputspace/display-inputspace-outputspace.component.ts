@@ -8,11 +8,10 @@ import { Component, OnInit, Input } from '@angular/core';
 export class DisplayInputspaceOutputspaceComponent implements OnInit {
 
   objectKeys = Object.keys;
-
-  @Input() currentModule? : any;
-  @Input() currentModuleSetting?: any; // return by reference
-  @Input() displayInputOutputSpace?: any;
-  @Input() moduleItDependsOn? : any;
+  
+  @Input() inputList? : any;
+  @Input() outputList? : any;
+  @Input() inputOutput? : any;
 
   constructor() { }
 

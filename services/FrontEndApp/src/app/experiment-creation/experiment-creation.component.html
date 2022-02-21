@@ -20,8 +20,8 @@
                 <div id="collapseGeneralInformation" class="accordion-collapse collapse show" aria-labelledby="headingGeneralInformation">
                     <div class="accordion-body">
                         <app-set-experiment-config 
-                            [currentConfig]="this.newExperiment.experiment"
-                            [hosts]="this.hosts">
+                            [currentConfig]="this.createNewExperimentService.newExperiment.experiment"
+                            [hosts]="this.createNewExperimentService.allConfig.hosts">
                         </app-set-experiment-config>
                     </div>
                 </div>
@@ -37,8 +37,8 @@
                 <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
                     <div class="accordion-body">
                         <app-set-module 
-                            [currentModule]="this.newExperiment.system"
-                            [modules]="this.systems"
+                            [currentModule]="this.createNewExperimentService.newExperiment.system"
+                            [modules]="this.createNewExperimentService.allConfig.systems"
                             [displayInputOutputSpace]="true">
                         </app-set-module>
                     </div>
@@ -55,8 +55,8 @@
                 <div id="collapseExplorer" class="accordion-collapse collapse" aria-labelledby="headingExplorer">
                     <div class="accordion-body">
                         <app-set-module 
-                            [currentModule]="this.newExperiment.explorer"
-                            [modules]="this.explorers"
+                            [currentModule]="this.createNewExperimentService.newExperiment.explorer"
+                            [modules]="this.createNewExperimentService.allConfig.explorers"
                             [displayInputOutputSpace]="false">
                         </app-set-module>
                     </div>
@@ -74,11 +74,13 @@
                     <div class="accordion-body">
                         <!-- general information accordion -->
                         <app-set-module-list
-                            moduleType = "INPUT WRAPPER"
-                            [currentModuleList]="this.newExperiment.input_wrappers"
-                            [modules]="this.input_wrappers"
-                            [currentSystem]="this.newExperiment.system"
-                            [systems]="this.systems"
+                            key = "wrapped_output_space_key"
+                            [spaceItDependsOn]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).input_space : undefined"
+                            [currentModuleList]="this.createNewExperimentService.newExperiment.input_wrappers"
+                            [modules]="this.createNewExperimentService.allConfig.input_wrappers"
+                            [currentSystem]="this.createNewExperimentService.newExperiment.system"
+                            [systems]="this.createNewExperimentService.allConfig.systems"
+                            [customModules]="this.createNewExperimentService.customConfig.input_wrappers"
                             [displayInputOutputSpace]="true">
                         </app-set-module-list>    
                     </div>
@@ -95,11 +97,13 @@
                 <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
                     <div class="accordion-body">
                         <app-set-module-list
-                            moduleType = "OUTPUT REPRESENTATION"
-                            [currentModuleList]="this.newExperiment.output_representations"
-                            [modules]="this.output_representations"
-                            [currentSystem]="this.newExperiment.system"
-                            [systems]="this.systems"
+                            key = "wrapped_input_space_key"
+                            [spaceItDependsOn]=" this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).output_space : undefined"
+                            [currentModuleList]="this.createNewExperimentService.newExperiment.output_representations"
+                            [modules]="this.createNewExperimentService.allConfig.output_representations"
+                            [currentSystem]="this.createNewExperimentService.newExperiment.system"
+                            [systems]="this.createNewExperimentService.allConfig.systems"
+                            [customModules]="this.createNewExperimentService.customConfig.output_representations"
                             [displayInputOutputSpace]="true">
                         </app-set-module-list>
                     </div>
@@ -116,13 +120,13 @@
                 <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">
                     <div class="accordion-body">
                         <app-set-discovery-saving-key 
-                            [(inputValueCheckBox)]="this.newExperiment.experiment.config.discovery_saving_keys"
-                            [system_name]="this.newExperiment.system.name"
-                            [system_settings]="this.newExperiment.system != undefined ? this.setModuleComponent.getModuleByName(this.systems, this.newExperiment.system.name) : undefined"
-                            [input_wrappers]="this.newExperiment.input_wrappers"
-                            [input_wrappers_settings]="this.newExperiment.input_wrappers.length > 0 ? this.setModuleComponent.getModuleByName(this.input_wrappers, this.newExperiment.input_wrappers[0].name) : undefined"
-                            [output_representations]="this.newExperiment.output_representations"
-                            [output_representations_settings]="this.newExperiment.output_representations.length > 0 ? this.setModuleComponent.getModuleByName(this.output_representations, this.newExperiment.output_representations[this.newExperiment.output_representations.length -1].name) : undefined">
+                            [(inputValueCheckBox)]="this.createNewExperimentService.newExperiment.experiment.config.discovery_saving_keys"
+                            [system_name]="this.createNewExperimentService.newExperiment.system.name"
+                            [system_settings]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name) : undefined"
+                            [input_wrappers]="this.createNewExperimentService.newExperiment.input_wrappers"
+                            [input_wrappers_settings]="this.createNewExperimentService.newExperiment.input_wrappers.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.input_wrappers, this.createNewExperimentService.newExperiment.input_wrappers[0].name) : undefined"
+                            [output_representations]="this.createNewExperimentService.newExperiment.output_representations"
+                            [output_representations_settings]="this.createNewExperimentService.newExperiment.output_representations.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.output_representations, this.createNewExperimentService.newExperiment.output_representations[this.createNewExperimentService.newExperiment.output_representations.length -1].name) : undefined">
                         </app-set-discovery-saving-key>
                     </div>
                 </div>
@@ -132,10 +136,10 @@
 
         <div class="col-3">
             <app-load-experiment-config-to-create 
-                [currentExperiment]="this.newExperiment">
+                [currentExperiment]="this.createNewExperimentService.newExperiment">
             </app-load-experiment-config-to-create>
         </div>
 
     </div>
-    <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExp()">Create Experiment</button>
+    <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExperiment()">Create Experiment</button>
 </div>
