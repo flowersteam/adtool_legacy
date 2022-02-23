@@ -44,10 +44,10 @@ class Lenia(BasePythonSystem):
         c0=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
         c1=MultiDiscreteSpace(nvec=[1] * 10, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1),
         rk=BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
-        b=BoxSpace(low=0.0, high=1.0, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
-        w=BoxSpace(low=0.01, high=0.5, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
+        b=BoxSpace(low=1e-3, high=1.0, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
+        w=BoxSpace(low=1e-3, high=0.5, shape=(ConfigParameterBinding("nb_k"), 3), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
         m=BoxSpace(low=0.05, high=0.5, shape=(ConfigParameterBinding("nb_k"), ), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
-        s=BoxSpace(low=0.001, high=0.18, shape=(ConfigParameterBinding("nb_k"), ), mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.25, dtype=torch.float32),
+        s=BoxSpace(low=1e-3, high=0.18, shape=(ConfigParameterBinding("nb_k"), ), mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.25, dtype=torch.float32),
         h=BoxSpace(low=0, high=1.0, shape=(ConfigParameterBinding("nb_k"), ), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32),
         r=BoxSpace(low=0.2, high=1.0, shape=(ConfigParameterBinding("nb_k"), ), mutator=GaussianMutator(mean=0.0, std=0.2), indpb=0.25, dtype=torch.float32)
         # kn = DiscreteSpace(n=4, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
@@ -66,7 +66,7 @@ class Lenia(BasePythonSystem):
 
     def __init__(self, **kwargs):
 
-        super().__init__(**kwargs) #after quick fix because need to call initialize()
+        super().__init__(**kwargs)
 
         #quick fix
         self.config.size = eval(self.config.size) #convert string to tuple
@@ -147,7 +147,7 @@ class Lenia(BasePythonSystem):
     def observe(self):
         return self._observations
 
-    def render(self, mode="PIL_image"):
+    def render(self, mode="mp4"):
 
         channel_colors = [colors.to_rgb(color) for color in colors.TABLEAU_COLORS.values()][:self.config.nb_c+int(self.config.wall_c)]
         channel_colors = np.array(channel_colors).transpose()
@@ -170,9 +170,9 @@ class Lenia(BasePythonSystem):
             plt.axis('off')
             plt.tight_layout()
             return plt.show()
-        elif mode == "PIL_image":
+        elif mode == "mp4":
             byte_img = io.BytesIO()
-            imageio.mimwrite(byte_img, im_array, 'mp4',  fps=30, output_params=["-f", "mp4"])
+            imageio.mimwrite(byte_img, im_array, 'mp4',  duration=3, output_params=["-f", "mp4"])
             return (byte_img, "mp4")
         else:
             raise NotImplementedError
