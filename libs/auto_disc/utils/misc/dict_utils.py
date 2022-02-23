@@ -2,7 +2,7 @@ import collections
 
 def map_nested_dicts(ob, func):
     if isinstance(ob, collections.Mapping):
-        return {k: map_nested_dicts(v, func) for k, v in ob.items()}
+        return ob.__class__({k: map_nested_dicts(v, func) for k, v in ob.items()})
     else:
         return func(ob)
 

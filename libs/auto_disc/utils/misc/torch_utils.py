@@ -158,7 +158,7 @@ class ExperimentHistoryDataset(Dataset):
             if filter is not None and not filter(data):
                 self.dataset.append(data)
             else:
-                self.dataset.append(data)
+                pass
 
         self.transform = transform
 
