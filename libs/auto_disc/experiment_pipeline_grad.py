@@ -1,8 +1,11 @@
+import torch
 from auto_disc import ExperimentPipeline
 from auto_disc import BaseAutoDiscModule
-from auto_disc.utils.callbacks import BaseCallback
+from auto_disc.utils.misc.dict_utils import map_nested_dicts
 from copy import deepcopy
 import traceback
+
+from tinydb import Query 
 
 class ExperimentPipelineGrad(ExperimentPipeline):
 
@@ -12,7 +15,9 @@ class ExperimentPipelineGrad(ExperimentPipeline):
             # TODO - quick fix
             output_copy = {}
             for k, v in output.items():
-                output_copy[k] = deepcopy(v.detach().cpu())
+                if isinstance(v, (dict, torch.Tensor)):
+                    v = map_nested_dicts(v, lambda x: x.detach().cpu())
+                output_copy[k] = deepcopy(v)
             if i == len(self._output_representations) - 1:
                 self.db.update({'output': output_copy}, doc_ids=[document_id])
             else:
@@ -25,7 +30,9 @@ class ExperimentPipelineGrad(ExperimentPipeline):
             # TODO - quick fix
             run_parameters_copy = {}
             for k, v in run_parameters.items():
-                run_parameters_copy[k] = deepcopy(v.detach().cpu())
+                if isinstance(v, (dict, torch.Tensor)):
+                    v = map_nested_dicts(v, lambda x: x.detach().cpu())
+                run_parameters_copy[k] = deepcopy(v)
             if i == len(self._input_wrappers) - 1:
                 self.db.update({'run_parameters': run_parameters_copy}, doc_ids=[document_id])
             else:
@@ -49,7 +56,9 @@ class ExperimentPipelineGrad(ExperimentPipeline):
                 # TODO - quick fix
                 raw_run_parameters_copy = {}
                 for k, v in raw_run_parameters.items():
-                    raw_run_parameters_copy[k] = deepcopy(v.detach().cpu())
+                    if isinstance(v, (dict, torch.Tensor)):
+                        v = map_nested_dicts(v, lambda x: x.detach().cpu())
+                    raw_run_parameters_copy[k] = deepcopy(v)
                 document_id = self.db.insert({'idx': run_idx, 'raw_run_parameters': raw_run_parameters_copy})
                 #with torch.no_grad():
                 run_parameters = self._process_run_parameters(raw_run_parameters, document_id)
@@ -73,23 +82,28 @@ class ExperimentPipelineGrad(ExperimentPipeline):
                 # TODO - quick fix
                 raw_output_copy = {}
                 for k,v in raw_output.items():
-                    raw_output_copy[k] = deepcopy(v.detach().cpu())
+                    if isinstance(v, (dict, torch.Tensor)):
+                        v = map_nested_dicts(v, lambda x: x.detach().cpu())
+                    raw_output_copy[k] = deepcopy(v)
                 self.db.update({'raw_output': raw_output_copy}, doc_ids=[document_id])
                 output = self._process_output(raw_output, document_id)
                 rendered_output = self._system.render()
 
                 self._explorer.archive(raw_run_parameters, output)
 
+                # quick fix to save detached/cpu tensors
+                Data = Query()
+                cur_data = self.db.search(Data.idx==run_idx)[0]
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
                     run_idx=run_idx,
                     seed=self.seed,
-                    raw_run_parameters=raw_run_parameters,
-                    run_parameters=run_parameters,
-                    raw_output=raw_output,
-                    output=output,
+                    raw_run_parameters=cur_data["raw_run_parameters"],
+                    run_parameters=cur_data["run_parameters"],
+                    raw_output=cur_data["raw_output"],
+                    output=cur_data["output"],
                     rendered_output=rendered_output,
-                    step_observations=step_observations,
+                    step_observations=step_observations, 
                     experiment_id=self.experiment_id
                 )
                 self._system.logger.info(
