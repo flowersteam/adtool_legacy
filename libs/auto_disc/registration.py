@@ -18,10 +18,12 @@ REGISTRATION = {
         'PythonLenia': PythonLenia,
         'PytorchLenia': PytorchLenia,
         'SimCells': SimCells,
+        'ToySystem': ToyCellularSystem,
     },
     'explorers': {
         'IMGEPExplorer': IMGEPExplorer,
         'IMGEPSGDExplorer': IMGEPSGDExplorer,
+        'IMGEPHOLMESExplorer': IMGEPHOLMESExplorer,
     },
     'input_wrappers': {
         'generic.CPPN': CppnInputWrapper,
@@ -30,8 +32,9 @@ REGISTRATION = {
     'output_representations': {
         'generic.PCA': PCA,
         'generic.UMAP': UMAP,
-        'generic.SliceSelector': SliceSelector,
         'generic.Flatten': Flatten,
+        'generic.Narrow': Narrow,
+        'generic.Reshape': Reshape,
         'generic.VAE': VAE,
         'generic.HOLMES_VAE': HOLMES_VAE,
         'specific.LeniaFlattenImage': LeniaImageRepresentation,
