@@ -6,7 +6,7 @@ from auto_disc.utils.spaces import DictSpace, BoxSpace
 
 import torch
 
-@StringConfigParameter(name="shape", default="(-1,) ")
+@StringConfigParameter(name="shape", default="() ")
 @BooleanConfigParameter(name="expand_output_space", default=True)
 class Reshape(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
@@ -25,11 +25,6 @@ class Reshape(BaseOutputRepresentation):
         del self.output_space["reshaped"]
         self.output_space[f"reshaped_{self.wrapped_input_space_key}"] = BoxSpace(low=0., high=0.0, shape=eval(self.config.shape))
         self.output_space[f"reshaped_{self.wrapped_input_space_key}"].initialize(self)
-
-        self.slice = tuple(self.input_space[self.wrapped_input_space_key].shape[:self.config.slice_dim]) + \
-                       (len(eval(self.config.slice_range)),) + \
-                       tuple(self.input_space[self.wrapped_input_space_key].shape[self.config.slice_dim + 1:])
-
 
     def map(self, observations, is_output_new_discovery, **kwargs):
         output = copy(observations)
