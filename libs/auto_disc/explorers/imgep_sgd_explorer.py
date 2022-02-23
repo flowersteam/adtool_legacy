@@ -1,3 +1,4 @@
+from addict import Dict
 from auto_disc.explorers import IMGEPExplorer
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter, BooleanConfigParameter
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list
@@ -13,13 +14,12 @@ from tensorboardX import SummaryWriter
 import time
 import torch
 
-@StringConfigParameter(name="tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
-
 @BooleanConfigParameter(name="use_tensorboard", default=True)
-@StringConfigParameter(name="tb_folder", default="./tensorboard_imgep/")
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 class IMGEPSGDExplorer(IMGEPExplorer):
+    CONFIG_DEFINITION = {}
+    config = Dict()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -87,9 +87,9 @@ class IMGEPSGDExplorer(IMGEPExplorer):
         self.loss_running_average = torch.FloatTensor([float('nan')])
 
     def set_tensorboard(self):
-        if not os.path.exists(self.config.tb_folder):
-            os.makedirs(self.config.tb_folder)
-        self.tensorboard_logger = SummaryWriter(self.config.tb_folder)
+        if self.config.use_tensorboard:
+            self.tensorboard_logger = SummaryWriter(
+                f"tensorboard_explorer/experiment_{self.logger._AutoDiscLogger__experiment_id:06d}/seed_{self.logger._seed:06d}")
 
 
     def _get_source_policy_idx(self, target_goal):
@@ -108,9 +108,6 @@ class IMGEPSGDExplorer(IMGEPExplorer):
             non_dead_inds = torch.where(torch.stack(goal_library[:self.config.num_of_random_initialization]).sum(-1).squeeze()>400)[0]
             source_policy_idx = non_dead_inds[(torch.rand(()) * len(non_dead_inds)).int().item()]
             #TODO: put filter as function in config?
-            #source_policy_idx = random.randint(0, len(goal_library)-1)
-
-
 
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
@@ -124,13 +121,13 @@ class IMGEPSGDExplorer(IMGEPExplorer):
 
         # random sampling if not enough in library
         if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
-            self.policy_parameters = self._output_space.sample()
             with torch.no_grad():
+                self.policy_parameters = self._output_space.sample()
                 for k,v in self.policy_parameters.items():
                     self.policy_parameters[k] = v.to(self.config.tensors_device)
         else:
             if (self.CURRENT_RUN_INDEX == self.config.num_of_random_initialization) \
-                    or (len(self.loss_buffer)==self.loss_buffer_size and self.loss_running_average < 1e-3)\
+                    or (len(self.loss_buffer)==self.loss_buffer_size and self.loss_running_average < 1e-2)\
                     or self.reset_source_policy:
                 # get source policy which should be mutated
                 history = self._access_history()
@@ -183,7 +180,8 @@ class IMGEPSGDExplorer(IMGEPExplorer):
                                                      f'Run {self.CURRENT_RUN_INDEX}: {self.end_run_time - self.start_run_time} secs')
 
                 # Tensorboard log reconstruction accuracy
-                logger_add_image_list(self.tensorboard_logger,
+                if self.config.use_tensorboard and (self.CURRENT_RUN_INDEX % self.config.tb_record_images_frequency == 0):
+                    logger_add_image_list(self.tensorboard_logger,
                                       [self.target_img.view(1,256,256).cpu(), observations[self._outter_input_space_key].view(1,256,256).cpu()],
                                       "reconstructions", global_step=self.CURRENT_RUN_INDEX)
 

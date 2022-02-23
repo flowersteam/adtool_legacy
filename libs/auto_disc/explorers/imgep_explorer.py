@@ -1,19 +1,17 @@
 from addict import Dict
 from auto_disc.explorers import BaseExplorer
-
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter
-
+from auto_disc.utils.misc.dict_utils import map_nested_dicts
 import random
 import torch
 
-#TODO: template for dict configs *_parameters
-@StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function"], default="random") #TODO: function
-@DictConfigParameter(name="goal_selection_parameters", default={})
-# TODO: source_policy_selection and policy_optimization might be different for each parameter key
+@StringConfigParameter(name="tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
+
+
+#TODO: think what is best to implement the goal_sampling / candidate_selection / candidate_optimization strategies: in the input/output spaces or here?
+@StringConfigParameter(name="goal_selection_type", possible_values=["random"], default="random")
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
-@DictConfigParameter(name="source_policy_selection_parameters", default={})
-@StringConfigParameter(name="policy_optimization_type", possible_values=["random", None], default="random") #TODO: goal-conditionned optimizer like sgd, ea, etc
-@DictConfigParameter(name="policy_optimization_parameters", default={})
+@StringConfigParameter(name="policy_optimization_type", possible_values=["random", "none"], default="random")
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
 
 class IMGEPExplorer(BaseExplorer):
@@ -34,19 +32,16 @@ class IMGEPExplorer(BaseExplorer):
 
 
     def _get_next_goal(self):
-        """ Defines the next goal of the exploration. """
+        """ Defines the goal sampling policy. """
 
         if self.config.goal_selection_type == 'random':
-            target_goal = self._input_space.sample()
-
-        elif self.config.goal_selection_type == 'specific':
-            target_goal = self.config.goal_selection_parameters.target_goal
+            target_goal = self._input_space[self._outter_input_space_key].sample()
 
         else:
             raise ValueError(
                 'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection_type))
 
-        return target_goal[self._outter_input_space_key]
+        return target_goal
 
 
     def _get_source_policy_idx(self, target_goal):
@@ -61,8 +56,7 @@ class IMGEPExplorer(BaseExplorer):
             source_policy_idx = torch.argmin(goal_distances)
 
         elif self.config.source_policy_selection_type == 'random':
-            source_policy_idx = random.randint(0, len(goal_library)-1)
-
+            source_policy_idx = random.randint(0, self.CURRENT_RUN_INDEX)
 
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
@@ -74,7 +68,7 @@ class IMGEPExplorer(BaseExplorer):
         if self.config.policy_optimization_type == 'random':
             policy_parameters = self._output_space.mutate(source_policy)
 
-        elif self.config.policy_optimization_type == None:
+        elif self.config.policy_optimization_type == 'none':
             policy_parameters = source_policy
 
         else:
@@ -88,7 +82,9 @@ class IMGEPExplorer(BaseExplorer):
 
         # random sampling if not enough in library
         if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
-            policy_parameters = self._output_space.sample()
+            with torch.no_grad():
+                policy_parameters = self._output_space.sample()
+                policy_parameters = map_nested_dicts(policy_parameters, lambda x: x.to(self.config.tensors_device) if torch.is_tensor(x) else x)
 
         else:
             # sample a goal space from the goal space
@@ -99,12 +95,16 @@ class IMGEPExplorer(BaseExplorer):
             source_policy_idx = self._get_source_policy_idx(target_goal)
             source_policy = history[int(source_policy_idx)]['output']
 
-            policy_parameters = self._optimize_policy(target_goal, source_policy)
+            with torch.no_grad():
+                policy_parameters = self._optimize_policy(target_goal, source_policy)
 
         return policy_parameters
 
 
     def archive(self, parameters, observations):
+        pass
+
+    def optimize(self):
         pass
 
     def save(self):
