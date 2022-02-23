@@ -214,7 +214,6 @@ def calc_image_moments(image):
 @IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
-    config = Dict()
     
     output_space = DictSpace(
         embedding = BoxSpace(low=0, high=0, shape=(17,))

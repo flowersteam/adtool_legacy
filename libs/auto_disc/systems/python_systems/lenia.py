@@ -27,7 +27,6 @@ System definition
 @IntegerConfigParameter(name="scale_init_state", default=1, min=1)
 class Lenia(BasePythonSystem):
     CONFIG_DEFINITION = {}
-    config = Dict()
     
     input_space = DictSpace(
         init_state = BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.5), 

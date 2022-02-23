@@ -19,7 +19,7 @@ class IMGEPExplorer(BaseExplorer):
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
     """
     CONFIG_DEFINITION = {}
-    config = Dict()
+    
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

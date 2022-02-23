@@ -18,17 +18,20 @@ from auto_disc.utils.logger.handlers import SetFileHandler
 
 if __name__ == "__main__":
     experiment_id = 1
+    logger=AutoDiscLogger(42, 0, [SetFileHandler("./", experiment_id)])
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
-        checkpoint_id=0,
         seed=42,
         save_frequency = 2,
-        system=PythonLenia(final_step=200, scale_init_state=1.0),
-        explorer=IMGEPExplorer(),
-        input_wrappers=[CppnInputWrapper('init_state')], # Starting from the explorer !
-        output_representations=[LeniaHandDefinedRepresentation()], # Starting from the system !
-        on_discovery_callbacks=[CustomPrintCallback("Newly explored output !"), 
-                                  OnDiscoverySaveCallbackOnDisk("./experiment_results/", 
+        system=PythonLenia(final_step=200, scale_init_state=1.0, logger=logger),
+        explorer=IMGEPExplorer(logger=logger),
+        input_wrappers=[
+            CppnInputWrapper('init_state', logger=logger), 
+            TimesNInputWrapper('R', n=10, logger=logger), 
+            TimesNInputWrapperChild('b', l=20, logger=logger)], # Starting from the explorer !
+        output_representations=[LeniaHandDefinedRepresentation(logger=logger)], # Starting from the system !
+        on_discovery_callbacks=[CustomPrintCallback("Newly explored output !", logger=logger), 
+                                  OnDiscoverySaveCallbackOnDisk("./experiment_results/", logger=logger, 
                                                                 to_save_outputs=[
                                                                     "Parameters sent by the explorer before input wrappers",
                                                                     "Parameters sent by the explorer after input wrappers",
@@ -36,8 +39,7 @@ if __name__ == "__main__":
                                                                     "Representation of system output",
                                                                     "Rendered system output"
                                                                 ])],
-        on_save_callbacks=[OnSaveModulesOnDiskCallback("/home/mperie/project/test/test_runpy/mes_modules_perso/")],
-        logger=AutoDiscLogger(42, 0, SetFileHandler("/home/mperie/project/test/test_runpy/", experiment_id))
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("./", logger=logger)],
     )
 
     experiment.run(10)

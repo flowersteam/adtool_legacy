@@ -11,7 +11,6 @@ from addict import Dict
 @IntegerConfigParameter(name="SY", default=256, min=1)
 class LeniaImageRepresentation(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     output_space = DictSpace(
         embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))

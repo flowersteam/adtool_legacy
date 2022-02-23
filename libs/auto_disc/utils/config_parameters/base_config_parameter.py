@@ -1,4 +1,3 @@
-from copy import deepcopy
 from addict import Dict
 
 class BaseConfigParameter():
@@ -39,7 +38,7 @@ class BaseConfigParameter():
 
         # Add the parameter to the config definition
         if not hasattr(original_class, 'CONFIG_DEFINITION'):
-            original_class.CONFIG_DEFINITION = {}
+            raise Exception("Class {} should define an empty static CONFIG_DEFINITION: `CONFIG_DEFINITION = {}`".format(original_class))
         original_class.CONFIG_DEFINITION[name] = {'default': default_value}
 
         return original_class
