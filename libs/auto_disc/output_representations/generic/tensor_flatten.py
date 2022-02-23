@@ -1,4 +1,3 @@
-from addict import Dict
 from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.utils.config_parameters import IntegerConfigParameter, BooleanConfigParameter
 from auto_disc.utils.spaces import DictSpace, BoxSpace
@@ -10,7 +9,6 @@ import torch
 @BooleanConfigParameter(name="expand_output_space", default=True)
 class Flatten(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     output_space = DictSpace(
         flattened = BoxSpace(low=0.0, high=0.0, shape=()),

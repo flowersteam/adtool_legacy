@@ -1,4 +1,3 @@
-from addict import Dict
 from copy import copy
 
 from auto_disc.output_representations import BaseOutputRepresentation
@@ -11,7 +10,6 @@ import torch
 @BooleanConfigParameter(name="expand_output_space", default=True)
 class Reshape(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     output_space = DictSpace(
         reshaped = BoxSpace(low=0.0, high=0.0, shape=()),

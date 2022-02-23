@@ -1,4 +1,3 @@
-from addict import Dict
 from auto_disc.explorers import IMGEPExplorer
 from auto_disc.utils.config_parameters import StringConfigParameter
 import random
@@ -8,7 +7,6 @@ import torch
 
 class IMGEPHOLMESExplorer(IMGEPExplorer):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     def _get_next_goal_space(self):
         """ Defines the goal space sampling policy. """

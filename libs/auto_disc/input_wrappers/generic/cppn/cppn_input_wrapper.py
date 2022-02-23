@@ -10,6 +10,8 @@ import torch
 @IntegerConfigParameter(name="n_passes", default=2, min=1)
 
 class CppnInputWrapper(BaseInputWrapper):
+    CONFIG_DEFINITION = {}
+
     input_space = DictSpace(
         genome=CPPNGenomeSpace(
             neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "config.cfg")

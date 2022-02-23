@@ -34,7 +34,6 @@ System definition
 #TODO: other env kernels
 class Lenia(BasePythonSystem):
     CONFIG_DEFINITION = {}
-    config = Dict()
     
     input_spaces = dict(
         init_state=BoxSpace(low=0.0, high=1.0, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.0, dtype=torch.float32, shape=()),

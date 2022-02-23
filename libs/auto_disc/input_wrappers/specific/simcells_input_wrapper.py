@@ -43,6 +43,7 @@ class BiasedMultiBinarySpace(MultiBinarySpace):
 @IntegerConfigParameter(name="collagen_spacing", default=40)
 @IntegerConfigParameter(name="collagen_radius", default=15)
 class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
+    CONFIG_DEFINITION = {}
 
     input_space = DictSpace(
         cell_pattern_genome = CPPNGenomeSpace(neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg")),

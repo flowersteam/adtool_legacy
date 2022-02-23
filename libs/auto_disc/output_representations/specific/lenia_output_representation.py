@@ -4,7 +4,6 @@ from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
 from auto_disc.utils.misc.torch_utils import roll_n
 import torch
-from addict import Dict
 
 @StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
 @IntegerConfigParameter(name="SX", default=256, min=1)

@@ -72,7 +72,6 @@ class UpdateRule(nn.Module):
 @StringConfigParameter("x_root_init", default="torch.zeros(3)")
 class ToyCellularSystem (BasePythonSystem):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     input_space = DictSpace(
         r=BoxSpace(low=0.0, high=0.0, mutator=GaussianMutator(mean=0.0, std=0.0), indpb=0.0, dtype=torch.float32, shape=()),

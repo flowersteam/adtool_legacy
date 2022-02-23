@@ -1,5 +1,3 @@
-from addict import Dict
-
 class BaseAutoDiscModule:
     '''
         Base class of all modules usable in auto_disc.

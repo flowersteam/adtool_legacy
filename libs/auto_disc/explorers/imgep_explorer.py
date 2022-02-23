@@ -1,4 +1,3 @@
-from addict import Dict
 from auto_disc.explorers import BaseExplorer
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter
 from auto_disc.utils.misc.dict_utils import map_nested_dicts

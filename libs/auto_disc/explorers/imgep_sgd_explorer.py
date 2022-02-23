@@ -1,4 +1,3 @@
-from addict import Dict
 from auto_disc.explorers import IMGEPExplorer
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter, DictConfigParameter, BooleanConfigParameter
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list
@@ -19,7 +18,6 @@ import torch
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 class IMGEPSGDExplorer(IMGEPExplorer):
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

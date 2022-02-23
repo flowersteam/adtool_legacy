@@ -1,5 +1,4 @@
 from auto_disc.input_wrappers import BaseInputWrapper
-from addict import Dict
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 from auto_disc.utils.config_parameters import IntegerConfigParameter
 import numpy as np

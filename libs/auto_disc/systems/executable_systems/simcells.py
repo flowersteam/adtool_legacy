@@ -27,6 +27,8 @@ SimCells Main
 @StringConfigParameter(name="observations_export_matrices", default="MatRender,")
 
 class SimCells(BaseSystem):
+    CONFIG_DEFINITION = {}
+
     input_space = DictSpace(
         update_rule=DictSpace(
             Cell1=DictSpace(

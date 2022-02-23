@@ -1,5 +1,3 @@
-from addict import Dict
-
 from copy import copy
 
 from auto_disc.output_representations import BaseOutputRepresentation
@@ -13,9 +11,7 @@ import torch
 @IntegerConfigParameter(name="slice_length", default=1)
 @BooleanConfigParameter(name="expand_output_space", default=True)
 class Narrow(BaseOutputRepresentation):
-
     CONFIG_DEFINITION = {}
-    config = Dict()
 
     output_space = DictSpace(
         narrowed = BoxSpace(low=0.0, high=0.0, shape=()),
