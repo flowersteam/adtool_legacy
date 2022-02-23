@@ -1,1 +1,3 @@
 saved_data/*
+Utils/portainer_data/*
+!Utils/portainer_data/.gitkeep

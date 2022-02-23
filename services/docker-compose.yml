@@ -2,6 +2,19 @@
 
 version: '3' # TODO
 services:
+##### APP DB #####
+  app-db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    hostname: app-db
+    environment:
+      POSTGRES_DB: main
+      POSTGRES_USER: autodisc
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./AppDB/saved_data:/var/lib/postgresql/data"
+      - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
   app-db-api:
     image: postgrest/postgrest:v7.0.1
     ports:
@@ -13,17 +26,7 @@ services:
       PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
     depends_on:
       - app-db
-  app-db:
-    image: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: main
-      POSTGRES_USER: autodisc
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./AppDB/saved_data:/var/lib/postgresql/data"
-      - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
+##### EXPE DB #####
   expe-db:
     image: mongo
     ports:
@@ -33,3 +36,35 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
       - "./ExpeDB/saved_data:/data/db"
+##### MONITORING TOOLS #####
+  portainer:
+    image: portainer/portainer-ce:2.11.1
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./Utils/portainer_data:/data"
+  app-db-monitoring:
+    image: dpage/pgadmin4
+    ports: 
+      - "5050:5050"
+    environment:
+      PGADMIN_LISTEN_PORT: 5050 
+      PGADMIN_DEFAULT_EMAIL: user@autodisc.com
+      PGADMIN_DEFAULT_PASSWORD: autodisc
+    volumes:
+      - "./Utils/pgadmin_mapping/servers.json:/pgadmin4/servers.json"
+    depends_on:
+      - app-db
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: expe-db
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: autodisc
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+    depends_on:
+      - expe-db
