@@ -2,10 +2,11 @@ from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.trunks.encoders import get_encoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.heads.decoders import get_decoder
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter, DictConfigParameter
-from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper, get_weights_init
+from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, get_weights_init
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
+from collections import namedtuple
 import os
 import sys
 import time
@@ -40,25 +41,23 @@ from tensorboardX import SummaryWriter
 @StringConfigParameter(name="optimizer_name", default="Adam")
 @DictConfigParameter(name="optimizer_parameters", default={})
 
-@BooleanConfigParameter(name="use_scheduler", default=True)
+@BooleanConfigParameter(name="use_scheduler", default=False)
 @StringConfigParameter(name="scheduler_name", default="CosineAnnealingLR")
 @DictConfigParameter(name="scheduler_parameters", default={"T_max": 100})
 
 @BooleanConfigParameter(name="use_tensorboard", default=True)
-@StringConfigParameter(name="tb_folder", default="./tensorboard")
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
-@IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1)
 
 @IntegerConfigParameter(name="train_period", default=20, min=1)
 @IntegerConfigParameter(name="n_epochs_per_train_period", default=20, min=1)
 
-@StringConfigParameter(name="train_dset_filter", default="lambda x: ((x-x.min())<1e-3).all().item()")
+@StringConfigParameter(name="train_dset_filter", default="lambda x: ((x-x.min())>1e-3).sum().item() < 100")
 @StringConfigParameter(name="train_dset_transform", default="None")
 @IntegerConfigParameter(name="dataloader_batch_size", default=10, min=1)
 @IntegerConfigParameter(name="dataloader_num_workers", default=0, min=0)
-@BooleanConfigParameter(name="dataloader_drop_last", default=True)
+@BooleanConfigParameter(name="dataloader_drop_last", default=False)
 @StringConfigParameter(name="dataloader_sampler", default="None")
 @StringConfigParameter(name="dataloader_collate_fn", default="None")
 
@@ -77,8 +76,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
         vae=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
     )
 
-    def __init__(self, wrapped_input_space_key=None):
-        BaseOutputRepresentation.__init__(self, wrapped_input_space_key=wrapped_input_space_key)
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        BaseOutputRepresentation.__init__(self, wrapped_input_space_key=wrapped_input_space_key, **kwargs)
         nn.Module.__init__(self)
 
     def initialize(self, input_space):
@@ -137,6 +136,9 @@ class VAE(nn.Module, BaseOutputRepresentation):
                                    )
         self.init_network_weights()
 
+        self.output_class = namedtuple("output", self.encoder.output_class._fields + self.decoder.output_class._fields)
+
+
     def init_network_weights(self):
         """
         Initialize the torch module weights based on self.config.weights_init_*
@@ -152,6 +154,8 @@ class VAE(nn.Module, BaseOutputRepresentation):
         """
         loss_cls = eval(f"{self.config.loss_name}Loss")
         self.loss_fn = loss_cls(**self.config.loss_parameters)
+
+        self.loss_input_class = namedtuple("loss_input", self.loss_fn.input_keys_list)
 
     def set_optimizer(self):
         """
@@ -180,10 +184,13 @@ class VAE(nn.Module, BaseOutputRepresentation):
         self.type(self.input_space[self.wrapped_input_space_key].dtype)
 
     def set_tensorboard(self):
-        if not os.path.exists(self.config.tb_folder):
-                os.makedirs(self.config.tb_folder)
-        self.tensorboard_logger = SummaryWriter(self.config.tb_folder)
+        if self.config.use_tensorboard:
+            self.tensorboard_logger = SummaryWriter(
+                f"tensorboard_representation/experiment_{self.logger._AutoDiscLogger__experiment_id:06d}/seed_{self.logger._seed:06d}")
 
+        self.add_graph_to_tensorboard()
+
+    def add_graph_to_tensorboard(self):
         # Save the graph in the logger
         dummy_input = torch.Tensor(size=self.input_space[self.wrapped_input_space_key].shape).uniform_(0, 1) \
             .type(self.input_space[self.wrapped_input_space_key].dtype) \
@@ -191,13 +198,11 @@ class VAE(nn.Module, BaseOutputRepresentation):
             .unsqueeze(0)
         self.eval()
         with torch.no_grad():
-            model_wrapper = ModelWrapper(self)
-            self.tensorboard_logger.add_graph(model_wrapper, dummy_input, verbose=False)
+            self.tensorboard_logger.add_graph(self, dummy_input, verbose=False)
 
     def forward_from_encoder(self, encoder_outputs):
-        decoder_outputs = self.decoder(encoder_outputs["z"])
-        model_outputs = encoder_outputs
-        model_outputs.update(decoder_outputs)
+        decoder_outputs = self.decoder(encoder_outputs.z)
+        model_outputs = self.output_class(*(encoder_outputs+decoder_outputs))
         return model_outputs
 
     def forward(self, x):
@@ -244,22 +249,24 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 # TODO: see why the dtype is modified through TinyDB?
                 # forward
                 model_outputs = self.forward(x)
-                loss_inputs = {key: model_outputs[key] for key in self.loss_fn.input_keys_list}
+                keys = self.loss_input_class._fields
+                values = [getattr(model_outputs, k) for k in keys]
+                loss_inputs = self.loss_input_class(**dict(zip(keys, values)))
                 batch_losses = self.loss_fn(loss_inputs)
                 # backward
-                loss = batch_losses['total']
+                loss = batch_losses.total
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
                 # save losses
-                for k, v in batch_losses.items():
+                for i, k in enumerate(batch_losses._fields):
                     if k not in losses:
-                        losses[k] = [v.data.item()]
+                        losses[k] = batch_losses[i].detach().cpu().unsqueeze(-1)
                     else:
-                        losses[k].append(v.data.item())
+                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu().unsqueeze(-1)])
 
         for k, v in losses.items():
-            losses[k] = torch.mean(torch.tensor(v))
+            losses[k] = v.mean().item()
 
         self.n_epochs += 1
 
@@ -290,30 +297,27 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 # TODO: see why the dtype is modified through TinyDB?
                 # forward
                 model_outputs = self.forward(x)
-                loss_inputs = {key: model_outputs[key] for key in self.loss_fn.input_keys_list}
+                keys = self.loss_input_class._fields
+                values = [getattr(model_outputs, k) for k in keys]
+                loss_inputs = self.loss_input_class(**dict(zip(keys, values)))
                 batch_losses = self.loss_fn(loss_inputs)
                 # save losses
-                for k, v in batch_losses.items():
+                for i, k in enumerate(batch_losses._fields):
                     if k not in losses:
-                        losses[k] = v.detach().cpu().unsqueeze(-1)
+                        losses[k] = batch_losses[i].detach().cpu()
                     else:
-                        losses[k] = torch.vstack([losses[k], v.detach().cpu().unsqueeze(-1)])
+                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu()])
 
                 if record_valid_images:
-                    recon_x = model_outputs["recon_x"].cpu().detach()
-                    if len(images) < self.config.tb_record_memory_max:
-                        images.append(x.cpu().detach())
-                    if len(recon_images) < self.config.tb_record_memory_max:
-                        recon_images.append(recon_x)
+                    recon_x = model_outputs.recon_x.cpu().detach()
+                    images.append(x.cpu().detach())
+                    recon_images.append(recon_x)
 
                 if record_embeddings:
-                    if len(embeddings) < self.config.tb_record_memory_max:
-                        embeddings.append(
-                            model_outputs["z"].cpu().detach().view(x.shape[0], self.config.encoder_n_latents))
-                        labels.append(data["label"])
+                    embeddings.append(model_outputs.z.cpu().detach().view(x.shape[0], self.config.encoder_n_latents))
+                    labels.append(data["label"])
                     if not record_valid_images:
-                        if len(images) < self.config.tb_record_memory_max:
-                            images.append(x.cpu().detach())
+                        images.append(x.cpu().detach())
 
         if record_valid_images:
             recon_images = torch.cat(recon_images)
@@ -348,7 +352,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
         # average loss and return
         for k, v in losses.items():
-            losses[k] = torch.mean(torch.tensor(v)).item()
+            losses[k] = v.mean().item()
 
         return losses
 
@@ -395,12 +399,12 @@ class VAE(nn.Module, BaseOutputRepresentation):
             .type(self.input_space[self.wrapped_input_space_key].dtype) \
             .unsqueeze(0)
 
-        output = {f"vae_{self.wrapped_input_space_key}": self.encoder.calc_embedding(input).flatten().cpu().detach()}
+        output = self.encoder.calc_embedding(input).squeeze().to(observations[self.wrapped_input_space_key].device)
 
         if self.config.expand_output_space:
-            self.output_space.expand(output)
+            self.output_space[f"vae_{self.wrapped_input_space_key}"].expand(output)
 
-        return output
+        return {f"vae_{self.wrapped_input_space_key}": output}
 
     def save(self):
         return {
@@ -422,21 +426,18 @@ class VAELoss:
     def __init__(self, reconstruction_dist="bernoulli", **kwargs):
         self.reconstruction_dist = reconstruction_dist
 
-        self.input_keys_list = ['x', 'recon_x', 'mu', 'logvar']
+        self.input_keys_list = ["x", "recon_x", "mu", "logvar"]
+        output_keys_list = ["total", "recon", "KLD"]
+        self.output_class = namedtuple("output", output_keys_list)
 
     def __call__(self, loss_inputs, reduction="mean", **kwargs):
-        try:
-            recon_x = loss_inputs['recon_x']
-            mu = loss_inputs['mu']
-            logvar = loss_inputs['logvar']
-            x = loss_inputs['x']
-        except:
-            raise ValueError("VAELoss needs {} inputs".format(self.input_keys_list))
-        recon_loss = _reconstruction_loss(recon_x, x, self.reconstruction_dist, reduction=reduction)
-        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(mu, logvar, reduction=reduction)
+        recon_loss = _reconstruction_loss(loss_inputs.recon_x, loss_inputs.x, self.reconstruction_dist, reduction=reduction)
+        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(loss_inputs.mu, loss_inputs.logvar, reduction=reduction)
         total_loss = recon_loss + KLD_loss
 
-        return {'total': total_loss, 'recon': recon_loss, 'KLD': KLD_loss}
+        output = self.output_class(total_loss, recon_loss, KLD_loss)
+
+        return output
 
 
 class BetaVAELoss:
@@ -445,20 +446,17 @@ class BetaVAELoss:
         self.beta = beta
 
         self.input_keys_list = ['x', 'recon_x', 'mu', 'logvar']
+        output_keys_list = ["total", "recon", "KLD"]
+        self.output_class = namedtuple("output", output_keys_list)
 
     def __call__(self, loss_inputs, reduction="mean", **kwargs):
-        try:
-            recon_x = loss_inputs['recon_x']
-            mu = loss_inputs['mu']
-            logvar = loss_inputs['logvar']
-            x = loss_inputs['x']
-        except:
-            raise ValueError("BetaVAELoss needs {} inputs".format(self.input_keys_list))
-        recon_loss = _reconstruction_loss(recon_x, x, self.reconstruction_dist, reduction=reduction)
-        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(mu, logvar, reduction=reduction)
+        recon_loss = _reconstruction_loss(loss_inputs.recon_x, loss_inputs.x, self.reconstruction_dist, reduction=reduction)
+        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(loss_inputs.mu, loss_inputs.logvar, reduction=reduction)
         total_loss = recon_loss + self.beta * KLD_loss
 
-        return {'total': total_loss, 'recon': recon_loss, 'KLD': KLD_loss}
+        output = self.output_class(total_loss, recon_loss, KLD_loss)
+
+        return output
 
 
 class AnnealedVAELoss:
@@ -475,6 +473,8 @@ class AnnealedVAELoss:
         self.n_iters = 0
 
         self.input_keys_list = ['x', 'recon_x', 'mu', 'logvar']
+        output_keys_list = ["total", "recon", "KLD"]
+        self.output_class = namedtuple("output", output_keys_list)
 
     def update_encoding_capacity(self):
         if self.n_iters > self.c_change_duration:
@@ -484,22 +484,17 @@ class AnnealedVAELoss:
                                 self.c_max)
 
     def __call__(self, loss_inputs, reduction="mean", **kwargs):
-        try:
-            recon_x = loss_inputs['recon_x']
-            mu = loss_inputs['mu']
-            logvar = loss_inputs['logvar']
-            x = loss_inputs['x']
-        except:
-            raise ValueError("AnnealedVAELoss needs {} inputs".format(self.input_keys_list))
-        recon_loss = _reconstruction_loss(recon_x, x, self.reconstruction_dist)
-        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(mu, logvar)
+        recon_loss = _reconstruction_loss(loss_inputs.recon_x, loss_inputs.x, self.reconstruction_dist)
+        KLD_loss, KLD_per_latent_dim, KLD_var = _kld_loss(loss_inputs.mu, loss_inputs.logvar)
         total_loss = recon_loss + self.gamma * (KLD_loss - self.capacity).abs()
 
         if total_loss.requires_grad:  # if we are in "train mode", update counters
             self.n_iters += 1
             self.update_encoding_capacity()
 
-        return {'total': total_loss, 'recon': recon_loss, 'KLD': KLD_loss}
+        output = self.output_class(total_loss, recon_loss, KLD_loss)
+
+        return output
 
 
 def _reconstruction_loss(recon_x, x, reconstruction_dist="bernoulli", reduction="mean"):

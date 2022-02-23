@@ -1,16 +1,15 @@
-from addict import Dict
 from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.trunks.encoders import get_encoder, ConnectedEncoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.heads.decoders import get_decoder, ConnectedDecoder
 from auto_disc.output_representations.generic.pytorch_representations.dense_tensors.vae import VAELoss
 from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter, BooleanConfigParameter, DictConfigParameter
 from auto_disc.utils.misc.dict_utils import map_nested_dicts
-from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, ModelWrapper, get_weights_init
+from auto_disc.utils.misc.torch_utils import ExperimentHistoryDataset, get_weights_init
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list, resize_embeddings
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.spaces import DictSpace, BoxSpace
+from collections import namedtuple
 from copy import deepcopy
-import math
 import numpy as np
 import os
 from sklearn import cluster, svm, mixture
@@ -35,17 +34,17 @@ class Node(nn.Module):
     @staticmethod
     def path_to_id(path):
         if len(path) == 1:
-            return int(1)
+            return torch.IntTensor([1])
         else:
             return 2 * Node.path_to_id(path[:-1]) + int(path[-1])
 
 
     @staticmethod
     def id_to_path(id):
-        if id == 1:
+        if id.item() == 1:
             return "0"
         else:
-            return Node.id_to_path(id // 2) + str(id % 2)
+            return Node.id_to_path(id // 2) + str(id.item() % 2)
 
     def __init__(self, path, **kwargs):
         self.path = path
@@ -111,7 +110,7 @@ class Node(nn.Module):
 
         if z_fitness is None:
             if boundary_name == "cluster.KMeans":
-                boundary_parameters.n_clusters = 2
+                boundary_parameters["n_clusters"] = 2
                 self.boundary = make_pipeline(StandardScaler(),
                                       boundary_algo(**boundary_parameters))
                 self.boundary.fit(X)
@@ -122,8 +121,8 @@ class Node(nn.Module):
                 center1 = np.median(X[y > np.percentile(y, 80), :], axis=0)
                 center = np.stack([center0, center1])
                 center = np.nan_to_num(center)
-                boundary_parameters.init = center
-                boundary_parameters.n_clusters = 2
+                boundary_parameters["init"] = center
+                boundary_parameters["n_clusters"] = 2
                 self.boundary = make_pipeline(StandardScaler(),
                                               boundary_algo(**boundary_parameters))
                 self.boundary.fit(X)
@@ -146,18 +145,18 @@ class Node(nn.Module):
 
         node_outputs = self.node_forward(x, parent_lf, parent_gf, parent_gfi, parent_lfi, parent_recon_x)
 
-        parent_lf = node_outputs["lf"].detach()
-        parent_gf = node_outputs["gf"].detach()
-        parent_gfi = node_outputs["gfi"].detach()
-        parent_lfi = node_outputs["lfi"].detach()
-        parent_recon_x = node_outputs["recon_x"].detach()
+        parent_lf = node_outputs.lf.detach()
+        parent_gf = node_outputs.gf.detach()
+        parent_gfi = node_outputs.gfi.detach()
+        parent_lfi = node_outputs.lfi.detach()
+        parent_recon_x = node_outputs.recon_x.detach()
 
         if self.leaf:
             # return path_taken, x_ids, leaf_outputs
             return ([[tree_path_taken, x_ids, node_outputs]])
 
         else:
-            z = node_outputs["z"]
+            z = node_outputs.z
             x_side = self.get_children_node(z)
             x_ids_left = np.where(x_side == 0)[0]
             if len(x_ids_left) > 0:
@@ -198,11 +197,11 @@ class Node(nn.Module):
 
         node_outputs = self.node_forward(x, parent_lf, parent_gf, parent_gfi, parent_lfi, parent_recon_x)
 
-        parent_lf = node_outputs["lf"].detach()
-        parent_gf = node_outputs["gf"].detach()
-        parent_gfi = node_outputs["gfi"].detach()
-        parent_lfi = node_outputs["lfi"].detach()
-        parent_recon_x = node_outputs["recon_x"].detach()
+        parent_lf = node_outputs.lf.detach()
+        parent_gf = node_outputs.gf.detach()
+        parent_gfi = node_outputs.gfi.detach()
+        parent_lfi = node_outputs.lfi.detach()
+        parent_recon_x = node_outputs.recon_x.detach()
 
         if self.leaf:
             # return path_taken, x_ids, leaf_outputs
@@ -211,7 +210,7 @@ class Node(nn.Module):
         else:
             self.leaf_accumulator.extend([[tree_path_taken, x_ids, node_outputs]])
 
-            z = node_outputs["z"]
+            z = node_outputs.z
             x_side = self.get_children_node(z)
             x_ids_left = np.where(x_side == 0)[0]
             if len(x_ids_left) > 0:
@@ -252,11 +251,11 @@ class Node(nn.Module):
 
         node_outputs = self.node_forward(x, parent_lf, parent_gf, parent_gfi, parent_lfi, parent_recon_x)
 
-        parent_lf = node_outputs["lf"].detach()
-        parent_gf = node_outputs["gf"].detach()
-        parent_gfi = node_outputs["gfi"].detach()
-        parent_lfi = node_outputs["lfi"].detach()
-        parent_recon_x = node_outputs["recon_x"].detach()
+        parent_lf = node_outputs.lf.detach()
+        parent_gf = node_outputs.gf.detach()
+        parent_gfi = node_outputs.gfi.detach()
+        parent_lfi = node_outputs.lfi.detach()
+        parent_recon_x = node_outputs.recon_x.detach()
 
         if self.leaf:
             # return path_taken, x_ids, leaf_outputs
@@ -310,7 +309,7 @@ class Node(nn.Module):
         else:
             return self.get_boundary_side(z)
 
-    def split(self, create_boundary=False, history=None, boundary_name="cluster.KMeans", boundary_parameters={}):
+    def split(self, create_boundary=False, z_library=None, z_fitness=None, boundary_name="cluster.KMeans", boundary_parameters={}):
 
         self.eval()
 
@@ -325,14 +324,7 @@ class Node(nn.Module):
 
         # Create boundary
         if create_boundary:
-            z_library = torch.stack([history[i][self.path] for i in range(len(history))])
-            if torch.isnan(z_library).any():
-                keep_ids = ~(torch.isnan(z_library.sum(1)))
-                z_library = z_library[keep_ids]
-
-            z_fitness = None  # TODO: allow other z_fitness
-
-            self.create_boundary(z_library.cpu().numpy(), z_fitness, boundary_name=boundary_name, boundary_parameters=boundary_parameters)
+            self.create_boundary(z_library, z_fitness, boundary_name=boundary_name, boundary_parameters=boundary_parameters)
 
             self.log_split()
 
@@ -397,16 +389,15 @@ class VAENode(Node, nn.Module):
                                                     connect_lfi=create_connections_lfi,
                                                     connect_recon=create_connections_recon)
 
+        self.output_class = namedtuple("output", self.network.encoder.output_class._fields + self.network.decoder.output_class._fields)
 
     def node_forward_from_encoder(self, encoder_outputs, parent_gfi=None, parent_lfi=None,
                                   parent_recon_x=None):
         if self.depth == 0:
-            decoder_outputs = self.network.decoder(encoder_outputs["z"])
+            decoder_outputs = self.network.decoder(encoder_outputs.z)
         else:
-            decoder_outputs = self.network.decoder(encoder_outputs["z"], parent_gfi, parent_lfi,
-                                                   parent_recon_x)
-        model_outputs = encoder_outputs
-        model_outputs.update(decoder_outputs)
+            decoder_outputs = self.network.decoder(encoder_outputs.z, parent_gfi, parent_lfi, parent_recon_x)
+        model_outputs = self.output_class(*(encoder_outputs + decoder_outputs))
         return model_outputs
 
 """=======================================================================================
@@ -437,16 +428,14 @@ HOLMES CLASS
 @StringConfigParameter(name="optimizer_name", default="Adam")
 @DictConfigParameter(name="optimizer_parameters", default={})
 
-@BooleanConfigParameter(name="use_scheduler", default=True)
+@BooleanConfigParameter(name="use_scheduler", default=False)
 @StringConfigParameter(name="scheduler_name", default="CosineAnnealingLR")
-@DictConfigParameter(name="scheduler_parameters", default={})
+@DictConfigParameter(name="scheduler_parameters", default={'T_max': 100})
 
 @BooleanConfigParameter(name="use_tensorboard", default=True)
-@StringConfigParameter(name="tb_folder", default="./tensorboard")
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks
 @IntegerConfigParameter(name="tb_record_images_frequency", default=10, min=1)
 @IntegerConfigParameter(name="tb_record_embeddings_frequency", default=10, min=1)
-@IntegerConfigParameter(name="tb_record_memory_max", default=100, min=1)
 
 @BooleanConfigParameter(name="create_connections_lf", default=True)
 @BooleanConfigParameter(name="create_connections_gf", default=False)
@@ -474,11 +463,11 @@ HOLMES CLASS
 @IntegerConfigParameter(name="alternated_backward_period", default=10, min=1)
 @IntegerConfigParameter(name="alternated_backward_connections", default=1, min=1)
 
-@StringConfigParameter(name="train_dset_filter", default="lambda x: ((x-x.min())<1e-3).all().item()")
+@StringConfigParameter(name="train_dset_filter", default="lambda x: ((x-x.min())>1e-3).sum().item() < 100")
 @StringConfigParameter(name="train_dset_transform", default="None")
 @IntegerConfigParameter(name="dataloader_batch_size", default=10, min=1)
 @IntegerConfigParameter(name="dataloader_num_workers", default=0, min=0)
-@BooleanConfigParameter(name="dataloader_drop_last", default=True)
+@BooleanConfigParameter(name="dataloader_drop_last", default=False)
 @StringConfigParameter(name="dataloader_sampler", default="None")
 @StringConfigParameter(name="dataloader_collate_fn", default="None")
 
@@ -499,8 +488,8 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         )
     )
 
-    def __init__(self, wrapped_input_space_key=None):
-        BaseOutputRepresentation.__init__(self, wrapped_input_space_key=wrapped_input_space_key)
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        BaseOutputRepresentation.__init__(self, wrapped_input_space_key=wrapped_input_space_key, **kwargs)
         nn.Module.__init__(self)
 
     def initialize(self, input_space):
@@ -558,6 +547,8 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
         self.init_network_weights()
 
+        self.output_class = namedtuple("output", ("node_id", ) + self.root.output_class._fields)
+
     def init_network_weights(self):
         """
         Initialize the torch module weights based on self.config.weights_init_*
@@ -573,6 +564,8 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         """
         loss_cls = eval(f"{self.config.loss_name}Loss")
         self.loss_fn = loss_cls(**self.config.loss_parameters)
+
+        self.loss_input_class = namedtuple("loss_input", self.loss_fn.input_keys_list)
 
 
     def set_optimizer(self):
@@ -604,9 +597,8 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         self.type(self.input_space[self.wrapped_input_space_key].dtype)
 
     def set_tensorboard(self):
-        if not os.path.exists(self.config.tb_folder):
-            os.makedirs(self.config.tb_folder)
-        self.tensorboard_logger = SummaryWriter(self.config.tb_folder)
+        if self.config.use_tensorboard:
+            self.tensorboard_logger = SummaryWriter(f"tensorboard_representation/experiment_{self.logger._AutoDiscLogger__experiment_id:06d}/seed_{self.logger._seed:06d}")
 
         self.add_graph_to_tensorboard()
 
@@ -620,8 +612,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 .unsqueeze(0)
             self.eval()
             with torch.no_grad():
-                model_wrapper = ModelWrapper(self)
-                self.tensorboard_logger.add_graph(model_wrapper, dummy_input, verbose=False)
+                self.tensorboard_logger.add_graph(self, dummy_input, verbose=False)
 
     def forward(self, x):
         x = x.to(self.config.input_tensors_device)
@@ -633,65 +624,19 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         else:
             depth_first_traversal_outputs = self.root.depth_first_forward(x)
 
-        model_outputs = {}
-        x_order_ids = []
-        for leaf_idx in range(len(depth_first_traversal_outputs)):
-            cur_node_path = depth_first_traversal_outputs[leaf_idx][0]
-            cur_node_x_ids = depth_first_traversal_outputs[leaf_idx][1]
-            cur_node_outputs = depth_first_traversal_outputs[leaf_idx][2]
-            # stack results
-            if not model_outputs:
-                model_outputs["node_id"] = torch.Tensor([Node.path_to_id(path) for path in cur_node_path]).unsqueeze(-1)
-                for k, v in cur_node_outputs.items():
-                    model_outputs[k] = v
+
+        x_ids = [inner for outer in [node_output[1] for node_output in depth_first_traversal_outputs] for inner in outer]
+        outputs = []
+        for k in self.output_class._fields:
+            if k == "node_id":
+                outputs.append(torch.cat([torch.cat([Node.path_to_id(path) for path in node_output[0]]).unsqueeze(-1) for node_output in depth_first_traversal_outputs], dim=0)[x_ids])
             else:
-                model_outputs["node_id"] = torch.cat([model_outputs["node_id"], torch.Tensor([Node.path_to_id(path) for path in cur_node_path]).unsqueeze(-1)])
-                for k, v in cur_node_outputs.items():
-                    model_outputs[k] = torch.cat([model_outputs[k], v], dim=0)
-            # save the sampled ids to reorder as in the input batch at the end
-            x_order_ids += list(cur_node_x_ids)
+                outputs.append(torch.cat([getattr(node_output[2], k) for node_output in depth_first_traversal_outputs], dim=0)[x_ids])
 
-        # reorder points
-        sort_order = tuple(np.argsort(x_order_ids))
-        for k, v in model_outputs.items():
-                model_outputs[k] = v[sort_order, :]
+        outputs = self.output_class(*outputs)
 
-        return model_outputs
+        return outputs
 
-    def forward_through_given_path(self, x, tree_desired_path):
-        x = x.to(self.config.input_tensors_device)
-        is_train = self.root.training
-        if len(x) == 1 and is_train:
-            self.root.eval()
-            depth_first_traversal_outputs = self.root.depth_first_forward_through_given_path(x, tree_desired_path)
-            self.root.train()
-        else:
-            depth_first_traversal_outputs = self.root.depth_first_forward_through_given_path(x, tree_desired_path)
-
-        model_outputs = {}
-        x_order_ids = []
-        for leaf_idx in range(len(depth_first_traversal_outputs)):
-            cur_node_path = depth_first_traversal_outputs[leaf_idx][0]
-            cur_node_x_ids = depth_first_traversal_outputs[leaf_idx][1]
-            cur_node_outputs = depth_first_traversal_outputs[leaf_idx][2]
-            # stack results
-            if not model_outputs:
-                model_outputs["node_id"] = torch.Tensor([Node.path_to_id(path) for path in cur_node_path]).unsqueeze(-1)
-                for k, v in cur_node_outputs.items():
-                    model_outputs[k] = v
-            else:
-                model_outputs["node_id"] = torch.cat([model_outputs["node_id"], torch.Tensor([Node.path_to_id(path) for path in cur_node_path]).unsqueeze(-1)])
-                for k, v in cur_node_outputs.items():
-                    model_outputs[k] = torch.cat([model_outputs[k], v], dim=0)
-            # save the sampled ids to reorder as in the input batch at the end
-            x_order_ids += list(cur_node_x_ids)
-
-        # reorder points
-        sort_order = tuple(np.argsort(x_order_ids))
-        for k, v in model_outputs.items():
-                model_outputs[k] = v[sort_order, :]
-
-        return model_outputs
 
     def calc_embedding(self, x, mode="niche", node_path=None, **kwargs):
         """
@@ -728,17 +673,17 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     cur_node_x_ids = all_nodes_outputs[node_idx][1]
                     cur_node_outputs = all_nodes_outputs[node_idx][2]
                     for idx in range(len(cur_node_x_ids)):
-                        z[cur_node_x_ids[idx]] = cur_node_outputs["z"][idx]
+                        z[cur_node_x_ids[idx]] = cur_node_outputs.z[idx]
                     break
             else:
                 if mode == "niche":
                     cur_node_x_ids = all_nodes_outputs[node_idx][1]
                     cur_node_outputs = all_nodes_outputs[node_idx][2]
                     for idx in range(len(cur_node_x_ids)):
-                        z[cur_node_path][cur_node_x_ids[idx]] = cur_node_outputs["z"][idx]
+                        z[cur_node_path][cur_node_x_ids[idx]] = cur_node_outputs.z[idx]
                 elif mode == "exhaustif":
                     cur_node_outputs = all_nodes_outputs[node_idx][1]
-                    z[cur_node_path] = cur_node_outputs["z"]
+                    z[cur_node_path] = cur_node_outputs.z
         return z
 
 
@@ -789,19 +734,25 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
         train_fitness = None
         taken_pathes = []
 
-        old_transform_state = train_loader.dataset.transform
-        train_loader.dataset.transform = None
+        if hasattr(train_loader.dataset, "transform"):
+            old_transform_state = train_loader.dataset.transform
+            train_loader.dataset.transform = None
 
         with torch.no_grad():
+            z_library = []
             for data in train_loader:
                 x = data["obs"].to(self.config.input_tensors_device)\
                     .type(self.input_space[self.wrapped_input_space_key].dtype)
 
                 # forward
                 model_outputs = self.forward(x)
-                loss_inputs = {key: model_outputs[key] for key in self.loss_fn.input_keys_list}
+                keys = self.loss_input_class._fields
+                values = [getattr(model_outputs, k) for k in keys]
+                loss_inputs = self.loss_input_class(**dict(zip(keys, values)))
                 batch_losses = self.loss_fn(loss_inputs, reduction="none")
-                cur_train_fitness = batch_losses[self.config.split_loss_key]
+                cur_train_fitness = getattr(batch_losses, self.config.split_loss_key)
+
+                z_library.append(model_outputs.z)
 
                 # save losses
                 if train_fitness is None:
@@ -810,7 +761,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     train_fitness = np.vstack(
                         [train_fitness, np.expand_dims(cur_train_fitness.detach().cpu().numpy(), axis=-1)])
                 # save taken pathes
-                taken_pathes += [Node.id_to_path(int(node_id.item())) for node_id in model_outputs["node_id"]]
+                taken_pathes += [Node.id_to_path(node_id) for node_id in model_outputs.node_id]
 
         for leaf_path in list(set(taken_pathes)):
             leaf_node = self.root.get_child_node(leaf_path)
@@ -842,18 +793,24 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     trigger_split_in_leaf = True
 
             if trigger_split_in_leaf:
-                self.split(leaf_path, create_boundary=True)
+                z_library = torch.cat(z_library)
+                if torch.isnan(z_library).any():
+                    keep_ids = ~(torch.isnan(z_library.sum(1)))
+                    z_library = z_library[keep_ids]
+                z_library = z_library.cpu().numpy()
+                self.split(leaf_path, z_library=z_library, create_boundary=True)
                 # Save the new graph in the logger
                 self.add_graph_to_tensorboard()
 
                 splitted_leafs.append(leaf_path)
 
-        train_loader.dataset.transform = old_transform_state
+        if hasattr(train_loader.dataset, "transform"):
+            train_loader.dataset.transform = old_transform_state
         return splitted_leafs
 
-    def split(self, leaf_path, create_boundary=False):
+    def split(self, leaf_path, z_library=None, z_fitness=None, create_boundary=False):
             leaf_node = self.root.get_child_node(leaf_path)
-            leaf_node.split(create_boundary=create_boundary, history=self._access_history()['output'], boundary_name=self.config.boundary_name, boundary_parameters=self.config.boundary_parameters)
+            leaf_node.split(create_boundary=create_boundary, z_library=z_library, z_fitness=z_fitness, boundary_name=self.config.boundary_name, boundary_parameters=self.config.boundary_parameters)
 
             # 1) set input tensors compatibility
             self.set_input_tensors_compatibility()
@@ -887,13 +844,14 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
 
 
             # 3) Create new keys in output space
-            self.output_space.holmes_vae.spaces[f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-            self.output_space.holmes_vae.spaces[f"{leaf_path}0"].initialize(self)
-            self.output_space.holmes_vae.spaces[f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
-            self.output_space.holmes_vae.spaces[f"{leaf_path}1"].initialize(self)
+            self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"][f"{leaf_path}0"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"][f"{leaf_path}0"].initialize(self)
+            self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"][f"{leaf_path}1"] = BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("encoder_n_latents"),))
+            self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"][f"{leaf_path}1"].initialize(self)
 
             # 4) Update history
-            self._call_output_history_update() #TODO: check that goal spaces are expanded
+            if callable(self._call_output_history_update):
+                self._call_output_history_update() #TODO: check that goal spaces are expanded
 
             # save split history
             self.split_history[leaf_path] = {"boundary": leaf_node.boundary, "epoch": self.n_epochs}
@@ -933,21 +891,23 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 #TODO: see why the dtype is modified through TinyDB?
                 # forward
                 model_outputs = self.forward(x)
-                loss_inputs = {key: model_outputs[key] for key in self.loss_fn.input_keys_list}
+                keys = self.loss_input_class._fields
+                values = [getattr(model_outputs, k) for k in keys]
+                loss_inputs = self.loss_input_class(**dict(zip(keys, values)))
                 batch_losses = self.loss_fn(loss_inputs, reduction="none")
                 # backward
-                loss = batch_losses['total'].mean()
+                loss = batch_losses.total.mean()
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
                 # save losses
-                for k, v in batch_losses.items():
+                for i, k in enumerate(batch_losses._fields):
                     if k not in losses:
-                        losses[k] = v.detach().cpu()
+                        losses[k] = batch_losses[i].detach().cpu()
                     else:
-                        losses[k] = torch.cat([losses[k], v.detach().cpu()])
+                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu()])
                 # save taken path
-                taken_pathes += [Node.id_to_path(int(node_id.item())) for node_id in model_outputs["node_id"]]
+                taken_pathes += [Node.id_to_path(node_id) for node_id in model_outputs.node_id]
 
         # Logger save results per leaf
         if self.config.use_tensorboard:
@@ -960,7 +920,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                                            self.n_epochs)
 
         for k, v in losses.items():
-            losses[k] = v.mean()
+            losses[k] = v.mean().item()
 
         self.n_epochs += 1
 
@@ -982,7 +942,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 recon_images = torch.empty((0, ) + self.input_space[self.wrapped_input_space_key].shape)
             if self.n_epochs % self.config.tb_record_embeddings_frequency == 0:
                 record_embeddings = True
-                embeddings = torch.empty((0, ) + self.output_space.holmes_vae["0"].shape)
+                embeddings = torch.empty((0, ) + self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"]["0"].shape)
                 labels = torch.empty((0, 1))
                 if images is None:
                     images = torch.empty((0, ) + self.input_space[self.wrapped_input_space_key].shape)
@@ -994,31 +954,29 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                 #TODO: see why the dtype is modified through TinyDB?
                 # forward
                 model_outputs = self.forward(x)
-                loss_inputs = {key: model_outputs[key] for key in self.loss_fn.input_keys_list}
+                keys = self.loss_input_class._fields
+                values = [getattr(model_outputs, k) for k in keys]
+                loss_inputs = self.loss_input_class(**dict(zip(keys, values)))
                 batch_losses = self.loss_fn(loss_inputs, reduction="none")
                 # save losses
-                for k, v in batch_losses.items():
+                for i, k in enumerate(batch_losses._fields):
                     if k not in losses:
-                        losses[k] = v.detach().cpu()
+                        losses[k] = batch_losses[i].detach().cpu()
                     else:
-                        losses[k] = torch.cat([losses[k], v.detach().cpu()])
+                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu()])
 
                 if record_valid_images:
-                    recon_x = model_outputs["recon_x"].cpu().detach()
-                    if len(images) < self.config.tb_record_memory_max:
-                        images = torch.cat([images, x.cpu().detach()])
-                    if len(recon_images) < self.config.tb_record_memory_max:
-                        recon_images = torch.cat([recon_images, recon_x])
+                    recon_x = model_outputs.recon_x.cpu().detach()
+                    images = torch.cat([images, x.cpu().detach()])
+                    recon_images = torch.cat([recon_images, recon_x])
 
                 if record_embeddings:
-                    if len(embeddings) < self.config.tb_record_memory_max:
-                        embeddings = torch.cat([embeddings, model_outputs["z"].cpu().detach().view(x.shape[0], self.config.encoder_n_latents)])
-                        labels = torch.cat([labels, data["label"].cpu()])
+                    embeddings = torch.cat([embeddings, model_outputs.z.cpu().detach().view(x.shape[0], self.config.encoder_n_latents)])
+                    labels = torch.cat([labels, data["label"].cpu()])
                     if not record_valid_images:
-                        if len(images) < self.config.tb_record_memory_max:
-                            images = torch.cat([images, x.cpu().detach()])
+                        images = torch.cat([images, x.cpu().detach()])
 
-                taken_pathes += [Node.id_to_path(int(node_id.item())) for node_id in model_outputs["node_id"]]
+                taken_pathes += [Node.id_to_path(node_id) for node_id in model_outputs.node_id]
 
 
         # LOGGER SAVE RESULT PER LEAF
@@ -1051,7 +1009,7 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
                     sampled_ids = np.random.choice(len(leaf_x_ids), n_images, replace=False)
                     input_images = images[leaf_x_ids[sampled_ids]].cpu()
                     output_images = recon_images[leaf_x_ids[sampled_ids]].cpu()
-                    if self.config.loss.parameters.reconstruction_dist == "bernoulli":
+                    if self.loss_fn.reconstruction_dist == "bernoulli":
                         output_images = torch.sigmoid(output_images)
                     vizu_tensor_list = [None] * (2 * n_images)
                     vizu_tensor_list[0::2] = [input_images[n] for n in range(n_images)]
@@ -1109,12 +1067,12 @@ class HOLMES_VAE(nn.Module, BaseOutputRepresentation):
             .unsqueeze(0)
 
         output = self.calc_embedding(input)
-        output = map_nested_dicts(output, lambda x: x.flatten().cpu().detach())
+        output = map_nested_dicts(output, lambda x: x.squeeze().to(observations[self.wrapped_input_space_key].device))
 
         if self.config.expand_output_space:
-            self.output_space.holmes_vae.expand(output)
+            self.output_space[f"holmes_vae_{self.wrapped_input_space_key}"].expand(output)
 
-        return {f"holmes_vae": output}
+        return {f"holmes_vae_{self.wrapped_input_space_key}": output}
 
     def save(self):
         return {

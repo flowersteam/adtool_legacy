@@ -1,4 +1,5 @@
 from auto_disc.utils.misc.torch_utils import Channelize, conv_output_sizes, convtranspose_get_output_padding
+from collections import namedtuple
 import math
 import torch
 from torch import nn
@@ -40,9 +41,11 @@ class Decoder(nn.Module):
             self.convtranspose_module = nn.ConvTranspose3d
             self.batchnorm_module = nn.BatchNorm3d
 
-        self.output_keys_list = ["gfi", "lfi", "recon_x"]  # removed z already in encoder outputs
+        output_keys_list = ["gfi", "lfi", "recon_x"]  # removed z already in encoder outputs
+        self.output_class = namedtuple("output", output_keys_list)
 
     def forward(self, z):
+
         if z.dim() == 2 and type(self).__name__ == "DumoulinDecoder":  # B*n_latents -> B*n_latents*1*1
             for _ in range(self.spatial_dims):
                 z = z.unsqueeze(-1)
@@ -53,10 +56,14 @@ class Decoder(nn.Module):
         lfi = self.gfi(gfi)
         # recon_x
         recon_x = self.lfi(lfi)
-        # decoder output
-        decoder_outputs = {"gfi": gfi, "lfi": lfi, "recon_x": recon_x}
 
-        return decoder_outputs
+        keys = self.output_class._fields
+        values = []
+        for k in keys:
+            values.append(eval(k))
+        outputs = self.output_class(**dict(zip(keys, values)))
+
+        return outputs
 
 
 def get_decoder(model_architecture):
@@ -304,11 +311,11 @@ class DumoulinDecoder(Decoder):
         # batch norm cannot deal with batch_size 1 in train mode
         if self.training and z.size()[0] == 1:
             self.eval()
-            encoder_outputs = Decoder.forward(self, z)
+            outputs = Decoder.forward(self, z)
             self.train()
         else:
-            encoder_outputs = Decoder.forward(self, z)
-        return encoder_outputs
+            outputs = Decoder.forward(self, z)
+        return outputs
 
 class ConnectedDecoder(Decoder):
     def __init__(self, decoder_instance, connect_gfi=False, connect_lfi=False, connect_recon=False):
@@ -416,10 +423,13 @@ class ConnectedDecoder(Decoder):
             # recon_x = recon_x + self.recon_c(parent_recon_x)
             recon_x = recon_x * self.recon_c_gamma(parent_recon_x) + self.recon_c_beta(parent_recon_x)
 
-        # decoder output
-        decoder_outputs = {"gfi": gfi, "lfi": lfi, "recon_x": recon_x}
-
         if was_training and z.size()[0] == 1:
             self.train()
 
-        return decoder_outputs
+        keys = self.output_class._fields
+        values = []
+        for k in keys:
+            values.append(eval(k))
+        outputs = self.output_class(**dict(zip(keys, values)))
+
+        return outputs

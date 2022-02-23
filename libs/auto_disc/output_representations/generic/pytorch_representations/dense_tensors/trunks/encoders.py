@@ -1,4 +1,5 @@
 from auto_disc.utils.misc.torch_utils import Flatten, conv_output_sizes
+from collections import namedtuple
 import math
 import torch
 from torch import nn
@@ -46,9 +47,12 @@ class Encoder(nn.Module):
             self.maxpool_module = nn.MaxPool3d
             self.batchnorm_module = nn.BatchNorm3d
 
-        self.output_keys_list = ["x", "lf", "gf", "z"]
+        output_keys_list = ["x", "lf", "gf", "z"]
         if self.conditional_type == "gaussian":
-            self.output_keys_list += ["mu", "logvar"]
+            output_keys_list += ["mu", "logvar"]
+        if self.use_attention:
+            output_keys_list.append("af")
+        self.output_class = namedtuple("output", output_keys_list)
 
     def forward(self, x):
 
@@ -57,7 +61,6 @@ class Encoder(nn.Module):
         # global feature map
         gf = self.gf(lf)
 
-        encoder_outputs = {"x": x, "lf": lf, "gf": gf}
 
         # encoding
         if self.conditional_type == "gaussian":
@@ -68,21 +71,25 @@ class Encoder(nn.Module):
                     mu = mu.squeeze(dim=-1)
                     logvar = logvar.squeeze(dim=-1)
                     z = z.squeeze(dim=-1)
-            encoder_outputs.update({"z": z, "mu": mu, "logvar": logvar})
+
         elif self.conditional_type == "deterministic":
             z = self.ef(gf)
             if z.ndim > 2:
                 for _ in range(self.spatial_dims):
                     z = z.squeeze(dim=-1)
-            encoder_outputs.update({"z": z})
 
         # attention features
         if self.use_attention:
             af = self.af(gf)
             af = F.normalize(af, p=2)
-            encoder_outputs.update({"af": af})
 
-        return encoder_outputs
+        keys = self.output_class._fields
+        values = []
+        for k in keys:
+            values.append(eval(k))
+        outputs = self.output_class(**dict(zip(keys, values)))
+
+        return outputs
 
     def reparameterize(self, mu, logvar):
         if self.training:
@@ -93,8 +100,8 @@ class Encoder(nn.Module):
             return mu
 
     def calc_embedding(self, x):
-        encoder_outputs = self.forward(x)
-        return encoder_outputs["z"]
+        outputs = self.forward(x)
+        return outputs.z
 
 
 def get_encoder(model_architecture):
@@ -276,11 +283,11 @@ class HjelmEncoder(Encoder):
         # batch norm cannot deal with batch_size 1 in train mode
         if self.training and x.size(0) == 1:
             self.eval()
-            encoder_outputs = Encoder.forward(self, x)
+            outputs = Encoder.forward(self, x)
             self.train()
         else:
-            encoder_outputs = Encoder.forward(self, x)
-        return encoder_outputs
+            outputs = Encoder.forward(self, x)
+        return outputs
 
 
 class DumoulinEncoder(Encoder):
@@ -411,11 +418,11 @@ class DumoulinEncoder(Encoder):
         # batch norm cannot deal with batch_size 1 in train mode
         if self.training and x.size()[0] == 1:
             self.eval()
-            encoder_outputs = Encoder.forward(self, x)
+            outputs = Encoder.forward(self, x)
             self.train()
         else:
-            encoder_outputs = Encoder.forward(self, x)
-        return encoder_outputs
+            outputs = Encoder.forward(self, x)
+        return outputs
 
 
 class ConnectedEncoder(Encoder):
@@ -504,15 +511,20 @@ class ConnectedEncoder(Encoder):
                     mu = mu.squeeze(-1)
                     logvar = logvar.squeeze(-1)
                     z = z.squeeze(-1)
-            encoder_outputs = {"x": x, "lf": lf, "gf": gf, "z": z, "mu": mu, "logvar": logvar}
+
         elif self.conditional_type == "deterministic":
             z = self.ef(gf)
             if z.ndim > 2:
                 for _ in range(self.spatial_dims):
                     z = z.squeeze(-1)
-            encoder_outputs = {"x": x, "lf": lf, "gf": gf, "z": z}
 
         if was_training and x.size()[0] == 1:
             self.train()
 
-        return encoder_outputs
+        keys = self.output_class._fields
+        values = []
+        for k in keys:
+            values.append(eval(k))
+        outputs = self.output_class(**dict(zip(keys, values)))
+
+        return outputs
