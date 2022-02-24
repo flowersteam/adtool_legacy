@@ -39,6 +39,8 @@ services:
 ##### MONITORING TOOLS #####
   portainer:
     image: portainer/portainer-ce:2.11.1
+    profiles:
+      - monitoring
     ports:
       - "8000:8000"
       - "9443:9443"
@@ -47,6 +49,8 @@ services:
       - "./Utils/portainer_data:/data"
   app-db-monitoring:
     image: dpage/pgadmin4
+    profiles:
+      - monitoring
     ports: 
       - "5050:5050"
     environment:
@@ -59,6 +63,8 @@ services:
       - app-db
   mongo-express:
     image: mongo-express
+    profiles:
+      - monitoring
     ports:
       - "8081:8081"
     environment:
