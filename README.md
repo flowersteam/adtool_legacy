@@ -66,6 +66,9 @@ At first startup you'll be asked to create a password for your admin account. Th
 ### PgAdmin
 PgAdmin is a lightweight web application allowing to visualy interact with a PostgreSQL database. You can use it to monitor and modify our AppDB (which should be connected by default).
 For this, go to [http://localhost:5050](http://localhost:5050).
+To login use:
+- user: `user@autodisc.com`
+- password: `autodisc`
 
 You should see the server list in the panel on the left. To see the data of a table, unfold the `schema/Tables` property of the server. Then, right click on the desired table and click "See data".
 

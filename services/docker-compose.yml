@@ -47,6 +47,12 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./Utils/portainer_data:/data"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s
   app-db-monitoring:
     image: dpage/pgadmin4
     profiles:
@@ -61,6 +67,12 @@ services:
       - "./Utils/pgadmin_mapping/servers.json:/pgadmin4/servers.json"
     depends_on:
       - app-db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s
   mongo-express:
     image: mongo-express
     profiles:
@@ -74,3 +86,9 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: password
     depends_on:
       - expe-db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s
