@@ -171,7 +171,7 @@ class Lenia(BasePythonSystem):
             return plt.show()
         elif mode == "mp4":
             byte_img = io.BytesIO()
-            imageio.mimwrite(byte_img, im_array, 'mp4',  duration=3, output_params=["-f", "mp4"])
+            imageio.mimwrite(byte_img, im_array, 'mp4',  fps=30, output_params=["-f", "mp4"])
             return (byte_img, "mp4")
         else:
             raise NotImplementedError

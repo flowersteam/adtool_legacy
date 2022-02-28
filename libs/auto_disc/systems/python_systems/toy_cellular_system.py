@@ -87,18 +87,18 @@ class ToyCellularSystem (BasePythonSystem):
         super().__init__(**kwargs)
 
         self.input_space["r"] = BoxSpace(low=self.config.r_min, high=self.config.r_max,
-                                         mutator=GaussianMutator(mean=0.0, std=0.1*(self.config.r_max-self.config.r_min)), indpb=0.25,
-                                         dtype=torch.float32, shape=(math.pow(2,self.config.tree_depth), ))
+                                         mutator=GaussianMutator(mean=0.0, std=0.15*(self.config.r_max-self.config.r_min)), indpb=1.0,
+                                         dtype=torch.float32, shape=(math.pow(2,self.config.tree_depth) - 1, ))
         self.input_space["r"].initialize(self)
         self.input_space["theta"] = BoxSpace(low=self.config.theta_min, high=self.config.theta_max,
-                                             mutator=GaussianMutator(mean=0.0, std=0.1*(self.config.theta_max-self.config.theta_min)), indpb=0.25,
-                                             dtype=torch.float32, shape=(math.pow(2,self.config.tree_depth), ))
+                                             mutator=GaussianMutator(mean=0.0, std=0.15*(self.config.theta_max-self.config.theta_min)), indpb=1.0,
+                                             dtype=torch.float32, shape=(2*(math.pow(2,self.config.tree_depth) - 1), ))
         self.input_space["theta"].initialize(self)
 
         self.output_space["node_features"] = BoxSpace(low=0.0,
                                                    high=0.0,
                                                    mutator=GaussianMutator(mean=0.0, std=0.1 * (
-                                                         self.config.r_max - self.config.r_min)), indpb=0.25,
+                                                         self.config.r_max - self.config.r_min)), indpb=1.0,
                                                    dtype=torch.float32, shape=(self.config.tree_depth+1, math.pow(2, self.config.tree_depth+1)-1, 2))
         self.output_space["node_features"].initialize(self)
 
@@ -110,8 +110,8 @@ class ToyCellularSystem (BasePythonSystem):
             run_parameters = self.input_space.clamp(run_parameters)
 
         self.root = Node(x=eval(self.config.x_root_init).to(run_parameters.r.device))
-        self.fun_plus = UpdateRule(run_parameters.r, run_parameters.theta, 1.0)
-        self.fun_minus = UpdateRule(run_parameters.r, run_parameters.theta, -1.0)
+        self.fun_plus = UpdateRule(run_parameters.r, run_parameters.theta[:7], 1.0)
+        self.fun_minus = UpdateRule(run_parameters.r, run_parameters.theta[-7:], -1.0)
 
         self.node_list = [self.root]
         self.edge_list = []
@@ -167,7 +167,7 @@ class ToyCellularSystem (BasePythonSystem):
                 G.add_edge(*edge)
 
 
-            fig = plt.figure(figsize=(10,10))
+            fig = plt.figure(figsize=(4,4))
 
             ax = fig.add_subplot(111)
             ax.set_xlim([-1.3, 1.3])
