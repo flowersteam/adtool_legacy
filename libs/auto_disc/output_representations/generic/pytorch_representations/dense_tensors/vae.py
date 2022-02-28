@@ -301,9 +301,9 @@ class VAE(nn.Module, BaseOutputRepresentation):
                 # save losses
                 for i, k in enumerate(batch_losses._fields):
                     if k not in losses:
-                        losses[k] = batch_losses[i].detach().cpu()
+                        losses[k] = batch_losses[i].detach().cpu().cpu().unsqueeze(-1)
                     else:
-                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu()])
+                        losses[k] = torch.cat([losses[k], batch_losses[i].detach().cpu().cpu().unsqueeze(-1)])
 
                 if record_valid_images:
                     recon_x = model_outputs.recon_x.cpu().detach()

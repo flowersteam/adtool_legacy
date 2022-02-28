@@ -4,13 +4,14 @@ from copy import deepcopy
 import torch
 
 class SimCellsMatRenderToRGB(BaseOutputRepresentation):
+    CONFIG_DEFINITION = {}
 
     output_space = DictSpace(
         matrender_rgb = BoxSpace(low=0., high=1., shape=(1, )),
     )# TODO: we dont know shape before initialize here
 
-    def __init__(self, wrapped_input_space_key=None):
-        super().__init__(wrapped_input_space_key="MatRender")
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        super().__init__(wrapped_input_space_key="MatRender", **kwargs)
 
     def initialize(self, input_space):
         super().initialize(input_space)

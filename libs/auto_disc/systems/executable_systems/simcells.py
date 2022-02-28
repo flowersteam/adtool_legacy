@@ -24,7 +24,9 @@ SimCells Main
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 @IntegerConfigParameter(name="n_cells_type", default=2, min=1)
 @IntegerConfigParameter(name="observations_export_interval", default=10, min=1)
-@StringConfigParameter(name="observations_export_matrices", default="MatRender,")
+@StringConfigParameter(name="observations_export_matrices", default="MatRender")
+@StringConfigParameter(name="executable_folder", default="/home/mayalen/code/07-SimCells/resources/512/SimCells/bin/")
+@StringConfigParameter(name="scs_template_filepath", default="/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/specific/simcells_config_template.scs")
 
 class SimCells(BaseSystem):
     CONFIG_DEFINITION = {}
@@ -51,8 +53,8 @@ class SimCells(BaseSystem):
         # TODO: "MatRender,MatNucleus,MatNucleusX,MatNucleusY,MatMembraneField"
     )
 
-    def __init__(self):
-        BaseSystem.__init__(self)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         #quick fix
         self.input_space["matnucleus_phenotype"].hight = self.config.n_cells_type
@@ -61,10 +63,9 @@ class SimCells(BaseSystem):
             if k not in self.config.observations_export_matrices:
                 del self.output_space.spaces[k]
 
-        self.executable_folder = "/home/mayalen/code/07-SimCells/resources/512/SimCells/bin/"
-        self.scs_template_filepath = "/home/mayalen/code/09-AutoDisc/AutomatedDiscoveryTool/libs/auto_disc/input_wrappers/specific/simcells_config_template.scs"
-        self.scs_output_filepath = "run_<run_id>_simcellsconfig.scs"
-        self.observations_export_folder = "tmp_h5_observations/"
+        self.observations_export_folder = f"simcells_h5_observations/experiment_{self.logger._AutoDiscLogger__experiment_id:06d}/seed_{self.logger._seed:06d}/" #last "/" important for simcells
+        self.scs_export_folder = f"simcells_scs_parameters/experiment_{self.logger._AutoDiscLogger__experiment_id:06d}/seed_{self.logger._seed:06d}"
+        self.scs_output_filepath = os.path.join(self.scs_export_folder, "run_<run_id>_simcellsconfig.scs")
         self.run_idx = 0
 
 
@@ -74,7 +75,7 @@ class SimCells(BaseSystem):
 
         # /!\ to read yaml the scs must have 4 spaces instead of tabs
         # /!\ characters like %, * must be between '' for the yaml to be read
-        with open(self.scs_template_filepath, "r") as f:
+        with open(self.config.scs_template_filepath, "r") as f:
             scs_template = yaml.safe_load(f)
 
         # insert system hyper-parameters
@@ -143,12 +144,12 @@ class SimCells(BaseSystem):
         if self.step_idx == 0: # run exectuable
             scs_output_filepath = self.scs_output_filepath.replace("<run_id>", f"{self.run_idx:07d}")
             assert (os.path.exists(scs_output_filepath))
-            assert (os.path.exists(self.executable_folder))
+            assert (os.path.exists(self.config.executable_folder))
             if not (os.path.exists(self.observations_export_folder)):
                 os.makedirs(self.observations_export_folder)
 
             os.system(
-                f"{os.path.join(self.executable_folder, 'core')} -noGUI -file {scs_output_filepath} "  # space important
+                f"{os.path.join(self.config.executable_folder, 'core')} -noGUI -file {scs_output_filepath} "  # space important
                 f"-exportInterval {self.config.observations_export_interval} -finalStep {self.config.final_step} "
                 f"-exportMatrix {','.join(self.config.observations_export_matrices)} -exportPrefix {self.observations_export_folder} ")
 

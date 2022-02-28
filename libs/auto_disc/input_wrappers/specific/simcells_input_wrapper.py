@@ -31,14 +31,14 @@ class BiasedMultiBinarySpace(MultiBinarySpace):
 
 
 
-@IntegerConfigParameter(name="n_cells_type", default=2, min=1)
+@IntegerConfigParameter(name="n_celltypes", default=2, min=1)
 @StringConfigParameter(name="neat_config_filepath", default=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg"))
 @IntegerConfigParameter(name="cppn_n_passes", default=2, min=1)
 @IntegerConfigParameter(name="drop_spacing", default=70)
 @IntegerConfigParameter(name="drop_radius", default=20)
-@IntegerConfigParameter(name="drop_ncells_min", default=0)
+@IntegerConfigParameter(name="drop_ncells_min", default=1)
 @IntegerConfigParameter(name="drop_ncells_max", default=20)
-@DictConfigParameter(name="p_per_type", default={0: 0.8, 1:0.2})
+@DictConfigParameter(name="p_per_type", default={'0': 0.8, '1':0.2})
 @DecimalConfigParameter(name="p_collagen", default=0.005)
 @IntegerConfigParameter(name="collagen_spacing", default=40)
 @IntegerConfigParameter(name="collagen_radius", default=15)
@@ -46,15 +46,17 @@ class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
     CONFIG_DEFINITION = {}
 
     input_space = DictSpace(
-        cell_pattern_genome = CPPNGenomeSpace(neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg")),
+        cell_pattern_genome = CPPNGenomeSpace(
+            neat_config_filepath=path.join(path.dirname(path.realpath(__file__)), "simcells_neat_config.cfg")
+            ),
         collagen_concentration = BoxSpace(low=0.1, high=0.8, shape=(), mutator=GaussianMutator(mean=0.0, std=0.05), indpb=1.0),
         fibro_majority = BiasedMultiBinarySpace(n=1, indpb_sample=0.8, indpb=0.05),  # 1=majority fibro, 0=majority myofibro
     )
 
 
-    def __init__(self, wrapped_output_space_key=None):
-        super().__init__("matnucleus_phenotype")
-        assert list(self.config.p_per_type.keys()) == list(range(self.config.n_cell_types))
+    def __init__(self, wrapped_output_space_key=None, **kwargs):
+        super().__init__("matnucleus_phenotype", **kwargs)
+        assert [int(k) for k in self.config.p_per_type.keys()] == list(range(self.config.n_celltypes))
         assert sum(self.config.p_per_type.values()) == 1.0
 
     def initialize(self, output_space):
@@ -115,15 +117,15 @@ class SimcellsMatnucleusInputWrapper(BaseInputWrapper):
                         v = torch.tensor([grain_y, grain_x])
                         if not (v == nucleus_coords).all(-1).any() and not (v == matnucleus_coords).all(-1).any():
                             matnucleus_coords = torch.cat([matnucleus_coords, v.unsqueeze(0)])
-                            matnucleus_feats.append(self.config.n_cell_types+1)
+                            matnucleus_feats.append(self.config.n_celltypes+1)
 
         matnucleus_feats = torch.tensor(matnucleus_feats).unsqueeze(1)
 
         if len(nucleus_coords) > 0:
             if bool(parameters.fibro_majority):
-                sampling_weights = torch.tensor(self.config.p_per_type, dtype=torch.float)
+                sampling_weights = torch.tensor(list(self.config.p_per_type.values()), dtype=torch.float)
             else:
-                sampling_weights = torch.tensor(self.config.p_per_type[::-1], dtype=torch.float)
+                sampling_weights = torch.tensor(list(self.config.p_per_type.values())[::-1], dtype=torch.float)
             matnucleus_coords = torch.cat([matnucleus_coords, nucleus_coords])
             matnucleus_feats = torch.cat([matnucleus_feats, (torch.multinomial(sampling_weights, len(nucleus_coords), replacement=True) + 1).char().unsqueeze(1)])
 

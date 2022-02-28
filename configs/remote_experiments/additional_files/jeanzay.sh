@@ -15,6 +15,7 @@ sbatch <<EOT
 
 module purge
 module load python/3.7.6
+module load openjdk/11.0.2 # load java runtime for simcells
 conda activate autoDiscTool
 
 srun python libs/auto_disc/run.py --seed \$SLURM_ARRAY_TASK_ID ${@:2}

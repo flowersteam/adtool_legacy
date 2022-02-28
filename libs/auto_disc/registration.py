@@ -39,6 +39,7 @@ REGISTRATION = {
         'generic.HOLMES_VAE': HOLMES_VAE,
         'specific.LeniaFlattenImage': LeniaImageRepresentation,
         'specific.LeniaStatistics': LeniaHandDefinedRepresentation,
+        'specific.SimCellsMatRenderToRGB': SimCellsMatRenderToRGB,
     },
     'callbacks': {
         'on_discovery':{
