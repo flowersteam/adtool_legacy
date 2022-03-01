@@ -33,18 +33,45 @@ Please attach every commit to an issue or a merge request. For issues, add #ID a
 
 ## Starting the project
 Go to the `services` folder: `cd services`.
-#### AutoDiscServer
+### AutoDiscServer
 Launch the flask server: `python -m AutoDiscServer.app`.
-#### App DB
+### App DB
 Start services: `sudo docker-compose up app-db-api`
 Add `-d` option for daemon.
-#### Expe DB
+### Expe DB
 Start service: `sudo docker-compose up expe-db`
 Add `-d` option for daemon.
 Launch flask server for the REST API: `python ExpeDB/app.py`
-#### Front-end app
+### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
 Start the angular app: `ng serve`. 
-##### Jupyter Lab
+#### Jupyter Lab
 Enter Jupyter Lab's folder: `cd ../JupyterLab`
 Start the jupyter lab on port 8888: `jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
+
+## Using monitoring services
+We added monitoring applications for the Docker services.
+You can start then by going in `services`: `cd services` and launching the following command:
+```
+sudo docker-compose --profile monitoring up
+```
+*Warning*: This command will start all the docker services or attach the already launched ones otherwise.
+
+### Portainer
+Portainer is a web application allowing to monitor Docker environments. 
+You can access it at: [https://localhost:9443](https://localhost:9443).
+
+At first startup you'll be asked to create a password for your admin account. Then, you should see your local environment with all the running containers. You can for instance easily see the logs of each container.
+
+### PgAdmin
+PgAdmin is a lightweight web application allowing to visualy interact with a PostgreSQL database. You can use it to monitor and modify our AppDB (which should be connected by default).
+For this, go to [http://localhost:5050](http://localhost:5050).
+To login use:
+- user: `user@autodisc.com`
+- password: `autodisc`
+
+You should see the server list in the panel on the left. To see the data of a table, unfold the `schema/Tables` property of the server. Then, right click on the desired table and click "See data".
+
+### MongoExpress
+MongoExpress is also a lightweight DB GUI but this time made for MongoDB.
+Access the app at [http://localhost:8081](http://localhost:8081).
