@@ -25,6 +25,13 @@ import { DisplayInputspaceOutputspaceComponent } from './experiment-creation/dis
 import { SetExperimentConfigComponent } from './experiment-creation/set-experiment-config/set-experiment-config.component';
 import { LoadExperimentConfigToCreateComponent } from './experiment-creation/load-experiment-config-to-create/load-experiment-config-to-create.component';
 import { SetModuleConfigComponent } from './experiment-creation/set-module-config/set-module-config.component';
+import { LogsComponent } from './experiment-monitoring/logs/logs.component';
+import { JupyterLabComponent } from './experiment-monitoring/jupyter-lab/jupyter-lab.component';
+import { DiscoveryComponent } from './experiment-monitoring/discovery/discovery.component';
+import { CheckpointsDetailsComponent } from './experiment-monitoring/checkpoints-details/checkpoints-details.component';
+import { ExperimentConfigDetailsComponent } from './experiment-monitoring/experiment-config-details/experiment-config-details.component';
+import { MultiCollapserComponent } from './experiment-monitoring/multi-collapser/multi-collapser.component';
+import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/checkbox-list.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +49,13 @@ import { SetModuleConfigComponent } from './experiment-creation/set-module-confi
     SetExperimentConfigComponent,
     LoadExperimentConfigToCreateComponent,
     SetModuleConfigComponent,
+    LogsComponent,
+    JupyterLabComponent,
+    DiscoveryComponent,
+    CheckpointsDetailsComponent,
+    ExperimentConfigDetailsComponent,
+    MultiCollapserComponent,
+    CheckboxListComponent,
   ],
   imports: [
     BrowserModule,

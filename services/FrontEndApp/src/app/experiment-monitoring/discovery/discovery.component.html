@@ -1,0 +1,39 @@
+<div class="card card-body">
+
+    <label for="customRange3" class="form-label">Set iteration rank:
+        <ngx-slider [(value)]="this.sliderDoubleValue.value" [(highValue)]="this.sliderDoubleValue.highValue" [options]="this.sliderDoubleValue.options"></ngx-slider>
+    </label>
+    <label class="col-3">Number iteration displaying by page: 
+        <input *ngIf="this.experiment" type="number" min="1" max="{{this.experiment.progress}}" class="form-control" 
+        [(ngModel)]="this.nbDiscoveriesDisplay" (change)="setIndexDiscoveries(0)">
+    </label>
+    
+    <p>
+        <button class="btn btn-primary" data-bs-toggle="collapse" href="#collapseCheckBoxSeed" role="button" aria-expanded="false" aria-controls="collapseCheckBoxSeed">
+        Choose seed
+        </button>
+    </p>
+    <div class="collapse" id="collapseCheckBoxSeed" *ngIf="this.experiment">
+        <app-checkbox-list [keyList]="this.numberUtilsService.nFirstIntegers(this.experiment.config.nb_seeds)"
+                       [(useKeyList)]="this.allSeedCheckoxSelect" 
+                       checkboxName = "Seed">  
+    </app-checkbox-list>
+    </div>
+
+    <button class="btn btn-primary col-2" (click)="this.defineWhatWeWantVisualise()">Confirmed choice</button>
+
+
+    <div class="row" *ngIf="this.experiment">
+        <div *ngFor="let i of this.allSeedCheckoxSelect" class="row col-12">
+            <div *ngFor="let j of this.arrayFilterRunIdx[this.indexDiscoveriesDisplay]" class="col-3">
+                <video autoplay loop id="{{'video_' + i + '_' + j}}"> </video>
+                {{'seed :' + i + '    iter :' + j}}
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="this.arrayFilterRunIdx.length  > 0 && this.allSeedCheckoxSelect.length > 0" class="container  col-6 d-flex justify-content-center">
+        <button class="bi bi-chevron-left justify-content-left" type="button" (click)="setIndexDiscoveries(-1)"></button>
+        <button class="bi bi-chevron-right justify-content-right" type="button" (click)="setIndexDiscoveries(1)"></button>
+    </div>
+</div>

@@ -22,8 +22,6 @@ export class JupyterService {
   public discoveries:any;
   
   public msg_id_send:string | undefined;
-  // public jupy_value_update_number:number = 0;
-  public new_data_available = new Subject<boolean>();
   public kernel_restart = new Subject<boolean>();
   public path:any;
 
@@ -51,20 +49,11 @@ export class JupyterService {
                      
                      if(msg.parent_header.msg_id == this.msg_id_send && msg.content.status == 'ok'){
                       // server inform we can use new data
-                      this.new_data_available.next(true);
+                      //this.new_data_available.next(true);
                      }
                      else if(msg.parent_header.msg_id != this.msg_id_send && msg.parent_header.msg_type == 'execute_request'){
                       // the user clic execute button in notebook so we consider he know the available data
-                      this.new_data_available.next(false);
-                     }
-                    //  else if(msg.parent_header.msg_type == 'shutdown_request' && msg.content.status == 'ok') {
-                    //    if(msg.content.restart){
-                    //     // the kernel be restart, inform the component to connect it with the new kernel
-                    //     this.kernel_restart.next(true);
-                    //    }
-                    //  }
-                     else{
-                      //  console.log(msg)
+                      //this.new_data_available.next(false);
                      }
                     }, // Called whenever there is a message from the server.
       (err: any) => console.log("error append with jupyter kernel server: " + err), // Called if at any point WebSocket API signals some kind of error.
@@ -133,7 +122,6 @@ export class JupyterService {
   copyPastAllNotebook(experiment_name: string, experiment_id: number, notebooks_dir_content:any):Observable<any>{
     let response = new Observable<any>();
     for(let notebook of notebooks_dir_content){
-      console.log(notebook);
       response = this.copyPastNotebook(experiment_name, experiment_id, notebook.path);
       }
     return(response);
@@ -147,8 +135,6 @@ export class JupyterService {
       },
       this.httpOptions).subscribe())
   }
-
-
 
   /**
    * Handle Http operation that failed.
