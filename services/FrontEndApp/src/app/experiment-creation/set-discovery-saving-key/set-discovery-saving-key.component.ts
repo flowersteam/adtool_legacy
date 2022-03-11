@@ -53,7 +53,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
         this.inputValueCheckBox.push(key)
       }
     }
-    this.return_to_parent()
+    this.returnToParent()
   }
 
   onCheckboxChange(key: string) {
@@ -63,7 +63,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   
 
-  return_to_parent(){
+  returnToParent(){
     this.inputValueCheckBoxChange.emit(this.inputValueCheckBox);
   }
 

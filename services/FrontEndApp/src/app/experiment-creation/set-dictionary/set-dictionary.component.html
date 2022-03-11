@@ -1,0 +1,6 @@
+<app-code-editor [(inputValue)]="this.inputValue" (triggerParentMethod)="this.parseAndReturnToParent()"> </app-code-editor>
+<button [hidden]="!this.parseError" type="button" class="btn btn-warning bi bi-cloud-download-fill float-end mb-4 mr-4" 
+    data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
+    data-bs-title="Invalid dictionary"
+    data-bs-content="Current dictionary is incorrectly defined.">
+</button>
