@@ -1,50 +1,7 @@
-<div class="container border col-12" id="containerChoiceFilterLog">
-    <nav class="navbar navbar-expand-lg navbar-with bg-with">
-        <label class="mx-2">FILTER:</label>
-        <button id="btncollapseLogsChooseSeed" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxSeedLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxSeedLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxSeedLogs"
-                (click)="this.collapseLogs($event)">
-            Choose seed
-        </button>
-        <button id="btncollapseLogsChooseCheckpoint" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxCheckpointLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxCheckpointLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxCheckpointLogs"
-                (click)="this.collapseLogs($event)">
-            Choose checkpoints
-        </button>
-        <button id="btncollapseLogsChooseLogLevel" class="btn btn-light dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseCheckBoxLevelLogs" data-parent="#containerChoiceFilterLog" href="#collapseCheckBoxLevelLogs" role="button" aria-expanded="false" aria-controls="collapseCheckBoxLevelLogs"
-                (click)="this.collapseLogs($event)">
-            Choose logs level
-        </button>
-        <!-- confirmed filter choice and execute request to get log -->
-        <button class="btn btn-success col-2" (click)="this.logsWewant()">Confirmed choice</button>
-    </nav>
-</div>
-<!-- choose seeds -->
-<div class="collapse" id="collapseCheckBoxSeedLogs" *ngIf="this.experiment">
-    <app-checkbox-list [keyList]="this.numberUtilsService.nFirstIntegers(this.experiment.config.nb_seeds)"
-                       [(useKeyList)]="this.checkBoxList.seeds" 
-                       checkboxName = "seeds">
-        
-    </app-checkbox-list>
-</div>
-
-<!-- choose checkpoints -->
-<div class="collapse" id="collapseCheckBoxCheckpointLogs" *ngIf="this.experiment">
-    <app-checkbox-list [keyList]="this.getAttributAsList(this.experiment.checkpoints, 'id')"
-                       [(useKeyList)]="this.checkBoxList.checkpoints" 
-                       checkboxName = "checkpoints">
-        
-    </app-checkbox-list>
-</div>
-
-<!-- choose log level -->
-
-<div class="collapse" id="collapseCheckBoxLevelLogs" *ngIf="this.experiment">
-    <app-checkbox-list [keyList]="this.getAttributAsList(this.logsLevel, 'name')"
-                       [(useKeyList)]="this.checkBoxList.levels" 
-                       checkboxName = "levels">
-        
-    </app-checkbox-list>
-</div>
-
+<app-filter [filters]="this.allFilters"
+            [useFilters]="this.useFilters" 
+            (triggerParentMethod)="this.logsWewant()">
+</app-filter>
 
 <!-- display log message -->
 <div class="bg-dark mb-4">

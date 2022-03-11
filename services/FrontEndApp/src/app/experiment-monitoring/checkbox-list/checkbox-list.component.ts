@@ -12,17 +12,32 @@ export class CheckboxListComponent implements OnInit {
   @Input() useKeyList?: any;
   @Input() checkboxName?: string;
   @Output() useKeyListChange = new EventEmitter();
+  @Output() triggerParentMethod = new EventEmitter<any>();
 
   isAllSelect : Boolean = false;
   constructor(public numberUtilsService : NumberUtilsService) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {  }
+
+  ngAfterViewInit(){
+    this.setCurrentCheckbox(); // if useKeyLIst not empty at the begining we must check box 
+  }
 
   ngOnChanges() : void{
     this.isAllSelect = this.keyList.length == this.useKeyList.length;
   }
 
-  setCurrentCheckbox(){   
+  setCurrentCheckbox(){
+    let checkbox = document.querySelectorAll('input[name="'+this.checkboxName+'"]')
+    if(this.useKeyList.length > 0 && checkbox.length > 0){
+      for(let key in this.useKeyList){
+        let index = this.keyList.indexOf(parseInt(key));
+        (checkbox[index]as HTMLInputElement).checked = true;
+      }
+    }
+  }
+
+  setUseKeyList(){   
     this.useKeyList = []
     let checkbox = document.querySelectorAll('input[name="'+this.checkboxName+'"]')
     for (let index = 0; index < checkbox.length; index++) {
@@ -33,6 +48,7 @@ export class CheckboxListComponent implements OnInit {
     }
     this.isAllSelect = this.keyList.length == this.useKeyList.length;
     this.useKeyListChange.emit(this.useKeyList);
+    this.triggerParentMethod.next();
   }
 
   selectAllCheckbox(){
@@ -40,7 +56,7 @@ export class CheckboxListComponent implements OnInit {
     for (let index = 0; index < checkbox.length; index++) {
       (checkbox[index]as HTMLInputElement).checked = true;
     }
-    this.setCurrentCheckbox();
+    this.setUseKeyList();
   }
 
   unselectAllCheckbox(){
@@ -48,7 +64,7 @@ export class CheckboxListComponent implements OnInit {
     for (let index = 0; index < checkbox.length; index++) {
       (checkbox[index]as HTMLInputElement).checked = false;
     }
-    this.setCurrentCheckbox();
+    this.setUseKeyList();
   }
 
   manegeAllCheckbox(){

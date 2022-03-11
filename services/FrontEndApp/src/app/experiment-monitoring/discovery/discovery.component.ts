@@ -13,8 +13,10 @@ export class DiscoveryComponent implements OnInit {
   @Input() experiment?: any;
 
   currentRunIdx:any = [];           // run_idx value defined by the user. Using to show discovery of this specific run_idx
-  allSeedCheckoxSelect:any = [];    // seed value defined by the user to visualise it in discoveries tab
-  nbDiscoveriesDisplay = 12;        // how many discories we want display simultaneously
+  allSeedSelect:any = {"seeds":[0]};    // seed value defined by the user to visualise it in discoveries tab, first seed check by default
+  allSeed : { [key: string]: any []; } = {}
+  nbDiscoveriesDisplay = 20;        // how many discories we want display simultaneously
+  maxDiscoveriesDisplay = 20;
   indexDiscoveriesDisplay:number=0; //index to define wich subarray of run_idx we want display now
   arrayFilterRunIdx:any = [];       //subarray of run_idx we want see now
   sliderDoubleValue = {
@@ -25,7 +27,7 @@ export class DiscoveryComponent implements OnInit {
       ceil: 0
    }
   }
-
+  lastExperimentProgress : number = 0;
   constructor(private expeDbService: ExpeDbService, public numberUtilsService : NumberUtilsService) { }
 
   ngOnInit(): void {
@@ -52,19 +54,31 @@ export class DiscoveryComponent implements OnInit {
     let filter = "";
     if(this.experiment){
       this.arrayFilterRunIdx = [];
-      for (let i = 0; i <= Math.floor(this.currentRunIdx.length / this.nbDiscoveriesDisplay); i++) {
-        this.arrayFilterRunIdx.push(this.currentRunIdx.slice(i*this.nbDiscoveriesDisplay, (i+1)*this.nbDiscoveriesDisplay))
+      for (let i = 0; i <= this.currentRunIdx.length; i = i+this.nbDiscoveriesDisplay) {
+        this.arrayFilterRunIdx.push(this.currentRunIdx.slice(
+          this.currentRunIdx.length-(i+this.nbDiscoveriesDisplay) >= 0 ? 
+          this.currentRunIdx.length-(i+this.nbDiscoveriesDisplay) : 0, 
+          this.currentRunIdx.length-i));
+      }
+      for( let i = 0; i < this.arrayFilterRunIdx.length; i++){
         if(this.arrayFilterRunIdx[i].length == 0){
           this.arrayFilterRunIdx.splice(i, 1); 
+        }
+        else{
+          this.arrayFilterRunIdx[i] = this.arrayFilterRunIdx[i].reverse();
         }
       }
       filter = '{"$and":[{"experiment_id":'
                     +this.experiment.id.toString()
                     +'}, {"run_idx":{"$in":'
-                    +JSON.stringify(this.arrayFilterRunIdx[this.indexDiscoveriesDisplay])
-                    +'}},  {"seed":{"$in":'
-                    +JSON.stringify(this.allSeedCheckoxSelect)
-                    +'}}]}'
+                    +JSON.stringify(this.arrayFilterRunIdx[this.indexDiscoveriesDisplay] != undefined ? this.arrayFilterRunIdx[this.indexDiscoveriesDisplay] : [])
+                    +'}}'
+      if(this.allSeedSelect["seeds"].length > 0){
+        filter = filter + ', {"seed":{"$in":'
+        +JSON.stringify(this.allSeedSelect["seeds"])
+        +'}}'
+      }
+      filter = filter +']}'
     }
     return filter;
   }
@@ -112,14 +126,29 @@ export class DiscoveryComponent implements OnInit {
   }
 
   refreshDiscoveries(){
-    this.sliderDoubleValue = {
-      value: this.sliderDoubleValue.value,
-      highValue: this.sliderDoubleValue.highValue,
-      options: {
-        floor: 0,
-        ceil: this.experiment ? this.experiment.progress-1 : this.sliderDoubleValue.options.ceil 
+    if(this.experiment){
+      this.allSeed = {"seeds":this.numberUtilsService.nFirstIntegers(this.experiment.config.nb_seeds)};
+      this.allSeed["seeds"] = this.allSeed["seeds"].filter( x => !new Set(this.allSeedSelect["seeds"]).has(x) );
+      this.sliderDoubleValue = {
+        value: this.sliderDoubleValue.value,
+        highValue: this.sliderDoubleValue.highValue == this.lastExperimentProgress && this.experiment.progress > 0 ? this.experiment.progress-1 : this.sliderDoubleValue.highValue,
+        options: {
+          floor: 0,
+          ceil: this.experiment && this.experiment.progress > 0 ? this.experiment.progress-1 : this.sliderDoubleValue.options.ceil 
+        }
       }
+
+      this.nbDiscoveriesDisplay > this.lastExperimentProgress 
+      ? (this.experiment.progress > 0 ? this.nbDiscoveriesDisplay = this.experiment.progress : this.nbDiscoveriesDisplay = 1)
+      :this.nbDiscoveriesDisplay = this.nbDiscoveriesDisplay;
+      if(this.nbDiscoveriesDisplay > this.maxDiscoveriesDisplay){
+        this.nbDiscoveriesDisplay = this.maxDiscoveriesDisplay
+      }
+
+      this.experiment.progress > 0 ? this.lastExperimentProgress = this.experiment.progress - 1 : this.lastExperimentProgress = 0;
+       
+      this.defineWhatWeWantVisualise();
+      
     }
-    this.defineWhatWeWantVisualise();
   }
 }

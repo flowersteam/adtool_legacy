@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
 
 @Component({
   selector: 'app-set-experiment-config',
@@ -12,7 +13,7 @@ export class SetExperimentConfigComponent implements OnInit {
   @Input() currentConfig?: any;
   @Input() hosts?: any;
 
-  constructor() { }
+  constructor(public createNewExperimentService: CreateNewExperimentService) { }
 
   ngOnInit(): void {
   }

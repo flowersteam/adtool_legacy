@@ -23,7 +23,7 @@
         <div [attr.id]="'collapseModuleList' + index + key" class="accordion-collapse collapse" aria-labelledby="headingModuleList">
             <div class="accordion-body">
                 <!-- set one module config -->
-                <div *ngIf="currentSystem.name != undefined" class="card-title col-12" class="container">
+                <div class="card-title col-12" class="container">
                     <app-set-module-config 
                         [(currentModule)]="this.currentModuleList[index]"
                         [module]="this.customModules[index]"

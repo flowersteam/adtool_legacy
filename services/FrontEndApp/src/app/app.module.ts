@@ -17,6 +17,8 @@ import { DragDropModule }from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
+import { ToastrModule } from 'ngx-toastr';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SelectInputAccordingToTypeComponent } from './experiment-creation/select-input-according-to-type/select-input-according-to-type.component';
 import { SetDiscoverySavingKeyComponent } from './experiment-creation/set-discovery-saving-key/set-discovery-saving-key.component';
 import { SetModuleComponent } from './experiment-creation/set-module/set-module.component';
@@ -32,6 +34,10 @@ import { CheckpointsDetailsComponent } from './experiment-monitoring/checkpoints
 import { ExperimentConfigDetailsComponent } from './experiment-monitoring/experiment-config-details/experiment-config-details.component';
 import { MultiCollapserComponent } from './experiment-monitoring/multi-collapser/multi-collapser.component';
 import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/checkbox-list.component';
+import { FilterComponent } from './experiment-monitoring/filter/filter.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { CodeEditorComponent } from './experiment-creation/code-editor/code-editor.component';
+import { SetDictionaryComponent } from './experiment-creation/set-dictionary/set-dictionary.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +62,9 @@ import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/che
     ExperimentConfigDetailsComponent,
     MultiCollapserComponent,
     CheckboxListComponent,
+    FilterComponent,
+    CodeEditorComponent,
+    SetDictionaryComponent,
   ],
   imports: [
     BrowserModule,
@@ -65,7 +74,10 @@ import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/che
     HttpClientModule,
     DragDropModule,
     ReactiveFormsModule,
-    NgxSliderModule
+    NgxSliderModule,
+    ToastrModule.forRoot(),
+    BrowserAnimationsModule,
+    MonacoEditorModule.forRoot(),
   ],
   providers: [SetModuleComponent],
   bootstrap: [AppComponent]

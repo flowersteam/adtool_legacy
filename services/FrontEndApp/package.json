@@ -23,6 +23,8 @@
     "@popperjs/core": "^2.9.3",
     "@types/lodash": "^4.14.178",
     "bootstrap": "^5.0.2",
+    "ngx-monaco-editor": "^12.0.0",
+    "ngx-toastr": "^14.2.1",
     "popper.js": "^1.16.1",
     "rxjs": "~6.6.0",
     "tslib": "^2.1.0",

@@ -1,6 +1,6 @@
 <label class="card-title col-12" for="experiment_name">Enter the exeperiment name:</label>
 <input type="text" class="form-control" id="experiment_name" placeholder="My-beautifull-new-experiment" 
-        [(ngModel)]="this.currentConfig.name">
+        [(ngModel)]="this.currentConfig.name" (change)="this.createNewExperimentService.checkExperimentName()">
 
 <label class="card-title col-12" for="nb_iteration">Enter the number of iteration:</label>
 <input type="number" min="1" class="form-control" id="nb_iteration" 

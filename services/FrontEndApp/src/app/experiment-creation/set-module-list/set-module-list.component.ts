@@ -1,6 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray }from '@angular/cdk/drag-drop';
-import { cloneDeep } from 'lodash'
 
 import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
 
@@ -16,7 +15,6 @@ export class SetModuleListComponent implements OnInit {
 
   @Input() currentModuleList?: any; // return by reference
   @Input() modules?: any;
-  @Input() currentSystem? : any;
   @Input() systems : any;
   @Input() displayInputOutputSpace? : Boolean;
   @Input() key? : string;

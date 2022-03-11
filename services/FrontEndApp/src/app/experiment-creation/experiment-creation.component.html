@@ -13,7 +13,7 @@
             <div class="accordion-item mt-5">
                 <h2 class="accordion-header" id="headingGeneralInformation">
                 <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneralInformation" aria-expanded="false" aria-controls="collapseGeneralInformation">
-                    GENERAL INFORMATION
+                    General Information
                 </button>
                 </h2>
                 <div id="collapseGeneralInformation" class="accordion-collapse collapse show" aria-labelledby="headingGeneralInformation">
@@ -30,7 +30,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingSystem">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="true" aria-controls="collapseSystem">
-                    SYSTEM
+                    System
                     </button>
                 </h2>
                 <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
@@ -66,7 +66,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingInputWrapper">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="true" aria-controls="collapseInputWrapper">
-                    InputWrapper
+                    Input Wrappers
                     </button>
                 </h2>
                 <div id="collapseInputWrapper" class="accordion-collapse collapse" aria-labelledby="headingInputWrapper">
@@ -77,7 +77,6 @@
                             [spaceItDependsOn]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).input_space : undefined"
                             [currentModuleList]="this.createNewExperimentService.newExperiment.input_wrappers"
                             [modules]="this.createNewExperimentService.allConfig.input_wrappers"
-                            [currentSystem]="this.createNewExperimentService.newExperiment.system"
                             [systems]="this.createNewExperimentService.allConfig.systems"
                             [customModules]="this.createNewExperimentService.customConfig.input_wrappers"
                             [displayInputOutputSpace]="true">
@@ -90,7 +89,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOutputRepresentation">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="true" aria-controls="collapseOutputRepresentation">
-                    OutputRepresentation
+                    Output Representations
                     </button>
                 </h2>
                 <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
@@ -100,7 +99,6 @@
                             [spaceItDependsOn]=" this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).output_space : undefined"
                             [currentModuleList]="this.createNewExperimentService.newExperiment.output_representations"
                             [modules]="this.createNewExperimentService.allConfig.output_representations"
-                            [currentSystem]="this.createNewExperimentService.newExperiment.system"
                             [systems]="this.createNewExperimentService.allConfig.systems"
                             [customModules]="this.createNewExperimentService.customConfig.output_representations"
                             [displayInputOutputSpace]="true">
@@ -113,7 +111,7 @@
             <div class="accordion-item mb-5">
                 <h2 class="accordion-header" id="headingWhatDoYouWantToSave">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatDoYouWantToSave" aria-expanded="true" aria-controls="collapseWhatDoYouWantToSave">
-                    WHAT DO YOU WANT TO SAVE ?
+                    Saved in discoveries
                     </button>
                 </h2>
                 <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">

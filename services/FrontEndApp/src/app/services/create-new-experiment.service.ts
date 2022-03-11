@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash'
 
 import { AutoDiscServerService } from '../services/auto-disc.service';
 import { ExperimentSettings } from '../entities/experiment_settings';
+import { ToasterService } from '../services/toaster.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +15,12 @@ export class CreateNewExperimentService {
                           We need it because config of input_wrapper an output_representation depends on current context*/
   currentSytemName : string | undefined;
   newExperiment = <ExperimentSettings>{};
-  constructor(private AutoDiscServerService: AutoDiscServerService,) { }
+  constructor(private AutoDiscServerService: AutoDiscServerService, private toasterService: ToasterService) { }
 
   
 
   // ##################   get api data ####################
-  setAllConfig(){
+  setAllConfigs(){
     this.getExplorers();
     this.getInputWrappers();
     this.getSystems();
@@ -61,7 +62,7 @@ export class CreateNewExperimentService {
   }
 
   // ##################   init new experiment ####################
-  initExperiement(){
+  initExperiment(){
     // general config part
     this.newExperiment.experiment = {
       name: undefined,
@@ -94,6 +95,42 @@ export class CreateNewExperimentService {
   }
 
   // ##################       utils           ####################
+
+  checkNewExperimentSet(){
+    let experimentIsOk = true;
+    if(this.newExperiment.input_wrappers.length == 0){
+      this.toasterService.showInfo("No Input Wrappers defined", "Input Wrappers");
+    }
+    if(this.newExperiment.output_representations.length == 0){
+      this.toasterService.showInfo("No output representations defined", "Output Representations");
+    }
+    if(this.newExperiment.experiment.name == undefined || this.newExperiment.experiment.name == ""){
+      this.toasterService.showWarning("Experiment has no name", "General Information");
+      experimentIsOk = false;
+    }
+    if(this.newExperiment.system.name == undefined){
+      this.toasterService.showWarning("No system defined", "System");
+      experimentIsOk = false;
+    }
+    if(this.newExperiment.explorer.name == undefined){
+      this.toasterService.showWarning("No explorer defined", "Explorer");
+      experimentIsOk = false;
+    }
+    return experimentIsOk;
+  }
+
+  checkExperimentName(){
+    let alphanumericRegex = /^[a-zA-Z0-9_-]+$/g;
+    if(this.newExperiment.experiment.name && !alphanumericRegex.test(this.newExperiment.experiment.name)){
+      let spaceRegex = /(\s)/g;
+      let notAlphanumericRegex = /[^a-zA-Z0-9_-]+/g
+      this.newExperiment.experiment.name = this.newExperiment.experiment.name?.trim();
+      this.newExperiment.experiment.name =this.newExperiment.experiment.name?.replace(spaceRegex, "_");
+      this.newExperiment.experiment.name =this.newExperiment.experiment.name?.replace(notAlphanumericRegex, "");
+      this.newExperiment.experiment.name = this.newExperiment.experiment.name?.replace(/^_+|_+$/g, ''); // equal to trim("_") in other language
+      this.toasterService.showWarning("the name of the experiment has been changed to match alphanumeric characters", "Experiment name");
+    }
+  }
 
   setModuleUse(currentModule : any, moduleName: string, modules : any){
     currentModule.config = {};
@@ -259,12 +296,17 @@ export class CreateNewExperimentService {
     }
 
     addNewModuleToUse(currentModuleList : any, customModules: any, modules :any, key : string|undefined, spaceItDependsOn : any, moduleName: string){
-      let index : number;
-      let newCustomModule : any;
-      let response = this.addCustomModuleToList(customModules, modules ,moduleName, key, spaceItDependsOn);
-      index = response[0];
-      newCustomModule = response[1];
-      currentModuleList.splice(index, 0, this.setUseModuleFromCustomModule(newCustomModule));
+      if(spaceItDependsOn == undefined){
+        this.toasterService.showWarning("Choose a system first", "System");
+      }
+      else{
+        let index : number;
+        let newCustomModule : any;
+        let response = this.addCustomModuleToList(customModules, modules ,moduleName, key, spaceItDependsOn);
+        index = response[0];
+        newCustomModule = response[1];
+        currentModuleList.splice(index, 0, this.setUseModuleFromCustomModule(newCustomModule));
+      }
     }
 
     removeModuleToUse(currentModuleList : any, customModules: any, modules :any, key : string|undefined, spaceItDependsOn : any, index: number){

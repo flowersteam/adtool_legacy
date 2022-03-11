@@ -17,7 +17,13 @@ export class LogsComponent implements OnInit {
 
   logsLevel :any = [];
 
-  checkBoxList : { [key: string]: any []; }={
+  useFilters : { [key: string]: any []; }={
+    checkpoints :<any>[],
+    seeds :<any>[],
+    levels :<any>[],
+  }
+
+  allFilters : { [key: string]: any []; }={
     checkpoints :<any>[],
     seeds :<any>[],
     levels :<any>[],
@@ -29,8 +35,20 @@ export class LogsComponent implements OnInit {
     this.getLogLevels();
   }
 
+  ngOnChanges(){
+    this.logsWewant();
+    if(this.experiment){
+      this.allFilters["seeds"]=this.numberUtilsService.nFirstIntegers(this.experiment.config.nb_seeds);
+      this.allFilters["checkpoints"]=this.getAttributAsList(this.experiment.checkpoints, 'id');
+    }
+  }
+
   getLogLevels(){
-    this.appDBService.getAllLogLevels().subscribe(res =>{ this.logsLevel = res});
+    this.appDBService.getAllLogLevels().subscribe(res =>{ 
+      this.logsLevel = res;
+      this.allFilters["levels"]=this.getAttributAsList(this.logsLevel, 'name');
+      
+    });
   }
 
   definedOneFilterParam(param:string, param_name:string){
@@ -47,26 +65,12 @@ export class LogsComponent implements OnInit {
 
   logsWewant(){
     if(this.experiment){
-      let checkpoints = this.definedOneFilterParam(JSON.stringify(this.checkBoxList["checkpoints"]), 'checkpoint_id');
-      let seeds = this.definedOneFilterParam(JSON.stringify(this.checkBoxList["seeds"]), 'seed');
-      let log_levels = this.definedOneFilterParam(JSON.stringify(this.fromLogsLevelsNameToLogsLevelsIds(this.checkBoxList["levels"])), 'log_level_id');
+      let checkpoints = this.definedOneFilterParam(JSON.stringify(this.useFilters["checkpoints"]), 'checkpoint_id');
+      let seeds = this.definedOneFilterParam(JSON.stringify(this.useFilters["seeds"]), 'seed');
+      let log_levels = this.definedOneFilterParam(JSON.stringify(this.fromLogsLevelsNameToLogsLevelsIds(this.useFilters["levels"])), 'log_level_id');
       let filter = "?&experiment_id=eq."+this.experiment.id.toString() + checkpoints + log_levels + seeds;
       this.appDBService.getLogs(filter).subscribe(res => this.logsValue = res);
     }
-  }
-
-  collapseLogs(event: any){
-    var collapseTriggerList:any = [].slice.call(document.querySelectorAll('#collapseCheckBoxSeedLogs, #collapseCheckBoxCheckpointLogs, #collapseCheckBoxLevelLogs'))
-    var collapseBtnTriggeringList =[];
-    for(let collapseTrigger of collapseTriggerList){
-      if(event.delegateTarget.id.replace("btn", "") == collapseTrigger.id || collapseTrigger.classList.value.includes('show')){
-        collapseBtnTriggeringList.push(collapseTrigger);
-      }
-    }
-     
-    var collapseList = collapseBtnTriggeringList.map(function (collapseTriggerEl) {
-      return new bootstrap.Collapse(collapseTriggerEl)
-    })
   }
 
   getAttributAsList(currentList : any, attribut : string){
