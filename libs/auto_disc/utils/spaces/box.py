@@ -152,13 +152,12 @@ class BoxSpace(BaseSpace):
 
     def clamp(self, x):
         if self.is_bounded(manner="below"):
-            x = torch.max(x, torch.as_tensor(self.low, dtype=self.dtype, device=x.device))
+            x.data = torch.max(x.data, torch.as_tensor(self.low, dtype=self.dtype, device=x.device))
         if self.is_bounded(manner="above"):
-            x = torch.min(x, torch.as_tensor(self.high, dtype=self.dtype, device=x.device))
+            x.data = torch.min(x.data, torch.as_tensor(self.high, dtype=self.dtype, device=x.device))
         return x
 
     def calc_distance(self, x1, x2):
-        x2 = torch.stack(x2).to(x1.device) #TODO: deal with device
         scale = (self.high - self.low).to(x1.device)
         scale[torch.where(scale == 0.0)] = 1.0
         low = self.low.to(x1.device)

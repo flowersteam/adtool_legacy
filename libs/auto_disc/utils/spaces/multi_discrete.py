@@ -73,12 +73,11 @@ class MultiDiscreteSpace(BaseSpace):
         return x.shape == self.shape and (0 <= x).all() and (x < self.nvec.to(x.device)).all()
 
     def clamp(self, x):
-        x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
-        x = torch.min(x, torch.as_tensor(self.nvec - 1, dtype=self.dtype, device=x.device))
+        x.data = torch.max(x.data, torch.as_tensor(0, dtype=self.dtype, device=x.device))
+        x.data = torch.min(x.data, torch.as_tensor(self.nvec - 1, dtype=self.dtype, device=x.device))
         return x
 
     def calc_distance(self, x1, x2):
-        x2 = torch.stack(x2)
         dist = distance.calc_l2(x1, x2)
 
         return dist

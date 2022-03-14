@@ -57,8 +57,8 @@ class DiscreteSpace(BaseSpace):
         return 0 <= as_int < self.n
 
     def clamp(self, x):
-        x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
-        x = torch.min(x, torch.as_tensor(self.n - 1, dtype=self.dtype, device=x.device))
+        x.data = torch.max(x.data, torch.as_tensor(0, dtype=self.dtype, device=x.device))
+        x.data = torch.min(x.data, torch.as_tensor(self.n - 1, dtype=self.dtype, device=x.device))
         return x
 
     def calc_distance(self, x1, x2):

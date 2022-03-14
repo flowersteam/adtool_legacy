@@ -77,7 +77,6 @@ class MultiBinarySpace(BaseSpace):
         return x
 
     def calc_distance(self, x1, x2):
-        x2 = torch.stack(x2)
         dist = distance.calc_l2(x1, x2)
 
         return dist
