@@ -11,13 +11,13 @@ import { ToasterService } from '../services/toaster.service';
 export class CreateNewExperimentService {
 
   allConfig : any = []; // all modules config give by api
-  customConfig: any = []; /* some cutsom module config use for input_wrapper and output_representation. 
+  customConfig: any = []; /* some cutsom module config use for input_wrapper and output_representation.
                           We need it because config of input_wrapper an output_representation depends on current context*/
   currentSytemName : string | undefined;
   newExperiment = <ExperimentSettings>{};
   constructor(private AutoDiscServerService: AutoDiscServerService, private toasterService: ToasterService) { }
 
-  
+
 
   // ##################   get api data ####################
   setAllConfigs(){
@@ -134,7 +134,7 @@ export class CreateNewExperimentService {
 
   setModuleUse(currentModule : any, moduleName: string, modules : any){
     currentModule.config = {};
-    currentModule.name = moduleName; 
+    currentModule.name = moduleName;
     let temp_module_config = CreateNewExperimentService.getModuleByName(modules, moduleName).config;
     for (let item in temp_module_config){
       currentModule.config[item] = temp_module_config[item].default
@@ -147,9 +147,9 @@ export class CreateNewExperimentService {
     if(modules != undefined){
       for (let module of modules) {
         if(module.name == name)
-          return(module)      
+          return(module)
       }
-    } 
+    }
   }
   getModuleByName = CreateNewExperimentService.getModuleByName;
 
@@ -247,7 +247,7 @@ export class CreateNewExperimentService {
       let index : number;
       modules[0].input_space != undefined ? index = 0 : index =   customModules.length;
       customModules.splice(index, 0, cloneDeep(CreateNewExperimentService.getModuleByName(modules, moduleName)));
-      
+
       if(customModules[index].input_space == undefined){
         if(customModules.length > 1){spaceItDependsOn = customModules[index-1].output_space}
         customModules[index].input_space = spaceItDependsOn;
@@ -257,9 +257,9 @@ export class CreateNewExperimentService {
         customModules[index].output_space = spaceItDependsOn;
       }
       if(key){
-        customModules[index].config[key] = { 
-          default:Object.keys(spaceItDependsOn)[0], 
-          possible_values: Object.keys(spaceItDependsOn),  
+        customModules[index].config[key] = {
+          default:Object.keys(spaceItDependsOn)[0],
+          possible_values: null,
           type: 'STRING'
         }
       }
@@ -282,7 +282,7 @@ export class CreateNewExperimentService {
       }
       return([customModules, currentModuleList])
     }
-  
+
     setUseModuleFromCustomModule(customModule : any){
       let useModule :any;
       useModule = {

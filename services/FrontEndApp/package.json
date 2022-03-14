@@ -24,7 +24,7 @@
     "@types/lodash": "^4.14.178",
     "bootstrap": "^5.0.2",
     "ngx-monaco-editor": "^12.0.0",
-    "ngx-toastr": "^14.2.1",
+    "ngx-toastr": "^14.2.2",
     "popper.js": "^1.16.1",
     "rxjs": "~6.6.0",
     "tslib": "^2.1.0",
