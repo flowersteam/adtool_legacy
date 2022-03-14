@@ -1,7 +1,14 @@
 from auto_disc.explorers import IMGEPExplorer
-from auto_disc.utils.config_parameters import StringConfigParameter
+from auto_disc.utils.config_parameters import IntegerConfigParameter, StringConfigParameter
 import random
 import torch
+
+@StringConfigParameter(name="tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
+@StringConfigParameter(name="goal_selection_type", possible_values=["random"], default="random")
+@StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
+@StringConfigParameter(name="policy_optimization_type", possible_values=["random", "none"], default="random")
+@IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
+
 
 @StringConfigParameter(name="goal_space_selection_type", possible_values=["random"], default="random")
 

@@ -3,15 +3,18 @@ from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConf
 from auto_disc.utils.misc.tensorboard_utils import logger_add_image_list
 
 from copy import deepcopy
-import io
 import numpy as np
 import os
 from PIL import Image
-import sys
-import requests
 from tensorboardX import SummaryWriter
 import time
 import torch
+
+@StringConfigParameter(name="tensors_device", default="cpu", possible_values=["cuda", "cpu", ])
+@StringConfigParameter(name="goal_selection_type", possible_values=["random"], default="random")
+@StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
+@StringConfigParameter(name="policy_optimization_type", possible_values=["random", "none"], default="random")
+@IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
 
 @BooleanConfigParameter(name="use_tensorboard", default=True)
 @IntegerConfigParameter(name="tb_record_loss_frequency", default=1, min=1) # TODO: replace tensorboard frequency with callbacks

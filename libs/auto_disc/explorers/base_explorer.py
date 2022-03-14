@@ -5,6 +5,10 @@ class BaseExplorer (BaseAutoDiscModule):
     Base class for explorers.
     '''
 
+    def __init__(self, outter_input_space_key=None, **kwargs):
+        super().__init__(**kwargs)
+        self._outter_input_space_key = outter_input_space_key
+
     def initialize(self, input_space, output_space):
         '''
         Defines input and output space for the explorer
