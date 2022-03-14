@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray }from '@angular/cdk/drag-drop';
-import { SetModuleComponent } from '../set-module/set-module.component';
+
+import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
 
 
 @Component({
@@ -12,42 +13,32 @@ export class SetModuleListComponent implements OnInit {
 
   objectKeys = Object.keys;
 
-  @Input() moduleType?: string; // return by reference
   @Input() currentModuleList?: any; // return by reference
   @Input() modules?: any;
-  @Input() currentSystem? : any;
   @Input() systems : any;
   @Input() displayInputOutputSpace? : Boolean;
+  @Input() key? : string;
+  @Input() spaceItDependsOn? : any;
 
-  constructor(public setModuleComponent: SetModuleComponent) { }
+  @Input() customModules : any;
+
+  constructor(public createNewExperimentService: CreateNewExperimentService) { }
 
   ngOnInit(): void {
   }
 
-  drop(event: CdkDragDrop<string[]>, my_dragdrop_array: any[]) {
-    moveItemInArray(my_dragdrop_array, event.previousIndex, event.currentIndex);
+  drop(event: CdkDragDrop<string[]>, dragdrop_array: any[]) {
+    moveItemInArray(dragdrop_array, event.previousIndex, event.currentIndex);
+    moveItemInArray(this.customModules, event.previousIndex, event.currentIndex); //move custom config module link to a module
+    let response = this.createNewExperimentService.defineCustomModuleList(this.currentModuleList, this.customModules, this.modules, this.key, this.spaceItDependsOn);
+    this.customModules = response[0]
+    this.currentModuleList = response[1]
   }
 
-  removeModuleToUsed(index: number){
-    this.currentModuleList.splice(index, 1);
-  }
-
-  addNewModuleToUsed(module: string){
-    let config = {};
-    if(this.moduleType == "OUTPUT REPRESENTATION"){
-      config = {wrapped_input_space_key:"empty"};
-    }
-    else if(this.moduleType == "INPUT WRAPPER"){
-      config = {wrapped_output_space_key:"empty"};
-    }
-    this.currentModuleList.push({
-      name: module,
-      config: config
-    })
-    let temp_input_wrappers_config = this.setModuleComponent.getModuleByName(this.modules, module).config;
-    for (let item in temp_input_wrappers_config){
-      this.currentModuleList[this.currentModuleList.length - 1].config[item] = temp_input_wrappers_config[item].default
-    }
+  remove(index : number){
+    let response = this.createNewExperimentService.removeModuleToUse(this.currentModuleList, this.customModules, this.modules, this.key, this.spaceItDependsOn, index);
+    this.customModules = response[0]
+    this.currentModuleList = response[1]
   }
 
 }

@@ -1,0 +1,34 @@
+<div class="container" id="visualisationGroup">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <button id="btncollapseJupyter" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseJupyter" data-parent="#visualisationGroup" role="button" aria-expanded="true" aria-controls="collapseJupyter"
+        (click)="this.collapseVisualisation($event)"  [disabled]="this.tabButtonDisable['btncollapseJupyter']">
+        Jupyter Notebook
+        </button>
+        <button id="btncollapseDiscovery" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseDiscovery" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseDiscovery"
+        (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseDiscovery']">
+        Discoveries
+        </button>
+        <button id="btncollapseLogs" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseLogs" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseLogs"
+        (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseLogs']">
+        Logs
+        </button>
+    </nav>
+    
+    <div class="collapse show" id="collapseJupyter">
+        <app-jupyter-lab
+            [experiment]="this.experiment">
+        </app-jupyter-lab>
+    </div>
+
+    <div class="collapse row col-12" id="collapseDiscovery">
+        <app-discovery 
+            [experiment]="this.experiment">
+        </app-discovery> 
+    </div>
+
+    <div class="collapse row col-12  mx-auto" id="collapseLogs">       
+        <app-logs 
+            [experiment]="this.experiment">
+        </app-logs>
+    </div>
+</div> 

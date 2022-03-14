@@ -13,6 +13,7 @@ export class SelectInputAccordingToTypeComponent implements OnInit {
 
   @Output() inputValueChange = new EventEmitter();
 
+  
   constructor() { }
 
   ngOnInit(): void {}
@@ -21,11 +22,7 @@ export class SelectInputAccordingToTypeComponent implements OnInit {
     return(Math.trunc((this.actual_config_elt.max - this.actual_config_elt.min)/20))
   }
 
-  parseToDict(){
-    this.inputValue = JSON.parse(this.inputValue);
-  }
-
-  return_to_parent(){
+  returnToParent(){
     this.inputValueChange.emit(this.inputValue);
   }
 

@@ -1,0 +1,13 @@
+<button [hidden]="this.experiment != undefined && this.experiment.progress > 0" type="button" class="btn btn-warning bi bi-cloud-download-fill float-end mb-4 mr-4" 
+    data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
+    data-bs-title="Data Loading"
+    data-bs-content="connection to the jupyter kernel in progress. you will soon have access to the dataset">
+</button>
+
+<button  [hidden]="this.experiment != undefined && this.experiment.progress == 0" type="button" class="btn btn-info bi bi-sd-card float-end mb-4 mr-4"
+        data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="focus"
+        data-bs-title="Data Available" 
+        data-bs-content="Jupyter Kernel is up to date. You could access to the dataset with: %store (For more info see notebook template dataset_template)">
+</button>
+
+<iframe *ngIf="this.urlSafe" width="100%" height="1000" [src]="this.urlSafe"></iframe>

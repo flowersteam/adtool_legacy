@@ -1,6 +1,6 @@
 <label class="card-title col-12" for="experiment_name">Enter the exeperiment name:</label>
-<input type="text" class="form-control" id="experiment_name" placeholder="My beautifull new experiment" 
-        [(ngModel)]="this.currentConfig.name">
+<input type="text" class="form-control" id="experiment_name" placeholder="My-beautifull-new-experiment" 
+        [(ngModel)]="this.currentConfig.name" (change)="this.createNewExperimentService.checkExperimentName()">
 
 <label class="card-title col-12" for="nb_iteration">Enter the number of iteration:</label>
 <input type="number" min="1" class="form-control" id="nb_iteration" 
@@ -14,15 +14,7 @@
 <input type="number" min="1" class="form-control" id="save_frequency"
 [(ngModel)]="this.currentConfig.config.save_frequency">
 
-<!-- choose host -->
-<div class="dropdown my-2">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownSystem" name="dropdownSystem" 
-            data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-        {{this.currentConfig.config.host}}
-    </button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownSystem">
-        <li *ngFor="let host of hosts" class="dropdown-item" (click)="setHostUsed(host)">
-            {{host}}
-        </li>
-    </ul>
-</div>
+<label class="card-title col-12">Choose an Host:</label>
+<select class="form-select" aria-label="Default select example" [(ngModel)]="this.currentConfig.config.host">
+    <option *ngFor="let host of hosts" >{{host}}</option>
+</select>
