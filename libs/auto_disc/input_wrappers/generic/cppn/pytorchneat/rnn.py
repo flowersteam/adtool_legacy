@@ -1,5 +1,5 @@
 import torch
-torch.set_default_dtype(torch.float64)
+#torch.set_default_dtype(torch.float64)
 from torch import nn
 from auto_disc.input_wrappers.generic.cppn.pytorchneat.activations import str_to_activation
 from auto_disc.input_wrappers.generic.cppn.pytorchneat.aggregations import str_to_aggregation

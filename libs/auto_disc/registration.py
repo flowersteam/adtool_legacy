@@ -18,7 +18,8 @@ REGISTRATION = {
         'PythonLenia': PythonLenia,
         'PytorchLenia': PytorchLenia,
         'SimCells': SimCells,
-        'ToySystem': ToyCellularSystem,
+        'ToyCellularSystem': ToyCellularSystem,
+        'MLPCellularSystem': MLPCellularSystem,
     },
     'explorers': {
         'IMGEPExplorer': IMGEPExplorer,
