@@ -213,7 +213,7 @@ class LeniaStepFFT(torch.nn.Module):
         # self.register_parameter('h', torch.nn.Parameter(h))
         # self.register_parameter('m', torch.nn.Parameter(m))
         # self.register_parameter('s', torch.nn.Parameter(s))
-        self.R = R
+        self.R = R+15 #quick fix that allow to have R between 15 and self.output_space.R.n
         self.T = T
         self.c0 = c0
         self.c1 = c1
@@ -252,11 +252,11 @@ class LeniaStepFFT(torch.nn.Module):
 
         for k in range(self.nb_k):
             # distance to center in normalized space
-            D = torch.sqrt(torch.stack([x ** 2 for x in X]).sum(axis=0)) / ((self.R+15) * self.r[k]) #TODO: why +15
+            D = torch.sqrt(torch.stack([x ** 2 for x in X]).sum(axis=0)) / ((self.R) * self.r[k])
 
             # kernel
             kfunc = kernel_core[self.kn]
-            kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, self.rk[k], self.w[k], self.b[k]) #TODO: why -(D-1)*10
+            kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, self.rk[k], self.w[k], self.b[k]) #-(D-1)*10 to have a sigmoid that goes from 1 (D=0) to 0 (vertical asymptop to D=1 more or less smooth based on float value here 10)
             kernel_sum = torch.sum(kernel)
             kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
             # fft of the kernel

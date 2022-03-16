@@ -3,3 +3,4 @@ from auto_disc.systems.python_systems.lenia import Lenia as PythonLenia
 from auto_disc.systems.python_systems.lenia_expanded import Lenia as PytorchLenia
 from auto_disc.systems.python_systems.toy_cellular_system import ToyCellularSystem
 from auto_disc.systems.python_systems.mlp_cellular_system import MLPCellularSystem
+from auto_disc.systems.python_systems.lenia_cellular_system import LeniaCellularSystem
