@@ -1,5 +1,6 @@
 from auto_disc.utils.callbacks.on_discovery_callbacks import BaseOnDiscoveryCallback
 
+import torchvision.io as tio
 import pickle
 import os
 
@@ -40,7 +41,12 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                 if save_item != "rendered_output":
                     pickle.dump(kwargs[save_item], out_file)
                 else:
-                    out_file.write(kwargs["rendered_output"][0].getbuffer())
+                    try:
+                        # BytesIO
+                        out_file.write(kwargs["rendered_output"][0].getbuffer())
+                    except:
+                        # torch tensor
+                        tio.write_video(filename, kwargs["rendered_output"][0], fps=30)
         print("Saved in '{}' discovery {} for experiment {}".format(self.folder_path, kwargs["run_idx"], kwargs["experiment_id"]))
         folder = "{}{}/{}/".format(self.folder_path, kwargs["experiment_id"], kwargs["seed"])
         self.logger.info("New discovery saved : {} : {} :{}".format(folder, self.to_save_outputs, kwargs["run_idx"]))

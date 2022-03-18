@@ -37,6 +37,8 @@ class ExperimentsHandler():
                                         "checkpoint_saves_archived": False,
                                         "discoveries_archived": False
                                      })
+            print(response)
+            print(response.headers)
             id = response.headers["Location"].split(".")
             id = int(id[1])
 
