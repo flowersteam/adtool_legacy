@@ -8,6 +8,7 @@ from addict import Dict
 from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch
 
 import torch
+import torchvision.io as tio
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -118,9 +119,14 @@ class Lenia(BasePythonSystem):
             plt.tight_layout()
             return plt.show()
         elif mode == "PIL_image":
-            byte_img = io.BytesIO()
-            imageio.mimwrite(byte_img, im_array, 'mp4',  fps=30, output_params=["-f", "mp4"])
-            return (byte_img, "mp4")
+            # byte_img = io.BytesIO()
+            # imageio.mimwrite(byte_img, im_array, 'mp4',  fps=30, output_params=["-f", "mp4"])
+            a = np.array([np.array(im) for im in im_array])
+            t = torch.tensor(a)
+            # bytes_img = io.BytesIO()
+            # torch.save(t, bytes_img)
+            # bytes_img.seek(0)
+            return (t, "mp4")
         else:
             raise NotImplementedError
 
