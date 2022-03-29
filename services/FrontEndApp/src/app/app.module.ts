@@ -19,25 +19,25 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { ToastrModule } from 'ngx-toastr';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { SelectInputAccordingToTypeComponent } from './experiment-creation/select-input-according-to-type/select-input-according-to-type.component';
+import { SelectInputAccordingToTypeComponent } from './experiment-creation/set-module-config/select-input-according-to-type/select-input-according-to-type.component';
 import { SetDiscoverySavingKeyComponent } from './experiment-creation/set-discovery-saving-key/set-discovery-saving-key.component';
 import { SetModuleComponent } from './experiment-creation/set-module/set-module.component';
 import { SetModuleListComponent } from './experiment-creation/set-module-list/set-module-list.component';
-import { DisplayInputspaceOutputspaceComponent } from './experiment-creation/display-inputspace-outputspace/display-inputspace-outputspace.component';
+import { DisplayInputspaceOutputspaceComponent } from './experiment-creation/set-module-config/display-inputspace-outputspace/display-inputspace-outputspace.component';
 import { SetExperimentConfigComponent } from './experiment-creation/set-experiment-config/set-experiment-config.component';
 import { LoadExperimentConfigToCreateComponent } from './experiment-creation/load-experiment-config-to-create/load-experiment-config-to-create.component';
 import { SetModuleConfigComponent } from './experiment-creation/set-module-config/set-module-config.component';
-import { LogsComponent } from './experiment-monitoring/logs/logs.component';
-import { JupyterLabComponent } from './experiment-monitoring/jupyter-lab/jupyter-lab.component';
-import { DiscoveryComponent } from './experiment-monitoring/discovery/discovery.component';
+import { LogsComponent } from './experiment-monitoring/multi-collapser/logs/logs.component';
+import { JupyterLabComponent } from './experiment-monitoring/multi-collapser/jupyter-lab/jupyter-lab.component';
+import { DiscoveryComponent } from './experiment-monitoring/multi-collapser/discovery/discovery.component';
 import { CheckpointsDetailsComponent } from './experiment-monitoring/checkpoints-details/checkpoints-details.component';
 import { ExperimentConfigDetailsComponent } from './experiment-monitoring/experiment-config-details/experiment-config-details.component';
 import { MultiCollapserComponent } from './experiment-monitoring/multi-collapser/multi-collapser.component';
 import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/checkbox-list.component';
-import { FilterComponent } from './experiment-monitoring/filter/filter.component';
+import { FilterComponent } from './experiment-monitoring/multi-collapser/filter/filter.component';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { CodeEditorComponent } from './experiment-creation/code-editor/code-editor.component';
-import { SetDictionaryComponent } from './experiment-creation/set-dictionary/set-dictionary.component';
+import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
+import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
 
 @NgModule({
   declarations: [

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input} from '@angular/core';
 
-import { ExpeDbService } from '../../services/expe-db.service';
-import{ NumberUtilsService } from '../../services/number-utils.service'
+import { ExpeDbService } from '../../../services/expe-db.service';
+import{ NumberUtilsService } from '../../../services/number-utils.service'
 
 @Component({
   selector: 'app-discovery',
