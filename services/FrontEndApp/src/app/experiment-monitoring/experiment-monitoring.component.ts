@@ -70,6 +70,31 @@ export class ExperimentMonitoringComponent implements OnInit {
     }
   }
 
+  downloadExperimentConfig(){
+    if(this.experiment){
+      let experimentConfig = {
+        "experiment" : {
+          "name" : this.experiment.name,
+          "config" : this.experiment.config,
+        },
+        "system" : this.experiment.systems[0],
+        "explorer": this.experiment.explorers[0],
+        "input_wrappers": this.experiment.input_wrappers,
+        "output_representations":this.experiment.output_representations,
+        "callbacks":[],
+        "logger_handlers":[]
+      }
+      var sJson = JSON.stringify(experimentConfig);
+      var element = document.createElement('a');
+      element.setAttribute('href', "data:text/json;charset=UTF-8," + encodeURIComponent(sJson));
+      element.setAttribute('download', experimentConfig.experiment.name);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  }
+
   ngOnDestroy(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;    

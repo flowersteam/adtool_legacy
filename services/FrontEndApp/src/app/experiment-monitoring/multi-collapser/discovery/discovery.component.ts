@@ -1,3 +1,4 @@
+import { Options } from '@angular-slider/ngx-slider';
 import { Component, OnInit, Input} from '@angular/core';
 
 import { ExpeDbService } from '../../../services/expe-db.service';
@@ -24,8 +25,11 @@ export class DiscoveryComponent implements OnInit {
     highValue: 0,
     options: {
       floor: 0,
-      ceil: 0
-   }
+      ceil: 0,
+      translate: (value: number): string => {
+        return (value+1).toString();
+      }
+    }
   }
   lastExperimentProgress : number = 0;
   constructor(private expeDbService: ExpeDbService, public numberUtilsService : NumberUtilsService) { }
@@ -134,7 +138,10 @@ export class DiscoveryComponent implements OnInit {
         highValue: this.sliderDoubleValue.highValue == this.lastExperimentProgress && this.experiment.progress > 0 ? this.experiment.progress-1 : this.sliderDoubleValue.highValue,
         options: {
           floor: 0,
-          ceil: this.experiment && this.experiment.progress > 0 ? this.experiment.progress-1 : this.sliderDoubleValue.options.ceil 
+          ceil: this.experiment && this.experiment.progress > 0 ? this.experiment.progress-1 : this.sliderDoubleValue.options.ceil,
+          translate: (value: number): string => {
+            return (value+1).toString();
+          }
         }
       }
 

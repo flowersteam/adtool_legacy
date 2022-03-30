@@ -4,7 +4,12 @@
     <div class="container mx-1">
         <div class="row">
             <label for="customRange3" class="col-10 form-label my-3">Set iteration range:
-                <ngx-slider [(value)]="this.sliderDoubleValue.value" [(highValue)]="this.sliderDoubleValue.highValue" [options]="this.sliderDoubleValue.options" (valueChange)="this.defineWhatWeWantVisualise()" (highValueChange)="this.defineWhatWeWantVisualise()"></ngx-slider>
+                <ngx-slider [(value)]="this.sliderDoubleValue.value" 
+                            [(highValue)]="this.sliderDoubleValue.highValue" 
+                            [options]="this.sliderDoubleValue.options" 
+                            (valueChange)="this.defineWhatWeWantVisualise()" 
+                            (highValueChange)="this.defineWhatWeWantVisualise()">
+                </ngx-slider>
             </label>
             <button type="button" class="btn bi bi-gear col-2" data-bs-toggle="dropdown">
             </button>
@@ -31,7 +36,7 @@
             <div *ngFor="let j of this.arrayFilterRunIdx[this.indexDiscoveriesDisplay]" class="col-3">
                 <div class="card mt-1">
                     <div class="card-body">
-                        <h5 class="card-title text-center">{{'seed :' + i + '    iter :' + j}}</h5>
+                        <h5 class="card-title text-center">{{'seed :' + i + '    iter :' + (j+1)}}</h5>
                         <video autoplay loop id="{{'video_' + i + '_' + j}}" class="col-12"> </video>
                     </div>
                 </div>

@@ -19,6 +19,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { ToastrModule } from 'ngx-toastr';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatDialogModule } from '@angular/material/dialog';
+
 import { SelectInputAccordingToTypeComponent } from './experiment-creation/set-module-config/select-input-according-to-type/select-input-according-to-type.component';
 import { SetDiscoverySavingKeyComponent } from './experiment-creation/set-discovery-saving-key/set-discovery-saving-key.component';
 import { SetModuleComponent } from './experiment-creation/set-module/set-module.component';
@@ -38,6 +40,7 @@ import { FilterComponent } from './experiment-monitoring/multi-collapser/filter/
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
 import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
+import { ChoosePreviousExperimentComponent } from './experiment-creation/load-experiment-config-to-create/choose-previous-experiment/choose-previous-experiment.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +68,7 @@ import { SetDictionaryComponent } from './experiment-creation/set-module-config/
     FilterComponent,
     CodeEditorComponent,
     SetDictionaryComponent,
+    ChoosePreviousExperimentComponent,
   ],
   imports: [
     BrowserModule,
@@ -78,6 +82,7 @@ import { SetDictionaryComponent } from './experiment-creation/set-module-config/
     ToastrModule.forRoot(),
     BrowserAnimationsModule,
     MonacoEditorModule.forRoot(),
+    MatDialogModule
   ],
   providers: [SetModuleComponent],
   bootstrap: [AppComponent]

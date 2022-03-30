@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, Input } from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
 
 import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
+import { ChoosePreviousExperimentComponent } from './choose-previous-experiment/choose-previous-experiment.component';
+import { AppDbService } from '../../services/app-db.service';
 
 @Component({
   selector: 'app-load-experiment-config-to-create',
@@ -12,11 +15,21 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
 
   @Input() currentExperiment?: any;
 
+  previous_experiment_id = undefined;
   fileName = '';
   fileContent : string | ArrayBuffer = '';
-  constructor(private http: HttpClient, public createNewExperimentService: CreateNewExperimentService) { }
+  constructor(private http: HttpClient, public createNewExperimentService: CreateNewExperimentService, private appDBService: AppDbService, public dialog: MatDialog) { }
   
   ngOnInit(): void {}
+
+  openDialog(): void {
+    const dialogRef = this.dialog.open(ChoosePreviousExperimentComponent, {data:{id: this.previous_experiment_id}});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result != undefined){
+        this.setExperimentWithPreviousExperiment(result);
+      }
+    });
+  }
 
   downloadJson(){
     var sJson = JSON.stringify(this.currentExperiment);
@@ -27,6 +40,10 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  }
+
+  loadPreviousExperiment(){
+    this.openDialog()
   }
 
   onFileSelected(event:any) {
@@ -55,6 +72,20 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     this.currentExperiment.output_representations = loadedExperiment.output_representations;
     this.currentExperiment.system = loadedExperiment.system;
     this.createNewExperimentService.setAllCustomModulesFromUseModule()
+  }
+
+  setExperimentWithPreviousExperiment(id : number){
+    this.appDBService.getExperimentById(id).subscribe((experiment) => {
+      this.currentExperiment.callbacks = [];
+      this.currentExperiment.experiment.name = experiment.name;
+      this.currentExperiment.experiment.config = experiment.config;
+      this.currentExperiment.explorer = experiment.explorers[0];
+      this.currentExperiment.input_wrappers = experiment.input_wrappers;
+      this.currentExperiment.logger_handlers = [];
+      this.currentExperiment.output_representations = experiment.output_representations;
+      this.currentExperiment.system = experiment.systems[0];
+      this.createNewExperimentService.setAllCustomModulesFromUseModule()
+    });
   }
 
 }

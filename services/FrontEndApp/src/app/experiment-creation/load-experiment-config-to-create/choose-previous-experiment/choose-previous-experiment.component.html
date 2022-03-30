@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary py-4">
+    <div class="container-fluid">
+      <h3 class="text-secondary fs-4">List of previous experiments</h3>
+      <div class="navbar-nav">
+        <button class="btn btn-light mx-2 text-secondary" (click)="sortExperimentsByDate()">Date 
+            <i [ngClass]="sortByDateAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill'" class="bi me-1" width="16" height="16"></i>
+          </button>
+          <div class="d-flex">
+            <input type="search" class="form-control" id="search-text" aria-describedby="search-text" 
+            [(ngModel)]="searchText" placeholder="Enter text to search" 
+            autofocus>
+          </div>   
+      </div>
+    </div>
+  </nav>
+<div class="container" style="overflow:scroll;  height:400px;">
+    <div *ngFor="let experiment of experiments | appFilter:searchText" class="card my-5 border-secondary bg-light" (click)="selectPreviousExperiment(experiment)">
+        <div class="card-body">
+            <div class="row">
+                <h5 class="card-title col-6 text-secondary">{{experiment.name}}</h5>
+
+                <p *ngIf="experiment.exp_status == 0" class="col-6 text-end text-success"><i class="bi bi-check me-1" width="16" height="16"></i>Done</p>
+                <p *ngIf="experiment.exp_status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</p>
+                <p *ngIf="experiment.exp_status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</p>
+                <p *ngIf="experiment.exp_status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</p>
+            </div>
+
+            <h6 class="card-subtitle mb-2 text-muted">Id: {{experiment.id}}</h6>
+            <h6 class="card-subtitle mb-2 text-muted">{{experiment.created_on}}</h6>
+            <p class="card-text text-secondary">
+                System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}} | 
+                Explorer: {{experiment.explorers.length > 0 ? experiment.explorers[0].name : 'None'}} | 
+                {{experiment.input_wrappers.length}} input wrappers | 
+                {{experiment.output_representations.length}} output representations |
+                Host:{{experiment.config["host"] != null ? experiment.config["host"] : 'None'}}
+            </p>
+        </div>
+    </div>
+</div>
