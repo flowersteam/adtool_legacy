@@ -87,7 +87,7 @@ export class ExperimentMonitoringComponent implements OnInit {
       var sJson = JSON.stringify(experimentConfig);
       var element = document.createElement('a');
       element.setAttribute('href', "data:text/json;charset=UTF-8," + encodeURIComponent(sJson));
-      element.setAttribute('download', experimentConfig.experiment.name);
+      element.setAttribute('download', experimentConfig.experiment.name+".json");
       element.style.display = 'none';
       document.body.appendChild(element);
       element.click();

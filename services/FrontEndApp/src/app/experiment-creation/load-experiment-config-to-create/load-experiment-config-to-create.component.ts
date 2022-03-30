@@ -35,7 +35,7 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     var sJson = JSON.stringify(this.currentExperiment);
     var element = document.createElement('a');
     element.setAttribute('href', "data:text/json;charset=UTF-8," + encodeURIComponent(sJson));
-    element.setAttribute('download', this.currentExperiment.experiment.name);
+    element.setAttribute('download', this.currentExperiment.experiment.name+".json");
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
