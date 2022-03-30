@@ -7,7 +7,6 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
-from auto_disc.utils.callbacks import BaseCallback
 
 
 class CancellationToken:
@@ -33,14 +32,15 @@ class ExperimentPipeline():
         self.save_frequency = save_frequency
 
         self.db = DB()
+        def access_history_fn(index=slice(None, None, None), keys=[], new_keys=['idx', 'input', 'output']):
+            return lambda: self.db.to_autodisc_history(self.db[index], keys, new_keys)
 
         ### SYSTEM ###
         self._system = system
         self._system.set_call_output_history_update_fn(self._update_outputs_history)
         # self._system.set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
-        self._system.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
-                                                                          ['idx', 'run_parameters', 'raw_output'], 
-                                                                          ['idx', 'input', 'output']))
+        self._system.set_history_access_fn(access_history_fn(keys=['idx', 'run_parameters', 'raw_output'], 
+                                                             new_keys=['idx', 'input', 'output']))
         
         ### OUTPUT REPRESENTATIONS ###
         if output_representations is not None and len(output_representations) > 0:
@@ -62,9 +62,8 @@ class ExperimentPipeline():
             else:
                 output_key = f'output_{i}'
 
-            self._output_representations[i].set_history_access_fn(lambda i=input_key, o=output_key: self.db.to_autodisc_history(self.db.all(), 
-                                                                                                    ['idx', i, o], 
-                                                                                                    ['idx', 'input', 'output']))
+            self._output_representations[i].set_history_access_fn(access_history_fn(keys=['idx', input_key, output_key], 
+                                                                                    new_keys=['idx', 'input', 'output']))
                 
 
         ### INPUT WRAPPERS ###
@@ -87,9 +86,8 @@ class ExperimentPipeline():
             else:
                 input_key = f'run_parameters_{i-1}'
 
-            self._input_wrappers[i].set_history_access_fn(lambda i=input_key, o=output_key: self.db.to_autodisc_history(self.db.all(), 
-                                                                                            ['idx', i, o], 
-                                                                                            ['idx', 'input', 'output']))
+            self._input_wrappers[i].set_history_access_fn(access_history_fn(keys=['idx', input_key, output_key], 
+                                                                            new_keys=['idx', 'input', 'output']))
 
         ### EXPLORER ###
         self._explorer = explorer
@@ -98,9 +96,8 @@ class ExperimentPipeline():
         self._explorer.initialize(input_space=self._output_representations[-1].output_space,
                                   output_space=self._input_wrappers[0].input_space, 
                                   input_distance_fn=self._output_representations[-1].calc_distance)
-        self._explorer.set_history_access_fn(lambda: self.db.to_autodisc_history(self.db.all(), 
-                                                                            ['idx', 'output', 'raw_run_parameters'], 
-                                                                            ['idx', 'input', 'output']))
+        self._explorer.set_history_access_fn(access_history_fn(keys=['idx', 'output', 'raw_run_parameters'], 
+                                                               new_keys=['idx', 'input', 'output']))
         
         self._action_policy = action_policy
         self._on_discovery_callbacks = on_discovery_callbacks
@@ -125,7 +122,7 @@ class ExperimentPipeline():
         '''
             Iterate over history and update values of outputs produced after `output_representation_idx`.
         '''
-        for document in self.db.all():
+        for document in self.db:
             if output_representation_idx == 0:
                 output =  document['raw_output'] # starting from first output => raw_output
             else:
