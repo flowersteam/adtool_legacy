@@ -1,8 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import  * as bootstrap  from 'bootstrap'
 
-import { AppDbService } from '../../services/app-db.service';
-import{ NumberUtilsService } from '../../services/number-utils.service'
+import { AppDbService } from '../../../services/app-db.service';
+import{ NumberUtilsService } from '../../../services/number-utils.service'
 
 @Component({
   selector: 'app-logs',
