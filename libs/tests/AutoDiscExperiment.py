@@ -37,7 +37,7 @@ if __name__ == "__main__":
                                                                                  "output",
                                                                                  "rendered_output",
                                                                                  "step_observations"])],
-        on_save_callbacks=[OnSaveModulesOnDiskCallback("./", logger=logger)],
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("./experiment_results/", logger=logger)],
     )
 
     experiment.run(10)

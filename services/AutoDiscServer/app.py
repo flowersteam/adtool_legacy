@@ -18,6 +18,7 @@ CORS(app)
 
 # Experiments
 experiments_handler = ExperimentsHandler() # Singleton handling experiments
+experiments_handler.reload_running_remote_experiments()
 
 @app.route('/experiments', methods=['GET'])
 def list_experiments():

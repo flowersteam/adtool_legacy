@@ -1,20 +1,22 @@
-from logging import exception
 from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils import list_profiles, parse_profile, get_numbers_in_string, match_except_number
-from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBLoggerHandler, AppDBCaller, AppDBMethods
+from AutoDiscServer.utils import list_profiles, parse_profile, match_except_number
+from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
-from auto_disc.utils.logger.handlers import SetFileHandler
 import threading
 import os
 from pexpect import pxssh
 import json
 import pickle
 import traceback
-from copy import copy, deepcopy
+from copy import copy
 
 
 class RemoteExperiment(BaseExperiment):
+    '''
+        Remote experiment that packages the auto_disc lib along with configuration files and sends it to remote server.
+        Pipelines are run locally on remote server (everything is stored on disk). This class monitors progress and downloads produced files.
+    '''
 
     def __init__(self, host_profile_name, *args, **kwargs):
         self.__host_profile = parse_profile(next(profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
@@ -35,12 +37,9 @@ class RemoteExperiment(BaseExperiment):
             }
         super().__init__(*args, **kwargs)
 
-        self._expe_db_caller = ExpeDBCaller('http://127.0.0.1:5001')
-        self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
 
         self.nb_seeds_finished = 0
         
-
         self.app_db_logger_handler = AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)
         
         self.port = 22
@@ -49,43 +48,20 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
-        
-        ### push to server
-        to_push_folder_path = self.__host_profile["local_tmp_path"]+"/remote_experiment/push_to_server" # where we saved remote files need to be pushed on server
-        if(not os.path.exists(to_push_folder_path)):
-            os.makedirs(to_push_folder_path)
 
-        ## push libs
-        # make path
-        lib_path =os.path.dirname(os.path.realpath(__file__))+"/../../../libs" 
-        lib_path_tar = to_push_folder_path+"/libs.tar.gz"
-        # push and untar lib
-        self.__tar_local_folder(lib_path, lib_path_tar)
-        self.__push_folder(lib_path_tar, self.__host_profile["work_path"])
-        self.__untar_folder(self.__host_profile["work_path"]+"/libs.tar.gz", self.__host_profile["work_path"])
+    def __close_ssh(self):
+        self._monitor_async.join()
+        self.shell.close()
+        if self.killer_shell is not None:
+            self.killer_shell.close()
 
-        ## push slurm file
-        # make path
-        
-        additional_file_path = os.path.dirname(os.path.realpath(__file__)) + "/../../../configs/remote_experiments/additional_files"
-        additional_file_path_tar = to_push_folder_path+"/additional_files.tar.gz"
-        self.__tar_local_folder(additional_file_path, additional_file_path_tar)
-        self.__push_folder(additional_file_path_tar, self.__host_profile["work_path"])
-        self.__untar_folder(self.__host_profile["work_path"]+"/additional_files.tar.gz", self.__host_profile["work_path"])
 
-        ## push parameters file (json)
-        # save json on disk
-        json_file_path = to_push_folder_path + "/parameters_remote.json"
-        with open(json_file_path, 'w+') as fp:
-            json.dump(self.cleared_config, fp)
-        # push json on remote server
-        self.__push_folder(json_file_path, self.__host_profile["work_path"])
-        
-        # make logs folder on remote server
-        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
-        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
+#region public launching
+    def prepare(self):
+        # push to server
+        self._send_packaged_experiment_to_remote()
 
     def start(self):
         # move to work directory
@@ -103,12 +79,15 @@ class RemoteExperiment(BaseExperiment):
         )
         exec_command = exec_command.replace("$EXPE_ID", self.__host_profile["work_path"]+"/run_ids/"+str(self.id))
 
-        self.finished_seeds = []
         # execute command
         self.shell.sendline(exec_command)
         # get run id of each python who have been launched
         self.__run_id = self.__get_run_id() #TODO save run_id in db 
         # read log file to manege remote experiment
+        self._monitor_async = threading.Thread(target=self._monitor)
+        self._monitor_async.start()
+
+    def reload(self):
         self._monitor_async = threading.Thread(target=self._monitor)
         self._monitor_async.start()
 
@@ -127,24 +106,45 @@ class RemoteExperiment(BaseExperiment):
         ## close properly ssh connection
         self.__close_ssh()
         #update app db 
-        for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
-            if i not in self.finished_seeds:
-                super().on_cancelled(i)
+        self.callback_to_all_running_seeds(super().on_cancelled)
 
-    def _monitor(self):
-        ### monitor remote experiment
-        ## make path
-        local_folder = self.__host_profile["local_tmp_path"]+"/remote_experiment/out" # where we saved remote experiments output before puting them in our db
-        if(not os.path.exists(local_folder)):
-            os.makedirs(local_folder)
-        ## listen log file and do the appropriate action
-        while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
-            sleep(self.__host_profile["check_experiment_launched_every"])
-        self.shell.sendline(
-            'tail -F -n +1 {}'
-            .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
-        )
-        self.__listen_log_file(local_folder)
+#endregion
+
+#region communicate files with remote
+
+    def _send_packaged_experiment_to_remote(self):
+        to_push_folder_path = self.__host_profile["local_tmp_path"]+"/remote_experiment/push_to_server" # where we saved remote files need to be pushed on server
+        if(not os.path.exists(to_push_folder_path)):
+            os.makedirs(to_push_folder_path)
+
+        ## push libs
+        # make path
+        lib_path =os.path.dirname(os.path.realpath(__file__))+"/../../../libs" 
+        lib_path_tar = to_push_folder_path+"/libs.tar.gz"
+        # push and untar lib
+        self.__tar_local_folder(lib_path, lib_path_tar)
+        self.__push_folder(lib_path_tar, self.__host_profile["work_path"])
+        self.__untar_folder(self.__host_profile["work_path"]+"/libs.tar.gz", self.__host_profile["work_path"])
+
+        ## push slurm file
+        # make path
+        additional_file_path = os.path.dirname(os.path.realpath(__file__)) + "/../../../configs/remote_experiments/additional_files"
+        additional_file_path_tar = to_push_folder_path+"/additional_files.tar.gz"
+        self.__tar_local_folder(additional_file_path, additional_file_path_tar)
+        self.__push_folder(additional_file_path_tar, self.__host_profile["work_path"])
+        self.__untar_folder(self.__host_profile["work_path"]+"/additional_files.tar.gz", self.__host_profile["work_path"])
+
+        ## push parameters file (json)
+        # save json on disk
+        json_file_path = to_push_folder_path + "/parameters_remote.json"
+        with open(json_file_path, 'w+') as fp:
+            json.dump(self.cleared_config, fp)
+        # push json on remote server
+        self.__push_folder(json_file_path, self.__host_profile["work_path"])
+        
+        # make logs folder on remote server
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
 
     def __tar_local_folder(self, folder_src, tar_path):
         folder_src_split = folder_src.split("/")
@@ -177,6 +177,23 @@ class RemoteExperiment(BaseExperiment):
             if not os.path.exists("{}{}/".format(local_folder, sub_folder)):
                 os.makedirs("{}{}/".format(local_folder, sub_folder))
             self.__pull_folder("{}{}/idx_{}.*".format(remote_path, sub_folder, run_idx), "{}{}/".format(local_folder, sub_folder))
+#endregion
+
+#region monitor
+    def _monitor(self):
+        ### monitor remote experiment
+        ## make path
+        local_folder = self.__host_profile["local_tmp_path"]+"/remote_experiment/out" # where we saved remote experiments output before puting them in our db
+        if(not os.path.exists(local_folder)):
+            os.makedirs(local_folder)
+        ## listen log file and do the appropriate action
+        while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
+            sleep(self.__host_profile["check_experiment_launched_every"])
+        self.shell.sendline(
+            'tail -F -n +1 {}'
+            .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
+        )
+        self.__listen_log_file(local_folder)
 
     def __parse_log(self, log, local_folder):
         """
@@ -191,6 +208,7 @@ class RemoteExperiment(BaseExperiment):
 
         if self.__new_files_saved_on_remote_disk(message):
             remote_path, sub_folders, run_idx = self.__get_saved_files_to_pull(message)
+            super().on_progress(seed_number, run_idx + 1)
             if sub_folders is not None:
                 self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
             if remote_path.split("/")[-4] == "outputs":
@@ -200,15 +218,13 @@ class RemoteExperiment(BaseExperiment):
         elif self.__is_finished(message):
             super().on_finished(seed_number)
             is_current_seed_finished = True
-            self.finished_seeds.append(seed_number)
-        elif self.__is_discovery(message):
-            super().on_progress(seed_number)
+        # elif self.__is_discovery(message):
+        #     super().on_progress(seed_number)
         elif self.__is_saved(message):
             super().on_save(seed_number, self._get_current_checkpoint_id(seed_number))     
         elif self.__is_error(message):
             super().on_error(seed_number, self._get_current_checkpoint_id(seed_number))
             is_current_seed_finished = True
-            self.finished_seeds.append(seed_number)
         
         if is_current_seed_finished:
             self.threading_lock.acquire()
@@ -232,7 +248,7 @@ class RemoteExperiment(BaseExperiment):
 
     def __listen_log_file(self, local_folder):
         """
-        Brief: Has long as the seeds have not finished read log file and do appropriate action
+        Brief: As long as the seeds have not finished read log file and do appropriate action
         """
         try:
             current_log_line = previous_log = None
@@ -285,15 +301,13 @@ class RemoteExperiment(BaseExperiment):
         except Exception as ex:
             print("unexpected error occurred. checked the logs of your remote server")
             print(ex)
-            for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
-                if i not in self.finished_seeds:
-                    super().on_error(i, self._get_current_checkpoint_id(i))
+            self.callback_to_all_running_seeds(super().on_error)
         
     def __is_finished(self, log):
         return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
                
-    def __is_discovery(self, log):
-        return match_except_number(log.strip(), "- [DISCOVERY] - New discovery from experiment 0 with seed 0")
+    # def __is_discovery(self, log):
+    #     return match_except_number(log.strip(), "- [DISCOVERY] - New discovery from experiment 0 with seed 0")
     
     def __is_saved(self, log):
         return match_except_number(log.strip(), "- [SAVED] - experiment 0 with seed 0 saved")
@@ -356,12 +370,9 @@ class RemoteExperiment(BaseExperiment):
                 line = line.strip()
                 return line
 
-    def __close_ssh(self):
-        self._monitor_async.join()
-        self.shell.close()
-        if self.killer_shell is not None:
-            self.killer_shell.close()
+#endregion
 
+#region save to db
     def save_discovery_to_expe_db(self, **kwargs):
             """
             brief:      callback saves the discoveries outputs we want to save on database.
@@ -425,3 +436,4 @@ class RemoteExperiment(BaseExperiment):
             self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
         except Exception as ex:
             print("ERROR : error while saving modules in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+#endregion
