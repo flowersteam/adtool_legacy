@@ -33,14 +33,23 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
     this.getDiscoverySavingKeys();
   }
 
+  ngOnChanges(): void{
+    for (let key of this.discovery_saving_keys) {
+      this.discovery_saving_keys_use[key.toString()] = false;   
+    }
+    for(let elt of this.inputValueCheckBox){
+      this.discovery_saving_keys_use[elt] = true;
+    }
+  }
+
   getDiscoverySavingKeys(): void {
     this.AutoDiscServerService.getDiscoverySavingKeys()
     .subscribe(discovery_saving_keys => {this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-      this.setDiscoverySavingKeysUse(),
+      this.initDiscoverySavingKeysUse(),
       this.getDiscoverySavingKeysUse()});
   }
 
-  setDiscoverySavingKeysUse():void{
+  initDiscoverySavingKeysUse():void{
     for (let key of this.discovery_saving_keys) {
         this.discovery_saving_keys_use[key.toString()] = true;   
       }
