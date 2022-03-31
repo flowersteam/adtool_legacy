@@ -22,24 +22,22 @@ if __name__ == "__main__":
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
         seed=42,
-        save_frequency = 2,
+        save_frequency = 10,
         system=PythonLenia(final_step=200, scale_init_state=1.0, logger=logger),
-        explorer=IMGEPExplorer(logger=logger),
+        explorer=IMGEPExplorer(logger=logger, num_of_random_initialization=5),
         input_wrappers=[
             CppnInputWrapper('init_state', logger=logger), 
-            TimesNInputWrapper('R', n=10, logger=logger), 
-            TimesNInputWrapperChild('b', l=20, logger=logger)], # Starting from the explorer !
+            TimesNInputWrapper('R', n=10, logger=logger)], # Starting from the explorer !
         output_representations=[LeniaHandDefinedRepresentation(logger=logger)], # Starting from the system !
         on_discovery_callbacks=[CustomPrintCallback("Newly explored output !", logger=logger), 
                                   OnDiscoverySaveCallbackOnDisk("./experiment_results/", logger=logger, 
-                                                                to_save_outputs=[
-                                                                    "Parameters sent by the explorer before input wrappers",
-                                                                    "Parameters sent by the explorer after input wrappers",
-                                                                    "Raw system output",
-                                                                    "Representation of system output",
-                                                                    "Rendered system output"
-                                                                ])],
-        on_save_callbacks=[OnSaveModulesOnDiskCallback("./", logger=logger)],
+                                                                to_save_outputs=["raw_run_parameters",
+                                                                                 "run_parameters", 
+                                                                                 "raw_output", 
+                                                                                 "output",
+                                                                                 "rendered_output",
+                                                                                 "step_observations"])],
+        on_save_callbacks=[OnSaveModulesOnDiskCallback("./experiment_results/", logger=logger)],
     )
 
     experiment.run(10)

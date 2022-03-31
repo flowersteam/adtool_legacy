@@ -4,7 +4,7 @@ class BaseAutoDiscModule:
     '''
         Base class of all modules usable in auto_disc.
     '''
-    _access_history = None # Function to access (readonly) history of (input, output) pairs
+    _access_history = None # Function to access (readonly) history of (input, output) pairs. Takes 1 positional argument which could be an index or a slice.
     _call_output_history_update = None # Function to ask history of outputs to be updated (use this if some output_representations changed)
     _call_run_parameters_history_update = None # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
     CURRENT_RUN_INDEX = 0
