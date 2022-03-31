@@ -29,14 +29,14 @@ export class ExperimentMonitoringComponent implements OnInit {
               public sanitizer: DomSanitizer) { }
 
   ngOnInit() {
-    this.refreshExperiment();
     this.resetAutoRefresh();
   }
 
   resetAutoRefresh(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    if (this.experiment?.exp_status == 1){
+    if (this.experiment == null || this.experiment?.exp_status == 1){
+      this.refreshExperiment();
       this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
       this.updateSubscription = this.intervalToSubscribe.subscribe(
         (val) => { this.refreshExperiment()});
@@ -57,6 +57,9 @@ export class ExperimentMonitoringComponent implements OnInit {
       this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
       if (experiment.exp_status == 1){
         this.ellapsed = ((new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
+      }
+      else{
+        this.resetAutoRefresh();
       }
     }); 
   }
