@@ -1,8 +1,10 @@
-import { Component, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { AppDbService } from '../../services/app-db.service';
 import { ExpeDbService } from '../../services/expe-db.service';
+import { AutoDiscServerService } from '../../services/auto-disc.service';
+import { ToasterService } from '../../services/toaster.service';
 import { Experiment } from '../../entities/experiment';
 import { Router } from '@angular/router';
 
@@ -15,6 +17,10 @@ export class ArchiveExperimentComponent implements OnInit {
 
   @Input() experiment?: Experiment;
   @Input() refreshExperimentMethod?: Function;
+  @Input() stopExperimentMethod?: Function;
+  @Input() allowDeleteModal: boolean = true;
+
+  public allowDeleteButton: boolean = false;
 
   archiveForm = new FormGroup({
     archiveExperiment: new FormControl(),
@@ -22,9 +28,17 @@ export class ArchiveExperimentComponent implements OnInit {
     archiveDiscoveries: new FormControl(),
   })
 
-  constructor(private appDBService: AppDbService, private expeDBService: ExpeDbService, private router: Router) { }
+  constructor(private appDBService: AppDbService, 
+              private expeDBService: ExpeDbService, 
+              private autoDiscServerService: AutoDiscServerService, 
+              private router: Router,
+              private toasterService: ToasterService) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.archiveForm.valueChanges.subscribe(formControls => {
+      this.allowDeleteButton = Object.values(formControls).some((element) => element);
+    });
+  }
 
   updateForm(): void {
     if (this.experiment){
@@ -62,33 +76,62 @@ export class ArchiveExperimentComponent implements OnInit {
     
   }
 
+  callCancelAndRemove(): void {
+    if (this.experiment){
+      this.allowDeleteModal = false;
+      if (this.experiment.exp_status == 1){
+        if(this.stopExperimentMethod){
+          this.stopExperimentMethod(this.experiment.id).subscribe(
+            () => {this.applyRemoval();}
+          );
+        }
+      }
+      else{
+        this.applyRemoval();
+      }
+    }
+  }
+
   applyRemoval(): void {
     if (this.experiment){
       var archiveCheckpointSavesValue = this.archiveForm.controls['archiveChekpointSaves'].value as boolean
       if (archiveCheckpointSavesValue && archiveCheckpointSavesValue != this.experiment.checkpoint_saves_archived){
+        this.toasterService.showInfo("Removing checkpoint saves", "Remove");
         this.experiment.checkpoints.forEach(checkpoint => {
           this.expeDBService.deleteCheckpointSaves(checkpoint.id)
           .subscribe((result) => {console.log("Removed checkpoint save for checkpoint n°" + checkpoint.id);});
         });
+        this.allowDeleteModal = false;
         this.appDBService.archiveExperimentCheckpointSavesById(this.experiment.id)
-        .subscribe((result) => {if(this.refreshExperimentMethod) this.refreshExperimentMethod()});
+        .subscribe((result) => {
+          if(this.refreshExperimentMethod) this.refreshExperimentMethod();
+          this.allowDeleteModal = true;
+        });
       }
 
       var archiveDiscoveriesValue = this.archiveForm.controls['archiveDiscoveries'].value as boolean
       if (archiveDiscoveriesValue && archiveDiscoveriesValue != this.experiment.discoveries_archived){
+        this.toasterService.showInfo("Removing discoveries", "Remove");
         this.experiment.checkpoints.forEach(checkpoint => {
           this.expeDBService.deleteCheckpointDiscoveries(checkpoint.id)
           .subscribe((result) => {console.log("Removed discoveries for checkpoint n°" + checkpoint.id);});
         });
+        this.allowDeleteModal = false;
         this.appDBService.archiveExperimentDiscoveriesById(this.experiment.id)
-        .subscribe((result) => {if(this.refreshExperimentMethod) this.refreshExperimentMethod()});
+        .subscribe((result) => {
+          if(this.refreshExperimentMethod) this.refreshExperimentMethod();
+          this.allowDeleteModal = true;
+        });
       }
 
       var archiveExperimentValue = this.archiveForm.controls['archiveExperiment'].value as boolean
       if (archiveExperimentValue != this.experiment.archived){
+        this.toasterService.showInfo("Archiving experiment", "Remove");
+        this.allowDeleteModal = false;
         this.appDBService.updateArchiveExperimentStatusById(this.experiment.id, archiveExperimentValue)
         .subscribe((result) => {
           if(this.refreshExperimentMethod) this.refreshExperimentMethod();
+          this.allowDeleteModal = true;
           if (archiveExperimentValue){
             this.router.navigate(["/home"]);
           }

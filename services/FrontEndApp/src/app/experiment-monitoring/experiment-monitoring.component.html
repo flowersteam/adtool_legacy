@@ -3,7 +3,7 @@
         <div class="row">
             <h4 class="col-6">Experiment: {{experiment.name}}</h4>
             <div class="col-6 text-end">
-                <app-archive-experiment [experiment]="experiment" [refreshExperimentMethod]="refreshExperimentMethod"></app-archive-experiment>
+                <app-archive-experiment [experiment]="experiment" [refreshExperimentMethod]="refreshExperimentMethod" [stopExperimentMethod]="callObservableStopExperimentMethod" [allowDeleteModal]="allowCancelButton"></app-archive-experiment>
                 <button class="btn btn-light text-secondary mx-1" (click)="downloadExperimentConfig()"><i class="bi bi-download me-1" width="16" height="16"></i>Export</button>
                 <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" (click)="resetAutoRefresh()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
                 <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
@@ -49,11 +49,11 @@
         <h5>Progress</h5>
         <div class="progress col-12" style="height: 25px;">
             <div class="progress-bar progress-bar-striped" role="progressbar" [style.width.%]="progressPercent" [attr.aria-valuenow]="progressPercent" aria-valuemin="0" aria-valuemax="100"
-            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{experiment.progress/experiment.config.nb_iterations*100}}% ({{experiment.progress}} / {{experiment.config.nb_iterations}})</div>
+            [ngClass]="{'progress-bar-animated': experiment.exp_status == 1, 'bg-success': experiment.exp_status == 0, 'bg-danger': experiment.exp_status > 1}">{{progressPercent}}% ({{experiment.progress}} / {{experiment.config.nb_iterations}})</div>
         </div>
         <p *ngIf="experiment.exp_status == 1" class="mt-3">Ellapsed time: {{ellapsed}} hours</p>
         <div *ngIf="experiment.exp_status == 1">
-            <button class="btn btn-light bg-danger text-white" role="button" (click)="stopExperiment()">
+            <button class="btn btn-light bg-danger text-white" role="button" (click)="stopExperiment()" [disabled]="!allowCancelButton">
                 <i class="bi bi-square-fill me-1" width="16" height="16"></i> Stop / Cancel 
             </button>
         </div>

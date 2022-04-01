@@ -1,8 +1,9 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Directive } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { AppDbService } from '../services/app-db.service';
 import { AutoDiscServerService } from '../services/auto-disc.service';
+import { ToasterService } from '../services/toaster.service';
 import { Experiment } from '../entities/experiment';
 import { Observable, interval, Subscription, empty } from 'rxjs';
 
@@ -18,15 +19,17 @@ export class ExperimentMonitoringComponent implements OnInit {
   experiment: Experiment | undefined;
   public ellapsed: string | undefined;
   public progressPercent:string = "0";
+  public autoRefreshSeconds: number = 5;
+  public allowCancelButton: boolean = true;
+
   private intervalToSubscribe: Observable<number> | undefined;
   private updateSubscription: Subscription | undefined;
 
-  public autoRefreshSeconds: number = 5;
   objectKeys = Object.keys;
   urlSafe: SafeResourceUrl | undefined;
   
   constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute,
-              public sanitizer: DomSanitizer) { }
+              public sanitizer: DomSanitizer, private toasterService: ToasterService) { }
 
   ngOnInit() {
     this.resetAutoRefresh();
@@ -64,12 +67,28 @@ export class ExperimentMonitoringComponent implements OnInit {
     }); 
   }
 
+  get callObservableStopExperimentMethod() {
+    return this.callObservableStopExperiment.bind(this);
+  }
+
   stopExperiment(): void {
+    this.callObservableStopExperiment().subscribe(
+      () => {
+        this.refreshExperiment();
+        this.allowCancelButton = true;
+      }
+    )
+  }
+
+  callObservableStopExperiment(): Observable<any> {
     if (this.experiment != undefined){
+      this.toasterService.showInfo("Cancelling experiment...", "Cancel");
+      this.allowCancelButton = false;
       console.log("Stoppping experiment with id " + this.experiment.id)
-      this.AutoDiscServerService.stopExperiment(this.experiment.id).subscribe(
-        (val) => {this.refreshExperiment();}
-      )
+      return this.AutoDiscServerService.stopExperiment(this.experiment.id);
+    }
+    else{
+      return new Observable<any>();
     }
   }
 
