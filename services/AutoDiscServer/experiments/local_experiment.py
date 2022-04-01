@@ -1,7 +1,7 @@
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
-from AutoDiscServer.utils import CheckpointsStatusEnum
+from AutoDiscServer.utils import ExperimentStatusEnum, CheckpointsStatusEnum 
 
 from auto_disc.run import create, start as start_pipeline
 
@@ -35,6 +35,12 @@ class LocalExperiment(BaseExperiment):
 
 #region public launching
     def prepare(self):
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "experimence in preparation"
+                                }
+                            )
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
             seed = i
             experiment_id = self.experiment_config['experiment']['id']
@@ -43,6 +49,15 @@ class LocalExperiment(BaseExperiment):
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(self.id, self.experiment_config['experiment']['config']['nb_seeds']))
         self._running_tasks = []
+        response = self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                                AppDBMethods.PATCH, 
+                                {"exp_status": ExperimentStatusEnum.RUNNING})
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "the experiment start"
+                                }
+                            )
         for pipeline in self._pipelines:
             task = threading.Thread(target=start_pipeline, args=(pipeline, self.experiment_config['experiment']['config']['nb_iterations'], ))
             task.start()

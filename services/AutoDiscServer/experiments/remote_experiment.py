@@ -1,6 +1,6 @@
 from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils import list_profiles, parse_profile, match_except_number
+from AutoDiscServer.utils import ExperimentStatusEnum, list_profiles, parse_profile, match_except_number
 from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods, AppDBCaller
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
 import threading
@@ -83,8 +83,20 @@ class RemoteExperiment(BaseExperiment):
 
         # execute command
         self.shell.sendline(exec_command)
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "the command to run the experiment on the remote server has been launched"
+                                }
+                            )
         # get run id of each python who have been launched
-        self.__run_id = self.__get_run_id() #TODO save run_id in db 
+        self.__run_id = self.__get_run_id() #TODO save run_id in db
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "the command has been taken into account by the server"
+                                }
+                            )
         # read log file to manege remote experiment
         self._monitor_async = threading.Thread(target=self._monitor)
         self._monitor_async.start()
@@ -122,7 +134,20 @@ class RemoteExperiment(BaseExperiment):
         if(not os.path.exists(to_push_folder_path)):
             os.makedirs(to_push_folder_path)
 
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "send necessary files to the remote server"
+                                }
+                            )
+
         ## push libs
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "package and send the library to the remote server"
+                                }
+                            )
         # make path
         lib_path =os.path.dirname(os.path.realpath(__file__))+"/../../../libs" 
         lib_path_tar = to_push_folder_path+"/libs.tar.gz"
@@ -133,6 +158,12 @@ class RemoteExperiment(BaseExperiment):
 
         ## push slurm file
         # make path
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "send config files to the remote server"
+                                }
+                            )
         additional_file_path = os.path.dirname(os.path.realpath(__file__)) + "/../../../configs/remote_experiments/additional_files"
         additional_file_path_tar = to_push_folder_path+"/additional_files.tar.gz"
         self.__tar_local_folder(additional_file_path, additional_file_path_tar)
@@ -141,6 +172,12 @@ class RemoteExperiment(BaseExperiment):
 
         ## push parameters file (json)
         # save json on disk
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "send parameters files to the remote server"
+                                }
+                            )
         json_file_path = to_push_folder_path + "/parameters_remote.json"
         with open(json_file_path, 'w+') as fp:
             json.dump(self.cleared_config, fp)
@@ -150,6 +187,13 @@ class RemoteExperiment(BaseExperiment):
         # make logs folder on remote server
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
+
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "All necessary files have been sent to the remote server and are ready to be used"
+                                }
+                            )
 
     def __tar_local_folder(self, folder_src, tar_path):
         folder_src_split = folder_src.split("/")
@@ -193,11 +237,27 @@ class RemoteExperiment(BaseExperiment):
             os.makedirs(local_folder)
         ## listen log file and do the appropriate action
         while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
+            self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "waiting for the server"
+                                }
+                            )
             sleep(self.__host_profile["check_experiment_launched_every"])
         self.shell.sendline(
             'tail -F -n +1 {}'
             .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
         )
+        #change experiment status from preparing to running in db 
+        response = self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                                AppDBMethods.PATCH, 
+                                {"exp_status": ExperimentStatusEnum.RUNNING})
+        self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "the experiment start"
+                                }
+                            )
         self.__listen_log_file(local_folder)
 
     def __parse_log(self, log, local_folder):

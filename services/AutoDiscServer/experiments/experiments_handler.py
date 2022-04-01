@@ -84,7 +84,7 @@ class ExperimentsHandler():
                                         "created_on": exp_date,
                                         "config": parameters['experiment']['config'],
                                         "progress": 0,
-                                        "exp_status": int(ExperimentStatusEnum.RUNNING),
+                                        "exp_status": int(ExperimentStatusEnum.PREPARING),
                                         "archived": False,
                                         "checkpoint_saves_archived": False,
                                         "discoveries_archived": False
@@ -134,6 +134,12 @@ class ExperimentsHandler():
             except Exception as second_err:
                 message += "\nError when removing experiment: {}".format(traceback.format_exc())
             finally:
+                self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":id,
+                                    "message": message
+                                }
+                            )
                 raise Exception(message)
 
     def remove_experiment(self, id, checkpoint_status=CheckpointsStatusEnum.CANCELLED, experiment_status=ExperimentStatusEnum.CANCELLED):

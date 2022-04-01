@@ -75,6 +75,14 @@ CREATE TABLE logs (
     	REFERENCES log_levels (id)
 );
 
+CREATE TABLE preparing_logs(
+	id serial PRIMARY KEY,
+	experiment_id INT NOT NULL,
+	message VARCHAR (8000) NOT NULL,
+	FOREIGN KEY (experiment_id)
+    	REFERENCES experiments (id)
+);
+
 INSERT INTO log_levels(name) VALUES('NOTSET');
 INSERT INTO log_levels(name) VALUES('DEBUG');
 INSERT INTO log_levels(name) VALUES('INFO');

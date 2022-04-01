@@ -5,3 +5,4 @@ class ExperimentStatusEnum(IntEnum):
     RUNNING = 1
     CANCELLED = 2
     ERROR = 3
+    PREPARING = 4
