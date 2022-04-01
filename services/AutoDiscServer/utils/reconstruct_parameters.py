@@ -36,5 +36,8 @@ def reconstruct_parameters(experiment_id, app_db_caller):
     # Output Representations
     parameters['output_representations'] = []
     parameters['output_representations'].extend(_get_module_parameters(app_db_caller, 'output_representations', f'experiment_id=eq.{experiment_id}'))
+    
+    parameters['callbacks'] = []
+    parameters['loggers'] = []
 
     return parameters

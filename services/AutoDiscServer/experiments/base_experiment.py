@@ -99,8 +99,7 @@ class BaseExperiment():
         # if the seed is the first to have not crashed has arrived in this checkpoint
         # AND 
         # if we need to make a new backup afterwards then we create a new checkpoint
-        if len(self.checkpoints_history[current_checkpoint_id]["seeds_status"]) == 0 \
-            or all(value == int(SeedStatusEnum.ERROR) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()):   
+        if not any(value == int(SeedStatusEnum.DONE) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()):   
                 checkpoint_id = self._on_checkpoint_needed_callback(self.id, current_checkpoint_id)
                 self.checkpoints_history[checkpoint_id] = {
                     "seeds_status": {},

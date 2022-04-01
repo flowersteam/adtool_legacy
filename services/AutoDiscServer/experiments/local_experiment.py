@@ -1,6 +1,7 @@
 from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils.DB import AppDBLoggerHandler
+from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
+from AutoDiscServer.utils import CheckpointsStatusEnum
 
 from auto_disc.run import create, start as start_pipeline
 
@@ -54,7 +55,14 @@ class LocalExperiment(BaseExperiment):
             self._running_tasks[i].join()
 
     def reload(self):
-        self.callback_to_all_running_seeds(super().on_cancelled)
+        self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(self.id, int(CheckpointsStatusEnum.RUNNING)), 
+                                AppDBMethods.PATCH, 
+                                {"status": int(CheckpointsStatusEnum.CANCELLED)} 
+                        )
+        self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                            AppDBMethods.PATCH, 
+                            {"exp_status": int(CheckpointsStatusEnum.CANCELLED)} 
+                    ) 
 #endregion
 
 #region callbacks

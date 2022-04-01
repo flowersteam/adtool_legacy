@@ -7,7 +7,8 @@ CREATE TABLE experiments (
 	config jsonb NOT NULL,
 	archived BOOLEAN NOT NULL,
 	checkpoint_saves_archived BOOLEAN NOT NULL,
-	discoveries_archived BOOLEAN NOT NULL
+	discoveries_archived BOOLEAN NOT NULL,
+	remote_run_id VARCHAR (255)
 );
 CREATE TABLE systems (
 	id serial PRIMARY KEY,

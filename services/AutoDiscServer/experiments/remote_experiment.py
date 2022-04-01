@@ -1,7 +1,7 @@
 from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils import list_profiles, parse_profile, match_except_number
-from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
+from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods, AppDBCaller
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
 import threading
 import os
@@ -48,8 +48,10 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+
+        self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
 
     def __close_ssh(self):
         self._monitor_async.join()
@@ -88,6 +90,9 @@ class RemoteExperiment(BaseExperiment):
         self._monitor_async.start()
 
     def reload(self):
+        response = self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                                AppDBMethods.GET, {})
+        self.__run_id =json.loads(response.content.decode())[0]['remote_run_id']
         self._monitor_async = threading.Thread(target=self._monitor)
         self._monitor_async.start()
 
@@ -106,7 +111,7 @@ class RemoteExperiment(BaseExperiment):
         ## close properly ssh connection
         self.__close_ssh()
         #update app db 
-        self.callback_to_all_running_seeds(super().on_cancelled)
+        self.callback_to_all_running_seeds(lambda seed, current_checkpoint_id : self.on_cancelled(seed))
 
 #endregion
 
@@ -301,7 +306,7 @@ class RemoteExperiment(BaseExperiment):
         except Exception as ex:
             print("unexpected error occurred. checked the logs of your remote server")
             print(ex)
-            self.callback_to_all_running_seeds(super().on_error)
+            self.callback_to_all_running_seeds(lambda seed, current_checkpoint_id : super().on_error(seed, current_checkpoint_id))
         
     def __is_finished(self, log):
         return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
@@ -368,6 +373,9 @@ class RemoteExperiment(BaseExperiment):
                 line = line.replace("[", "")
                 line = line.replace("]", "")
                 line = line.strip()
+                response = self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                                AppDBMethods.PATCH, 
+                                {"remote_run_id": line})
                 return line
 
 #endregion
