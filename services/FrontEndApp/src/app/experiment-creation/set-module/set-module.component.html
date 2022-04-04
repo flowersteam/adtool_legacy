@@ -2,7 +2,7 @@
 <div class="dropdown my-2">
     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownModule" name="dropdownModule" 
             data-bs-toggle="dropdown" aria-expanded="false" ngDefaultControl>
-        {{this.currentModule.name != undefined ? this.currentModule.name : 'CHOOSE'}}
+        {{this.currentModule.name != undefined ? this.currentModule.name : 'Select'}}
     </button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownModule">
         <li *ngFor="let module of this.modules" class="dropdown-item" (click)="this.createNewExperimentService.setModuleUse(this.currentModule, module.name, this.modules)">
