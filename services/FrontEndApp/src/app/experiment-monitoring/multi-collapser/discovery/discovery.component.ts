@@ -31,6 +31,7 @@ export class DiscoveryComponent implements OnInit {
       }
     }
   }
+
   lastExperimentProgress : number = 0;
   constructor(private expeDbService: ExpeDbService, public numberUtilsService : NumberUtilsService) { }
 
@@ -93,11 +94,12 @@ export class DiscoveryComponent implements OnInit {
       this.indexDiscoveriesDisplay = 0;
     }
     else if(this.indexDiscoveriesDisplay < 0){
-      this.indexDiscoveriesDisplay =this.arrayFilterRunIdx.length -1;
+      this.indexDiscoveriesDisplay = this.arrayFilterRunIdx.length -1;
     }
     else if(this.indexDiscoveriesDisplay >= this.arrayFilterRunIdx.length){
       this.indexDiscoveriesDisplay = 0;
     }
+    
     this.getDiscovery();
   }
 
