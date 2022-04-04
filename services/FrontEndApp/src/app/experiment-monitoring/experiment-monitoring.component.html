@@ -62,9 +62,8 @@
             [experiment]="this.experiment">
         </app-checkpoints-details>
     </div>
+    <app-multi-collapser
+        [experiment]="this.experiment">
+    </app-multi-collapser>
 </div>
 <p *ngIf="!experiment" class="text-danger">No such an experiment !</p>
-
-<app-multi-collapser
-    [experiment]="this.experiment">
-</app-multi-collapser>

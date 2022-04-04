@@ -10,15 +10,15 @@
                 <form [formGroup]="archiveForm">
                     <div class="mb-3 form-check">
                         <input type="checkbox" class="form-check-input" name="archiveExperiment" formControlName="archiveExperiment" [disabled]="this.experiment.archived">
-                        <label class="form-check-label" for="archiveExperiment">Archive experiment</label>
+                        <label class="form-check-label" for="archiveExperiment" data-toggle="tooltip" title="All data from this experiment will be removed and the experiment will disappear from home.">Archive experiment</label>
                     </div>
                     <div class="mb-3 ms-3 form-check">
                         <input type="checkbox" class="form-check-input" name="removeCheckpoints" formControlName="archiveChekpointSaves" [disabled]="this.experiment.checkpoint_saves_archived">
-                        <label class="form-check-label" for="removeCheckpoints">Delete checkpoint saves</label>
+                        <label class="form-check-label" for="removeCheckpoints" data-toggle="tooltip" title="Experiment will remain but all data saved during checkpoints will be removed.">Delete checkpoint saves</label>
                     </div>
                     <div class="mb-3 ms-3 form-check">
                         <input type="checkbox" class="form-check-input" name="removeDiscoveries" formControlName="archiveDiscoveries" [disabled]="this.experiment.discoveries_archived">
-                        <label class="form-check-label" for="removeDiscoveries">Delete discoveries</label>
+                        <label class="form-check-label" for="removeDiscoveries" data-toggle="tooltip" title="Experiment will remain but all data saved for discoveries will be removed.">Delete discoveries</label>
                     </div>
                 </form>
                 <p *ngIf="experiment.exp_status == 1 && allowDeleteButton"class="mt-4 mb-0 text-danger">

@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 
+import  * as bootstrap  from 'bootstrap';
+
 import { AppDbService } from '../../services/app-db.service';
 import { ExpeDbService } from '../../services/expe-db.service';
 import { AutoDiscServerService } from '../../services/auto-disc.service';
@@ -29,14 +31,20 @@ export class ArchiveExperimentComponent implements OnInit {
   })
 
   constructor(private appDBService: AppDbService, 
-              private expeDBService: ExpeDbService, 
-              private autoDiscServerService: AutoDiscServerService, 
+              private expeDBService: ExpeDbService,
               private router: Router,
               private toasterService: ToasterService) { }
 
   ngOnInit(): void {
     this.archiveForm.valueChanges.subscribe(formControls => {
       this.allowDeleteButton = Object.values(formControls).some((element) => element);
+    });
+  }
+
+  ngAfterViewInit(): void {
+    var tooltipsTriggerList = [].slice.call(document.querySelectorAll('#removeModal label[data-toggle="tooltip"]'))
+    tooltipsTriggerList.map(function (tooltipTriggerElement) {
+      return new bootstrap.Tooltip(tooltipTriggerElement)
     });
   }
 
