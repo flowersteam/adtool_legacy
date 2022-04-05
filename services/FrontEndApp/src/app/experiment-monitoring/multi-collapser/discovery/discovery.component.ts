@@ -1,8 +1,8 @@
-import { Options } from '@angular-slider/ngx-slider';
 import { Component, OnInit, Input} from '@angular/core';
 
-import { ExpeDbService } from '../../../services/expe-db.service';
+import { ExpeDbService } from '../../../services/REST-services/expe-db.service';
 import{ NumberUtilsService } from '../../../services/number-utils.service'
+import { ToasterService } from '../../../services/toaster.service';
 
 @Component({
   selector: 'app-discovery',
@@ -33,7 +33,7 @@ export class DiscoveryComponent implements OnInit {
   }
 
   lastExperimentProgress : number = 0;
-  constructor(private expeDbService: ExpeDbService, public numberUtilsService : NumberUtilsService) { }
+  constructor(private expeDbService: ExpeDbService, private toasterService: ToasterService, public numberUtilsService : NumberUtilsService) { }
 
   ngOnInit(): void {
   }
@@ -45,7 +45,7 @@ export class DiscoveryComponent implements OnInit {
   setCurrentRunIdx(){
     this.currentRunIdx = [];
     for (let index = this.sliderDoubleValue.value; index <= this.sliderDoubleValue.highValue; index++) {
-        this.currentRunIdx.push(index)
+      this.currentRunIdx.push(index)
     }
   }
 
@@ -63,7 +63,8 @@ export class DiscoveryComponent implements OnInit {
         this.arrayFilterRunIdx.push(this.currentRunIdx.slice(
           this.currentRunIdx.length-(i+this.nbDiscoveriesDisplay) >= 0 ? 
           this.currentRunIdx.length-(i+this.nbDiscoveriesDisplay) : 0, 
-          this.currentRunIdx.length-i));
+          this.currentRunIdx.length-i)
+        );
       }
       for( let i = 0; i < this.arrayFilterRunIdx.length; i++){
         if(this.arrayFilterRunIdx[i].length == 0){
@@ -113,20 +114,29 @@ export class DiscoveryComponent implements OnInit {
       }
       let filter = this.definedFilters()
       this.expeDbService.getDiscovery(filter)
-      .subscribe(discoveries => {
-        if(discoveries.length > 0){
-          for(let discoverie of discoveries){
-            this.expeDbService.getDiscoveryRenderedOutput(discoverie._id)
-            .subscribe((renderedOutput : any) => {
-              let video = <HTMLVideoElement> <any> document.querySelector("#video_"+discoverie.seed.toString()+"_"+discoverie.run_idx.toString());
-              if(video){
-                video.src = window.URL.createObjectURL(renderedOutput);
-              } 
-            });
+      .subscribe(response => {
+        if(response.success) {
+          let discoveries = response.data ?? []
+          if(discoveries.length > 0){
+            for(let discovery of discoveries){
+              this.expeDbService.getDiscoveryRenderedOutput(discovery._id)
+              .subscribe(response => {
+                if(response.success) {
+                  let video = <HTMLVideoElement> <any> document.querySelector("#video_"+discovery.seed.toString()+"_"+discovery.run_idx.toString());
+                  if(video){
+                    video.src = window.URL.createObjectURL(response.data);
+                  } 
+                }
+                else{
+                  this.toasterService.showError(response.message ?? '', "Error getting rendered output for discovery id°" + discovery._id);
+                }
+              });
+            }
           }
-          
         }
-        
+        else{
+          this.toasterService.showError(response.message ?? '', "Error getting discoveries");
+        }
       });
     }
   }

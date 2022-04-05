@@ -1,8 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
-import  * as bootstrap  from 'bootstrap'
 
-import { AppDbService } from '../../../services/app-db.service';
+import { AppDbService } from '../../../services/REST-services/app-db.service';
 import{ NumberUtilsService } from '../../../services/number-utils.service'
+import { ToasterService } from '../../../services/toaster.service';
 
 @Component({
   selector: 'app-logs',
@@ -11,7 +11,7 @@ import{ NumberUtilsService } from '../../../services/number-utils.service'
 })
 export class LogsComponent implements OnInit {
 
-  constructor(private appDBService: AppDbService, public numberUtilsService : NumberUtilsService) { }
+  constructor(private appDBService: AppDbService, private toasterService: ToasterService, public numberUtilsService : NumberUtilsService) { }
 
   @Input() experiment?: any;
 
@@ -44,10 +44,15 @@ export class LogsComponent implements OnInit {
   }
 
   getLogLevels(){
-    this.appDBService.getAllLogLevels().subscribe(res =>{ 
-      this.logsLevel = res;
-      this.allFilters["levels"]=this.getAttributAsList(this.logsLevel, 'name');
-      
+    this.appDBService.getAllLogLevels()
+    .subscribe(response => {
+      if(response.success) {
+        this.logsLevel = response.data;
+        this.allFilters["levels"]=this.getAttributAsList(this.logsLevel, 'name');
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting log levels");
+      }
     });
   }
 
@@ -69,7 +74,15 @@ export class LogsComponent implements OnInit {
       let seeds = this.definedOneFilterParam(JSON.stringify(this.useFilters["seeds"]), 'seed');
       let log_levels = this.definedOneFilterParam(JSON.stringify(this.fromLogsLevelsNameToLogsLevelsIds(this.useFilters["levels"])), 'log_level_id');
       let filter = "?&experiment_id=eq."+this.experiment.id.toString() + checkpoints + log_levels + seeds;
-      this.appDBService.getLogs(filter).subscribe(res => this.logsValue = res);
+      this.appDBService.getLogs(filter)
+      .subscribe(response => {
+        if(response.success) {
+          this.logsValue = response.data;
+        }
+        else{
+          this.toasterService.showError(response.message ?? '', "Error getting logs");
+        }
+      });
     }
   }
 

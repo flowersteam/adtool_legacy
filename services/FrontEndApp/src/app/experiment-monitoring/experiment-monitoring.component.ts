@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { AppDbService } from '../services/app-db.service';
-import { AutoDiscServerService } from '../services/auto-disc.service';
+import { AppDbService } from '../services/REST-services/app-db.service';
+import { AutoDiscServerService } from '../services/REST-services/auto-disc.service';
 import { ToasterService } from '../services/toaster.service';
 import { Experiment } from '../entities/experiment';
 import { Observable, interval, Subscription, empty } from 'rxjs';
 
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { RESTResponse } from '../entities/rest_response';
 
 @Component({
   selector: 'app-experiment-monitoring',
@@ -54,17 +55,22 @@ export class ExperimentMonitoringComponent implements OnInit {
     this.appDBService.getExperimentById(
       Number(this.route.snapshot.paramMap.get('id'))
     )
-    .subscribe(experiment => {
-      this.experiment = experiment;
-      this.progressPercent = (this.experiment.progress/experiment.config.nb_iterations*100).toFixed(1);
-      this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
-      if (experiment.exp_status == 1){
-        this.ellapsed = ((new Date().getTime() - new Date(experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
+    .subscribe(response => {
+      if(response.success && response.data){
+        this.experiment = response.data;
+        this.progressPercent = (this.experiment.progress/this.experiment.config.nb_iterations*100).toFixed(1);
+        this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
+        if(this.experiment.exp_status == 1){
+          this.ellapsed = ((new Date().getTime() - new Date(this.experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
+        }
+        else{
+          this.resetAutoRefresh();
+        }
       }
-      else{
-        this.resetAutoRefresh();
+      else {
+        this.toasterService.showError(response.message ?? '', "Error refreshing experiment");
       }
-    }); 
+    });
   }
 
   get callObservableStopExperimentMethod() {
@@ -73,14 +79,19 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   stopExperiment(): void {
     this.callObservableStopExperiment().subscribe(
-      () => {
+      response => {
+        if(!response.success){
+          this.toasterService.showError(response.message ?? '', "Error stopping experiment", {timeOut: 0, extendedTimeOut: 0});
+          this.toasterService.showWarning("Experiment is considered cancelled but may still run, please consider checking host.", "Experiment cancellation has failed", {timeOut: 0, extendedTimeOut: 0})
+        }
+
         this.refreshExperiment();
         this.allowCancelButton = true;
       }
     )
   }
 
-  callObservableStopExperiment(): Observable<any> {
+  callObservableStopExperiment(): Observable<RESTResponse<any>> {
     if (this.experiment != undefined){
       this.toasterService.showInfo("Cancelling experiment...", "Cancel");
       this.allowCancelButton = false;

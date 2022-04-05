@@ -1,6 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
-import { AppDbService } from '../../../services/app-db.service';
+
+import { AppDbService } from '../../../services/REST-services/app-db.service';
+import { ToasterService } from '../../../services/toaster.service';
+
 import { Experiment } from '../../../entities/experiment';
 
 @Component({
@@ -11,6 +14,7 @@ import { Experiment } from '../../../entities/experiment';
 export class ChoosePreviousExperimentComponent implements OnInit {
   
   constructor(private appDBService: AppDbService, 
+              private toasterService: ToasterService,
               private dialogRef: MatDialogRef<ChoosePreviousExperimentComponent>) { }
   
   experiments: Experiment[] = [];
@@ -24,10 +28,15 @@ export class ChoosePreviousExperimentComponent implements OnInit {
 
   getExperiments(): void {
     this.appDBService.getLightExperiments()
-    .subscribe(experiments => {
-      this.sortByDateAsc = true; 
-      this.experiments = experiments;
-      this.sortExperimentsByDate();
+    .subscribe(response => {
+      if(response.success){
+        this.sortByDateAsc = true; 
+        this.experiments = response.data ?? [];
+        this.sortExperimentsByDate();
+      }
+      else {
+        this.toasterService.showError(response.message ?? '', "Error listing experiments");
+      }
     });
   }
 
