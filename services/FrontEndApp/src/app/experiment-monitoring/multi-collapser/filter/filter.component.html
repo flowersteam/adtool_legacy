@@ -2,7 +2,7 @@
     <div class="row m-3">
         <div class="col-3">
             <h3 style="text-decoration:underline;">Filters:</h3>
-            <a role="button" class="btn ml-n3" style="font-size: 2em;" (click)="this.shareFilters= !this.shareFilters"><i class="bi bi-plus-circle-fill text-secondary"></i></a>
+            <button (click)="this.shareFilters= !this.shareFilters"  class="btn btn-secondary btn-circle m-3"><i class="bi bi-plus"></i></button>
         </div>    
         <div class="border col-9" style="overflow-y:scroll; height:150px;">
             <button type="button" class="btn btn-info col-3 m-2 text-white" (click)="this.removeAllFilters()" [hidden]="this.isFilterUse()">
