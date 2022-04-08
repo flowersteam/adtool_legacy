@@ -74,7 +74,7 @@ class DictSpace(BaseSpace):
         return True
 
     def clamp(self, x):
-        return Dict([(k, space.clamp(x[k])) for k, space in self.spaces.items()])
+        return Dict([(k, space.clamp(x[k])) if not space.contains(x[k]) else (k, x[k]) for k, space in self.spaces.items()])
 
     def calc_distance(self, x1, x2):
         return Dict([(k, space.calc_distance(x1[k], [x[k] for x in x2])) for k, space in self.spaces.items()])

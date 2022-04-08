@@ -56,8 +56,58 @@ class LeniaStepConv(torch.nn.Module):
         self.nb_rules = c0.shape[0]
         self.is_soft_clip = is_soft_clip
 
+    # v1 with sparse tensors and alive filter
+    def forward(self, x):
+        # edge_index = knn_graph(pos, self.nb_neighbors)
+        # edge_index = radius_graph(pos, self.R / (grid_side / 2), max_neighbors=self.nb_neighbors)
+        # distance = torch.sqrt(torch.sum(torch.pow(delta_pos, 2), dim=-1))  # N,nb_neighbors+1
+
+        assert self.nb_neighbors == int(1 + 8 * (self.R + 1) * (self.R + 1 + 1) / 2)  # 1+sum(8r)_{r=1..R+1} (R+1 too have some margin)
+        assert len(x.shape[:-1]) == 2  # TODO: 3D case
+
+        edge_index = torch.zeros(x.shape[:-1] + (self.nb_neighbors, 2), dtype=torch.int64, device=x.device)
+        delta_pos = torch.zeros(x.shape[:-1] + (self.nb_neighbors, 2), dtype=torch.int64, device=x.device) # size,nb_neighbors,nb_spatial_dims
+        i_indices = torch.arange(0, x.shape[0])
+        j_indices = torch.arange(0, x.shape[1])
+        shift_index = 0
+        for shift_i in range(-self.R, self.R + 1):
+            for shift_j in range(-self.R, self.R + 1):
+                shifted_i_indices = (i_indices + shift_i) % x.shape[0]
+                shifted_j_indices = (j_indices + shift_j) % x.shape[1]
+                edge_index[:, :, shift_index::self.nb_neighbors, 0] = shifted_i_indices
+                edge_index[:, :, shift_index::self.nb_neighbors, 1] = shifted_j_indices
+                delta_pos[:, :, shift_index::self.nb_neighbors,0] = shift_i
+                delta_pos[:, :, shift_index::self.nb_neighbors, 1] = shift_j
+                shift_index += 1
+
+        x_extended = x[edge_index].reshape(x.shape[:-1] + (self.nb_neighbors, x.shape[-1])) # size,nb_neighbors,nb_channels
+        distance = torch.sqrt(torch.sum(torch.pow(delta_pos[x.shape[0]//2+x.shape[1]//2], 2), dim=-1)).unsqueeze(0).repeat(x.shape[:-1] + (1, ))
+        distance = distance / self.R
+
+        kfunc = kernel_core[self.kn]
+        gfunc = field_func[self.gn]
+        aggr_func = eval(f"torch.{self.aggr}")
+
+        delta_x = torch.zeros_like(x)
+
+        for k in range(self.nb_rules):
+            weight = torch.sigmoid(-(distance - 1) * 10) * kfunc(distance / self.r[k], self.rk[k], self.w[k], self.b[k])
+            weight_sum = torch.sum(weight, 1).unsqueeze(1)
+            weight_norm = (weight / weight_sum)
+            potential = aggr_func(weight_norm * x_extended[:, :, self.c0[k]], dim=1)
+            field = gfunc(potential, self.m[k], self.s[k])
+            delta_x[:, self.c1[k]] = delta_x[:, self.c1[k]] + self.h[k] * field
+
+        new_x = torch.clamp(x + (1.0 / self.T) * delta_x, min=0., max=1.)
+
+
+
+        return new_x
+
+    # v0 with grid structure #TODO: counted twice middle cell
+    """
     def forward(self, pos, x):
-        # v0 with grid structure
+        
         assert self.nb_neighbors == int(1+8*(self.R+1)*(self.R+1+1)/2) # 1+sum(8r)_{r=1..R+1} (R+1 too have some margin)
         flat_indices = torch.arange(0, pos.shape[0])
         grid_side = int(np.ceil(np.power(pos.shape[0], 1 / pos.shape[1])))
@@ -83,13 +133,6 @@ class LeniaStepConv(torch.nn.Module):
 
         distance = torch.sqrt(torch.sum(torch.pow(delta_pos[grid_side*grid_side//2+grid_side//2], 2), dim=-1)).unsqueeze(0).repeat(pos.shape[0], 1) / self.R
 
-        # v1 with sparse tensors and alive filter
-        # edge_index = knn_graph(pos, self.nb_neighbors)
-        # edge_index = radius_graph(pos, self.R / (grid_side / 2), max_neighbors=self.nb_neighbors)
-        #distance = torch.sqrt(torch.sum(torch.pow(delta_pos, 2), dim=-1))  # N,nb_neighbors+1
-
-
-
         kfunc = kernel_core[self.kn]
         gfunc = field_func[self.gn]
         aggr_func = eval(f"torch.{self.aggr}")
@@ -108,6 +151,11 @@ class LeniaStepConv(torch.nn.Module):
         new_pos = pos #TODO
 
         return new_pos, new_x
+        """
+
+class NodesSpace(BoxSpace):
+    def contains(self, x):
+        return x.shape == self.shape and torch.all(x.to_dense() >= self.low.to(x.device)) and torch.all(x.to_dense() <= self.high.to(x.device))
 
 @IntegerConfigParameter(name="nb_nodes", default=20, min=1)
 @IntegerConfigParameter(name="nb_dims", default=2, min=1)
@@ -120,10 +168,11 @@ class LeniaCellularSystem(BasePythonSystem):
     CONFIG_DEFINITION = {}
 
     input_space = DictSpace(
-        pos0=BoxSpace(low=0., high=1000.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32,
-                      shape=(ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_dims"),)),
-        x0=BoxSpace(low=0., high=1000.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32,
-                    shape=(ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_channels"), )),
+        # pos0=BoxSpace(low=0., high=1000.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32,
+        #               shape=(ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_dims"),)),
+        # x0=BoxSpace(low=0., high=1000.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32,
+        #             shape=(ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_channels"), )),
+        x=NodesSpace(low=0., high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32, shape=()),
         R=DiscreteSpace(n=25, mutator=GaussianMutator(mean=0.0, std=0.01), indpb=0.01),
         T=BoxSpace(low=1.0, high=10.0, mutator=GaussianMutator(mean=0.0, std=0.1), shape=(), indpb=0.01,
                    dtype=torch.float32),
@@ -147,16 +196,24 @@ class LeniaCellularSystem(BasePythonSystem):
         # gn = DiscreteSpace(n=3, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=1.0),
         )
     output_space = DictSpace(
-        pos=BoxSpace(low=0.0, high=0.0, mutator=GaussianMutator(mean=0.0, std=0.0), indpb=0., dtype=torch.float32,
-                      shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_dims"),)),
-        x=BoxSpace(low=0.0, high=0.0, mutator=GaussianMutator(mean=0., std=0.), indpb=0., dtype=torch.float32,
-                    shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_channels"),)),
+        # pos=BoxSpace(low=0.0, high=0.0, mutator=GaussianMutator(mean=0.0, std=0.0), indpb=0., dtype=torch.float32,
+        #               shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_dims"),)),
+        # x=BoxSpace(low=0.0, high=0.0, mutator=GaussianMutator(mean=0., std=0.), indpb=0., dtype=torch.float32,
+        #             shape=(ConfigParameterBinding("final_step"), ConfigParameterBinding("nb_nodes"), ConfigParameterBinding("nb_channels"),)),
+        x=BoxSpace(low=0., high=1.0, mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.85, dtype=torch.float32,
+                     shape=()),
     )
     step_output_space = DictSpace()
 
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
+
+        nodes_shape = tuple([np.ceil(np.power(self.config.nb_nodes, 1./self.config.nb_dims)) for _ in range(self.config.nb_dims)] + [self.config.nb_channels])
+        self.input_space['x'].shape = nodes_shape
+        self.input_space['x'].initialize(self)
+        self.output_space['x'].shape = (self.config.final_step, ) + nodes_shape
+        self.output_space['x'].initialize(self)
 
         self.input_space.spaces["c0"] = MultiDiscreteSpace(nvec=[self.config.nb_channels] * self.config.nb_rules,
                                                            mutator=GaussianMutator(mean=0.0, std=0.1), indpb=0.1)
@@ -173,8 +230,9 @@ class LeniaCellularSystem(BasePythonSystem):
         if not self.input_space.contains(run_parameters):
             run_parameters = self.input_space.clamp(run_parameters)
 
-        self.pos = run_parameters.pos0
-        self.x = run_parameters.x0
+        # self.pos = run_parameters.pos0
+        # self.x = run_parameters.x0
+        self.x = run_parameters.x
         self.update_rule.reset(R=run_parameters.R, T=run_parameters.T,
                                c0=run_parameters.c0, c1=run_parameters.c1,
                                r=run_parameters.r, rk=run_parameters.rk,
@@ -183,23 +241,36 @@ class LeniaCellularSystem(BasePythonSystem):
 
         self.step_idx = 0
         self._observations = Dict()
-        self._observations.pos = torch.ones(self.output_space["pos"].shape,
-                                                    device=run_parameters.pos0.device) * float('nan')
-        self._observations.pos[self.step_idx] = run_parameters.pos0
-        self._observations.x = torch.ones(self.output_space["x"].shape,
-                                                    device=run_parameters.x0.device) * float('nan')
-        self._observations.x[self.step_idx] = run_parameters.x0
+        # self._observations.pos = torch.ones(self.output_space["pos"].shape,
+        #                                             device=run_parameters.pos0.device) * float('nan')
+        # self._observations.pos[self.step_idx] = run_parameters.pos0
+        # self._observations.x = torch.ones(self.output_space["x"].shape,
+        #                                             device=run_parameters.x0.device) * float('nan')
+        # self._observations.x[self.step_idx] = run_parameters.x0
+
+        # self._observations.x = torch.sparse_coo_tensor(torch.zeros((len(self.output_space["x"].shape[:-1]),0)),
+        #                                                torch.zeros((0,self.output_space["x"].shape[-1])),
+        #                                                size=self.output_space["x"].shape, device=run_parameters.x.device)
+        # global_indices = torch.cat([self.step_idx*torch.ones((1, run_parameters.x.indices().shape[-1]), device=run_parameters.x.device),
+        #                             run_parameters.x.indices()])
+        # self._observations.x.index_put(global_indices, run_parameters.x.values())
+
+        self._observations.x = torch.zeros(self.output_space["x"].shape, device=run_parameters.x.device)
+        self._observations.x[self.step_idx][tuple(run_parameters.x.indices())] = run_parameters.x.values()
 
 
     def step(self, action=None):
 
-        self.pos, self.x = self.update_rule(self.pos, self.x)
+        # self.pos, self.x = self.update_rule(self.pos, self.x)
+        self.x = self.update_rule(self.x)
 
         self.step_idx += 1
-        self._observations.pos[self.step_idx] = self.pos
-        self._observations.x[self.step_idx] = self.x
+        # self._observations.pos[self.step_idx] = self.pos
+        # self._observations.x[self.step_idx] = self.x
+        self._observations.x[self.step_idx][tuple(self.x.indices())] = self.x.values()
 
-        return Dict(pos=self.pos, x=self.x), 0, self.step_idx >= self.config.final_step-1, None
+        #return Dict(pos=self.pos, x=self.x), 0, self.step_idx >= self.config.final_step-1, None
+        return None, 0, self.step_idx >= self.config.final_step - 1, None
 
     def observe(self):
         return self._observations
@@ -223,6 +294,7 @@ class LeniaCellularSystem(BasePythonSystem):
             grid_side = int(np.ceil(np.power(nodes_pos.shape[1], 1 / nodes_pos.shape[0])))
             projection = "3d" if spatial_dims == 3 else "rectilinear"
             nodes_color = (channel_colors@nodes_x.detach().cpu().t()).t()
+
             fig = plt.figure(figsize=(4, 4))
             ax = fig.add_subplot(111, projection=projection)
             ax.set_xlim([nodes_pos[0].min().item(), nodes_pos[0].max().item()])

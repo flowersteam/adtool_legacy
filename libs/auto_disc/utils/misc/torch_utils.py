@@ -15,7 +15,36 @@ from torchvision import transforms
 
 PI = torch.acos(torch.zeros(1)).item() * 2
 
+""" ========================================================================================
+SPARSE TENSOR HELPERS
+======================================================================================== """
 
+def to_sparse_tensor(x):
+    """ converts dense tensor x to sparse format """
+    x_typename = torch.typename(x).split('.')[-1]
+    if x_typename == "BoolTensor":
+        sparse_tensortype = getattr(torch.sparse, "IntTensor")
+    else:
+        sparse_tensortype = getattr(torch.sparse, x_typename)
+
+    indices = torch.nonzero(x)
+    if len(indices.shape) == 0:  # if all elements are zeros
+        return sparse_tensortype(*x.shape)
+    indices = indices.t()
+    values = x[tuple(indices[i] for i in range(indices.shape[0]))]
+
+    if x_typename == "BoolTensor":
+        values = values.int()
+    sparse_tensor = sparse_tensortype(indices, values, x.size()).coalesce()
+
+    if x_typename == "BoolTensor":
+        sparse_tensor = sparse_tensor.bool()
+
+    return sparse_tensor
+
+""" ========================================================================================
+MODULE HELPERS
+======================================================================================== """
 class Flatten(nn.Module):
     """Flatten the input """
 
@@ -110,6 +139,9 @@ def convtranspose_get_output_padding(input_size, output_size, kernel_size=1, str
     return tuple(out_padding)
 
 
+""" ========================================================================================
+FUNCTIONAL HELPERS
+======================================================================================== """
 def complex_mult_torch(X, Y):
     """ Computes the complex multiplication in Pytorch when the tensor last dimension is 2: 0 is the real component and 1 the imaginary one"""
     assert X.shape[-1] == 2 and Y.shape[-1] == 2, 'Last dimension must be 2'
@@ -140,7 +172,9 @@ def soft_clip(x, min, max, k):
     c = torch.exp(torch.FloatTensor([-k * max])).item()
     return torch.log(1.0 / (a + b) + c) / -k
 
-
+""" ========================================================================================
+DATASET HELPERS
+======================================================================================== """
 class ExperimentHistoryDataset(Dataset):
     """ Represents an abstract dataset that uses the Experiment DB History.
 
@@ -174,6 +208,9 @@ class ExperimentHistoryDataset(Dataset):
         return {"obs": data, "label": torch.Tensor([-1]) , "index": idx}
 
 
+""" ========================================================================================
+MODEL WRAPPER HELPERS
+======================================================================================== """
 # pylint: disable = abstract-method
 class ModelWrapper(torch.nn.Module):
     """
@@ -202,9 +239,9 @@ class ModelWrapper(torch.nn.Module):
 
         return data
 
-"""===================================================================
-Weights init utils
-====================================================================="""
+""" ========================================================================================
+WEIGHTS INIT HELPERS
+======================================================================================== """
 def get_weights_init(initialization_name, initialization_parameters={}):
     '''
     initialization_name: string such that the function called is weights_init_<initialization_name>
@@ -331,9 +368,9 @@ class KaimingNormalWeights():
             m.reset_parameters()
 
 
-''' ---------------------------------------------
-               PREPROCESS DATA HELPER
--------------------------------------------------'''
+""" ========================================================================================
+PREPROCESS DATA HELPERS
+======================================================================================== """
 to_PIL = transforms.ToPILImage()
 to_Tensor = transforms.ToTensor()
 
@@ -703,30 +740,3 @@ def random_crop_preprocess(x, patch_size, out_size=None, interpolation='bilinear
     random.setstate(global_rng_state)
 
     return selected_patch
-
-"""=====================================================================
-Sparse Tensors
-======================================================================"""
-
-def to_sparse_tensor(x):
-    """ converts dense tensor x to sparse format """
-    x_typename = torch.typename(x).split('.')[-1]
-    if x_typename == "BoolTensor":
-        sparse_tensortype = getattr(torch.sparse, "IntTensor")
-    else:
-        sparse_tensortype = getattr(torch.sparse, x_typename)
-
-    indices = torch.nonzero(x)
-    if len(indices.shape) == 0:  # if all elements are zeros
-        return sparse_tensortype(*x.shape)
-    indices = indices.t()
-    values = x[tuple(indices[i] for i in range(indices.shape[0]))]
-
-    if x_typename == "BoolTensor":
-        values = values.int()
-    sparse_tensor = sparse_tensortype(indices, values, x.size()).coalesce()
-
-    if x_typename == "BoolTensor":
-        sparse_tensor = sparse_tensor.bool()
-
-    return sparse_tensor

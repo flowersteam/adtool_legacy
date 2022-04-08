@@ -9,7 +9,7 @@ from auto_disc.utils.spaces.utils import ConfigParameterBinding
 
 import torch
 import torch.nn.functional as F
-from torch_geometric.nn import knn_graph, GeneralConv
+from torch_geometric.nn import knn_graph, MessagePassing
 
 import io
 import imageio
@@ -18,31 +18,16 @@ from PIL import Image
 
 
 
-class UpdateRule(GeneralConv):
+class UpdateRule(MessagePassing):
 
-    def __init__(self,
-                 n_channels, out_channels,
-                 in_edge_channels=None,
-                 aggr="add",
-                 k=10,
-                 ):
-        super().__init__(n_channels, out_channels,
-                         in_edge_channels=in_edge_channels,
-                         aggr=aggr,
-                         skip_linear=False,
-                         directed_msg=True,
-                         heads=1,
-                         attention=False,
-                         attention_type="additive",
-                         l2_normalize=False,
-                         bias=False
-                         )
+    def __init__(self, aggr="mean", k=10):
+        super().__init__(aggr=aggr)
         self.k = k
 
-    def reset(self, lin_msg_weight, lin_self_weight, lin_edge_weight):
-        self.lin_msg.weight = lin_msg_weight
-        self.lin_self.weight = lin_self_weight
-        self.lin_edge.weight = lin_edge_weight
+    def reset(self, mlp_weight, mlp_bias, global_bias):
+        self.mlp_weight = mlp_weight
+        self.mlp_bias = mlp_bias
+        self.global_bias = global_bias
 
     def forward(self, pos, x):
         edge_index = knn_graph(pos, self.k)
@@ -89,7 +74,7 @@ class MLPCellularSystem(BasePythonSystem):
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
-        self.update_rule = UpdateRule(self.config.n_neighbors)
+        self.update_rule = UpdateRule(k=self.config.n_neighbors)
 
     def reset(self, run_parameters):
         # clamp parameters if not contained in space definition
