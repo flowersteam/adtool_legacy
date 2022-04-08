@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
-import { AppDbService } from '../services/app-db.service';
+import { AppDbService } from '../services/REST-services/app-db.service';
+import { ToasterService } from '../services/toaster.service';
+
 import { Experiment } from '../entities/experiment';
 
 @Component({
@@ -14,7 +16,7 @@ export class HomeComponent implements OnInit {
   sortByDateAsc: boolean = true; 
   searchText = '';
   
-  constructor(private appDBService: AppDbService) { }
+  constructor(private appDBService: AppDbService, private toasterService: ToasterService) { }
 
   ngOnInit() {
     this.getExperiments();
@@ -22,10 +24,15 @@ export class HomeComponent implements OnInit {
 
   getExperiments(): void {
     this.appDBService.getLightExperiments()
-    .subscribe(experiments => {
-      this.sortByDateAsc = true; 
-      this.experiments = experiments;
-      this.sortExperimentsByDate();
+    .subscribe(response => {
+      if(response.success){
+        this.sortByDateAsc = true; 
+        this.experiments = response.data ?? [];
+        this.sortExperimentsByDate();
+      }
+      else {
+        this.toasterService.showError(response.message ?? '', "Error listing experiments");
+      }
     });
   }
 

@@ -1,7 +1,11 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, Input } from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
 
 import { CreateNewExperimentService } from '../../services/create-new-experiment.service';
+import { ToasterService } from '../../services/toaster.service';
+
+import { ChoosePreviousExperimentComponent } from './choose-previous-experiment/choose-previous-experiment.component';
+import { AppDbService } from '../../services/REST-services/app-db.service';
 
 @Component({
   selector: 'app-load-experiment-config-to-create',
@@ -12,21 +16,39 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
 
   @Input() currentExperiment?: any;
 
+  previous_experiment_id = undefined;
   fileName = '';
   fileContent : string | ArrayBuffer = '';
-  constructor(private http: HttpClient, public createNewExperimentService: CreateNewExperimentService) { }
+  constructor(
+    public createNewExperimentService: CreateNewExperimentService, 
+    private appDBService: AppDbService, 
+    private toasterService: ToasterService, 
+    public dialog: MatDialog) { }
   
   ngOnInit(): void {}
+
+  openDialog(): void {
+    const dialogRef = this.dialog.open(ChoosePreviousExperimentComponent, {data:{id: this.previous_experiment_id}});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result != undefined){
+        this.setExperimentWithPreviousExperiment(result);
+      }
+    });
+  }
 
   downloadJson(){
     var sJson = JSON.stringify(this.currentExperiment);
     var element = document.createElement('a');
     element.setAttribute('href', "data:text/json;charset=UTF-8," + encodeURIComponent(sJson));
-    element.setAttribute('download', this.currentExperiment.experiment.name);
+    element.setAttribute('download', this.currentExperiment.experiment.name+".json");
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  }
+
+  loadPreviousExperiment(){
+    this.openDialog()
   }
 
   onFileSelected(event:any) {
@@ -55,6 +77,28 @@ export class LoadExperimentConfigToCreateComponent implements OnInit {
     this.currentExperiment.output_representations = loadedExperiment.output_representations;
     this.currentExperiment.system = loadedExperiment.system;
     this.createNewExperimentService.setAllCustomModulesFromUseModule()
+  }
+
+  setExperimentWithPreviousExperiment(id : number){
+    this.appDBService.getExperimentById(id)
+    .subscribe(response => {
+      if(response.success && response.data){
+        let experiment = response.data
+        this.currentExperiment.callbacks = [];
+        this.currentExperiment.experiment.name = experiment.name;
+        this.currentExperiment.experiment.config = experiment.config;
+        this.currentExperiment.explorer = experiment.explorers[0];
+        this.currentExperiment.input_wrappers = experiment.input_wrappers;
+        this.currentExperiment.logger_handlers = [];
+        this.currentExperiment.output_representations = experiment.output_representations;
+        this.currentExperiment.system = experiment.systems[0];
+      }
+      else {
+        this.toasterService.showError(response.message ?? '', "Error getting previous experiment");
+      }
+
+      this.createNewExperimentService.setAllCustomModulesFromUseModule()
+    });
   }
 
 }

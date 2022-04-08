@@ -1,13 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
 
-import { JupyterSessions } from '../entities/jupyter_sessions';
-import { JupyterKernel } from '../entities/jupyter_kernel';
 import { JupyterDir } from '../entities/jupyter_dir';
-import { webSocket, WebSocketSubject } from "rxjs/webSocket";
+import { webSocket } from "rxjs/webSocket";
 
-import { AppDbService } from '../services/app-db.service';
+import { AppDbService } from '../services/REST-services/app-db.service';
 import { Observable, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 

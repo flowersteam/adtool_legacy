@@ -2,8 +2,8 @@ import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import  * as bootstrap  from 'bootstrap';
 
-import { JupyterService } from '../../services/jupyter.service';
-import { JupyterSessions } from '../../entities/jupyter_sessions';
+import { JupyterService } from '../../../services/jupyter.service';
+import { JupyterSessions } from '../../../entities/jupyter_sessions';
 
 
 @Component({

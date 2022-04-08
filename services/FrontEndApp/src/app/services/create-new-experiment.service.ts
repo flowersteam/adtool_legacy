@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { cloneDeep } from 'lodash'
 
-import { AutoDiscServerService } from '../services/auto-disc.service';
+import { AutoDiscServerService } from '../services/REST-services/auto-disc.service';
 import { ExperimentSettings } from '../entities/experiment_settings';
 import { ToasterService } from '../services/toaster.service';
 
@@ -32,33 +32,69 @@ export class CreateNewExperimentService {
   }
 
   getExplorers(): void {
-    this.AutoDiscServerService.getExplorers()
-    .subscribe(explorers => this.allConfig.explorers = explorers);
+    this.AutoDiscServerService.getExplorers().subscribe(response => {
+      if(response.success){
+        this.allConfig.explorers = response.data;
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting explorers", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   getSystems(): void {
-    this.AutoDiscServerService.getSystems()
-    .subscribe(systems => {this.allConfig.systems = systems;});
+    this.AutoDiscServerService.getSystems().subscribe(response => {
+      if(response.success){
+        this.allConfig.systems = response.data;
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting systems", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   getInputWrappers(): void {
-    this.AutoDiscServerService.getInputWrappers()
-    .subscribe(input_wrappers => this.allConfig.input_wrappers = input_wrappers);
+    this.AutoDiscServerService.getInputWrappers().subscribe(response => {
+      if(response.success){
+        this.allConfig.input_wrappers = response.data;
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting input wrappers", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
   getOutputRepresentations(): void {
-    this.AutoDiscServerService.getOutputRepresentations()
-    .subscribe(output_representations => this.allConfig.output_representations = output_representations);
+    this.AutoDiscServerService.getOutputRepresentations().subscribe(response => {
+      if(response.success){
+        this.allConfig.output_representations = response.data;
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting output representations", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   getCallbacks(): void {
-    this.AutoDiscServerService.getCallbacks()
-    .subscribe(callbacks => this.allConfig.callbacks = callbacks);
+    this.AutoDiscServerService.getCallbacks().subscribe(response => {
+      if(response.success){
+        this.allConfig.callbacks = response.data;
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting callbacks", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   getHosts(): void {
-    this.AutoDiscServerService.getHosts()
-    .subscribe(hosts => {this.allConfig.hosts = hosts;
-              this.newExperiment.experiment.config.host = this.allConfig.hosts[0]});
+    this.AutoDiscServerService.getHosts().subscribe(response => {
+      if(response.success){
+        this.allConfig.hosts = response.data;
+        this.newExperiment.experiment.config.host = this.allConfig.hosts[0];
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting hosts", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   // ##################   init new experiment ####################

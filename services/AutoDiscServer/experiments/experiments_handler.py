@@ -1,7 +1,7 @@
 import traceback
 from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
 from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
-from AutoDiscServer.utils import CheckpointsStatusEnum
+from AutoDiscServer.utils import CheckpointsStatusEnum, reconstruct_parameters
 from AutoDiscServer.utils.DB import  AppDBCaller, AppDBMethods
 import datetime
 import traceback
@@ -20,9 +20,61 @@ class ExperimentsHandler():
             raise Exception("Unknown experiment ID !")
         
         return experiment
+
+    def _create_experiment(self, id, parameters):
+        # Create experiment
+        if parameters["experiment"]["config"]["host"] == "local":
+            experiment = LocalExperiment(id, parameters, 
+                                        self.on_progress_callback,
+                                        self.on_checkpoint_needed_callback,
+                                        self.on_checkpoint_finished_callback,
+                                        self.on_checkpoint_update_callback,
+                                        self.on_experiment_update_callback)
+        else:
+            experiment = RemoteExperiment(parameters["experiment"]["config"]["host"], 
+                                        id, parameters, 
+                                        self.on_progress_callback,
+                                        self.on_checkpoint_needed_callback,
+                                        self.on_checkpoint_finished_callback,
+                                        self.on_checkpoint_update_callback,
+                                        self.on_experiment_update_callback)
+        
+        # Add it in the list 
+        self._experiments.append(experiment)
+
+        return experiment
+
+    def _reload_experiment(self, id, parameters):
+        try:
+            experiment = self._create_experiment(id, parameters)
+            experiment.reload()
+        except:
+            message = "Error when reloading experiment: {}".format(traceback.format_exc())
+            raise Exception(message)
 #endregion
 
 #region main functions
+    def reload_running_remote_experiments(self):
+        import json
+
+        response = self._app_db_caller("/experiments?exp_status=eq.{}".format(ExperimentStatusEnum.RUNNING), 
+                                        AppDBMethods.GET, {}
+                                      )
+        running_experiments = json.loads(response.content)
+        for experiment in running_experiments:
+            id = experiment['id']
+            try:
+                parameters = reconstruct_parameters(id, self._app_db_caller)
+                self._reload_experiment(id, parameters)
+            except:
+                message = "Error when reloading experiment {}: {}".format(id, traceback.format_exc())
+                try:
+                    self.remove_experiment(id, CheckpointsStatusEnum.ERROR, ExperimentStatusEnum.ERROR)
+                except:
+                    message += "\nError when removing experiment: {}".format(traceback.format_exc())
+                finally:
+                    print(message) # TODO log in file
+
     def add_experiment(self, parameters):
         try:
             # Add experiment in DB and obtain the id
@@ -40,30 +92,15 @@ class ExperimentsHandler():
             id = response.headers["Location"].split(".")
             id = int(id[1])
 
-            # Create experiment
-            if parameters["experiment"]["config"]["host"] == "local":
-                experiment = LocalExperiment(id, parameters, 
-                                            self.on_progress_callback,
-                                            self.on_checkpoint_needed_callback,
-                                            self.on_checkpoint_finished_callback,
-                                            self.on_checkpoint_update_callback,
-                                            self.on_experiment_update_callback)
-            else:
-                experiment = RemoteExperiment(parameters["experiment"]["config"]["host"], 
-                                            id, parameters, 
-                                            self.on_progress_callback,
-                                            self.on_checkpoint_needed_callback,
-                                            self.on_checkpoint_finished_callback,
-                                            self.on_checkpoint_update_callback,
-                                            self.on_experiment_update_callback)
+            experiment = self._create_experiment(id, parameters)
 
+            # Prepare for start
+            experiment.prepare()
 
             # Start the experiment
             experiment.start()
-            
-            ## Add it in the list 
-            self._experiments.append(experiment)
       
+
             self._app_db_caller("/systems", AppDBMethods.POST, {
                                 "experiment_id": id,
                                 "name": parameters['system']['name'],
@@ -92,22 +129,37 @@ class ExperimentsHandler():
             return id
         except Exception as err:
             message = "Error when creating experiment: {}".format(traceback.format_exc())
-            raise Exception(message)
+            try:
+                self.remove_experiment(id, CheckpointsStatusEnum.ERROR, ExperimentStatusEnum.ERROR)
+            except Exception as second_err:
+                message += "\nError when removing experiment: {}".format(traceback.format_exc())
+            finally:
+                raise Exception(message)
 
-    def remove_experiment(self, id):
-        # Get index in list
-        experiment = self._get_experiment(id)
-        
-        # Pop from list
-        self._experiments.remove(experiment)
+    def remove_experiment(self, id, checkpoint_status=CheckpointsStatusEnum.CANCELLED, experiment_status=ExperimentStatusEnum.CANCELLED):
+        try:
+            # Get index in list
+            experiment = self._get_experiment(id)
+            
+            # Pop from list
+            if experiment in self._experiments:
+                self._experiments.remove(experiment)
 
         # Cancel experiment
-        experiment.stop()
+            experiment.stop()
 
-        # Save in DB
-        self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(experiment.id, int(CheckpointsStatusEnum.RUNNING)), 
-                            AppDBMethods.PATCH, 
-                            {"status": int(CheckpointsStatusEnum.CANCELLED)} 
+        except Exception as err:
+            message = "Error when removing experiment: {}".format(traceback.format_exc())
+            raise Exception(message)
+        finally:
+            # Save in DB
+            self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(id, int(CheckpointsStatusEnum.RUNNING)), 
+                                AppDBMethods.PATCH, 
+                                {"status": int(checkpoint_status)} 
+                        )
+            self._app_db_caller("/experiments?id=eq.{}".format(id), 
+                                AppDBMethods.PATCH, 
+                                {"exp_status": int(experiment_status)} 
                         )        
 
     def list_running_experiments(self):
@@ -160,6 +212,4 @@ class ExperimentsHandler():
         except Exception as err:
             message = "Error when update experiment: {}".format(traceback.format_exc())
             raise Exception(message)
-        
-
 #endregion

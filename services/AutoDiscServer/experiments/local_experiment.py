@@ -1,7 +1,7 @@
-import requests
 from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBLoggerHandler
+from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
 from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
+from AutoDiscServer.utils import CheckpointsStatusEnum
 
 from auto_disc.run import create, start as start_pipeline
 
@@ -11,12 +11,16 @@ import logging
 from copy import copy
 
 class LocalExperiment(BaseExperiment):
+    '''
+        Local Python experiment. Pipelines are directly launched from this class with additional callbacks provided to handle DB storage. 
+    '''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.threading_lock = threading.Lock()
 
-        additional_callbacks = {
+        self._additional_callbacks = {
             "on_discovery": [self.on_progress, self.save_discovery_to_expe_db],
             "on_save_finished": [self.on_save],
             "on_finished": [self.on_finished],
@@ -25,16 +29,16 @@ class LocalExperiment(BaseExperiment):
             "on_saved": [self.save_modules_to_expe_db],
         }
         
-        
-        additional_handlers = [AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)]
-
-        self._expe_db_caller = ExpeDBCaller('http://127.0.0.1:5001')
+        self._additional_handlers = [AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)]
 
         self._pipelines = []
+
+#region public launching
+    def prepare(self):
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
             seed = i
             experiment_id = self.experiment_config['experiment']['id']
-            self._pipelines.append(create(self.cleared_config, experiment_id, seed, additional_callbacks, additional_handlers))
+            self._pipelines.append(create(self.cleared_config, experiment_id, seed, self._additional_callbacks, self._additional_handlers))
 
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(self.id, self.experiment_config['experiment']['config']['nb_seeds']))
@@ -50,8 +54,20 @@ class LocalExperiment(BaseExperiment):
             self._pipelines[i].cancellation_token.trigger()
             self._running_tasks[i].join()
 
+    def reload(self):
+        self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(self.id, int(CheckpointsStatusEnum.RUNNING)), 
+                                AppDBMethods.PATCH, 
+                                {"status": int(CheckpointsStatusEnum.CANCELLED)} 
+                        )
+        self._app_db_caller("/experiments?id=eq.{}".format(self.id), 
+                            AppDBMethods.PATCH, 
+                            {"exp_status": int(CheckpointsStatusEnum.CANCELLED)} 
+                    ) 
+#endregion
+
+#region callbacks
     def on_progress(self, **kwargs):
-        super().on_progress(kwargs["seed"])
+        super().on_progress(kwargs["seed"], kwargs["run_idx"] + 1)
 
     def on_save(self, **kwargs):
         self.threading_lock.acquire()
@@ -72,7 +88,9 @@ class LocalExperiment(BaseExperiment):
         self.threading_lock.acquire()
         super().on_cancelled(kwargs["seed"])
         self.threading_lock.release()
+#endregion
 
+#region saving
     def save_discovery_to_expe_db(self, **kwargs):
         """
         brief:      callback saves the discoveries outputs we want to save on database.
@@ -128,9 +146,12 @@ class LocalExperiment(BaseExperiment):
                                     }
                                 )["ID"]
         self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
+#endregion
 
+#region utils
     def clean_after_experiment(self, **kwargs):
         super().clean_after_experiment()
         ad_logger = logging.getLogger("ad_tool_logger")
         ad_logger.handlers = [handler for handler in ad_logger.handlers if handler.experiment_id != self.id]
+#endregion
     

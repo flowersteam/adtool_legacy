@@ -1,19 +1,22 @@
 <div class="container" id="visualisationGroup">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-        <button id="btncollapseJupyter" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseJupyter" data-parent="#visualisationGroup" role="button" aria-expanded="true" aria-controls="collapseJupyter"
-        (click)="this.collapseVisualisation($event)"  [disabled]="this.tabButtonDisable['btncollapseJupyter']">
-        Jupyter Notebook
-        </button>
-        <button id="btncollapseDiscovery" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseDiscovery" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseDiscovery"
-        (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseDiscovery']">
-        Discoveries
-        </button>
-        <button id="btncollapseLogs" class="btn btn-primary dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseLogs" data-parent="#visualisationGroup" aria-expanded="false" aria-controls="collapseLogs"
-        (click)="this.collapseVisualisation($event)" [disabled]="this.tabButtonDisable['btncollapseLogs']">
-        Logs
-        </button>
-    </nav>
-    
+    <ul class="nav nav-tabs mb-3 text-secondary">
+        <li class="nav-item">
+          <a class="nav-link dropdown mx-2" id="btncollapseJupyter" data-bs-toggle="collapse" data-bs-target="#collapseJupyter" data-parent="#visualisationGroup" role="button" aria-expanded="true" aria-controls="collapseJupyter"
+          (click)="this.collapseVisualisation($event)" [class.disabled]="this.tabButtonDisable['btncollapseJupyter']"  [class.active]="this.tabButtonDisable['btncollapseJupyter']">
+          Jupyter Notebook</a>
+        </li>
+        <li class="nav-item">
+          <a id="btncollapseDiscovery" class="nav-link dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseDiscovery" data-parent="#visualisationGroup" role="button" aria-expanded="false" aria-controls="collapseDiscovery"
+          (click)="this.collapseVisualisation($event)" [class.disabled]="this.tabButtonDisable['btncollapseDiscovery']" [class.active]="this.tabButtonDisable['btncollapseDiscovery']">
+          Discoveries</a>
+        </li>
+        <li class="nav-item">
+          <a id="btncollapseLogs" class="nav-link dropdown mx-2" data-bs-toggle="collapse" data-bs-target="#collapseLogs" data-parent="#visualisationGroup" role="button" aria-expanded="false" aria-controls="collapseLogs"
+          (click)="this.collapseVisualisation($event)" [class.disabled]="this.tabButtonDisable['btncollapseLogs']" [class.active]="this.tabButtonDisable['btncollapseLogs']">
+          Logs</a>
+        </li>
+      </ul>
+
     <div class="collapse show" id="collapseJupyter">
         <app-jupyter-lab
             [experiment]="this.experiment">

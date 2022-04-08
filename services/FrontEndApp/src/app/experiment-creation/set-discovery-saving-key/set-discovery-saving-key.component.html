@@ -1,9 +1,7 @@
-<h5 class="card-title col-12 mt-5">What do you want to save ?</h5> 
 <div *ngFor="let discovery_saving_key_use of this.discovery_saving_keys_use | keyvalue" class="card my-3">
     <div class="card-body">
         <div class="row">             
-            <label class="form-control" class="card-title col-12"  id="oui"
-                    required name="oui">
+            <label class="form-control" class="card-title col-12 mb-0"  id="oui" required name="oui">
                     <input type="checkbox" (change)="this.onCheckboxChange(this.discovery_saving_key_use.key)"
                             name={{this.discovery_saving_key_use.key}} [checked]=this.discovery_saving_key_use.value/>
                     {{this.discovery_saving_key_use.key}}
