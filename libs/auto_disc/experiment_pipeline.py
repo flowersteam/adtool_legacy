@@ -32,8 +32,8 @@ class ExperimentPipeline():
         self.save_frequency = save_frequency
 
         self.db = DB()
-        def access_history_fn(index=slice(None, None, None), keys=[], new_keys=['idx', 'input', 'output']):
-            return lambda: self.db.to_autodisc_history(self.db[index], keys, new_keys)
+        def access_history_fn(keys=[], new_keys=['idx', 'input', 'output']):
+            return lambda index=slice(None, None, None): self.db.to_autodisc_history(self.db[index], keys, new_keys)
 
         ### SYSTEM ###
         self._system = system
