@@ -36,8 +36,6 @@ class IMGEPExplorer(BaseExplorer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        #TODO  (quick fix)
-        self._outter_input_space_key=self.config.outter_input_space_key
 
     def initialize(self, input_space, output_space):
         super().initialize(input_space, output_space)

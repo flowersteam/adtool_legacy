@@ -183,24 +183,27 @@ class ExperimentHistoryDataset(Dataset):
     """
     def __init__(self, access_history_fn, key, history_ids, filter=None, transform=None):
 
-        subkeys = key.split('.')
-        history = [access_history_fn()[subkeys[0]][i] for i in history_ids]
-        self.dataset = []
-        for data in history:
-            for subkey in subkeys[1:]:
+        self.subkeys = key.split('.')
+        self.access_history_fn = access_history_fn
+        self.dataset_ids = []
+        for i in history_ids:
+            data = self.access_history_fn(index=slice(i,i+1), key=self.subkeys[0])
+            for subkey in self.subkeys[1:]:
                 data = data[subkey]
             if filter is not None and not filter(data):
-                self.dataset.append(data)
+                self.dataset_ids.append(i)
             else:
                 pass
 
         self.transform = transform
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.dataset_ids)
 
     def __getitem__(self, idx):
-        data = self.dataset[idx]
+        data = self.access_history_fn(index=slice(idx, idx + 1), key=self.subkeys[0])
+        for subkey in self.subkeys[1:]:
+            data = data[subkey]
 
         if self.transform is not None:
             data = self.transform(data)
