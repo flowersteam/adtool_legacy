@@ -62,7 +62,7 @@ class LeniaStepConv(torch.nn.Module):
         # edge_index = radius_graph(pos, self.R / (grid_side / 2), max_neighbors=self.nb_neighbors)
         # distance = torch.sqrt(torch.sum(torch.pow(delta_pos, 2), dim=-1))  # N,nb_neighbors+1
 
-        assert self.nb_neighbors == int(1 + 8 * (self.R + 1) * (self.R + 1 + 1) / 2)  # 1+sum(8r)_{r=1..R+1} (R+1 too have some margin)
+        assert self.nb_neighbors == int(1 + 8 * (self.R) * (self.R + 1) / 2)  # 1+sum(8r)_{r=1..R}
         assert len(x.shape[:-1]) == 2  # TODO: 3D case
 
         edge_index = torch.zeros(x.shape[:-1] + (self.nb_neighbors, 2), dtype=torch.int64, device=x.device)
@@ -74,12 +74,12 @@ class LeniaStepConv(torch.nn.Module):
             for shift_j in range(-self.R, self.R + 1):
                 shifted_i_indices = (i_indices + shift_i) % x.shape[0]
                 shifted_j_indices = (j_indices + shift_j) % x.shape[1]
-                edge_index[:, :, shift_index::self.nb_neighbors, 0] = shifted_i_indices
-                edge_index[:, :, shift_index::self.nb_neighbors, 1] = shifted_j_indices
-                delta_pos[:, :, shift_index::self.nb_neighbors,0] = shift_i
-                delta_pos[:, :, shift_index::self.nb_neighbors, 1] = shift_j
+                edge_index[:, :, shift_index, 0] = shifted_i_indices.unsqueeze(0).repeat(x.shape[1], 1)
+                edge_index[:, :, shift_index, 1] = shifted_j_indices.unsqueeze(1).repeat(1, x.shape[0])
+                delta_pos[:, :, shift_index, 0] = shift_i
+                delta_pos[:, :, shift_index, 1] = shift_j
                 shift_index += 1
-
+        assert shift_index == self.nb_neighbors
         x_extended = x[edge_index].reshape(x.shape[:-1] + (self.nb_neighbors, x.shape[-1])) # size,nb_neighbors,nb_channels
         distance = torch.sqrt(torch.sum(torch.pow(delta_pos[x.shape[0]//2+x.shape[1]//2], 2), dim=-1)).unsqueeze(0).repeat(x.shape[:-1] + (1, ))
         distance = distance / self.R
