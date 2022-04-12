@@ -23,8 +23,8 @@ class PCA(BaseOutputRepresentation):
         pca=BoxSpace(low=0, high=0, shape=(ConfigParameterBinding("n_components"),))
     )
 
-    def __init__(self, wrapped_input_space_key=None):
-        super().__init__(wrapped_input_space_key=wrapped_input_space_key)
+    def __init__(self, wrapped_input_space_key=None, **kwargs):
+        super().__init__(wrapped_input_space_key=wrapped_input_space_key, **kwargs)
 
         self.algorithm = make_pipeline(StandardScaler(),
                                        decomposition.PCA(n_components=self.config.n_components))
@@ -51,7 +51,6 @@ class PCA(BaseOutputRepresentation):
         return output
 
     def fit_update(self):
-        history = self._access_history()
-        input_library = np.stack([history['input'][i][self.wrapped_input_space_key].flatten() for i in range(len(history['input']))])
+        input_library = np.stack([self._access_history(index=i)[0]['input'][self.wrapped_input_space_key].flatten() for i in range(self.CURRENT_RUN_INDEX-1)])
         self.algorithm.fit(input_library)
         self._call_output_history_update()

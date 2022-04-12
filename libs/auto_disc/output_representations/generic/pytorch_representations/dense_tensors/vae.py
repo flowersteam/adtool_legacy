@@ -370,7 +370,7 @@ class VAE(nn.Module, BaseOutputRepresentation):
 
         valid_dataset = ExperimentHistoryDataset(access_history_fn=self._access_history,
                                                  key=f"input.{self.wrapped_input_space_key}",
-                                                 history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), 0)),
+                                                 history_ids=list(range(-min(20, self.CURRENT_RUN_INDEX), -1)), #-1 to not include self.CURRENT_RUN_INDEX as not yet stored in history
                                                  filter=eval(self.config.train_dset_filter),
                                                  transform=None)
 

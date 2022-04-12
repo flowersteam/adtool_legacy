@@ -101,8 +101,7 @@ class IMGEPExplorer(BaseExplorer):
     def set_candidate_selector(self):
         if self.config.candidate_selection_type == 'optimal':
             def candidate_selector(target_goal):
-                history = self._access_history()
-                goal_library = torch.Tensor([h[self._outter_input_space_key] for h in history['input']])
+                goal_library = torch.stack([h[self._outter_input_space_key] for h in self._access_history()['input']])
                 goal_distances = self._goal_achievement_loss(target_goal, goal_library)
                 return torch.argmin(goal_distances)
 
@@ -198,9 +197,8 @@ class IMGEPExplorer(BaseExplorer):
             self.target_goal = self._goal_sampler()
 
             # get candidate policy
-            history = self._access_history()
             candidate_idx = self._candidate_selector(self.target_goal)
-            candidate = deepcopy(history[int(candidate_idx)]['output'])
+            candidate = deepcopy(self._access_history(int(candidate_idx))[0]['output'])
 
             # optimize candidate policy
             policy_parameters = self._candidate_optimizer(self.target_goal, candidate)
@@ -208,7 +206,6 @@ class IMGEPExplorer(BaseExplorer):
         policy_parameters = map_nested_dicts(policy_parameters,
                                              lambda x: x.to(self.config.tensors_device) if torch.is_tensor(x) else x)
 
-        history = self._access_history()
 
         return Dict(policy_parameters)
 
