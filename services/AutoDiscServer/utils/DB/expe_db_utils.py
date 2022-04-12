@@ -12,13 +12,10 @@ def serialize_autodisc_space(space):
         elif isinstance(space, list):
             for i in range(len(space)):
                 space[i] = serialize_autodisc_space(space[i])
-            serialized_space =space
+            serialized_space = space
         elif isinstance(space, dict):
             for key in space:
-                if isinstance(space[key], Tensor):
-                    serialized_space[key] = space[key].tolist()
-                else:
-                    serialized_space[key] = space[key]
+                serialized_space[key] = serialize_autodisc_space(space[key])
         else:
             serialized_space = space
         return serialized_space
