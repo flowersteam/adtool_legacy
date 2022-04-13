@@ -316,14 +316,21 @@ class VAE(nn.Module, BaseOutputRepresentation):
                     if not record_valid_images:
                         images.append(x.cpu().detach())
 
+
         if record_valid_images:
-            recon_images = torch.cat(recon_images)
-            images = torch.cat(images)
-        if record_embeddings:
-            embeddings = torch.cat(embeddings)
-            labels = torch.cat(labels)
-            if not record_valid_images:
+            if len(recon_images) == 0:
+                record_valid_images = False
+            else:
+                recon_images = torch.cat(recon_images)
                 images = torch.cat(images)
+        if record_embeddings:
+            if len(embeddings) == 0:
+                record_embeddings = False
+            else:
+                embeddings = torch.cat(embeddings)
+                labels = torch.cat(labels)
+                if not record_valid_images:
+                    images = torch.cat(images)
 
         # log results
         if record_valid_images:
