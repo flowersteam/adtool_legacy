@@ -1,6 +1,6 @@
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
-from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
+from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
 from AutoDiscServer.utils import CheckpointsStatusEnum
 
 from auto_disc.run import create, start as start_pipeline
@@ -118,7 +118,11 @@ class LocalExperiment(BaseExperiment):
                 filename=filename+"."+kwargs["rendered_output"][1]
                 files_to_save["rendered_output"] = (filename, kwargs["rendered_output"][0].getbuffer())
             else:
-                saves[save_item] = serialize_autodisc_space(kwargs[save_item])
+                serialized_object = serialize_autodisc_space(kwargs[save_item]) 
+                if is_json_serializable(serialized_object):
+                    saves[save_item] = serialized_object
+                else:
+                    files_to_save[save_item] = ('{}_{}_{}'.format(save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
         
         discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]
         self._expe_db_caller("/discoveries/" + discovery_id + "/files", files=files_to_save)
