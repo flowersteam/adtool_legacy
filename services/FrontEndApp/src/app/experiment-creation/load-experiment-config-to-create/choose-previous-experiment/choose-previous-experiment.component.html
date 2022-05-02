@@ -23,6 +23,7 @@
                 <p *ngIf="experiment.exp_status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</p>
                 <p *ngIf="experiment.exp_status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</p>
                 <p *ngIf="experiment.exp_status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</p>
+                <p *ngIf="experiment.exp_status == 4" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Preparing</p>
             </div>
 
             <h6 class="card-subtitle mb-2 text-muted">Id: {{experiment.id}}</h6>
