@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 import { Inject } from '@angular/core';
-import { AppDbService } from '../../services/app-db.service';
+import { AppDbService } from '../../services/REST-services/app-db.service';
 import {Event, RouterEvent, Router} from '@angular/router';
 
 @Component({
@@ -22,7 +22,10 @@ export class PreparingLogComponent implements OnInit {
   ngOnInit(): void {
     let filter = "?&experiment_id=eq."+this.data.experiment_id.toString()
     let timeIntervalSeconds = 2;
-    this.interval = setInterval(()=> { this.appDBService.getPreparingLogs(filter).subscribe(res => this.preparing_logs = res) }, timeIntervalSeconds * 1000);
+    this.interval = setInterval(()=> { 
+      this.appDBService.getPreparingLogs(filter).subscribe(
+        (res: any) => this.preparing_logs = res) 
+    }, timeIntervalSeconds * 1000);
     this.router.events.subscribe(() => {clearInterval(this.interval);});
   }
 

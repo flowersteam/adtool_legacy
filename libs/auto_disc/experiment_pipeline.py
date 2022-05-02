@@ -32,8 +32,8 @@ class ExperimentPipeline():
         self.save_frequency = save_frequency
 
         self.db = DB()
-        def access_history_fn(index=slice(None, None, None), keys=[], new_keys=['idx', 'input', 'output']):
-            return lambda: self.db.to_autodisc_history(self.db[index], keys, new_keys)
+        def access_history_fn(keys=[], new_keys=['idx', 'input', 'output']):
+            return lambda index=slice(None, None, None): self.db.to_autodisc_history(self.db[index], keys, new_keys)
 
         ### SYSTEM ###
         self._system = system
@@ -111,7 +111,7 @@ class ExperimentPipeline():
 
     def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
         for i, output_representation in enumerate(self._output_representations[starting_index:]):
-            output = output_representation.map(output, is_output_new_discovery)
+            output = output_representation.map(copy(output), is_output_new_discovery)
             if i == len(self._output_representations) - 1:
                 self.db.update({'output': copy(output)}, doc_ids=[document_id])
             else:
@@ -131,7 +131,7 @@ class ExperimentPipeline():
 
     def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
         for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
-            run_parameters = input_wrapper.map(run_parameters, is_input_new_discovery)
+            run_parameters = input_wrapper.map(copy(run_parameters), is_input_new_discovery)
             if i == len(self._input_wrappers) - 1:
                 self.db.update({'run_parameters': copy(run_parameters)}, doc_ids=[document_id])
             else:
@@ -172,7 +172,7 @@ class ExperimentPipeline():
                 with torch.no_grad():
                     run_parameters = self._process_run_parameters(raw_run_parameters, document_id)
 
-                o, r, d, i = self._system.reset(run_parameters), 0, None, False
+                o, r, d, i = self._system.reset(copy(run_parameters)), 0, None, False
                 step_observations = [o]
 
                 while not d:
@@ -192,7 +192,7 @@ class ExperimentPipeline():
                     output = self._process_output(raw_output, document_id)
                     rendered_output = self._system.render()
                         
-                self._explorer.archive(raw_run_parameters, output)
+                self._explorer.archive(copy(raw_run_parameters), copy(output))
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,

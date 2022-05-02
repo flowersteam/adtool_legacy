@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { ExperimentCreationComponent } from './experiment-creation/experiment-creation.component';
 import { ExperimentMonitoringComponent } from './experiment-monitoring/experiment-monitoring.component';
 import { ArchiveExperimentComponent } from './experiment-monitoring/archive-experiment/archive-experiment.component';
+import { AboutComponent } from './about/about.component';
 
 import {FilterPipe} from './pipes/filter.pipe';
 import { DragDropModule }from '@angular/cdk/drag-drop';
@@ -47,6 +48,7 @@ import { PreparingLogComponent } from './experiment-creation/preparing-log/prepa
   declarations: [
     AppComponent,
     HomeComponent,
+    AboutComponent,
     ExperimentCreationComponent,
     ExperimentMonitoringComponent,
     FilterPipe,

@@ -2,7 +2,7 @@ from time import sleep
 from AutoDiscServer.experiments import BaseExperiment
 from AutoDiscServer.utils import ExperimentStatusEnum, list_profiles, parse_profile, match_except_number
 from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods, AppDBCaller
-from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space
+from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
 import threading
 import os
 from pexpect import pxssh
@@ -48,7 +48,7 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
 
         self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
@@ -481,7 +481,13 @@ class RemoteExperiment(BaseExperiment):
                             extension = os.listdir(folder+save_item)[0].split(".")[1]
                             files_to_save[save_item] = open(folder+save_item+"/idx_{}.{}".format(kwargs["run_idx"], extension), "rb")
                         else:
-                            saves[save_item] = serialize_autodisc_space(pickle.load(open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb")))
+                            serialized_object = serialize_autodisc_space(pickle.load(open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))) 
+                            if is_json_serializable(serialized_object):
+                                saves[save_item] = serialized_object
+                            else:
+                                files_to_save[save_item] = ('{}_{}_{}'.format(
+                                    save_item, kwargs["experiment_id"], kwargs["run_idx"]), 
+                                    open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
                     else:
                         saves[save_item] = serialize_autodisc_space(kwargs[save_item])
                 discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]

@@ -13,7 +13,7 @@ export class CodeEditorComponent implements OnInit {
 
   constructor() { }
 
-  editorOptions = {theme: 'vs-dark', language: 'python'};
+  editorOptions = {theme: 'vs-dark', language: 'python', automaticLayout: true};
   code: string = '';
 
   ngOnInit(): void {

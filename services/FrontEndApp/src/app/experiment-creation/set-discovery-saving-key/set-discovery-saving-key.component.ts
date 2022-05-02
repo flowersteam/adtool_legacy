@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
-import { AutoDiscServerService } from '../../services/auto-disc.service';
+import { AutoDiscServerService } from '../../services/REST-services/auto-disc.service';
+import { ToasterService } from '../../services/toaster.service';
 @Component({
   selector: 'app-set-discovery-saving-key',
   templateUrl: './set-discovery-saving-key.component.html',
@@ -27,7 +28,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
   discovery_saving_keys: string[] = []
   discovery_saving_keys_use: { [name: string]: boolean } = {};
 
-  constructor(private AutoDiscServerService: AutoDiscServerService) { }
+  constructor(private AutoDiscServerService: AutoDiscServerService, private toasterService: ToasterService) { }
 
   ngOnInit(): void {
     this.getDiscoverySavingKeys();
@@ -44,15 +45,23 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   getDiscoverySavingKeys(): void {
     this.AutoDiscServerService.getDiscoverySavingKeys()
-    .subscribe(discovery_saving_keys => {this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-      this.initDiscoverySavingKeysUse(),
-      this.getDiscoverySavingKeysUse()});
+    .subscribe(response => {
+      if(response.success) {
+        let discovery_saving_keys = response.data ?? [];
+        this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
+        this.initDiscoverySavingKeysUse(),
+        this.getDiscoverySavingKeysUse()
+      }
+      else{
+        this.toasterService.showError(response.message ?? '', "Error getting discoery saving keys", {timeOut: 0, extendedTimeOut: 0});
+      }
+    });
   }
 
   initDiscoverySavingKeysUse():void{
     for (let key of this.discovery_saving_keys) {
-        this.discovery_saving_keys_use[key.toString()] = true;   
-      }
+      this.discovery_saving_keys_use[key.toString()] = true;   
+    }
   }
 
   getDiscoverySavingKeysUse(){
