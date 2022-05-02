@@ -105,6 +105,19 @@ export class AppDbService {
       );
   }
 
+  getPreparingLogs(filter: string): Observable<any> {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+    return this.http.get<any>(
+      this.appDBUrl + 
+      "/preparing_logs"+ filter,
+      httpOptions)
+      .pipe(
+        catchError(this.handleError<any>('getAllLogLevels', undefined))
+      );
+  }
+
   /**
    * Handle Http operation that failed.
    * Let the app continue.

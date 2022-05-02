@@ -5,6 +5,7 @@ from AutoDiscServer.utils import CheckpointsStatusEnum, reconstruct_parameters
 from AutoDiscServer.utils.DB import  AppDBCaller, AppDBMethods
 import datetime
 import traceback
+import threading
 
 
 class ExperimentsHandler():
@@ -54,6 +55,14 @@ class ExperimentsHandler():
 #endregion
 
 #region main functions
+
+    def prepare_and_start_experiment_async(self, experiment):
+        # Prepare for start
+        experiment.prepare()
+
+        # Start the experiment
+        experiment.start()
+
     def reload_running_remote_experiments(self):
         import json
 
@@ -94,12 +103,8 @@ class ExperimentsHandler():
 
             experiment = self._create_experiment(id, parameters)
 
-            # Prepare for start
-            experiment.prepare()
-
-            # Start the experiment
-            experiment.start()
-      
+            prepare_and_start_experiment_async = threading.Thread(target=self.prepare_and_start_experiment_async, args=(experiment,))
+            prepare_and_start_experiment_async.start()
 
             self._app_db_caller("/systems", AppDBMethods.POST, {
                                 "experiment_id": id,

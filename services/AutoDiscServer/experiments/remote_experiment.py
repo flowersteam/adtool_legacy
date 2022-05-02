@@ -417,6 +417,12 @@ class RemoteExperiment(BaseExperiment):
         self.shell_to_get_run_id.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
 
         while not self.test_file_exist(self.__host_profile["work_path"]+"/run_ids/{}".format(self.id)):
+            self._app_db_caller("/preparing_logs", 
+                                AppDBMethods.POST, {
+                                    "experiment_id":self.id,
+                                    "message": "waiting for the server"
+                                }
+                            )
             sleep(self.__host_profile["check_experiment_launched_every"])
 
         while not "[RUN_ID_start]" in self.shell_to_get_run_id.before.decode():

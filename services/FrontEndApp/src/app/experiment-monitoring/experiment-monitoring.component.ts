@@ -38,7 +38,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   resetAutoRefresh(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    if (this.experiment == null || this.experiment?.exp_status == 1){
+    if (this.experiment == null || this.experiment?.exp_status == 1 || this.experiment?.exp_status == 4){
       this.refreshExperiment();
       this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
       this.updateSubscription = this.intervalToSubscribe.subscribe(

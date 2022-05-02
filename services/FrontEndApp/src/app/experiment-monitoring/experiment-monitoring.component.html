@@ -5,8 +5,8 @@
             <div class="col-6 text-end">
                 <app-archive-experiment [experiment]="experiment" [refreshExperimentMethod]="refreshExperimentMethod" [stopExperimentMethod]="callObservableStopExperimentMethod" [allowDeleteModal]="allowCancelButton"></app-archive-experiment>
                 <button class="btn btn-light text-secondary mx-1" (click)="downloadExperimentConfig()"><i class="bi bi-download me-1" width="16" height="16"></i>Export</button>
-                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" (click)="resetAutoRefresh()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
-                <button *ngIf="experiment.exp_status == 1" class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
+                <button *ngIf="experiment.exp_status == 1 || experiment.exp_status == 4" class="btn btn-light text-secondary mx-1" (click)="resetAutoRefresh()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
+                <button *ngIf="experiment.exp_status == 1 || experiment.exp_status == 4" class="btn btn-light text-secondary mx-1" data-bs-toggle="collapse" href="#collapseSettings" role="button" aria-expanded="false" aria-controls="collapseSettings">
                     <i class="bi bi-gear-fill me-1" width="16" height="16"></i>
                 </button>
                 <div class="collapse" id="collapseSettings">
@@ -31,6 +31,7 @@
                 <span *ngIf="experiment.exp_status == 1" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Running</span>
                 <span *ngIf="experiment.exp_status == 2" class="col-6 text-end text-danger"><i class="bi bi-x me-1" width="16" height="16"></i>Cancelled</span>
                 <span *ngIf="experiment.exp_status == 3" class="col-6 text-end text-danger"><i class="bi bi-exclamation me-1" width="16" height="16"></i>Error</span>
+                <span *ngIf="experiment.exp_status == 4" class="col-6 text-end"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Preparing</span>
             </li>
             <li>Creation date: {{experiment.created_on}}</li>
             <li>System: {{experiment.systems.length > 0 ? experiment.systems[0].name : 'None'}}</li>
