@@ -13,13 +13,20 @@
 <!-- list accordion modules -->
 <div  class="accordion" id="accordionListModuleList" cdkDropList (cdkDropListDropped)="drop($event, this.currentModuleList)">
 
-    <div *ngFor="let module of currentModuleList; let index=index" class="accordion-item"
-            cdkDrag>
+    <div *ngFor="let module of currentModuleList; let index=index" class="accordion-item" cdkDrag>
         <h2 class="accordion-header" id="{{'headingModuleList' + index + key}}">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapseModuleList' + index + key" aria-expanded="true" [attr.aria-controls]="'collapseModuleList' + index + key">
-                {{module.name}}
-            </button>
+                <div class="col-9">
+                    {{module.name}}
+                </div>
+                <div class="col-3 px-2">
+                    <div cdkDragHandle class="card float-end">
+                        <i class="bi bi-list mx-2 my-2" width="64" height="64"></i>
+                    </div>
+                </div>
+            </button>  
         </h2>
+        
         <div [attr.id]="'collapseModuleList' + index + key" class="accordion-collapse collapse" aria-labelledby="headingModuleList">
             <div class="accordion-body">
                 <!-- set one module config -->
