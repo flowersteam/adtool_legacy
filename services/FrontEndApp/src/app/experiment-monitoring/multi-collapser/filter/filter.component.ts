@@ -18,7 +18,7 @@ export class FilterComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  fromListToOther(originList:any, arrivalList:any, index?:number){
+  fromListToOther(originList:any, arrivalList:any, index?:number, removeAll?:boolean){
     if(index != undefined){
       arrivalList.push(originList[index]);
       originList.splice(index, 1);
@@ -31,13 +31,16 @@ export class FilterComponent implements OnInit {
     }
     arrivalList = this.sortFilters(arrivalList);
     originList = this.sortFilters(originList);
-    this.triggerParentMethod.next();
+    if(removeAll == undefined || !removeAll){
+      this.triggerParentMethod.next();
+    }
   }
 
   removeAllFilters(){
     for(let key of  Object.keys(this.filters)){
-      this.fromListToOther(this.useFilters[key], this.filters[key])
+      this.fromListToOther(this.useFilters[key], this.filters[key],undefined, true)
     }
+    this.triggerParentMethod.next();
   }
 
   test(){
