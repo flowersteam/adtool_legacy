@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 
 import { AppDbService } from '../../../services/REST-services/app-db.service';
@@ -20,6 +20,8 @@ export class ChoosePreviousExperimentComponent implements OnInit {
   experiments: Experiment[] = [];
   sortByDateAsc: boolean = true; 
   searchText = '';
+  experiment : any;
+
 
   
   ngOnInit() {
@@ -47,8 +49,8 @@ export class ChoosePreviousExperimentComponent implements OnInit {
     });
   }
 
-  selectPreviousExperiment(experiment : any){
-    this.dialogRef.close(experiment.id);
+  selectPreviousExperiment(){
+    this.dialogRef.close(this.experiment.id);
   }
 
 }
