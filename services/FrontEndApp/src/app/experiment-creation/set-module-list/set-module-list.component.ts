@@ -31,8 +31,12 @@ export class SetModuleListComponent implements OnInit {
     moveItemInArray(dragdrop_array, event.previousIndex, event.currentIndex);
     moveItemInArray(this.customModules, event.previousIndex, event.currentIndex); //move custom config module link to a module
     let response = this.createNewExperimentService.defineCustomModuleList(this.currentModuleList, this.customModules, this.modules, this.key, this.spaceItDependsOn);
-    this.customModules = response[0]
-    this.currentModuleList = response[1]
+    for(let key in response[0] ){
+      this.customModules[key] = response[0][key]
+    }
+    for(let key in response[1] ){
+      this.currentModuleList[key] = response[1][key]
+    }
   }
 
   remove(index : number){

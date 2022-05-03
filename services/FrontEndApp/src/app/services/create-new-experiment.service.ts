@@ -303,6 +303,7 @@ export class CreateNewExperimentService {
     }
 
     defineCustomModuleList(currentModuleList : any, customModules: any, modules :any, key : string|undefined, spaceItDependsOn : any){
+      let previousModuleList = cloneDeep(currentModuleList)
       let customModulesNames : string[] = [];
       for(let customModule of customModules){
         customModulesNames.push(customModule.name)
@@ -315,6 +316,13 @@ export class CreateNewExperimentService {
       }
       for(let moduleName of customModulesNames){
         this.addNewModuleToUse(currentModuleList, customModules, modules, key, spaceItDependsOn, moduleName)
+      }
+      for (let i = 0; i < currentModuleList.length ; i++) {
+        for (let key in currentModuleList[i].config) {
+          if(key != "wrapped_output_space_key" && key != "wrapped_input_space_key"){
+            currentModuleList[i].config[key] = previousModuleList[i].config[key];
+          }
+        }
       }
       return([customModules, currentModuleList])
     }
