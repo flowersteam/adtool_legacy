@@ -48,7 +48,7 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/cromac/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
 
         self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
@@ -321,7 +321,7 @@ class RemoteExperiment(BaseExperiment):
             log_level_name = seed_number = message = None
             previous_checkpoint_ids = []
             while self.nb_seeds_finished < self.experiment_config["experiment"]["config"]["nb_seeds"]:
-                self.shell.expect('\n')
+                self.shell.expect('\n', timeout=360)
                 current_log_line = self.shell.before.decode()
                 if "ad_tool_logger -" in current_log_line:
                     ## determine action to do
