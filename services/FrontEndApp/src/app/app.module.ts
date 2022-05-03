@@ -42,7 +42,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
 import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
 import { ChoosePreviousExperimentComponent } from './experiment-creation/load-experiment-config-to-create/choose-previous-experiment/choose-previous-experiment.component';
-import { PreparingLogComponent } from './experiment-creation/preparing-log/preparing-log.component';
+import { PreparingLogComponent } from './utils/preparing-log/preparing-log.component';
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
 
 @NgModule({

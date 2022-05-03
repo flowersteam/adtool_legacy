@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AppDbService } from '../services/REST-services/app-db.service';
 import { AutoDiscServerService } from '../services/REST-services/auto-disc.service';
 import { ToasterService } from '../services/toaster.service';
+import { PreparingLogService } from '../services/preparing-log.service';
 import { Experiment } from '../entities/experiment';
 import { Observable, interval, Subscription, empty } from 'rxjs';
 
@@ -30,7 +31,7 @@ export class ExperimentMonitoringComponent implements OnInit {
   urlSafe: SafeResourceUrl | undefined;
   
   constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute,
-              public sanitizer: DomSanitizer, private toasterService: ToasterService) { }
+              public sanitizer: DomSanitizer, private toasterService: ToasterService, private preparingLogService: PreparingLogService) { }
 
   ngOnInit() {
     this.resetAutoRefresh();
@@ -57,6 +58,7 @@ export class ExperimentMonitoringComponent implements OnInit {
     )
     .subscribe(response => {
       if(response.success && response.data){
+        this.displayPreparingLog(response.data.exp_status);
         this.experiment = response.data;
         this.progressPercent = (this.experiment.progress/this.experiment.config.nb_iterations*100).toFixed(1);
         this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
@@ -131,5 +133,14 @@ export class ExperimentMonitoringComponent implements OnInit {
   ngOnDestroy(): void{
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;    
+  }
+
+  displayPreparingLog(expSatus : number){
+    if(this.experiment == undefined && expSatus == 4){
+      this.preparingLogService.openDialog(Number(this.route.snapshot.paramMap.get('id')));
+    }
+    else if(this.experiment != undefined && this.experiment.exp_status == 4 && expSatus != 4){
+      this.preparingLogService.closeDialog()
+    }
   }
 }
