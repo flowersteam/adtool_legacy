@@ -40,13 +40,13 @@ class TupleSpace(BaseSpace):
             space.contains(part) for (space, part) in zip(self.spaces, x))
 
     def clamp(self, x):
-        return tuple([space.clamp(x) for space in self.spaces])
+        return tuple([space.clamp(part) for (space, part) in zip(self.spaces, x)])
 
     def calc_distance(self, x1, x2):
-        return tuple([space.calc_distance(x1,x2) for space in self.spaces])
+        return tuple([space.calc_distance(part1, part2) for (space, part1, part2) in zip(self.spaces, x1, x2)])
 
     def expand(self, x):
-        return tuple([space.expand(x) for space in self.spaces])
+        return tuple([space.expand(part) for (space, part) in zip(self.spaces, x)])
 
     def __repr__(self):
         return "Tuple(" + ", ".join([str(s) for s in self.spaces]) + ")"

@@ -13,20 +13,20 @@ import torch
 
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
 
-@StringConfigParameter(name="goal_achievement_type", possible_values=["input_space_calc_distance", "mse", "custom"],  default="input_space_calc_distance")
+@StringConfigParameter(name="goal_achievement_type", possible_values=["input_space_calc_distance", "mse", "specific", "custom"],  default="input_space_calc_distance")
 @DictConfigParameter(name="goal_achievement_parameters", default={})
 
 @StringConfigParameter(name="goal_sampling_type", possible_values=["input_space_sample", "specific", "custom"], default="input_space_sample")
 @DictConfigParameter(name="goal_sampling_parameters", default={})
 
-@StringConfigParameter(name="candidate_selection_type", possible_values=["optimal", "random", "previous", "custom"], default="optimal")
+@StringConfigParameter(name="candidate_selection_type", possible_values=["optimal", "random", "previous", "specific", "custom"], default="optimal")
 @DictConfigParameter(name="candidate_selection_parameters", default={})
 
-@StringConfigParameter(name="candidate_optimization_type", possible_values=["output_space_mutate", "Adam", "none", "custom"], default="output_space_mutate")
+@StringConfigParameter(name="candidate_optimization_type", possible_values=["output_space_mutate", "Adam", "none", "specific", "custom"], default="output_space_mutate")
 @DictConfigParameter(name="candidate_optimization_parameters", default={})
 #TODO: callbacks instead of "custom"?: e.g to reset optimizer when loss running average < epsilon, when human say to reset
 
-@StringConfigParameter(name="outter_input_space_key", default="")
+#@StringConfigParameter(name="outter_input_space_key", default="") #TODO: redo as original branch and add in config goal_space_key, fitness_key
 class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
@@ -60,6 +60,9 @@ class IMGEPExplorer(BaseExplorer):
         elif hasattr(torch.nn.functional, self.config.goal_achievement_type + "_loss"):
             goal_achievement_loss = eval(f"torch.nn.functional.{self.config.goal_achievement_type}_loss")
 
+        elif self.config.goal_achievement_type == 'specific':
+            goal_achievement_loss = eval(self.config.goal_achievement_parameters["func_def"])
+
         elif self.config.goal_achievement_type == 'custom':
             gd = {'self': self, 'torch': torch}  # /!\ exec is risky so we only give access to some packages?
             ld = {}
@@ -79,19 +82,13 @@ class IMGEPExplorer(BaseExplorer):
                 return self._input_space[self._outter_input_space_key].sample().to(self.config.tensors_device)
 
         elif self.config.goal_sampling_type == 'specific':
-            # correct config is e.g. self.config.goal_selection_parameters = {"range(0,10)": "goal_1", "range(10,100)"": "goal_2", ...}
-            def goal_sampler():
-                for k,v in self.config.goal_sampling_parameters.items():
-                    if self.CURRENT_RUN_INDEX in eval(k):
-                       return eval(v).to(self.config.tensors_device)
-                raise ValueError(f'Run idx {self.CURRENT_RUN_INDEX} misses target goal in the goal sampling parameters configuration!')
+            goal_sampler = eval(self.config.goal_sampling_parameters["func_def"])
 
         elif self.config.goal_sampling_type == 'custom':
             gd = {'self': self, 'torch': torch}  # /!\ exec is risky so we only give access to some packages?
             ld = {}
             exec(self.config.goal_sampling_parameters["func_def"], gd, ld)
             goal_sampler = ld['goal_sampler']
-
         else:
             raise ValueError(
                 'Unknown goal sampling type {!r} in the configuration!'.format(self.config.goal_sampling_type))
@@ -112,6 +109,9 @@ class IMGEPExplorer(BaseExplorer):
         elif self.config.candidate_selection_type == 'previous':
             def candidate_selector(target_goal):
                 return self.CURRENT_RUN_INDEX - 1
+
+        elif self.config.candidate_selection_type == 'specific':
+            candidate_selector = eval(self.config.candidate_selection_parameters["func_def"])
 
         elif self.config.candidate_selection_type == 'custom':
             gd = {'self': self, 'torch': torch} #/!\ exec is risky so we only give access to some packages?
@@ -135,27 +135,29 @@ class IMGEPExplorer(BaseExplorer):
             self.set_sgd_optimizer()
 
             # The candidate optimizer gets back the values from optimized parameters
-            def candidate_optimizer(target_goal, candidate):
+            def candidate_optimizer(target_goal, candidate_policy, candidate_reached_goal=None):
                 for k,v in self.optimized_parameters.items():
-                    candidate[k] = v
-                return candidate
+                    candidate_policy[k] = v
+                return candidate_policy
 
         elif self.config.candidate_optimization_type == 'none':
-            def candidate_optimizer(target_goal, candidate):
-                return candidate
+            def candidate_optimizer(target_goal, candidate_policy, candidate_reached_goal=None):
+                return candidate_policy
+
+        elif self.config.candidate_optimization_type == 'specific':
+            candidate_optimizer = eval(self.config.candidate_optimization_parameters["func_def"])
 
         elif self.config.candidate_optimization_type == 'custom':
             gd = {'self': self, 'torch': torch}  # /!\ exec is risky so we only give access to some packages?
             ld = {}
             exec(self.config.candidate_optimization_parameters["func_def"], gd, ld)
             candidate_optimizer = ld['candidate_optimizer']
-
         else:
             raise ValueError(
                 'Unknown policy optimization type {!r} in the configuration!'.format(self.config.policy_optimization))
 
-        self._candidate_optimizer = lambda target_goal, candidate: candidate_optimizer(target_goal, candidate,
-                                                                          **self.config.candidate_optimizer_parameters)
+        self._candidate_optimizer = lambda target_goal, candidate_policy, candidate_reached_goal: \
+            candidate_optimizer(target_goal, candidate_policy, candidate_reached_goal, **self.config.candidate_optimizer_parameters)
 
 
     def set_sgd_optimizer(self, optimized_parameters_init={}):
@@ -196,12 +198,13 @@ class IMGEPExplorer(BaseExplorer):
             # sample a goal space from the goal space
             self.target_goal = self._goal_sampler()
 
-            # get candidate policy
+            # get candidate policy and reached_goal
             candidate_idx = self._candidate_selector(self.target_goal)
-            candidate = deepcopy(self._access_history(int(candidate_idx))[0]['output'])
+            candidate_policy = deepcopy(self._access_history(int(candidate_idx))[0]['output'])
+            candidate_reached_goal = deepcopy(self._access_history(int(candidate_idx))[0]['input'][self._outter_input_space_key])
 
             # optimize candidate policy
-            policy_parameters = self._candidate_optimizer(self.target_goal, candidate)
+            policy_parameters = self._candidate_optimizer(self.target_goal, candidate_policy, candidate_reached_goal)
 
         policy_parameters = map_nested_dicts(policy_parameters,
                                              lambda x: x.to(self.config.tensors_device) if torch.is_tensor(x) else x)

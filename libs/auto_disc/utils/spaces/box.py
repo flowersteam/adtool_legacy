@@ -57,6 +57,8 @@ class BoxSpace(BaseSpace):
         if isinstance(self._high, numbers.Number):
             self._high = torch.full(self.shape, self._high, dtype=self.dtype)
 
+        assert self.shape == self._low.shape == self._high.shape
+
         self.low = self._low.type(self.dtype)
         self.high = self._high.type(self.dtype)
 
