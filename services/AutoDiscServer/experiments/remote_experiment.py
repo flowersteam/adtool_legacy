@@ -40,7 +40,7 @@ class RemoteExperiment(BaseExperiment):
 
         self.nb_seeds_finished = 0
         
-        self.app_db_logger_handler = AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)
+        self.app_db_logger_handler = AppDBLoggerHandler('http://{}:{}'.format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)
         
         self.port = 22
 
@@ -48,10 +48,10 @@ class RemoteExperiment(BaseExperiment):
 
         ### create connection
         self.shell = pxssh.pxssh()
-        self.ssh_config_file_path = "/home/mperie/.ssh/config" # TODO change to a correct file path
+        self.ssh_config_file_path = self.autoDiscServerConfig.SSH_CONFIG_FILE
         self.shell.login(self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
 
-        self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
+        self._app_db_caller = AppDBCaller("http://{}:{}".format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT))
 
     def __close_ssh(self):
         self._monitor_async.join()

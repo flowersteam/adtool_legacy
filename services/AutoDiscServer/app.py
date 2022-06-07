@@ -8,13 +8,14 @@ sys.path.append(os.path.join(dir_path, "../../libs/"))
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from AutoDiscServer.experiments import ExperimentsHandler
-from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles
+from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles, AutoDiscServerConfig
 from AutoDiscServer.utils.DB.expe_db_utils import SavableOutputs
 
 from auto_disc import REGISTRATION
 
 app = Flask(__name__)
 CORS(app)
+config = AutoDiscServerConfig()
 
 # Experiments
 experiments_handler = ExperimentsHandler() # Singleton handling experiments
@@ -106,4 +107,4 @@ def list_hosts():
     200)
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=5000)
+	app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)

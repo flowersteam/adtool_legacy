@@ -29,7 +29,7 @@ class LocalExperiment(BaseExperiment):
             "on_saved": [self.save_modules_to_expe_db],
         }
         
-        self._additional_handlers = [AppDBLoggerHandler('http://127.0.0.1:3000', self.id, self._get_current_checkpoint_id)]
+        self._additional_handlers = [AppDBLoggerHandler('http://{}:{}'.format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)]
 
         self._pipelines = []
 

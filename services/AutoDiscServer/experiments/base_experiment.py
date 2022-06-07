@@ -1,6 +1,6 @@
 import json
 from AutoDiscServer.utils import SeedStatusEnum, ExperimentStatusEnum, CheckpointsStatusEnum
-from AutoDiscServer.utils import clear_dict_config_parameter
+from AutoDiscServer.utils import clear_dict_config_parameter, AutoDiscServerConfig
 from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBCaller, AppDBMethods
 
 class BaseExperiment():
@@ -13,9 +13,9 @@ class BaseExperiment():
         self._on_checkpoint_finished_callback = on_checkpoint_finished_callback
         self._on_checkpoint_update_callback = on_checkpoint_update_callback
         self._on_experiment_update_callback = on_experiment_update_callback
-
-        self._expe_db_caller = ExpeDBCaller('http://127.0.0.1:5001')
-        self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
+        self.autoDiscServerConfig = AutoDiscServerConfig()
+        self._expe_db_caller = ExpeDBCaller('http://{}:{}'.format(self.autoDiscServerConfig.EXPEDB_CALLER_HOST, self.autoDiscServerConfig.EXPEDB_CALLER_PORT))
+        self._app_db_caller = AppDBCaller("http://{}:{}".format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT))
 
         # Progress handling
         self._initialize_checkpoint_history()

@@ -4,10 +4,12 @@ from pymongo import MongoClient
 from gridfs import GridFS
 from bson.objectid import ObjectId
 import json
+from ExpeDB.utils import ExpeDBConfig
 
+config = ExpeDBConfig()
 app = Flask(__name__)
 CORS(app)
-client = MongoClient('mongodb://localhost:27017/', username="autodisc", password="password")
+client = MongoClient('mongodb://{}:{}/'.format(config.MONGODB_HOST, config.MONGODB_PORT), username=config.MONGODB_USERNAME, password=config.MONGODB_PASSWORD)
 db = client.main_db
 fs = GridFS(db)
 
@@ -157,4 +159,4 @@ def delete_checkpoint_saves():
 
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=5001)
+	app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)

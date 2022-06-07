@@ -1,7 +1,7 @@
 import traceback
 from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
 from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
-from AutoDiscServer.utils import CheckpointsStatusEnum, reconstruct_parameters
+from AutoDiscServer.utils import CheckpointsStatusEnum, reconstruct_parameters, AutoDiscServerConfig
 from AutoDiscServer.utils.DB import  AppDBCaller, AppDBMethods
 import datetime
 import traceback
@@ -11,7 +11,8 @@ import threading
 class ExperimentsHandler():
     def __init__(self):
         self._experiments = []
-        self._app_db_caller = AppDBCaller("http://127.0.0.1:3000")
+        self.autoDiscServerConfig = AutoDiscServerConfig()
+        self._app_db_caller = AppDBCaller("http://{}:{}".format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT))
 
 #region utils
     def _get_experiment(self, id):
