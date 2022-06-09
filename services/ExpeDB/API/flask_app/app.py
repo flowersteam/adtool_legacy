@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from gridfs import GridFS
 from bson.objectid import ObjectId
 import json
-from ExpeDB.utils import ExpeDBConfig
+from utils import ExpeDBConfig
 
 config = ExpeDBConfig()
 app = Flask(__name__)
