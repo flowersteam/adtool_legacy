@@ -14,7 +14,7 @@ from auto_disc.utils.logger.handlers import *
 
 REGISTRATION = {
     'systems':{
-        'PythonLenia': PythonLenia
+        'PythonLenia': PythonLenia,
     },
     'explorers':{
         'IMGEPExplorer': IMGEPExplorer

@@ -24,6 +24,7 @@
     "@popperjs/core": "^2.9.3",
     "@types/lodash": "^4.14.178",
     "bootstrap": "^5.0.2",
+    "http-server": "^14.1.1",
     "monaco-editor": "^0.33.0",
     "ngx-monaco-editor": "^12.0.0",
     "ngx-toastr": "^14.2.1",

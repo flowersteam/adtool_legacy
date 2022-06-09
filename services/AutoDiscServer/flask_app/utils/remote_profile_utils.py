@@ -1,7 +1,7 @@
 import yaml
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
-profiles_path = os.path.join(dir_path, "../../../configs/remote_experiments/profiles")
+profiles_path = os.path.join(dir_path, "../../../../configs/remote_experiments/profiles")
 
 def parse_profile(path):
     with open(path, "r") as stream:

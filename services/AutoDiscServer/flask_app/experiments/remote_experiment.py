@@ -1,8 +1,8 @@
 from time import sleep
-from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils import ExperimentStatusEnum, list_profiles, parse_profile, match_except_number
-from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods, AppDBCaller
-from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
+from experiments import BaseExperiment
+from utils import ExperimentStatusEnum, list_profiles, parse_profile, match_except_number
+from utils.DB import AppDBLoggerHandler, AppDBMethods, AppDBCaller
+from utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
 import threading
 import os
 from pexpect import pxssh
@@ -149,7 +149,7 @@ class RemoteExperiment(BaseExperiment):
                                 }
                             )
         # make path
-        lib_path =os.path.dirname(os.path.realpath(__file__))+"/../../../libs" 
+        lib_path =os.path.dirname(os.path.realpath(__file__))+"/../../../../libs/auto_disc" 
         lib_path_tar = to_push_folder_path+"/libs.tar.gz"
         # push and untar lib
         self.__tar_local_folder(lib_path, lib_path_tar)
@@ -164,7 +164,7 @@ class RemoteExperiment(BaseExperiment):
                                     "message": "send config files to the remote server"
                                 }
                             )
-        additional_file_path = os.path.dirname(os.path.realpath(__file__)) + "/../../../configs/remote_experiments/additional_files"
+        additional_file_path = os.path.dirname(os.path.realpath(__file__)) + "/../../../../configs/remote_experiments/additional_files"
         additional_file_path_tar = to_push_folder_path+"/additional_files.tar.gz"
         self.__tar_local_folder(additional_file_path, additional_file_path_tar)
         self.__push_folder(additional_file_path_tar, self.__host_profile["work_path"])
