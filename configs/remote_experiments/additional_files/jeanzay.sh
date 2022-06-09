@@ -16,5 +16,5 @@ module purge
 module load python/3.7.3
 conda activate autoDiscTool
 
-srun python libs/auto_disc/run.py --seed \$SLURM_ARRAY_TASK_ID ${@:2}
+srun python auto_disc/auto_disc/run.py --seed \$SLURM_ARRAY_TASK_ID ${@:2}
 EOT

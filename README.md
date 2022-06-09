@@ -7,8 +7,10 @@ Please follow these instructions when contributing on the project.
 ### Installation
 #### AutoDisc Lib
 1. If you do not already have it, please install [Conda](https://www.anaconda.com/)
-2. Create *autoDiscTool* conda environment: `conda env create -f libs/auto_disc/environment.yml `
+2. Create *autoDiscTool* conda environment: `conda env create --name autoDiscTool python=3.7 `
 3. Activate *autoDiscTool* conda environment: `conda activate autoDiscTool`
+4. Go to package: `cd libs/auto_disc`
+5. Install package: `pip install -e .`
 #### AutoDiscServer
 1. Install flask: `pip install AutoDiscServer/requirements.txt`
 ### App DB & Expe DB
