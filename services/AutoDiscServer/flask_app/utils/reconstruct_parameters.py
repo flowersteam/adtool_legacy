@@ -1,5 +1,5 @@
 import json
-from AutoDiscServer.utils.DB import  AppDBMethods
+from utils.DB import  AppDBMethods
 
 def _get_module_parameters(app_db_caller, module, filter):
     response = app_db_caller("/{}?{}".format(module, filter), 

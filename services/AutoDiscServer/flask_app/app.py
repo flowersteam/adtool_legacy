@@ -2,14 +2,14 @@
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(dir_path, "../../libs/"))
+sys.path.append(os.path.join(dir_path, "../../../libs/auto_disc"))
 #### Add auto_disc lib to path ####
 
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
-from AutoDiscServer.experiments import ExperimentsHandler
-from AutoDiscServer.utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles, AutoDiscServerConfig
-from AutoDiscServer.utils.DB.expe_db_utils import SavableOutputs
+from experiments import ExperimentsHandler
+from utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles, AutoDiscServerConfig
+from utils.DB.expe_db_utils import SavableOutputs
 
 from auto_disc import REGISTRATION
 

@@ -12,7 +12,7 @@ class AutoDiscServerConfigError(Exception):
 class AutoDiscServerConfig():
     FLASK_HOST : str = '0.0.0.0'
     FLASK_PORT: int = 5000
-    SSH_CONFIG_FILE : str = "/home/mperie/.ssh/config"
+    SSH_CONFIG_FILE : str = None
     EXPEDB_CALLER_HOST : str = "127.0.0.1"
     EXPEDB_CALLER_PORT : str = "5001"
     APPDB_CALLER_HOST : str = "127.0.0.1"

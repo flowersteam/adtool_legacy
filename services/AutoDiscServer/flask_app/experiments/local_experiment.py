@@ -1,7 +1,7 @@
-from AutoDiscServer.experiments import BaseExperiment
-from AutoDiscServer.utils.DB import AppDBLoggerHandler, AppDBMethods
-from AutoDiscServer.utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
-from AutoDiscServer.utils import ExperimentStatusEnum, CheckpointsStatusEnum
+from experiments import BaseExperiment
+from utils.DB import AppDBLoggerHandler, AppDBMethods
+from utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
+from utils import ExperimentStatusEnum, CheckpointsStatusEnum
 
 from auto_disc.run import create, start as start_pipeline
 

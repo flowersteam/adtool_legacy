@@ -1,5 +1,5 @@
 from copy import deepcopy
-from AutoDiscServer.utils.DB.expe_db_utils import SavableOutputs
+from utils.DB.expe_db_utils import SavableOutputs
 
 def clear_dict_config_parameter(experiment_config):
     """

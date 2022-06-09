@@ -1,8 +1,8 @@
 import traceback
-from AutoDiscServer.utils.experiment_status_enum import ExperimentStatusEnum
-from AutoDiscServer.experiments import LocalExperiment, RemoteExperiment
-from AutoDiscServer.utils import CheckpointsStatusEnum, reconstruct_parameters, AutoDiscServerConfig
-from AutoDiscServer.utils.DB import  AppDBCaller, AppDBMethods
+from utils.experiment_status_enum import ExperimentStatusEnum
+from experiments import LocalExperiment, RemoteExperiment
+from utils import CheckpointsStatusEnum, reconstruct_parameters, AutoDiscServerConfig
+from utils.DB import  AppDBCaller, AppDBMethods
 import datetime
 import traceback
 import threading

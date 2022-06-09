@@ -1,7 +1,7 @@
 import json
-from AutoDiscServer.utils import SeedStatusEnum, ExperimentStatusEnum, CheckpointsStatusEnum
-from AutoDiscServer.utils import clear_dict_config_parameter, AutoDiscServerConfig
-from AutoDiscServer.utils.DB import ExpeDBCaller, AppDBCaller, AppDBMethods
+from utils import SeedStatusEnum, ExperimentStatusEnum, CheckpointsStatusEnum
+from utils import clear_dict_config_parameter, AutoDiscServerConfig
+from utils.DB import ExpeDBCaller, AppDBCaller, AppDBMethods
 
 class BaseExperiment():
     def __init__(self, id, experiment_config, on_progress_callback, on_checkpoint_needed_callback, on_checkpoint_finished_callback,
