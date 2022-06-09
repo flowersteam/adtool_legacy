@@ -71,6 +71,15 @@ services:
       - app-db-api
     profiles:
       - prod
+##### FRONTEND APP #####
+  app:
+    build: ./FrontEndApp
+    ports:
+      - "$APP_PORT:80"
+    volumes:
+      - "./FrontEndApp/angular_app:/usr/src/angular_app"
+    profiles:
+      - prod
 ##### MONITORING TOOLS #####
   portainer:
     image: portainer/portainer-ce:2.11.1
