@@ -379,7 +379,7 @@ c.NotebookApp.iopub_data_rate_limit = 100000000
 #  module, unless it is overridden using the --browser (NotebookApp.browser)
 #  configuration option.
 #  Default: True
-# c.NotebookApp.open_browser = True
+c.NotebookApp.open_browser = True
 
 ## Hashed password to use for web authentication.
 #  
@@ -402,7 +402,7 @@ c.NotebookApp.iopub_data_rate_limit = 100000000
 
 ## The port the notebook server will listen on (env: JUPYTER_PORT).
 #  Default: 8888
-# c.NotebookApp.port = 8888
+c.NotebookApp.port = 8888
 
 ## The number of additional ports to try if the specified port is not available
 #  (env: JUPYTER_PORT_RETRIES).
