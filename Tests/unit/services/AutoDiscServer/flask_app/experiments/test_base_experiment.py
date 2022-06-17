@@ -3,24 +3,29 @@ import os
 import sys
 from copy import deepcopy
 from unittest import mock
+import unittest
 import pytest
 import pytest_mock
 from requests import patch
+from os import environ as env
 
 classToTestFolderPath = os.path.abspath(__file__)
 classToTestFolderPath = classToTestFolderPath.split('/')
 classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
 AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer"
-auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc"
+auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc/auto_disc"
+ExperimentPath = AutoDiscServerPath + "/flask_app/experiments"
 
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
 sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
+sys.path.insert(0, os.path.dirname(ExperimentPath))
 
-from AutoDiscServer.experiments import BaseExperiment
+from experiments import BaseExperiment
 #endregion
-
+env["SSH_CONFIG_FILE"] = "/home/dummy/path/.ssh/config"
 #region experiment example
 id = 14
+
 experiment_config = {
     "experiment": {
         "name": "create-test-local",
@@ -98,8 +103,8 @@ mocked__AppDBCaller_call = lambda self, x, y : Object(content="[]".encode())
 #endregion
 
 #region test __init__
-@mock.patch("AutoDiscServer.experiments.BaseExperiment._initialize_checkpoint_history", side_effect=mocked___initialize_checkpoint_history)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.BaseExperiment._initialize_checkpoint_history", side_effect=mocked___initialize_checkpoint_history)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test__init__(mocker_initialize_checkpoint_history, mocker_clear_dict_config_parameter):
     """ Test BaseExperiment.__init__ behavior
 
@@ -134,12 +139,45 @@ def test__init__(mocker_initialize_checkpoint_history, mocker_clear_dict_config_
     del baseExperiment.experiment_config["callbacks"]
     assert baseExperiment.experiment_config == experiement_ref
 
+@mock.patch("experiments.BaseExperiment._initialize_checkpoint_history", side_effect=mocked___initialize_checkpoint_history)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+def test__init__withoutSSHConfigPath(mocker_initialize_checkpoint_history, mocker_clear_dict_config_parameter):
+    """ Test BaseExperiment.__init__ behavior
+
+        Parameters
+        -----------
+            mocker : pytest mocker to replace the function calls made in the function being tested
+
+        Return
+        -------
+    """
+    ## init
+    # do in experiment example region
+    env.pop("SSH_CONFIG_FILE")
+
+    ## exec
+    with unittest.TestCase.assertRaises(Exception, Exception) as context: 
+        BaseExperiment(
+            id, 
+            deepcopy(experiment_config), 
+            deepcopy(on_progress_callback),
+            deepcopy(on_checkpoint_needed_callback),
+            deepcopy(on_checkpoint_finished_callback),
+            deepcopy(on_checkpoint_update_callback),
+            deepcopy(on_experiment_update_callback)
+        )
+    env["SSH_CONFIG_FILE"] = "/home/dummy/path/.ssh/config"
+    
+    ## check
+    assert "The SSH_CONFIG_FILE field is required" == context.exception.args[0]
+    
+
 #endregion
 
 #region test _initialize_checkpoint_history
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test__initialize_checkpoint_history(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## exec
     baseExperiment = BaseExperiment(
@@ -160,8 +198,8 @@ def test__initialize_checkpoint_history(mocker_AppDBCaller, mocker_clear_dict_co
 #endregion
 
 #region test on_progress
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_on_progress(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -190,8 +228,8 @@ def test_on_progress(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
 
 #region on_save
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_on_save(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -214,8 +252,8 @@ def test_on_save(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
 
 #region test on_error
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_on_error(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -239,8 +277,8 @@ def test_on_error(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
 
 #region test on_finished
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_on_finished(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -264,8 +302,8 @@ def test_on_finished(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
 
 #region test on_cancelled
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_on_cancelled(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -289,8 +327,8 @@ def test_on_cancelled(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
 
 #region test _get_current_checkpoint_id
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_get_current_checkpoint_id(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(
@@ -313,8 +351,8 @@ def test_get_current_checkpoint_id(mocker_AppDBCaller, mocker_clear_dict_config_
 
 #region test callback_to_all_running_seeds
 
-@mock.patch("AutoDiscServer.experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
-@mock.patch("AutoDiscServer.experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
+@mock.patch("experiments.base_experiment.AppDBCaller.__call__", side_effect=mocked__AppDBCaller_call)
+@mock.patch("experiments.base_experiment.clear_dict_config_parameter", side_effect=mocked__clear_dict_config_parameter)
 def test_callback_to_all_running_seeds(mocker_AppDBCaller, mocker_clear_dict_config_parameter):
     ## init
     baseExperiment = BaseExperiment(

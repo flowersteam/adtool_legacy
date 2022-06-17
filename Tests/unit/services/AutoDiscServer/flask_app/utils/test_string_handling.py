@@ -7,11 +7,11 @@ from unittest import mock
 classToTestFolderPath = os.path.abspath(__file__)
 classToTestFolderPath = classToTestFolderPath.split('/')
 classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer"
+AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer/flask_app"
 
 sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
 
-from AutoDiscServer.utils import match_except_number
+from AutoDiscServer.flask_app.utils import match_except_number
 #endregion
 
 #region test match_except_number

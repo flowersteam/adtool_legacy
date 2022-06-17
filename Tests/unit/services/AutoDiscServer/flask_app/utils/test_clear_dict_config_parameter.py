@@ -11,11 +11,11 @@ AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer
 
 sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
 
-from AutoDiscServer.utils import clear_dict_config_parameter
+from AutoDiscServer.flask_app.utils import clear_dict_config_parameter
 #endregion
 
 #region test clear_dict_config_parameter
-
+x=5
 def test_clear_dict_config_parameter():
     ## init
     experiment_config = {

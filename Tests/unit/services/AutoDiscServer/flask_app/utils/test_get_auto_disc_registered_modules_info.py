@@ -13,7 +13,7 @@ auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc"
 sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
 
-from AutoDiscServer.utils.get_auto_disc_registered_modules_info import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, check_jsonify
+from AutoDiscServer.flask_app.utils.get_auto_disc_registered_modules_info import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, check_jsonify
 from auto_disc import REGISTRATION
 #endregion
 
