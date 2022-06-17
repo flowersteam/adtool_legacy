@@ -8,6 +8,6 @@ RUN npm install -g @angular/cli@latest
 WORKDIR /usr/src/angular_app_src
 # Launch app: 1) copy sources to another folder to avoid access rights issues, 2) install modules, 3) build app, 4) launch NGINX
 CMD cp -r /usr/src/angular_app/* . ; \
-    npm install ; \
+    envsubst < /usr/src/angular_app_src/src/assets/env.template.js > /usr/src/angular_app_src/src/assets/env.js ; \
     ng build --output-path=/usr/share/nginx/www/angular_app ; \
     /docker-entrypoint.sh nginx -g "daemon off;"

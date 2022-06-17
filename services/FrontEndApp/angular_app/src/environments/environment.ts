@@ -3,7 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  EXPE_DB_API_PORT: (window as any)["env"]["EXPE_DB_API_PORT"],
+  APP_DB_API_PORT: (window as any)["env"]["APP_DB_API_PORT"],
+  AUTODISC_SERVER_PORT: (window as any)["env"]["AUTODISC_SERVER_PORT"],
+  debug: (window as any)["env"]["debug"] || false
 };
 
 /*

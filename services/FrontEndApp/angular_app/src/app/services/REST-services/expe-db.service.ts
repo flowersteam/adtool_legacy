@@ -5,15 +5,17 @@ import { catchError, map } from 'rxjs/operators';
 import { RESTResponse, httpErrorResponseToRESTResponse, httpResponseToRESTResponse } from '../../entities/rest_response';
 
 import { Observable, of } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpeDbService {
+  private expeDBUrl
 
-  private expeDBUrl = "http://127.0.0.1:5001";
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) { 
+    this.expeDBUrl = "http://127.0.0.1:" + environment.EXPE_DB_API_PORT;
+  }
 
   deleteCheckpointDiscoveries(id: number): Observable<RESTResponse<any>> {
     return this.http.delete(
