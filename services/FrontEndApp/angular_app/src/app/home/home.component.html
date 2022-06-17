@@ -17,6 +17,7 @@
 <app-experiments-list
   [experiments]="this.experiments"
   [needRouter]=true
-  [needChoice]=false>
+  [needChoice]=false
+  [searchText]="this.searchText">
 </app-experiments-list>
 <button [routerLink]="'/new-experiment'" id="newExperimentHomeButton" class="btn btn-secondary btn-circle btn-xl position-fixed z-index-master bottom-0 end-0 m-4"><i class="bi bi-plus"></i></button>
