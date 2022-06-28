@@ -7,13 +7,14 @@ import { webSocket } from "rxjs/webSocket";
 import { AppDbService } from '../services/REST-services/app-db.service';
 import { Observable, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class JupyterService {
-  public jupyterUrl = "http://127.0.0.1:8888";
+  public jupyterUrl;
   public jupyWebSocket:any;
 
   public discoveries:any;
@@ -28,7 +29,9 @@ export class JupyterService {
       'Content-Type': 'application/json' })
   };
 
-  constructor(private http: HttpClient, private appDBService: AppDbService) { }
+  constructor(private http: HttpClient, private appDBService: AppDbService) { 
+    this.jupyterUrl = "http://"+ environment.JUPYTER_HOST+":" + environment.JUPYTER_PORT;
+  }
 
   createKernel(): Observable<any>{
     return this.http.post<any>(this.jupyterUrl + "/api/kernels", {})
@@ -40,7 +43,7 @@ export class JupyterService {
 
   
   openKernelChannel(kernel_id:string):Observable<any>{
-    this.jupyWebSocket = webSocket('ws://localhost:8888/api/kernels/'+kernel_id+'/channels');
+    this.jupyWebSocket = webSocket('ws://'+ environment.JUPYTER_HOST+':'+ environment.JUPYTER_PORT+'/api/kernels/'+kernel_id+'/channels');
     this.jupyWebSocket.subscribe(
       (msg: any) => {
                      

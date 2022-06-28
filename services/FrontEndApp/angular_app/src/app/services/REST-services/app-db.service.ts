@@ -15,7 +15,7 @@ export class AppDbService {
 
   private appDBUrl
   constructor(private http: HttpClient) { 
-    this.appDBUrl = "http://127.0.0.1:" + environment.APP_DB_API_PORT;
+    this.appDBUrl = "http://"+ environment.APPDB_HOST +":" + environment.APP_DB_API_PORT;
     console.log(this.appDBUrl);
   }
 

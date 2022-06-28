@@ -14,7 +14,7 @@ export class ExpeDbService {
   private expeDBUrl
 
   constructor(private http: HttpClient) { 
-    this.expeDBUrl = "http://127.0.0.1:" + environment.EXPE_DB_API_PORT;
+    this.expeDBUrl = "http://"+ environment.EXPEDB_HOST+":" + environment.EXPE_DB_API_PORT;
   }
 
   deleteCheckpointDiscoveries(id: number): Observable<RESTResponse<any>> {

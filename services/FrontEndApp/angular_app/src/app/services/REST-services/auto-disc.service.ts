@@ -21,7 +21,7 @@ export class AutoDiscServerService {
   private autodiscServerUrl
 
   constructor(private http: HttpClient) { 
-    this.autodiscServerUrl = "http://127.0.0.1:" + environment.AUTODISC_SERVER_PORT
+    this.autodiscServerUrl = "http://"+environment.AUTODISC_SERVER_HOST+":" + environment.AUTODISC_SERVER_PORT
   }
 
   getExplorers(): Observable<RESTResponse<ExplorerSettings[]>> {

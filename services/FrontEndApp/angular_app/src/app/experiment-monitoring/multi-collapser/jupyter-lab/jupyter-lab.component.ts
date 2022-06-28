@@ -54,7 +54,7 @@ export class JupyterLabComponent implements OnInit {
 
   defineInfoToAccessJupyterLab(exp_name: string, exp_id: number){
     let path = exp_name+'_'+exp_id.toString();
-    this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost:8888/lab/workspaces/'+path+'/tree/Experiments/'+path+'/');
+    this.urlSafe= this.sanitizer.bypassSecurityTrustResourceUrl(this.jupyterService.jupyterUrl+'/lab/workspaces/'+path+'/tree/Experiments/'+path+'/');
     this.currentSessionPath = exp_name+'_'+ exp_id.toString()+'.ipynb';
     this.kernelInfoSet = true;
   }
