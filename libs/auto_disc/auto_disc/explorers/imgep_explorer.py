@@ -60,8 +60,6 @@ class IMGEPExplorer(BaseExplorer):
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)
-        elif self.config.source_policy_selection_type == 'random':
-            source_policy_idx = sample_value(('discrete', 0, len(goal_library)-1))
         else:
             raise ValueError('Unknown source policy selection type {!r} in the configuration!'.format(
                 self.config.source_policy_selection_type))
