@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 
+import { environment } from './../../../environments/environment';
 import {Experiment} from "../../entities/experiment";
 import { RESTResponse, httpErrorResponseToRESTResponse, httpResponseToRESTResponse } from '../../entities/rest_response';
 
@@ -12,9 +13,11 @@ import { Observable, of } from 'rxjs';
 })
 export class AppDbService {
 
-  private appDBUrl = "http://127.0.0.1:3000"
-
-  constructor(private http: HttpClient) { }
+  private appDBUrl
+  constructor(private http: HttpClient) { 
+    this.appDBUrl = "http://"+ environment.APPDB_HOST +":" + environment.APP_DB_API_PORT;
+    console.log(this.appDBUrl);
+  }
 
   /** GET LightExperiments from the AppDB */
   getLightExperiments(): Observable<RESTResponse<Experiment[]>> {

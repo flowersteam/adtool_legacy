@@ -11,15 +11,18 @@ import { Callback } from '../../entities/callback';
 import { RESTResponse, httpErrorResponseToRESTResponse, httpResponseToRESTResponse } from '../../entities/rest_response';
 
 import { Observable, of } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AutoDiscServerService {
 
-  private autodiscServerUrl = "http://127.0.0.1:5000"
+  private autodiscServerUrl
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) { 
+    this.autodiscServerUrl = "http://"+environment.AUTODISC_SERVER_HOST+":" + environment.AUTODISC_SERVER_PORT
+  }
 
   getExplorers(): Observable<RESTResponse<ExplorerSettings[]>> {
     return this.http.get<ExplorerSettings[]>(

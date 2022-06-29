@@ -88,13 +88,30 @@ services:
 ##### FRONTEND APP #####
   app:
     build: ./FrontEndApp
+    environment:
+      EXPEDB_HOST: expe-db-api 
+      EXPE_DB_API_PORT: $EXPE_DB_API_PORT
+      APPDB_HOST: app-db-api
+      APP_DB_API_PORT: $APP_DB_API_PORT
+      AUTODISC_SERVER_HOST: autodisc-server
+      AUTODISC_SERVER_PORT: $AUTODISC_SERVER_PORT
+      JUPYTER_HOST: jupyter 
+      JUPYTER_PORT: $JUPYTER_PORT
     ports:
       - "$EXPOSED_APP_PORT:80"
     volumes:
       - "./FrontEndApp/angular_app:/usr/src/angular_app"
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
+<<<<<<< HEAD
     environment:
       EXPEDB_CALLER_HOST: expe-db-api 
+=======
+    links:
+      - expe-db-api
+      - app-db-api
+      - autodisc-server
+      - jupyter
+>>>>>>> 2f42464b91adddc25299243fa243e66377e9dc4b
     profiles:
       - prod
 ##### MONITORING TOOLS #####

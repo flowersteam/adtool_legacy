@@ -15,7 +15,7 @@ export class ExperimentsListComponent implements OnInit {
   @Input() experiment?: any;
   @Output() experimentChange = new EventEmitter();
   @Output() triggerParentMethod = new EventEmitter<any>();
-  searchText = '';
+  @Input() searchText: string = "";
 
   ngOnInit(): void {
   }
