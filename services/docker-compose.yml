@@ -79,12 +79,19 @@ services:
 ##### JUPYTER LAB #####
   jupyter:
     build: ./JupyterLab
+    environment:
+      EXPEDB_CALLER_HOST: expe-db-api 
+      EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
+      PYTHONPATH: "/usr/src/auto_disc_db"
     ports:
       - "$EXPOSED_JUPYTER_PORT:$JUPYTER_PORT"
     volumes:
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
+      - "../libs/auto_disc_db:/usr/src/auto_disc_db"
+    links:
+      - expe-db-api  
     profiles:
-      - prod      
+      - prod 
 ##### FRONTEND APP #####
   app:
     build: ./FrontEndApp
@@ -102,16 +109,11 @@ services:
     volumes:
       - "./FrontEndApp/angular_app:/usr/src/angular_app"
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
-<<<<<<< HEAD
-    environment:
-      EXPEDB_CALLER_HOST: expe-db-api 
-=======
     links:
       - expe-db-api
       - app-db-api
       - autodisc-server
       - jupyter
->>>>>>> 2f42464b91adddc25299243fa243e66377e9dc4b
     profiles:
       - prod
 ##### MONITORING TOOLS #####
