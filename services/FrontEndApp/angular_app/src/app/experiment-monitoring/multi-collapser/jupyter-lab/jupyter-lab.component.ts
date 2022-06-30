@@ -61,13 +61,8 @@ export class JupyterLabComponent implements OnInit {
 
   makeKernelMessageToCreateDataset(){
     if(this.experiment){
-      this.message =  'import os'+'\n' +
-                      'import sys'+'\n' +
-                      'server_path = os.readlink("/proc/%s/cwd" % os.environ["JPY_PARENT_PID"])'+'\n' +
-                      'module_path = os.path.abspath(os.path.join(server_path, "../../libs"))'+'\n' +
-                      'if module_path not in sys.path:'+'\n' +
-                      '    sys.path.append(module_path)'+'\n' +
-                      'from auto_disc_db import Dataset'+'\n' +
+      console.log("Creating dataset")
+      this.message =  'from auto_disc_db import Dataset'+'\n' +
                       'if __name__ == "__main__":'+'\n' +
                       '     dataset_'+this.experiment.id.toString()+' = Dataset('+this.experiment.id.toString()+')'+'\n' +
                       '     dataset = Dataset('+this.experiment.id.toString()+')'+'\n' +
