@@ -50,7 +50,7 @@ Start the angular app: `ng serve`.
 #### Jupyter Lab
 Enter Jupyter Lab's folder: `cd ../JupyterLab`
 Give the appropriate rights to the notebook folder: `chmod 777 -R Notebooks/`
-Start the jupyter lab on port 8888: `jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
+Start the jupyter lab on port 8887: `export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
 
 ## Using monitoring services
 We added monitoring applications for the Docker services.
