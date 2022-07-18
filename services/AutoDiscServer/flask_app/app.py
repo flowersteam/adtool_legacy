@@ -13,6 +13,20 @@ from utils.DB.expe_db_utils import SavableOutputs
 
 from auto_disc import REGISTRATION
 
+import datetime
+from pathlib import Path
+import logging
+from logging.handlers import RotatingFileHandler
+
+logFolder = "{}/AppDB".format(os.environ["LOG_FILE"])
+if not os.path.exists(logFolder):
+    os.makedirs(logFolder)
+logFile = "{}/{}".format(logFolder, datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+Path(logFile).touch()
+handler = RotatingFileHandler(logFile, maxBytes=10000, backupCount=1)
+handler.setLevel(logging.DEBUG)
+logging.root.handlers = [handler]
+
 app = Flask(__name__)
 CORS(app)
 config = AutoDiscServerConfig()
