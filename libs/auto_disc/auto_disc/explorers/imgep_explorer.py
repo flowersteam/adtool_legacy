@@ -9,7 +9,7 @@ from torch import nn
 import numpy as np
 from copy import deepcopy
 
-@StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal", "random"], default="optimal")
+@StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal"], default="optimal")
 @StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function", None], default="random")
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
 @BooleanConfigParameter(name="use_exandable_goal_space", default=True)
