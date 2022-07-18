@@ -61,13 +61,16 @@ services:
       EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
       APPDB_CALLER_HOST: app-db-api
       APPDB_CALLER_PORT: $APP_DB_API_PORT
-      SSH_CONFIG_FILE: $SSH_CONFIG_FILE
+      SSH_AUTH_SOCK: /ssh-agent
+      SSH_CONFIG_FILE: "/root/.ssh/config"
     ports:
       - "$EXPOSED_AUTODISC_SERVER_PORT:$AUTODISC_SERVER_PORT"
     volumes: 
       - "./AutoDiscServer/flask_app:/usr/src/services/AutoDiscServer/flask_app"
       - "../libs/auto_disc:/usr/src/libs/auto_disc"
       - "../configs:/usr/src/configs"
+      - "$SSH_CONFIG_FOLDER:/usr/src/.ssh"
+      - "$SSH_SOCK_PATH:/ssh-agent"
     links:
       - expe-db-api
       - app-db-api
@@ -76,12 +79,19 @@ services:
 ##### JUPYTER LAB #####
   jupyter:
     build: ./JupyterLab
+    environment:
+      EXPEDB_CALLER_HOST: expe-db-api 
+      EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
+      PYTHONPATH: "/usr/src/auto_disc_db"
     ports:
       - "$EXPOSED_JUPYTER_PORT:$JUPYTER_PORT"
     volumes:
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
+      - "../libs/auto_disc_db:/usr/src/auto_disc_db"
+    links:
+      - expe-db-api  
     profiles:
-      - prod      
+      - prod 
 ##### FRONTEND APP #####
   app:
     build: ./FrontEndApp

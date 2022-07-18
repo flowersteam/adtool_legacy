@@ -7,6 +7,7 @@ RUN apt-get update && apt-get -y upgrade \
   && apt-get install -y --no-install-recommends \
     git \
     wget \
+    openssh-client \
     g++ \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -29,5 +30,5 @@ RUN pip install -e .
 WORKDIR /usr/src/services/AutoDiscServer/flask_app
 COPY services/AutoDiscServer/flask_app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Launch Gunicorn as daemon and NGINX
-CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
+# Copy ssh folder and launch Gunicorn as daemon and NGINX
+CMD cp -r /usr/src/.ssh /root/.ssh ; chmod 600 -R /root/.ssh ; gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"

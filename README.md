@@ -34,23 +34,27 @@ Please follow these instructions when contributing on the project.
 Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
 
 ## Starting the project
+### Prod
+Launch: `sudo ./start_app.sh`
+
+### Debug
 Go to the `services` folder: `cd services`.
-### AutoDiscServer
+#### AutoDiscServer
 Launch the flask server: `python -m AutoDiscServer.app`.
-### App DB
+#### App DB
 Start services: `sudo docker-compose up app-db-api`
 Add `-d` option for daemon.
-### Expe DB
+#### Expe DB
 Start service: `sudo docker-compose up expe-db`
 Add `-d` option for daemon.
 Launch flask server for the REST API: `python ExpeDB/app.py`
-### Front-end app
+#### Front-end app
 Enter the front-end app folder: `cd FrontEndApp`.
 Start the angular app: `ng serve`. 
 #### Jupyter Lab
 Enter Jupyter Lab's folder: `cd ../JupyterLab`
 Give the appropriate rights to the notebook folder: `chmod 777 -R Notebooks/`
-Start the jupyter lab on port 8888: `jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
+Start the jupyter lab on port 8887: `export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
 
 ## Using monitoring services
 We added monitoring applications for the Docker services.

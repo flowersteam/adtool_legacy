@@ -402,7 +402,7 @@ c.NotebookApp.open_browser = True
 
 ## The port the notebook server will listen on (env: JUPYTER_PORT).
 #  Default: 8888
-c.NotebookApp.port = 8888
+c.NotebookApp.port = 8887
 
 ## The number of additional ports to try if the specified port is not available
 #  (env: JUPYTER_PORT_RETRIES).
