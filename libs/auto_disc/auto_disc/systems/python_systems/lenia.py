@@ -288,8 +288,8 @@ class LeniaStepConv2d(torch.nn.Module):
         # implementation of meshgrid in torch
         x = torch.arange(SX)
         y = torch.arange(SY)
-        xx = x.repeat(SY, 1)
-        yy = y.view(-1, 1).repeat(1, SX)
+        xx = x.repeat(int(SY.item()), 1)
+        yy = y.view(-1, 1).repeat(1, int(SX.item()))
         X = (xx - int(SX / 2)).double() / float(self.R)
         Y = (yy - int(SY / 2)).double() / float(self.R)
 
