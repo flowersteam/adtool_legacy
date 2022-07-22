@@ -6,20 +6,6 @@ from bson.objectid import ObjectId
 import json
 from utils import ExpeDBConfig
 
-import os
-import datetime
-from pathlib import Path
-import logging
-from logging.handlers import RotatingFileHandler
-
-logFolder = "{}/ExpeDB".format(os.environ["LOG_FILE"])
-if not os.path.exists(logFolder):
-    os.makedirs(logFolder)
-logFile = "{}/{}".format(logFolder, datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
-Path(logFile).touch()
-handler = RotatingFileHandler(logFile, maxBytes=10000, backupCount=1)
-handler.setLevel(logging.DEBUG)
-logging.root.handlers = [handler]
 
 config = ExpeDBConfig()
 app = Flask(__name__)
