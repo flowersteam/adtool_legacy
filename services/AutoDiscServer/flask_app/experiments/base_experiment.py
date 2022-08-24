@@ -1,11 +1,14 @@
+import typing
+from typing import Any, Callable
 import json
 from utils import SeedStatusEnum, ExperimentStatusEnum, CheckpointsStatusEnum
 from utils import clear_dict_config_parameter, AutoDiscServerConfig
 from utils.DB import ExpeDBCaller, AppDBCaller, AppDBMethods
 
 class BaseExperiment():
-    def __init__(self, id, experiment_config, on_progress_callback, on_checkpoint_needed_callback, on_checkpoint_finished_callback,
-                on_checkpoint_update_callback, on_experiment_update_callback):
+    def __init__(self, id: int, experiment_config: typing.Dict[str, Any], on_progress_callback: Callable,
+                on_checkpoint_needed_callback: Callable, on_checkpoint_finished_callback: Callable,
+                on_checkpoint_update_callback: Callable, on_experiment_update_callback: Callable) -> None:
         self.id = id
         self.experiment_config = experiment_config
         self._on_progress_callback = on_progress_callback
@@ -86,14 +89,14 @@ class BaseExperiment():
 #endregion
 
 #region callbacks
-    def on_progress(self, seed, progress_value=None):
+    def on_progress(self, seed: int, progress_value: int = None) -> None:
         self.progresses[seed] = self.progresses[seed] + 1 if progress_value is None else progress_value
         min_progress = min(self.progresses.values())
         if min_progress > self.current_progress:
             self.current_progress = min_progress
             self._on_progress_callback(self.id, self.current_progress)
 
-    def on_save(self, seed, current_checkpoint_id):
+    def on_save(self, seed : int, current_checkpoint_id: int) -> int:
         checkpoint_id = current_checkpoint_id
         # Create new checkpoint if needed
         # if the seed is the first to have not crashed has arrived in this checkpoint
@@ -121,7 +124,7 @@ class BaseExperiment():
 
         return checkpoint_id
 
-    def on_error(self, seed, current_checkpoint_id):
+    def on_error(self, seed: int, current_checkpoint_id: int) -> None:
         del self.progresses[seed]
         
         # Update list of seeds for precedent checkpoint
@@ -134,13 +137,13 @@ class BaseExperiment():
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.ERROR)})
             self.clean_after_experiment()
 
-    def on_finished(self, seed):
+    def on_finished(self, seed: int) -> None:
         del self.progresses[seed]
         if len(self.progresses) == 0:
             self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.DONE)})
             self.clean_after_experiment()
     
-    def on_cancelled(self, seed):
+    def on_cancelled(self, seed: int) -> None:
         del self.progresses[seed]
         if len(self.progresses) == 0:
             # self._on_experiment_update_callback(self.id, {"exp_status": int(ExperimentStatusEnum.CANCELLED)})
@@ -148,7 +151,7 @@ class BaseExperiment():
 #endregion
 
 #region utils
-    def _get_current_checkpoint_id(self, seed):
+    def _get_current_checkpoint_id(self, seed: int) -> int:
         current_checkpoint_id = next(
             checkpoint_id 
             for checkpoint_id, history in self.checkpoints_history.items()
@@ -159,7 +162,7 @@ class BaseExperiment():
     def clean_after_experiment(self):
         pass
 
-    def callback_to_all_running_seeds(self, callback):
+    def callback_to_all_running_seeds(self, callback: Callable) -> None:
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
             current_seed_chekpoint_id = self._get_current_checkpoint_id(i)
             current_seed_checkpoint_history = self.checkpoints_history[current_seed_chekpoint_id]
@@ -167,7 +170,7 @@ class BaseExperiment():
             if i not in current_seed_checkpoint_history["seeds_status"] or current_seed_checkpoint_history["seeds_status"][i] == int(SeedStatusEnum.RUNNING):
                 callback(i, current_seed_chekpoint_id)
 
-    def _initialize_checkpoint_history(self):
+    def _initialize_checkpoint_history(self) -> None:
         # Get checkpoints from DB
         response = self._app_db_caller("/checkpoints?experiment_id=eq.{}&order=id".format(self.id), 
                                         AppDBMethods.GET, {}

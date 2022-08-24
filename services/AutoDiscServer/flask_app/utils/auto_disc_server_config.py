@@ -18,7 +18,7 @@ class AutoDiscServerConfig():
     APPDB_CALLER_HOST : str = "127.0.0.1"
     APPDB_CALLER_PORT : str = "3000"
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         for field in self.__annotations__:
             default_value = getattr(self, field, None)
