@@ -1,7 +1,7 @@
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(dir_path, "../"))
+sys.path.append(os.path.join(dir_path, "../auto_disc"))
 
 from auto_disc.systems.python_systems import PythonLenia
 from auto_disc.output_representations.specific import LeniaImageRepresentation, LeniaHandDefinedRepresentation
