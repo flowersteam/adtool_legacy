@@ -1,7 +1,8 @@
 import sys
 import argparse
 import json
-import os 
+import os
+from typing import Callable, Dict, List 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 from auto_disc import REGISTRATION
@@ -12,7 +13,23 @@ import numpy as np
 import random
 import torch
 
-def create(parameters, experiment_id, seed, additional_callbacks = None, additional_handlers=None):
+def create(parameters: Dict, experiment_id: int, seed: int, 
+    additional_callbacks: Dict[str, List[Callable]] = None, 
+    additional_handlers: List[AutoDiscLogger]=None) -> ExperimentPipeline:
+    """
+        Setup the whole experiment. Set each modules, logger, callbacks and use them to define the experiment pipeline.
+
+        Args:
+            parameters: Experiment config (define wich systems wich explorer wich callbacks and all other information needed to set an experiment)
+            experiment_id: Current experiment id
+            seed: current seed number
+            additional_callbacks: callbacks we want use in addition to callbacks from parameters arguments
+            additional_handlers: handlers we want to use in addition to logger_handlers from parameters arguments
+        
+        Returns:
+            experiment: The experiment we have just defined
+    """
+    
     _set_seed(seed)
     save_frequency = parameters['experiment']['save_frequency']
 
@@ -90,10 +107,23 @@ def create(parameters, experiment_id, seed, additional_callbacks = None, additio
 
     return experiment
 
-def start(experiment, nb_iterations):
+def start(experiment: ExperimentPipeline, nb_iterations: int) -> None:
+    """
+        Runs an experiment for a number of iterations
+
+        Args:
+            experiment: The experiment we want to launch
+            nb_iterations: the number explorations
+    """
     experiment.run(nb_iterations)
 
-def _set_seed(seed):
+def _set_seed(seed: int) -> None:
+    """
+        Set torch seed to make experiment repeatable.
+
+        Args:
+            seed: seed number
+    """
     seed = int(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)

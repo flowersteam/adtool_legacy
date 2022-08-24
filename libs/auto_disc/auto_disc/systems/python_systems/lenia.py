@@ -1,3 +1,5 @@
+import typing
+from numpy import ndarray
 from auto_disc.systems.python_systems import BasePythonSystem
 from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
@@ -49,7 +51,7 @@ class Lenia(BasePythonSystem):
         state = BoxSpace(low=0, high=1, shape=(ConfigParameterBinding("SX"), ConfigParameterBinding("SY")))
     )
 
-    def reset(self, run_parameters):
+    def reset(self, run_parameters: typing.Dict[str, torch.Tensor]) -> typing.Dict[str, torch.Tensor]:
         run_parameters.kn = 0
         run_parameters.gn = 1
         init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
@@ -82,7 +84,7 @@ class Lenia(BasePythonSystem):
 
         return current_observation
 
-    def step(self, action=None):
+    def step(self, action=None) -> typing.Tuple[typing.Dict[str, torch.Tensor], int, bool, None]:
         if self.step_idx >= self.config.final_step:
             raise Exception("Final step already reached, please reset the system.")
 
@@ -96,10 +98,10 @@ class Lenia(BasePythonSystem):
 
         return current_observation, 0, self.step_idx >= self.config.final_step - 1, None
 
-    def observe(self):
+    def observe(self) -> typing.Dict[str, torch.Tensor]:
         return self._observations
 
-    def render(self, mode="PIL_image"):
+    def render(self, mode:str="PIL_image") -> typing.Any:
         
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
@@ -132,7 +134,7 @@ Lenia Main
 
 from PIL import Image
 
-def create_colormap(colors, is_marker_w=True):
+def create_colormap(colors: ndarray, is_marker_w: bool=True) -> typing.List[int]:
     MARKER_COLORS_W = [0x5F, 0x5F, 0x5F, 0x7F, 0x7F, 0x7F, 0xFF, 0xFF, 0xFF]
     MARKER_COLORS_B = [0x9F, 0x9F, 0x9F, 0x7F, 0x7F, 0x7F, 0x0F, 0x0F, 0x0F]
     nval = 253
@@ -147,7 +149,7 @@ def create_colormap(colors, is_marker_w=True):
     return np.rint(c / 8 * 255).astype(int).tolist() + (MARKER_COLORS_W if is_marker_w else MARKER_COLORS_B)
 
 
-def im_from_array_with_colormap(np_array, colormap):
+def im_from_array_with_colormap(np_array: ndarray, colormap: typing.List[int]) -> Image:
     '''
     Function that transforms the color palette of a PIL image
 
@@ -186,7 +188,7 @@ field_func = {
 class LeniaStepFFT(torch.nn.Module):
     """ Module pytorch that computes one Lenia Step with the fft version"""
 
-    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, SX=256, SY=256, device='cpu'):
+    def __init__(self, R: torch.Tensor, T: torch.Tensor, b: torch.Tensor, m: torch.Tensor, s: torch.Tensor, kn: int, gn: int, is_soft_clip: bool=False, SX:int=256, SY:int=256, device:str='cpu') -> None:
         torch.nn.Module.__init__(self)
 
         self.register_buffer('R', R+2)
@@ -207,7 +209,7 @@ class LeniaStepFFT(torch.nn.Module):
 
         self.compute_kernel()
 
-    def compute_kernel(self):
+    def compute_kernel(self) -> None:
 
         # implementation of meshgrid in torch
         x = torch.arange(self.SX)
@@ -233,7 +235,7 @@ class LeniaStepFFT(torch.nn.Module):
         self.kernel_FFT = torch.rfft(self.kernel_norm, signal_ndim=2, onesided=False).to(self.device)
 
 
-    def forward(self, input):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
 
         world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
         potential_FFT = complex_mult_torch(self.kernel_FFT, world_FFT)
@@ -281,7 +283,7 @@ class LeniaStepConv2d(torch.nn.Module):
         self.compute_kernel()
 
 
-    def compute_kernel(self):
+    def compute_kernel(self) -> None:
         SY = 2 * self.R + 1
         SX = 2 * self.R + 1
 

@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Type, Union
+import typing
 from auto_disc.utils.misc import History
 from tinydb import TinyDB
 from tinydb.storages import JSONStorage, MemoryStorage
@@ -12,9 +15,16 @@ class DB(TinyDB):
     def close(self) -> None:
         super().close()
 
-    def to_autodisc_history(self, documents, keys, new_keys=None):
+    def to_autodisc_history(self, documents: list, keys: typing.List[str], new_keys: typing.List[str]=None) -> History:
         '''
             Select only some keys in documents and return a History. Use `new_keys` to rename these keys in the returned History.
+
+            Args:
+                documents: list of db item
+                keys: list of key 
+                new_keys: list of key
+            Returns:
+                History
         '''
         result_keys = keys if new_keys is None else new_keys
         assert len(keys) == len(result_keys)
@@ -34,9 +44,12 @@ class DB(TinyDB):
         
         return results
     
-    def __getitem__(self, index):
+    def __getitem__(self, index: Union[int, slice]) -> None:
         '''
             Use indexing and slicing over db.
+
+            Args:
+                index: DB index/slice
         '''
         if isinstance(index, int):
             if index >= 0:
@@ -49,7 +62,7 @@ class DB(TinyDB):
         else:
             raise NotImplementedError()
 
-    def save(self):
+    def save(self) -> DB:
         '''
             Save DB.
         '''

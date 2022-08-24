@@ -1,3 +1,8 @@
+from typing import Callable, Type, Any, Dict
+import typing
+import torch
+from auto_disc.utils.spaces import DictSpace, BoxSpace
+
 from auto_disc import BaseAutoDiscModule
 
 class BaseExplorer (BaseAutoDiscModule):
@@ -8,7 +13,7 @@ class BaseExplorer (BaseAutoDiscModule):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def initialize(self, input_space, output_space, input_distance_fn):
+    def initialize(self, input_space: DictSpace, output_space: DictSpace, input_distance_fn: Callable) -> None:
         '''
         Defines input and output space for the explorer (as well as a distance function for the input space).
         '''
@@ -16,13 +21,13 @@ class BaseExplorer (BaseAutoDiscModule):
         self._output_space = output_space
         self._input_distance_fn = input_distance_fn
 
-    def emit(self):
+    def sample(self):
         '''
         Emits a new set of parameters to test in the system
         '''
         raise NotImplementedError()
 
-    def archive(self, parameters, observations):
+    def observe(self, parameters: Dict, observations: torch.Tensor):
         '''
         Stores parameters and the output the system produced using them
         '''
@@ -30,7 +35,7 @@ class BaseExplorer (BaseAutoDiscModule):
 
     def optimize(self):
         '''
-        Optimizes the explorer's emit policy given the discoveries arhcived
+        Optimizes the explorer's sample policy given the discoveries arhcived
         '''
         raise NotImplementedError()
 

@@ -1,4 +1,6 @@
-from addict import Dict
+import typing
+from typing import Any, Dict
+import torch
 from auto_disc.utils.spaces import DictSpace
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
@@ -15,10 +17,19 @@ class CppnInputWrapper(BaseInputWrapper):
         genome = CPPNGenomeSpace()
     )
 
-    def __init__(self, wrapped_output_space_key, **kwargs):
+    def __init__(self, wrapped_output_space_key :str, **kwargs) -> None:
         super().__init__(wrapped_output_space_key, **kwargs)
 
-    def map(self, parameters, is_input_new_discovery, **kwargs):
+    def map(self, parameters: Dict[str, Any], is_input_new_discovery : bool, **kwargs) -> Dict[str, torch.Tensor]:
+        """
+            Map the input parameters (from the explorer) to the cppn output parameters (sytem input)
+
+            Args:
+                parameters: cppn input parameters
+                is_input_new_discovery: indicates if it is a new discovery
+            Returns:
+                parameters: parameters after map to match system input
+        """
         cppn_genome = parameters['genome']
         initialization_cppn = pytorchneat.rnn.RecurrentNetwork.create(cppn_genome, self.input_space['genome'].neat_config)
 

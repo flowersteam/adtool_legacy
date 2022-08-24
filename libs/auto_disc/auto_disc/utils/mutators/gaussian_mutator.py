@@ -4,17 +4,28 @@ import numbers
 
 class GaussianMutator(BaseMutator):
     """
-        description    : apply a gauss function to the data
-        x              : list, tuple or torch of integer or bool; Input data, will be modified
-        space          : AutoDiscMutationDefinition object      ; defined mutation parameters...
-        mutation_factor: float
+        Class to mutate a space with gaussian method
     """
+    
+    def __init__(self, mean: float, std: float) -> None:
+        """
+            Init what gaussian method need
 
-    def __init__(self, mean, std):
+            Args: 
+                mean: float
+                std: float
+
+        """
         self._mean = mean
         self._std = std
 
-    def init_shape(self, shape=None):
+    def init_shape(self, shape: tuple =None) -> None:
+        """
+            Define the init shape
+
+            Args:
+                shape: tuple
+        """
         super().init_shape(shape)
         if shape:
             if isinstance(self._mean, numbers.Number):
@@ -24,7 +35,17 @@ class GaussianMutator(BaseMutator):
         self.mean = torch.as_tensor(self._mean, dtype=torch.float64)
         self.std = torch.as_tensor(self._std, dtype=torch.float64)
 
-    def __call__(self, x, mutate_mask):
+    def __call__(self, x: torch.Tensor, mutate_mask: torch.Tensor) -> torch.Tensor:
+        """
+            Apply the gaussian mutation data
+
+            Args:
+                x: the data we want mutate
+                mutate_mask: mask of mutation
+            
+            Returns:
+                x: Data after being mutated
+        """
         noise = torch.normal(self.mean, self.std)
         x = x.type(torch.float64) + mutate_mask * noise
         return x

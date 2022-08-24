@@ -1,8 +1,10 @@
 import numbers
+from typing import Dict, List, Union
 
 import torch
 from auto_disc.utils.spaces import BaseSpace
 
+from auto_disc.utils.mutators import BaseMutator
 
 class BoxSpace(BaseSpace):
     """
@@ -22,7 +24,18 @@ class BoxSpace(BaseSpace):
 
     """
 
-    def __init__(self, low, high, mutator=None, shape=None, dtype=torch.float32, indpb=1.0):
+    def __init__(self, low: float, high: float, mutator:BaseMutator=None, shape:tuple=None, dtype=torch.float32, indpb: float =1.0) -> None:
+        """
+            Init the elements useful to the spaces
+
+            Args:
+                low: lower bound
+                hight: upper bound
+                mutator: current mutator method
+                shape: Space shape
+                dtype: torch type
+                indpb: Independent probability for each attribute to be exchanged
+        """
         assert dtype is not None, 'dtype must be explicitly provided. '
     
         # determine shape if it isn't provided directly
@@ -45,7 +58,13 @@ class BoxSpace(BaseSpace):
 
         super(BoxSpace, self).__init__(shape, dtype, mutator)
 
-    def initialize(self, parent_obj):
+    def initialize(self, parent_obj: object) -> None:
+        """
+            Initialize the space.
+
+            Args:
+                parent_obj: The current autodisc module
+        """
         # Apply potential binding
         super().initialize(parent_obj)
         self._low = self.apply_binding_if_existing(self._low, parent_obj)
@@ -69,7 +88,13 @@ class BoxSpace(BaseSpace):
             self._indpb = torch.full(self.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
-    def is_bounded(self, manner="both"):
+    def is_bounded(self, manner:str="both") -> torch.bool:
+        """
+            Check if the space is bounded (below above or both)
+
+            Args:
+                manner: indicates which bound should be checked
+        """
         below = torch.all(self.bounded_below)
         above = torch.all(self.bounded_above)
         if manner == "both":
@@ -92,6 +117,9 @@ class BoxSpace(BaseSpace):
         * [a, oo) : shifted exponential distribution
         * (-oo, b] : shifted negative exponential distribution
         * (-oo, oo) : normal distribution
+
+        Return:
+            The return value is torch of the sample value
         """
         high = self.high.type(torch.float64) if self.dtype.is_floating_point else self.high.type(torch.int64) + 1
         sample = torch.empty(self.shape, dtype=torch.float64)
@@ -120,7 +148,15 @@ class BoxSpace(BaseSpace):
 
         return sample.type(self.dtype)
 
-    def mutate(self, x):
+    def mutate(self, x: torch.Tensor) -> torch.Tensor:
+        """
+            Apply the mutation of the mutator on x
+
+            Args:
+                x: The variable to mutate
+            Returns:
+                x: the result of mutation
+        """
         if self.mutator:
             mutate_mask = (torch.rand(self.shape) < self.indpb).type(torch.float64)
             x = self.mutator(x, mutate_mask)
@@ -134,27 +170,62 @@ class BoxSpace(BaseSpace):
         else:
             return x
 
-    def contains(self, x):
+    def contains(self, x:Union[torch.Tensor, List]) -> bool:
+        """
+            Check if x is included in the space
+
+            Args:
+                x: The value to check
+            Returns:
+                The return value is True if x is included in the space False otherwise
+        """
         if isinstance(x, list):
             x = torch.tensor(x)  # Promote list to array for contains check
         return x.shape == self.shape and torch.all(x >= self.low) and torch.all(x <= self.high)
 
-    def clamp(self, x):
+    def clamp(self, x: torch.Tensor) -> torch.Tensor:
+        """
+            Set x to an acceptable value of the space
+            Args:
+                x: The value to set
+            Returns:
+                x: After being set
+        """
         if self.is_bounded(manner="below"):
             x = torch.max(x, torch.as_tensor(self.low, dtype=self.dtype, device=x.device))
         if self.is_bounded(manner="above"):
             x = torch.min(x, torch.as_tensor(self.high, dtype=self.dtype, device=x.device))
         return x
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+            Give a string representation of the class's object
+
+            Returns:
+                The return value is a string which represent our object
+        """
         return "BoxSpace({}, {}, {}, {})".format(self.low.min(), self.high.max(), self.shape, self.dtype)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        """
+            Check if the other object are equal to the current object
+
+            Args:
+                other: An object
+            Returns:
+                The return value is True if self and other are equal False otherwise 
+        """
         return isinstance(other, BoxSpace) and (self.shape == other.shape) and torch.allclose(self.low,
                                                                                               other.low) and torch.allclose(
             self.high, other.high)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, any]:
+        """
+            Convert the object into JSON
+
+            Returns:
+                The JSON of the object
+        """
         dict = super().to_json()
         dict['low'] = self._low
         dict['high'] = self._high

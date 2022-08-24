@@ -6,6 +6,7 @@ from auto_disc.utils.misc.torch_utils import roll_n
 from auto_disc.utils.spaces.utils import distance
 import torch
 from addict import Dict
+import typing
 
 @StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
 @IntegerConfigParameter(name="SX", default=256, min=1)
@@ -17,13 +18,17 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
     )
 
-    def __init__(self, wrapped_input_space_key=None, **kwargs):
+    def __init__(self, wrapped_input_space_key: str =None, **kwargs) -> None:
         super().__init__('states', **kwargs)
 
-    def map(self, observations, is_output_new_discovery):
+    def map(self, observations: typing.Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
         """
             Maps the observations of a system to an embedding vector
-            Return a torch tensor
+            Args:
+                parameters: input parameters
+                is_output_new_discovery: indicates if it is a new discovery
+            Returns:
+                Return a torch tensor in dict
         """
         # filter low values
         filtered_im = torch.where(observations.states[-1] > 0.2, observations.states[-1], torch.zeros_like(observations.states[-1]))
@@ -51,7 +56,7 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         return {'embedding': embedding}
 
 
-    def calc_distance(self, embedding_a, embedding_b, **kwargs):
+    def calc_distance(self, embedding_a: torch.Tensor, embedding_b: torch.Tensor, **kwargs) -> torch.Tensor:
         """
             Compute the distance between 2 embeddings in the latent space
             /!\ batch mode embedding_a and embedding_b can be N*M or M

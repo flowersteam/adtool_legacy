@@ -8,15 +8,26 @@ import json
 import os
 
 class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
-    def __init__(self, folder_path, **kwargs):
+    '''
+    class for save autodisc modules on disk.
+    '''
+    def __init__(self, folder_path: str, **kwargs) -> None:
         """
-        brief:  init the callback 
-        param:  folder_path: string, path to save discoveries on disk
+        init the callback with a path to save modules on disk
+
+        Args:
+            folder_path: path to folder where we want save the discovery
         """
         super().__init__(**kwargs)
         self.folder_path = folder_path
                         
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> None:
+        """
+        Save modules on disk
+
+        Args:
+            kwargs: run_idx, experiment_id, seed, system, input_wrappers...
+        """
         #TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
         to_save_modules = ["system","explorer","input_wrappers","output_representations","in_memory_db"]
         

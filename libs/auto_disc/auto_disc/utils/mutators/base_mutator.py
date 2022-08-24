@@ -1,5 +1,6 @@
 class BaseMutator():
-    """ Base class to mute space var
+    """ 
+    Base class to mute space var
     """
     def __init__(self ):
         raise NotImplementedError

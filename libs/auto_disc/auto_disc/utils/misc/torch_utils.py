@@ -7,7 +7,7 @@ PI = torch.acos(torch.zeros(1)).item() * 2
 class SphericPad(nn.Module):
     """Pads spherically the input on all sides with the given padding size."""
 
-    def __init__(self, padding_size):
+    def __init__(self, padding_size: torch.Tensor) -> None:
         super(SphericPad, self).__init__()
         if isinstance(padding_size, int) or (isinstance(padding_size, torch.Tensor) and padding_size.shape==()):
             self.pad_left = self.pad_right = self.pad_top = self.pad_bottom = padding_size
@@ -32,7 +32,7 @@ class SphericPad(nn.Module):
         return output
 
 
-def complex_mult_torch(X, Y):
+def complex_mult_torch(X: torch.Tensor, Y: torch.Tensor) ->torch.Tensor:
     """ Computes the complex multiplication in Pytorch when the tensor last dimension is 2: 0 is the real component and 1 the imaginary one"""
     assert X.shape[-1] == 2 and Y.shape[-1] == 2, 'Last dimension must be 2'
     return torch.stack(
@@ -41,7 +41,7 @@ def complex_mult_torch(X, Y):
         dim=-1)
 
 
-def roll_n(X, axis, n):
+def roll_n(X: torch.Tensor, axis: int, n: int) -> torch.Tensor:
     """ Rolls a tensor with a shift n on the specified axis"""
     f_idx = tuple(slice(None, None, None) if i != axis else slice(0, n, None)
                   for i in range(X.dim()))

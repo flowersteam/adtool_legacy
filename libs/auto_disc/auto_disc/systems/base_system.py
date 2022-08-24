@@ -33,8 +33,8 @@ class BaseSystem(BaseAutoDiscModule):
         self.step_output_space.initialize(self)
 
     def reset(self, run_parameters):
-        """Resets the environment to an initial state and returns an initial
-        observation.
+        """
+        Resets the environment to an initial state and returns an initial observation.
         Args:
             run_parameters (AttrDict): the input parameters of the system provided by the agent
         Returns:

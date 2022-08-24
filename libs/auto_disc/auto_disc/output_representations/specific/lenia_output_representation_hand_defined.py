@@ -8,11 +8,13 @@ from auto_disc.utils.spaces.utils import distance
 import torch
 from addict import Dict
 
+import typing
+
 
 EPS = 0.0001
 DISTANCE_WEIGHT = 2  # 1=linear, 2=quadratic, ...
 
-def center_of_mass(input_array):
+def center_of_mass(input_array: torch.Tensor) ->torch.Tensor:
 
     normalizer = input_array.sum()
     grids = torch.meshgrid(*[torch.arange(0, i) for i in input_array.shape])
@@ -26,7 +28,7 @@ def center_of_mass(input_array):
     return center
 
 
-def calc_distance_matrix(size_y, size_x):
+def calc_distance_matrix(size_y: int, size_x: int) -> torch.Tensor:
 
 
     dist_mat = torch.zeros([size_y, size_x])
@@ -43,7 +45,7 @@ def calc_distance_matrix(size_y, size_x):
 
     return dist_mat
 
-def calc_image_moments(image):
+def calc_image_moments(image: torch.Tensor) -> typing.Dict[str, torch.Tensor]:
     '''
     Calculates the image moments for an image.
 
@@ -219,7 +221,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
         embedding = BoxSpace(low=0, high=0, shape=(17,))
     )
 
-    def __init__(self, wrapped_input_space_key=None, **kwargs):
+    def __init__(self, wrapped_input_space_key: str=None, **kwargs) -> None:
         super().__init__('states', **kwargs)
 
         # model
@@ -235,7 +237,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
                                 ]
         self.n_latents = len(self.statistic_names)
 
-    def calc_static_statistics(self, final_obs):
+    def calc_static_statistics(self, final_obs: torch.Tensor) -> torch.Tensor:
         '''Calculates the final statistics for lenia last observation'''
 
         feature_vector = torch.zeros(self.n_latents)
@@ -348,17 +350,21 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
         return feature_vector
     
-    def map(self, observations, is_output_new_discovery):
+    def map(self, observations: Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
         """
             Maps the observations of a system to an embedding vector
-            Return a torch tensor
+            Args:
+                parameters: input parameters
+                is_output_new_discovery: indicates if it is a new discovery
+            Returns:
+                Return a torch tensor in dict
         """
 
         embedding = self.calc_static_statistics(observations.states[-1])
 
         return {'embedding': embedding}
 
-    def calc_distance(self, embedding_a, embedding_b):
+    def calc_distance(self, embedding_a: torch.Tensor, embedding_b: torch.Tensor) -> torch.Tensor:
         """
             Compute the distance between 2 embeddings in the latent space
             /!\ batch mode embedding_a and embedding_b can be N*M or M

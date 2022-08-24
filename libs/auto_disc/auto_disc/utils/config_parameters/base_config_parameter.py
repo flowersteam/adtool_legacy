@@ -1,25 +1,50 @@
 from addict import Dict
+from typing import Any
 
 class BaseConfigParameter():
     '''
     Decorator to add a config parameter to a class.
     '''
-    def __init__(self, name, default):
+    def __init__(self, name: str, default: Any) -> None:
+        """
+            Init a config parameter
+
+            Args:
+                name: name of config parameter
+                default: default value of the config parameter
+        """
         assert self.check_value_to_set(default)
         self._default = default
         self._name = name
 
-    def check_value_to_set(self, value):
+    def check_value_to_set(self, value: Any) -> bool:
+        """
+            Check if the value is one of the possible values
+
+            Args:
+                value: current value of the config parameter
+            Returns:
+               The return value is always True. All values are accepted 
+        """
         return True
 
-    def __call__(self, original_class):
+    def __call__(self, original_class: type) -> type:
+        """
+            Define correctly an autodisc modules considering the (decorator) config parameter
+
+            Args:
+                original_class: The class of the module we want to define
+            Returns: 
+                original_class: The updated class with the config parameter
+
+        """
         original_init = original_class.__init__
         # Make copy of original __init__, so we can call it without recursion
         default_value = self._default
         name = self._name
         check_value = self.check_value_to_set
 
-        def __init__(self, *args, **kws):
+        def __init__(self, *args, **kws) -> None:
             value_to_set = default_value
             if name in kws:
                 assert check_value(kws[name])

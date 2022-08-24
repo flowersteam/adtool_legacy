@@ -12,7 +12,7 @@ class TimesNInputWrapper(BaseInputWrapper):
         input_parameter = BoxSpace(low=-np.inf, high=np.inf, shape=())
     )
 
-    def __init__(self, wrapped_output_space_key, **kwargs):
+    def __init__(self, wrapped_output_space_key: str, **kwargs) -> None:
         super().__init__(wrapped_output_space_key, **kwargs)
         assert len(self.input_space) == 1
         if not isinstance(wrapped_output_space_key, str):
@@ -24,7 +24,7 @@ class TimesNInputWrapper(BaseInputWrapper):
         del self.input_space[self.initial_input_space_keys[0]]
         self.initial_input_space_keys = [new_key]
 
-    def map(self, parameters, is_input_new_discovery, **kwargs):
+    def map(self, parameters: Dict, is_input_new_discovery, **kwargs) -> Dict:
         parameters[self.wrapped_output_space_key] = parameters[self.initial_input_space_keys[0]] * self.config['n']
         del parameters[self.initial_input_space_keys[0]]
         return parameters

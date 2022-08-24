@@ -3,6 +3,12 @@ import traceback
 
 import torch
 
+import typing
+from typing import Dict, Type, Callable, List, Any
+from auto_disc import systems, explorers
+from auto_disc.input_wrappers import BaseInputWrapper
+from auto_disc.output_representations import BaseOutputRepresentation
+
 from auto_disc import BaseAutoDiscModule
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
@@ -10,11 +16,26 @@ from auto_disc.utils.misc import DB
 
 
 class CancellationToken:
+    """
+        Manages the cancellation token which allows you to stop an experiment in progress
+    """
     def __init__(self):
+        """
+            Init the cancellation token to false
+        """
         self._token = False
-    def get(self):
+    def get(self) -> bool:
+        """
+            Give acces to the cancellation token
+
+            Returns:
+                _token: a boolean indicating if the current experiment must be cancelled
+        """
         return self._token
     def trigger(self):
+        """
+            Set the cancellation token to true (the experiment must be cancelled)
+        """
         self._token = True
 
 class ExperimentPipeline():
@@ -24,15 +45,35 @@ class ExperimentPipeline():
     When the system requires an action at each timestep, an `action_policy` must be provided.
     In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.utils.BaseAutoDiscCallback`.
     '''
-    def __init__(self, experiment_id, seed, system, explorer, input_wrappers=None, output_representations=None, action_policy=None, 
-                 save_frequency=100, on_discovery_callbacks=[], on_save_finished_callbacks=[], on_finished_callbacks=[], on_cancelled_callbacks=[],
-                  on_save_callbacks=[], on_error_callbacks=[]):
+    def __init__(self, experiment_id : int, seed: int, system: systems, explorer: explorers, input_wrappers: List[BaseInputWrapper]=None, output_representations:typing.List[BaseOutputRepresentation]=None, action_policy=None, 
+                 save_frequency:int=100, on_discovery_callbacks: typing.List[Callable]=[], on_save_finished_callbacks: typing.List[Callable]=[], on_finished_callbacks: typing.List[Callable]=[], on_cancelled_callbacks: typing.List[Callable]=[],
+                  on_save_callbacks: typing.List[Callable]=[], on_error_callbacks: typing.List[Callable]=[]) -> None:
+        """
+            Init experiment pipeline. Set all attribute used by the pipeline.
+
+            Args:
+                experiment_id: Id of current experiment
+                seed: Current seed number
+                system: The system we want explore in this experiment
+                explorer: The explorer we use to explore the system
+                input_wrappers: A list of wrapper who redine the input spaces
+                output_representations: A list of wrapper who redine the output spaces
+                action_policy: A method that indicate what action should be taken based on the policy
+                save_frequency: defines the frequency with which the backups of the elements of the experience are made
+                on_discovery_callbacks: Callbacks raised when a discovery was made
+                on_save_finished_callbacks: Callbacks raised when a the experiment save is complete
+                on_finished_callbacks: Callbacks raised when the experiment is over
+                on_cancelled_callbacks: Callbacks raised when the experiment is canccelled
+                on_save_callbacks: Callbacks raised when a experiment save was made
+                on_error_callbacks: Callbacks raised when an error is raised
+
+        """
         self.experiment_id = experiment_id
         self.seed = seed
         self.save_frequency = save_frequency
 
         self.db = DB()
-        def access_history_fn(keys=[], new_keys=['idx', 'input', 'output']):
+        def access_history_fn(keys: typing.List[str] =[], new_keys=['idx', 'input', 'output']) -> Callable:
             return lambda index=slice(None, None, None): self.db.to_autodisc_history(self.db[index], keys, new_keys)
 
         ### SYSTEM ###
@@ -109,7 +150,19 @@ class ExperimentPipeline():
         self.cancellation_token = CancellationToken()
 
 
-    def _process_output(self, output, document_id, starting_index=0, is_output_new_discovery=True):
+    def _process_output(self, output: typing.Dict[str, torch.Tensor], document_id: int, starting_index: int =0, is_output_new_discovery: bool=True) -> Dict[str, torch.Tensor]:
+        """
+            Process the output and store it in the tinyDB to make it usable in different modules of the experiment
+            
+            Args:
+                output: current output
+                document_id: current document id
+                starting_index: first index to consider in the outputs representations list
+                is_output_new_discovery: indiacte if the current output come from a new discovery
+            
+            Returns:
+                output: The current output after it was processed 
+        """
         for i, output_representation in enumerate(self._output_representations[starting_index:]):
             output = output_representation.map(copy(output), is_output_new_discovery)
             if i == len(self._output_representations) - 1:
@@ -121,6 +174,9 @@ class ExperimentPipeline():
     def _update_outputs_history(self, output_representation_idx):
         '''
             Iterate over history and update values of outputs produced after `output_representation_idx`.
+
+            Args:
+                output_representation_idx: index from which we will start updating
         '''
         for document in self.db:
             if output_representation_idx == 0:
@@ -129,7 +185,20 @@ class ExperimentPipeline():
                 output = document[f'output_{output_representation_idx-1}']
             self._process_output(output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
 
-    def _process_run_parameters(self, run_parameters, document_id, starting_index=0, is_input_new_discovery=True):
+    def _process_run_parameters(self, run_parameters : Dict[str, Any], document_id: int, starting_index:int=0, is_input_new_discovery: bool=True) -> Dict[str, Any]:
+        """
+            Process the run_parameters and store it in the tinyDB to make it usable in different modules of the experiment
+            
+            Args:
+                run_parameters: current run_parameters
+                document_id: current document id
+                starting_index: first index to consider in the outputs representations list
+                is_input_new_discovery: indiacte if the current input come from a new discovery
+            
+            Returns:
+                output: The current output after it was processed 
+        """
+
         for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
             run_parameters = input_wrapper.map(copy(run_parameters), is_input_new_discovery)
             if i == len(self._input_wrappers) - 1:
@@ -149,15 +218,25 @@ class ExperimentPipeline():
     #             run_parameters = document[f'run_parameters_{run_parameters_idx-1}']
     #         self._process_run_parameters(run_parameters, document.doc_id, starting_index=run_parameters_idx, is_input_new_discovery=False)
 
-    def _raise_callbacks(self, callbacks, **kwargs):
+    def _raise_callbacks(self, callbacks: typing.List[Callable], **kwargs) -> None:
+        """
+            Raise all callbacks linked to the current event (new discovery, a save, the end of the experiment...)
+
+            Args:
+                callbacks: list of all callbacks must be raise
+                kwargs: some usefull parameters like run_idx, seed, experiment_id, some modules...
+        """
         for callback in callbacks:
             callback(
                 pipeline=self,
                 **kwargs
                 )
-    def run(self, n_exploration_runs):
+    def run(self, n_exploration_runs: int) -> None:
         '''
         Launches the experiment for `n_exploration_runs` explorations.
+
+        Args:
+            n_exploration_runs: number of explorations
         '''
         run_idx = 0
         BaseAutoDiscModule.CURRENT_RUN_INDEX = 0
@@ -167,7 +246,7 @@ class ExperimentPipeline():
                 if self.cancellation_token.get():
                     break
 
-                raw_run_parameters = self._explorer.emit()
+                raw_run_parameters = self._explorer.sample()
                 document_id = self.db.insert({'idx': run_idx, 'raw_run_parameters': copy(raw_run_parameters)})
                 with torch.no_grad():
                     run_parameters = self._process_run_parameters(raw_run_parameters, document_id)
@@ -192,7 +271,7 @@ class ExperimentPipeline():
                     output = self._process_output(raw_output, document_id)
                     rendered_output = self._system.render()
                         
-                self._explorer.archive(copy(raw_run_parameters), copy(output))
+                self._explorer.observe(copy(raw_run_parameters), copy(output))
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
