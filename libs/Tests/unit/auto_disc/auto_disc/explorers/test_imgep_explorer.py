@@ -128,9 +128,9 @@ def test_get_source_policy_idx_3():
     assert "Unknown source policy selection type 'somethingToMakeError' in the configuration!" == context.exception.args[0]
 #endregion
 
-#region emit
+#region sample
 
-def test_emit_1():
+def test_sample_1():
     imgepExplorer = explorers.IMGEPExplorer()
     input_space = DummyInputWrapper().input_space
     input_space.spaces = {"embedding":0}
@@ -139,10 +139,10 @@ def test_emit_1():
     output_space.sample = lambda : "sample has been executed"
     input_distance_fn = lambda x, y: torch.tensor([0,1,2])
     imgepExplorer.initialize(input_space, output_space, input_distance_fn)
-    run_parameters = imgepExplorer.emit()
+    run_parameters = imgepExplorer.sample()
     assert run_parameters == "sample has been executed"
 
-def test_emit_2():
+def test_sample_2():
     imgepExplorer = explorers.IMGEPExplorer()
     input_space = DummyInputWrapper().input_space
     input_space.spaces = {"embedding":0}
@@ -158,7 +158,7 @@ def test_emit_2():
     
     imgepExplorer._access_history = lambda :{"input":[{"embedding":torch.zeros(5)}], 0:{'output' : "what's you need"}}
     imgepExplorer._get_next_goal = lambda : torch.zeros(10)
-    run_parameters = imgepExplorer.emit()
+    run_parameters = imgepExplorer.sample()
     
     assert run_parameters == "mutate has been executed"
 
