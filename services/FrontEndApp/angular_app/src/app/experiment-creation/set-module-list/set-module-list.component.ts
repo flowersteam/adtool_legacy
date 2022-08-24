@@ -41,8 +41,6 @@ export class SetModuleListComponent implements OnInit {
 
   remove(index : number){
     let response = this.createNewExperimentService.removeModuleToUse(this.currentModuleList, this.customModules, this.modules, this.key, this.spaceItDependsOn, index);
-    this.customModules = response[0]
-    this.currentModuleList = response[1]
   }
 
 }
