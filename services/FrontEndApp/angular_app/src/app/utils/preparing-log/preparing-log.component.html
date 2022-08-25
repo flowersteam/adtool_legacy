@@ -8,7 +8,7 @@
     </div>
     
 </nav>
-<div class="container" style="overflow-y:scroll;  height: 700px;">    
+<div *ngIf="this.preparing_logs" class="container" style="overflow-y:scroll;  height: 700px;">    
     <div *ngFor="let log of this.preparing_logs.data" class="card my-5 border-secondary bg-light">
         <div class="card-body">
             <div class="row">
