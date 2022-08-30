@@ -25,7 +25,7 @@ System definition
 ============================================================================================= """
 @StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
 @StringConfigParameter(name="size", default="(256,256)")
-@IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
+@IntegerConfigParameter(name="final_step", default=200, min=1, max=10000)
 @IntegerConfigParameter(name="scale_init_state", default=1, min=1)
 @IntegerConfigParameter(name="nb_k", default=10, min=1)
 @IntegerConfigParameter(name="nb_c", default=1, min=1)
@@ -100,7 +100,7 @@ class Lenia(BasePythonSystem):
         if not self.input_space.contains(run_parameters):
             run_parameters = self.input_space.clamp(run_parameters)
 
-        init_state = torch.zeros(1, self.config.nb_c, *self.config.size, dtype=torch.float64, device=run_parameters.init_state.device)
+        init_state = torch.zeros(1, self.config.nb_c, *self.config.size, dtype=torch.float32, device=run_parameters.init_state.device)
         init_mask = [0, slice(0, self.config.nb_c)] + [slice(s//2 - math.ceil(run_parameters.init_state.shape[i+1]/2), s//2+run_parameters.init_state.shape[i+1]//2) for i,s in enumerate(self.config.size)]
         init_state[init_mask] = run_parameters.init_state
         self.state = init_state
@@ -116,7 +116,8 @@ class Lenia(BasePythonSystem):
                                        c0=run_parameters.c0, c1=run_parameters.c1,
                                        r=run_parameters.r, rk=run_parameters.rk,
                                        b=run_parameters.b, w=run_parameters.w, h=run_parameters.h,
-                                       m=run_parameters.m, s=run_parameters.s)
+                                       m=run_parameters.m, s=run_parameters.s,
+                                       kn=run_parameters.kn, gn=run_parameters.gn)
 
         self._observations = Dict()
         self._observations.states = torch.empty((self.config.final_step, self.config.nb_c+int(self.config.wall_c), *self.config.size), device=self.state.device)
@@ -186,7 +187,11 @@ Lenia Step
 
 # Lenia family of functions for the kernel K and for the growth mapping g
 kernel_core = {
-    0: lambda x,r,w,b : (b*torch.exp(-((x.unsqueeze(-1)-r)/w)**2 / 2)).sum(-1)
+    0: lambda r: (4 * r * (1 - r)) ** 4,  # polynomial (quad4)
+    1: lambda r: torch.exp(4 - 1 / (r * (1 - r))),  # exponential / gaussian bump (bump4)
+    2: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double(),  # step (stpz1/4)
+    3: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double() + (r < q).double() * 0.5,  # staircase (life)
+    4: lambda x,r,w,b : (b*torch.exp(-((x.unsqueeze(-1)-r)/w)**2 / 2)).sum(-1)
 }
 
 field_func = {
@@ -199,7 +204,7 @@ field_func = {
 class LeniaStepFFT(torch.nn.Module):
     """ Module pytorch that computes one Lenia Step with the fft version"""
 
-    def __init__(self, nb_c, R, T, c0, c1, r, rk, b, w, h, m, s, kn=0, gn=1, wall_c=False, is_soft_clip=False, size=(256, 256)):
+    def __init__(self, nb_c, R, T, c0, c1, r, rk, b, w, h, m, s, kn, gn, wall_c=False, is_soft_clip=False, size=(256, 256)):
         torch.nn.Module.__init__(self)
 
         # self.register_buffer('R', R)
@@ -256,7 +261,13 @@ class LeniaStepFFT(torch.nn.Module):
 
             # kernel
             kfunc = kernel_core[self.kn]
-            kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, self.rk[k], self.w[k], self.b[k]) #-(D-1)*10 to have a sigmoid that goes from 1 (D=0) to 0 (vertical asymptop to D=1 more or less smooth based on float value here 10)
+            if self.kn == 4:
+                kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, self.rk[k], self.w[k], self.b[k]) #-(D-1)*10 to have a sigmoid that goes from 1 (D=0) to 0 (vertical asymptop to D=1 more or less smooth based on float value here 10)
+            else:
+                nbumps = len(self.b)  # modification to allow b always of length 4
+                kr = nbumps * D
+                b = self.b[torch.min(torch.floor(kr).long(), (nbumps - 1) * torch.ones_like(kr).long())]
+                kernel = (D < 1).double() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
             kernel_sum = torch.sum(kernel)
             kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
             # fft of the kernel
@@ -272,14 +283,14 @@ class LeniaStepFFT(torch.nn.Module):
         dims = [slice(0, s) for s in self.size]
         I = list(reversed(np.mgrid[list(reversed(dims))]))  # I, J, K, L
         MID = [int(s / 2) for s in self.size]
-        X = [torch.from_numpy(i - mid) for i, mid in zip(I, MID)]  # X, Y, Z, S
+        X = [torch.from_numpy(i - mid).to(self.R.device) for i, mid in zip(I, MID)]  # X, Y, Z, S
 
         D = torch.sqrt(torch.stack([x ** 2 for x in X]).sum(axis=0)) / 4.0 #TODO: why 4
 
-        kfunc = kernel_core[self.kn]
-        kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, torch.tensor([0, 0, 0]),
-                                                      torch.tensor([0.5, 0.1, 0.1]),
-                                                      torch.tensor([1, 0, 0]))
+        kfunc = kernel_core[4]
+        kernel = torch.sigmoid(-(D - 1) * 10) * kfunc(D, torch.tensor([0, 0, 0]).to(self.R.device),
+                                                      torch.tensor([0.5, 0.1, 0.1]).to(self.R.device),
+                                                      torch.tensor([1, 0, 0]).to(self.R.device))
         kernel_sum = torch.sum(kernel)
         kernel_norm = (kernel / kernel_sum).unsqueeze(0)
         if torch.__version__ >= "1.7.1":
@@ -303,10 +314,9 @@ class LeniaStepFFT(torch.nn.Module):
             potential_FFT = [complex_mult_torch(self.kernels[k].unsqueeze(0), world_FFT[self.c0[k]]) for k in range(self.nb_k)]
             potentials = [torch.irfft(potential_FFT[k], signal_ndim=len(self.size), onesided=False) for k in range(self.nb_k)]
 
-        gfunc = field_func[self.gn]
         potentials = [roll_n(potential, 2, potential.size(2) // 2) for potential in potentials]
         potentials = [roll_n(potential, 1, potential.size(1) // 2)for potential in potentials]
-        fields = [gfunc(potentials[k], self.m[k], self.s[k]) for k in range(self.nb_k)]
+        fields = [field_func[self.gn[k].item()](potentials[k], self.m[k], self.s[k]) for k in range(self.nb_k)]
 
         for k in range(self.nb_k):
             self.D[:, self.c1[k], :] = self.D[:, self.c1[k], :] + self.h[k] * fields[k]

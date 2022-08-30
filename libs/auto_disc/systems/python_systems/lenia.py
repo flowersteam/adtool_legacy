@@ -50,8 +50,8 @@ class Lenia(BasePythonSystem):
     )
 
     def reset(self, run_parameters):
-        run_parameters.kn = 0
-        run_parameters.gn = 1
+        # run_parameters.kn = 0
+        # run_parameters.gn = 1
         init_state = torch.zeros(1,1, self.config.SY, self.config.SX, dtype=torch.float64)
         init_state[
             0,
@@ -186,7 +186,7 @@ field_func = {
 class LeniaStepFFT(torch.nn.Module):
     """ Module pytorch that computes one Lenia Step with the fft version"""
 
-    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, SX=256, SY=256, device='cpu'):
+    def __init__(self, R, T, b, m, s, kn=0, gn=1, is_soft_clip=False, SX=256, SY=256, device='cpu'):
         torch.nn.Module.__init__(self)
 
         self.register_buffer('R', R+2)
@@ -195,8 +195,8 @@ class LeniaStepFFT(torch.nn.Module):
         self.register_parameter('m', torch.nn.Parameter(m))
         self.register_parameter('s', torch.nn.Parameter(s))
 
-        self.kn = 0
-        self.gn = 1
+        self.kn = kn
+        self.gn = gn
 
         self.SX = SX
         self.SY = SY
@@ -279,8 +279,8 @@ class LeniaStepConv2d(torch.nn.Module):
         self.register_parameter('s', torch.nn.Parameter(s))
 
 
-        self.kn = 0
-        self.gn = 1
+        self.kn = kn
+        self.gn = gn
 
         self.spheric_pad = SphericPad(self.R)
         self.is_soft_clip = is_soft_clip
