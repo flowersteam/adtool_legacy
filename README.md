@@ -12,16 +12,16 @@ Please follow these instructions when contributing on the project.
 4. Go to package: `cd libs/auto_disc`
 5. Install package: `pip install -e .`
 #### AutoDiscServer
-1. Install flask: `pip install AutoDiscServer/requirements.txt`
+1. Install flask: `pip install -r AutoDiscServer/flask_app/requirements.txt`
 ### App DB & Expe DB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
 3. Go to the service folder: `cd services`.
 4. Generate containers `sudo docker-compose -f services/docker-compose.yml create`
-5. Install the Expe DB REST API requirements: `pip install ExpeDB/requirements.txt`
+5. Install the Expe DB REST API requirements: `pip install -r ExpeDB/API/flask_app/requirements.txt`
 ### Front-end app
 1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
-2. Enter the front-end app folder: `cd services/FrontEndApp`.
+2. Enter the front-end app folder: `cd services/FrontEndApp/angular_app/`.
 3. Install required packages: `npm install`
 #### Jupyter Lab
 1. Install jupyter: `pip install JupyterLab/requirements.txt`

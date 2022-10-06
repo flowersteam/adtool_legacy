@@ -4,7 +4,7 @@ version: '3' # TODO
 services:
 ##### APP DB #####
   app-db:
-    image: postgres
+    image: postgres:10.16
     command: -p $POSTGRES_PORT
     hostname: app-db
     environment:
