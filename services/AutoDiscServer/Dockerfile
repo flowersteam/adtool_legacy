@@ -30,4 +30,4 @@ WORKDIR /usr/src/services/AutoDiscServer/flask_app
 COPY services/AutoDiscServer/flask_app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Copy ssh folder and launch Gunicorn as daemon and NGINX
-CMD cp -r /usr/src/.ssh /root/.ssh ; chmod 600 -R /root/.ssh ; gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
+CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"

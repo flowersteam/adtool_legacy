@@ -71,7 +71,7 @@ services:
       - "./AutoDiscServer/flask_app:/usr/src/services/AutoDiscServer/flask_app"
       - "../libs/auto_disc:/usr/src/libs/auto_disc"
       - "../configs:/usr/src/configs"
-      - "$SSH_CONFIG_FOLDER:/usr/src/.ssh"
+      - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
       - "$SSH_SOCK_PATH:/ssh-agent"
     links:
       - expe-db-api
