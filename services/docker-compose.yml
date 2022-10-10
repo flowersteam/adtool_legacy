@@ -97,7 +97,6 @@ services:
       - prod
   ##### FRONTEND APP #####
   app:
-    platform: linux/amd64
     build: ./FrontEndApp
     environment:
       EXPEDB_HOST: expe-db-api
@@ -122,7 +121,6 @@ services:
       - prod
   ##### MONITORING TOOLS #####
   portainer:
-    platform: linux/amd64
     image: portainer/portainer-ce:2.11.1
     profiles:
       - monitoring
@@ -139,7 +137,6 @@ services:
         max_attempts: 3
         window: 10s
   app-db-monitoring:
-    platform: linux/amd64
     image: dpage/pgadmin4
     profiles:
       - monitoring
@@ -160,7 +157,6 @@ services:
         max_attempts: 3
         window: 10s
   mongo-express:
-    platform: linux/amd64
     image: mongo-express
     profiles:
       - monitoring
