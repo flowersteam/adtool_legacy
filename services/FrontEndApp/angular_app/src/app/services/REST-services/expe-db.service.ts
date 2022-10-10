@@ -13,13 +13,14 @@ import { environment } from 'src/environments/environment';
 export class ExpeDbService {
   private expeDBUrl
 
-  constructor(private http: HttpClient) { 
-    this.expeDBUrl = "http://"+ environment.EXPEDB_HOST+":" + environment.EXPE_DB_API_PORT;
+  constructor(private http: HttpClient) {
+    this.expeDBUrl = "http://127.0.0.1:4201/expe-db-api";
+    //    this.expeDBUrl = "http://" + environment.EXPEDB_HOST + ":" + environment.EXPE_DB_API_PORT;
   }
 
   deleteCheckpointDiscoveries(id: number): Observable<RESTResponse<any>> {
     return this.http.delete(
-      this.expeDBUrl + 
+      this.expeDBUrl +
       "/discoveries?checkpoint_id=" + id,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -33,7 +34,7 @@ export class ExpeDbService {
 
   deleteCheckpointSaves(id: number): Observable<RESTResponse<any>> {
     return this.http.delete(
-      this.expeDBUrl + 
+      this.expeDBUrl +
       "/checkpoint_saves?checkpoint_id=" + id,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -45,9 +46,9 @@ export class ExpeDbService {
       );
   }
 
-  getDiscovery(filter: string): Observable<RESTResponse<any[]>>{
+  getDiscovery(filter: string): Observable<RESTResponse<any[]>> {
     return this.http.get<any[]>(
-      this.expeDBUrl + 
+      this.expeDBUrl +
       "/discoveries?filter=" + filter,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -59,9 +60,9 @@ export class ExpeDbService {
       );
   }
 
-  getDiscoveryRenderedOutput(id: string): Observable<RESTResponse<any[]>>{
+  getDiscoveryRenderedOutput(id: string): Observable<RESTResponse<any[]>> {
     return this.http.get<any[]>(
-      this.expeDBUrl + 
+      this.expeDBUrl +
       "/discoveries/" + id + "/rendered_output",
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -74,9 +75,9 @@ export class ExpeDbService {
       );
   }
 
-//   public getVideo(url:string): Observable<any> {
-//     const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authenticationService.token, 'Content-Type': 'video/mp4' });
-//     const options = { headers: headers };
-//     return this.http.get(url, options);
-// }
+  //   public getVideo(url:string): Observable<any> {
+  //     const headers = new HttpHeaders({ 'Authorization': 'Bearer ' + this.authenticationService.token, 'Content-Type': 'video/mp4' });
+  //     const options = { headers: headers };
+  //     return this.http.get(url, options);
+  // }
 }

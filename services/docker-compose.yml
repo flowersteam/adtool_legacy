@@ -119,6 +119,21 @@ services:
       - jupyter
     profiles:
       - prod
+  ##### GATEWAY #####
+  gateway:
+    image: nginx:stable-alpine
+    ports:
+      - "$GATEWAY_PORT:$GATEWAY_PORT"
+    volumes:
+      - "./Gateway/nginx/nginx.conf:/etc/nginx/nginx.conf"
+    links:
+      - expe-db-api
+      - app-db-api
+      - autodisc-server
+      - jupyter
+      - app
+    profiles:
+      - prod
   ##### MONITORING TOOLS #####
   portainer:
     image: portainer/portainer-ce:2.11.1
