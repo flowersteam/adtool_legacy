@@ -11,7 +11,7 @@ class AutoDiscServerConfigError(Exception):
 
 class AutoDiscServerConfig():
     FLASK_HOST : str = '0.0.0.0'
-    FLASK_PORT: int = 5000
+    FLASK_PORT: int = 5002
     SSH_CONFIG_FILE : str = None
     EXPEDB_CALLER_HOST : str = "127.0.0.1"
     EXPEDB_CALLER_PORT : str = "5001"
