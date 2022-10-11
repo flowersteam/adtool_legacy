@@ -14,6 +14,7 @@ import { environment } from 'src/environments/environment';
 })
 
 export class JupyterService {
+  public jupyterHost;
   public jupyterUrl;
   public jupyWebSocket: any;
 
@@ -31,7 +32,8 @@ export class JupyterService {
   };
 
   constructor(private http: HttpClient, private appDBService: AppDbService) {
-    this.jupyterUrl = "http://127.0.0.1:4201/jupyter";
+    this.jupyterHost = "127.0.0.1:8887";
+    this.jupyterUrl = "http://" + this.jupyterHost;
     //    this.jupyterUrl = "http://" + environment.JUPYTER_HOST + ":" + environment.JUPYTER_PORT;
   }
 
@@ -45,7 +47,7 @@ export class JupyterService {
 
 
   openKernelChannel(kernel_id: string): Observable<any> {
-    this.jupyWebSocket = webSocket('ws://' + environment.JUPYTER_HOST + ':' + environment.JUPYTER_PORT + '/api/kernels/' + kernel_id + '/channels');
+    this.jupyWebSocket = webSocket('ws://' + this.jupyterHost + '/api/kernels/' + kernel_id + '/channels');
     this.jupyWebSocket.subscribe(
       (msg: any) => {
 
