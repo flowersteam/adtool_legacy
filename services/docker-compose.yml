@@ -17,7 +17,8 @@ services:
       - "./AppDB/saved_data:/var/lib/postgresql/data"
       - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
   app-db-api:
-    image: postgrest/postgrest:v7.0.1
+    platform: linux/arm64/v8
+    image: postgrest/postgrest:v9.0.0
     environment:
       PGRST_DB_URI: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@app-db:$POSTGRES_PORT/$POSTGRES_DB
       PGRST_DB_SCHEMA: $PGRST_DB_SCHEMA
@@ -57,7 +58,7 @@ services:
     platform: linux/amd64
     build:
       context: ../
-      dockerfile: services/AutoDiscServer/Dockerfile
+      dockerfile: ./services/AutoDiscServer/Dockerfile
     environment:
       EXPEDB_CALLER_HOST: expe-db-api
       EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
@@ -68,8 +69,8 @@ services:
     ports:
       - "$EXPOSED_AUTODISC_SERVER_PORT:$AUTODISC_SERVER_PORT"
     volumes:
-      - "./AutoDiscServer/flask_app:/usr/src/services/AutoDiscServer/flask_app"
-      - "../libs/auto_disc:/usr/src/libs/auto_disc"
+      - "./AutoDiscServer/flask_app:/usr/src/services/flask_app"
+      - "../libs:/usr/src/libs"
       - "../configs:/usr/src/configs"
       - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
       - "$SSH_SOCK_PATH:/ssh-agent"
