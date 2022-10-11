@@ -18,12 +18,13 @@ services:
       - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
   app-db-api:
     platform: linux/arm64/v8
-    image: postgrest/postgrest:v9.0.0
+    build: ./AppDB/API
     environment:
       PGRST_DB_URI: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@app-db:$POSTGRES_PORT/$POSTGRES_DB
       PGRST_DB_SCHEMA: $PGRST_DB_SCHEMA
       PGRST_DB_ANON_ROLE: $PGRST_DB_ANON_ROLE
       PGRST_SERVER_PORT: $APP_DB_API_PORT
+      PGRST_LOG_LEVEL: info
     ports:
       - "$APP_DB_API_PORT:$APP_DB_API_PORT"
     depends_on:
@@ -122,7 +123,7 @@ services:
       - prod
   ##### GATEWAY #####
   gateway:
-    image: nginx:stable-alpine
+    build: ./Gateway
     ports:
       - "$GATEWAY_PORT:$GATEWAY_PORT"
     volumes:
