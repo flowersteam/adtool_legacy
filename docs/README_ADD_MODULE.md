@@ -1,7 +1,7 @@
 # Add a new module to the libs 
-Four differents types of moduls could be implemented in the AutomatedDiscoveryTool libs (Systems, Explorers, Input_wrapper, Output_representations).
-1) Each module have its own folder.<br/> 
-To add a new module create the file in the associate folder
+Four different types of modules can be implemented in the AutomatedDiscoveryTool libs (Systems, Explorers, Input_wrapper, Output_representations).
+1) Each module has its own folder.<br/> 
+To add a new module create the file in the associated folder
     ```
     example: 
             libs/auto_disc/auto_disc/explorers/myBeautifullNewExplorer.py
@@ -9,9 +9,9 @@ To add a new module create the file in the associate folder
             libs/auto_disc/auto_disc/systems/python_systems/myBeautifullNewPythonSystems.py
     ```
 
-2) The new module must heritate of module base class (BaseSystem, BaseOutputRepresentation...) or from a class that inherits it itself. <br/>
+2) The new module must inherit from its module base class (BaseSystem, BaseOutputRepresentation...) or from a class that inherits it itself. <br/>
 Respect the parent class during the implementation 🤗 <br/>
-You can add decorator to your module class, it's usefull to set module config parameter. You will directly set them in the GUI. <br/>
+You can add decorator to your module class, it's usefull to set module config parameters. You will directly set them in the GUI. <br/>
 An example to implement a new explorer :
 
     ```
@@ -29,26 +29,26 @@ An example to implement a new explorer :
 
         def initialize(self, input_space, output_space, input_distance_fn):
             super().initialize(input_space, output_space, input_distance_fn)
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
         
         def sample(self):
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
 
         def observe(self, parameters, observations):
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
 
         def optimize(self):
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
     ```
-    Don't forget kwargs argument in the __init__ method and CONFIG_DEFINITION neither.
+    Don't forget kwargs argument in the __init__ method and CONFIG_DEFINITION.
 
-1) add import in libs/auto_disc/module_cat/subfolder_if_needed/__init__.py
+3) Add import in libs/auto_disc/module_cat/subfolder_if_needed/__init__.py
     ```
     example: 
         libs/auto_disc/auto_disc/explorers/__init__.py
         libs/auto_disc/auto_disc/systems/python_systems/__init__.py
     ```
-2) Add new module in registration.py in REGISTRATION dict
+4) Add new module in registration.py in REGISTRATION dict
    ```
    Modify REGISTRATION like this:
 
@@ -67,5 +67,5 @@ An example to implement a new explorer :
         },...
     }
 
-    the dict key are used in GUI to choose yours module when you setup an experiment.
+    the dict key are used in GUI to choose your module when you setup an experiment.
    ```

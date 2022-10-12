@@ -12,7 +12,7 @@ Please follow these instructions when contributing on the project.
 4. Go to package: `cd libs/auto_disc`
 5. Install package: `pip install -e .`
 #### AutoDiscServer
-1. Install flask: `pip install -r AutoDiscServer/flask_app/requirements.txt`
+1. Install flask: `pip install -r services/AutoDiscServer/flask_app/requirements.txt`
 ### App DB & Expe DB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
@@ -24,7 +24,7 @@ Please follow these instructions when contributing on the project.
 2. Enter the front-end app folder: `cd services/FrontEndApp/angular_app/`.
 3. Install required packages: `npm install`
 #### Jupyter Lab
-1. Install jupyter: `pip install JupyterLab/requirements.txt`
+1. Install jupyter: `pip install -r JupyterLab/requirements.txt`
 
 ### Testing the auto_disc lib alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment

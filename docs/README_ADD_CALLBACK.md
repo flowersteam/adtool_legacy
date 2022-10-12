@@ -1,16 +1,16 @@
 # Add a new callback to the libs 
-Six differents types of callbacks could be implemented in the AutomatedDiscoveryTool libs (on_cacelled, on_discovery, on_error, on_finished, on_save, on_save_finished).<br/>
+Six different types of callbacks can be implemented in the AutomatedDiscoveryTool libs (on_cancelled, on_discovery, on_error, on_finished, on_save, on_save_finished).<br/>
 
-on_cancelled_callbacks are call when the user decide to stop the callbacks and cancelled it.<br/>
-on_discovery_callbacks are call each time the experiment make a new discovery.<br/>
-on_error_callbacks are call when the experiment crash and raise an error.<br/>
-on_finished_callbacks are call when the experiment finished.<br/>
-on_save_callbacks are call when the experiment save data.<br/>
-on_save_finished_callbacks are call when the experiment has finish saving.<br/>
+on_cancelled_callbacks are called when the user decides to stop the callbacks and cancel it.<br/>
+on_discovery_callbacks are called each time the experiment makes a new discovery.<br/>
+on_error_callbacks are called when the experiment crashes and raises an error.<br/>
+on_finished_callbacks are called when the experiment ends.<br/>
+on_save_callbacks are called when the experiment saves data.<br/>
+on_save_finished_callbacks are called when the experiment has finished saving.<br/>
 
 
-1) Each callbakcs type have its own folder.<br/> 
-To add a new callback create the file in the associate folder
+1) Each callback type has its own folder.<br/> 
+To add a new callback create the file in the associated folder
     ```
     example: 
             libs/auto_disc/auto_disc/utils/callbacks/on_cancelled_callbacks/my_beautifull_new_on_cancelled_callback.py
@@ -18,14 +18,14 @@ To add a new callback create the file in the associate folder
             libs/auto_disc/auto_disc/utils/callbacks/on_discovery_callbacks/my_beautifull_new_on_discovery_callback.py
     ```
 
-2) The new callback must heritate base callback class of its own type.<br/>
+2) The new callback must inherits base callback class of its own type.<br/>
    ```
    example:
         MyBeautifullNewOnCancelledCallback(BaseOnCancelledCallback):
         or
         MyBeautifullNewOnDiscoveryCallback(BaseOnDiscoveryCallback)
    ```
-An example to implement a new calbback :
+An example to implement a new callback :
 
     
     from auto_disc.utils.callbacks.on_discovery_callbacks import BaseOnDiscoveryCallback
@@ -34,13 +34,13 @@ An example to implement a new calbback :
 
         def __init__(self, folder_path, to_save_outputs, **kwargs) -> None:
             super().__init__(to_save_outputs, **kwargs)
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
 
         def __call__(self, **kwargs) -> None:
-            """do some brillant stuff"""
+            """do some brilliant stuff"""
     
     Don't forget kwargs argument in the __init__ method.
-    Each time our callback will be raise the __call__ method will be execute
+    Each time our callback will be raised the __call__ method will be executed.
 
 3) add import in libs/auto_disc/auto_disc/utils/callbacks/callbacks_sub_folder/__init__.py
     ```
@@ -108,4 +108,4 @@ An example to implement a new calbback :
     }
    ```
 
-5) For now the software don't permit to add custom callback via GUI. You could use the libs in automous way like in libs/test/AutoDiscExperiment.py and add manually your personnal callbacks. The other way is to manually add you callback like in services/AutodsicServer/flask/experiments/remote_experiments.py on the __init__ method to use yours own callback with the soft.
+5) For now the software does not permit to add custom callback via GUI. You may use the libs in autonomous way like in libs/test/AutoDiscExperiment.py and add manually your personnal callbacks. The other way is to manually add you callback like in services/AutodsicServer/flask/experiments/remote_experiments.py on the __init__ method to use your own callbacks with the software.
