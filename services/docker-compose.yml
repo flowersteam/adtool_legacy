@@ -123,11 +123,13 @@ services:
       - prod
   ##### GATEWAY #####
   gateway:
-    build: ./Gateway
+    build:
+      context: ../
+      dockerfile: ./services/Gateway/Dockerfile
     ports:
       - "$GATEWAY_PORT:$GATEWAY_PORT"
     volumes:
-      - "./Gateway/nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "../configs:/rtime/userconf.d"
     links:
       - expe-db-api
       - app-db-api

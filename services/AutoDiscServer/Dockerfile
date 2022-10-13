@@ -1,7 +1,7 @@
 FROM python:3.7.14-slim
 
-RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y gcc git
+RUN apt-get update -y
+RUN apt-get install -y gcc
 
 # AutoDiscServer dependency resolution
 # NOTE: can only run in the build context provided in docker-compose.yml
@@ -27,4 +27,4 @@ COPY services/AutoDiscServer/flask_app/ /usr/src/services/flask_app/
 VOLUME ["/usr/src/services", "/usr/src/libs"]
 WORKDIR /usr/src/services/flask_app
 #CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; nginx -g "daemon off;"
-CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
+CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
