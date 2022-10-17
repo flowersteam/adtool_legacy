@@ -25,4 +25,4 @@ WORKDIR /usr/src/flask_app
 COPY flask_app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Launch Gunicorn as daemon and NGINX
-CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
+CMD gunicorn -t 0 -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
