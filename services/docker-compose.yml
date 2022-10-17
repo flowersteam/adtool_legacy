@@ -41,7 +41,6 @@ services:
     volumes:
       - "./ExpeDB/saved_data:/data/db"
   expe-db-api:
-    platform: linux/amd64
     build: ./ExpeDB/API
     environment:
       MONGODB_HOST: expe-db

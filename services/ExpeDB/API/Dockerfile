@@ -1,28 +1,27 @@
-FROM nginx:latest
-# Setup NGINX reverse proxy
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/nginx.conf /etc/nginx/conf.d/
-# Install miniconda and python
-RUN apt-get update && apt-get -y upgrade \
-  && apt-get install -y --no-install-recommends \
-  git \
-  wget \
-  g++ \
-  ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-  && mkdir /root/.conda \
-  && bash Miniconda3-latest-Linux-x86_64.sh -b \
-  && rm -f Miniconda3-latest-Linux-x86_64.sh
-RUN echo "Running $(conda --version)" && \
-  conda init bash && \
-  . /root/.bashrc
-RUN conda install python=3.7 pip
-# Install packages for flask app
-WORKDIR /usr/src/flask_app
-COPY flask_app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-# Launch Gunicorn as daemon and NGINX
-CMD gunicorn -t 0 -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
+FROM python:3.8-slim
+
+RUN apt-get update -y
+RUN apt-get install -y gcc
+
+# ExpeDB dependency resolution
+# NOTE: can only run in the build context provided in docker-compose.yml
+COPY ./flask_app/app.py /usr/src/services/flask_app/app.py
+COPY ./flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
+RUN pip install -r /usr/src/services/flask_app/requirements.txt
+
+# nginx setup
+RUN apt-get install -y nginx 
+RUN rm /etc/nginx/sites-enabled/default
+COPY ./nginx/nginx.conf /etc/nginx/sites-available/flask
+RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
+
+# dev tools
+RUN apt-get install -y curl procps vim
+
+# placed here to allowed efficient caching of src changes
+COPY ./flask_app/ /usr/src/services/flask_app/
+# start daemons
+VOLUME ["/usr/src/services"]
+WORKDIR /usr/src/services/flask_app
+
+CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
