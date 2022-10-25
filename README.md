@@ -82,3 +82,14 @@ You should see the server list in the panel on the left. To see the data of a ta
 ### MongoExpress
 MongoExpress is also a lightweight DB GUI but this time made for MongoDB.
 Access the app at [http://localhost:8081](http://localhost:8081).
+
+## Tutorial
+
+How to use the web app:
+[user doc](docs/README_GUI.md)<br/><br/>
+How to add a calback:
+[add callback](docs/README_ADD_CALLBACK.md)<br/><br/>
+How to add a module:
+[add module](docs/README_ADD_MODULE.md)<br/><br/>
+How to add a remote server:
+[add remote server](docs/README_ADD_REMOTE_SERVER.md)<br/><br/>
