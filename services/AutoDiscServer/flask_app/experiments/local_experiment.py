@@ -27,6 +27,7 @@ class LocalExperiment(BaseExperiment):
             "on_cancelled": [self.on_cancelled],
             "on_error": [self.on_error],
             "on_saved": [self.save_modules_to_expe_db],
+            "interact": {}
         }
         
         self._additional_handlers = [AppDBLoggerHandler('http://{}:{}'.format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)]
@@ -44,7 +45,7 @@ class LocalExperiment(BaseExperiment):
         for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
             seed = i
             experiment_id = self.experiment_config['experiment']['id']
-            self._pipelines.append(create(self.cleared_config, experiment_id, seed, self._additional_callbacks, self._additional_handlers))
+            self._pipelines.append(create(self.cleared_config, experiment_id, seed, self._additional_callbacks, self._additional_handlers, self.save_data_to_expe_db))
 
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(self.id, self.experiment_config['experiment']['config']['nb_seeds']))
@@ -165,6 +166,19 @@ class LocalExperiment(BaseExperiment):
                                     }
                                 )["ID"]
         self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
+
+    def save_data_to_expe_db(self, data, seed, dict_info=None, **kwargs):
+        request_dict={
+                        "experiment_id": self.id,
+                        "checkpoint_id": self._get_current_checkpoint_id(seed),
+                        "seed": seed,
+                    }
+        if isinstance(dict_info, dict):
+            request_dict.update(dict_info)
+        data_id = self._expe_db_caller("/data_saves", request_dict=request_dict)["ID"]
+        data_to_save = pickle.dumps(data)
+        file_to_save = {"data":data_to_save}
+        self._expe_db_caller("/data_saves/" + data_id + "/files", files=file_to_save)
 #endregion
 
 #region utils

@@ -10,6 +10,7 @@ import auto_disc.utils.callbacks.on_error_callbacks as on_error_callbacks
 import auto_disc.utils.callbacks.on_finished_callbacks as on_finished_callbacks
 import auto_disc.utils.callbacks.on_save_callbacks as on_save_callbacks
 import auto_disc.utils.callbacks.on_save_finished_callbacks as on_save_finished_callbacks
+import auto_disc.utils.callbacks.interact_callbacks as interact_callbacks
 from auto_disc.utils.logger.handlers import *
 
 REGISTRATION = {
@@ -47,6 +48,11 @@ REGISTRATION = {
         },
         'on_save_finished':{
             'base': on_save_finished_callbacks.BaseOnSaveFinishedCallback
+        },
+        'interact':{
+            'base': interact_callbacks.BaseInteractCallback,
+            'saveExpeDB': interact_callbacks.SaveExpeDBInteractCallback,
+            'saveDisk': interact_callbacks.SaveDiskInteractCallback,
         },
     },
     'logger_handlers':{

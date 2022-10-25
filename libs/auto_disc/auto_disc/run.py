@@ -2,12 +2,14 @@ import sys
 import argparse
 import json
 import os
-from typing import Callable, Dict, List 
+from typing import Callable, Dict, List
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 from auto_disc import REGISTRATION
 from auto_disc import ExperimentPipeline
 from auto_disc.utils.logger import AutoDiscLogger
+from auto_disc.utils.callbacks import interact_callbacks 
 
 import numpy as np
 import random
@@ -15,7 +17,8 @@ import torch
 
 def create(parameters: Dict, experiment_id: int, seed: int, 
     additional_callbacks: Dict[str, List[Callable]] = None, 
-    additional_handlers: List[AutoDiscLogger]=None) -> ExperimentPipeline:
+    additional_handlers: List[AutoDiscLogger]=None,
+    interactMethod: Callable=None) -> ExperimentPipeline:
     """
         Setup the whole experiment. Set each modules, logger, callbacks and use them to define the experiment pipeline.
 
@@ -76,17 +79,24 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         'on_finished': [],
         'on_error': [],
         'on_cancelled': [],
-        'on_saved':[]
+        'on_saved':[],
+        'interact':{}
     }
 
     for callback_key in callbacks:
         if additional_callbacks is not None:
-            callbacks[callback_key].extend(additional_callbacks[callback_key])
+            if callback_key != "interact":
+                callbacks[callback_key].extend(additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
-            callbacks[callback_key].append(
-                callback_class(logger=logger, **_callback['config'])
-            )
+            if callback_key == "interact":
+                callbacks[callback_key].update(
+                    {_callback['name'] : callback_class(logger=logger, interactMethod=interactMethod, **_callback['config'])}
+                )
+            else:
+                callbacks[callback_key].append(
+                    callback_class(logger=logger, **_callback['config'])
+                )
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
@@ -103,6 +113,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
+        interact_callbacks=callbacks['interact']
     )
 
     return experiment

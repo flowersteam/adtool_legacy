@@ -33,7 +33,13 @@ class RemoteExperiment(BaseExperiment):
             "on_cancelled": [], 
             "on_finished": [], 
             "on_error": [], 
-            "on_saved": [{"name": "disk", "config": {"folder_path": self.__host_profile["work_path"]+"/checkpoints/"}}]
+            "on_saved": [{"name": "disk", "config": {"folder_path": self.__host_profile["work_path"]+"/checkpoints/"}}],
+            "interact": [
+                {
+                    'name' :'saveDisk',
+                    'config' : {"folder_path": self.__host_profile["work_path"]+"/data_saves/"}
+                }
+            ]
             }
         super().__init__(*args, **kwargs)
 
@@ -280,6 +286,8 @@ class RemoteExperiment(BaseExperiment):
                 self.save_discovery_to_expe_db(sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
             elif remote_path.split("/")[-4] == "checkpoints":
                 self.save_modules_to_expe_db(sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
+            elif remote_path.split("/")[-4] == "data_saves":
+                self.save_data_to_expe_db(sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
         elif self.__is_finished(message):
             super().on_finished(seed_number)
             is_current_seed_finished = True
@@ -385,7 +393,7 @@ class RemoteExperiment(BaseExperiment):
         return response.content.decode() == '[]'
 
     def __new_files_saved_on_remote_disk(self, log):
-        return "New discovery saved" in log or "New modules saved"  in log
+        return "New discovery saved" in log or "New modules saved"  in log or "New data saved" in log
     
     def __get_log_part(self, log):
         log_splitted = log.split("-")
@@ -516,4 +524,28 @@ class RemoteExperiment(BaseExperiment):
             self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
         except Exception as ex:
             print("ERROR : error while saving modules in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+
+    def save_data_to_expe_db(self, **kwargs):
+        try:
+            print("oui")
+            to_save = kwargs["sub_folders"]
+            folder = "{}/data_saves/{}/{}/".format(kwargs["folder"],self.id,  kwargs["seed"])
+            files_to_save={}
+            for module in to_save:
+                if module == "dict_info":
+                    dict_info = pickle.load(open(folder+module+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
+                else:
+                    files_to_save[module] = open(folder+module+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb")
+            request_dict={
+                        "experiment_id": self.id,
+                        "checkpoint_id": self._get_current_checkpoint_id(kwargs["seed"]),
+                        "seed": kwargs["seed"],
+                    }
+            if isinstance(dict_info, dict):
+                request_dict.update(dict_info)
+            data_id = self._expe_db_caller("/data_saves", request_dict=request_dict)["ID"]
+            self._expe_db_caller("/data_saves/" + data_id + "/files", files=files_to_save)
+        except Exception as ex:
+            print("ERROR : error while saving interact data in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+
 #endregion

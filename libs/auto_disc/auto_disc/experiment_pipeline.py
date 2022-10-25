@@ -13,6 +13,7 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
+from auto_disc.utils.callbacks.interact_callbacks import Interact
 
 
 class CancellationToken:
@@ -47,7 +48,7 @@ class ExperimentPipeline():
     '''
     def __init__(self, experiment_id : int, seed: int, system: systems, explorer: explorers, input_wrappers: List[BaseInputWrapper]=None, output_representations:typing.List[BaseOutputRepresentation]=None, action_policy=None, 
                  save_frequency:int=100, on_discovery_callbacks: typing.List[Callable]=[], on_save_finished_callbacks: typing.List[Callable]=[], on_finished_callbacks: typing.List[Callable]=[], on_cancelled_callbacks: typing.List[Callable]=[],
-                  on_save_callbacks: typing.List[Callable]=[], on_error_callbacks: typing.List[Callable]=[]) -> None:
+                  on_save_callbacks: typing.List[Callable]=[], on_error_callbacks: typing.List[Callable]=[], interact_callbacks: typing.List[Callable]=[]) -> None:
         """
             Init experiment pipeline. Set all attribute used by the pipeline.
 
@@ -147,6 +148,7 @@ class ExperimentPipeline():
         self._on_cancelled_callbacks = on_cancelled_callbacks
         self._on_error_callbacks = on_error_callbacks
         self._on_save_callbacks = on_save_callbacks
+        self.interact_callbacks = interact_callbacks
         self.cancellation_token = CancellationToken()
 
 
@@ -241,6 +243,7 @@ class ExperimentPipeline():
         run_idx = 0
         BaseAutoDiscModule.CURRENT_RUN_INDEX = 0
         system_steps = [0]
+        Interact.init_seed(self.interact_callbacks, {"experiment_id" : self.experiment_id, "seed": self.seed, "idx": 0})
         try:
             while run_idx < n_exploration_runs:
                 if self.cancellation_token.get():

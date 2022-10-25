@@ -70,6 +70,12 @@ class BaseExperiment():
                         'config': {}
                     }
                 ],
+                'interact':[
+                    {
+                        'name' :'saveExpeDB',
+                        'config' : {}
+                    }
+                ]
             }
 
         self.cleared_config = clear_dict_config_parameter(self.experiment_config)
