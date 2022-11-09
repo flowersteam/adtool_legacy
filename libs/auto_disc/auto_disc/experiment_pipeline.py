@@ -255,7 +255,6 @@ class ExperimentPipeline():
                     run_parameters = self._process_run_parameters(raw_run_parameters, document_id)
 
                 o, r, d, i = self._system.reset(copy(run_parameters)), 0, None, False
-                step_observations = [o]
 
                 while not d:
                     if self._action_policy is not None:
@@ -265,7 +264,6 @@ class ExperimentPipeline():
 
                     with torch.no_grad():
                         o, r, d, i = self._system.step(a)
-                    # step_observations.append(o) # TODO: Remove step observations ?
                     system_steps[-1] += 1
                     
                 with torch.no_grad():
@@ -285,7 +283,6 @@ class ExperimentPipeline():
                     raw_output=raw_output,
                     output=output,
                     rendered_output=rendered_output,
-                    step_observations=step_observations,
                     experiment_id=self.experiment_id
                 )
                 self._system.logger.info("[DISCOVERY] - New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))

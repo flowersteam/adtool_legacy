@@ -34,4 +34,3 @@ class SavableOutputs(Enum):
     raw_output = "Raw system output"
     output = "Representation of system output"
     rendered_output = "Rendered system output"
-    step_observations = "System's step observations"
