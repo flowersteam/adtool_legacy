@@ -225,7 +225,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
         super().__init__('states', **kwargs)
 
         # model
-        self.statistic_names = ['activation_mass', 'activation_volume',
+        self._statistic_names = ['activation_mass', 'activation_volume',
                                 'activation_density', 'activation_mass_distribution',
                                 'activation_hu1', 'activation_hu2',
                                 'activation_hu3', 'activation_hu4',
@@ -235,12 +235,12 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
                                 'activation_flusser11', 'activation_flusser12',
                                 'activation_flusser13'
                                 ]
-        self.n_latents = len(self.statistic_names)
+        self._n_latents = len(self._statistic_names)
 
     def calc_static_statistics(self, final_obs: torch.Tensor) -> torch.Tensor:
         '''Calculates the final statistics for lenia last observation'''
 
-        feature_vector = torch.zeros(self.n_latents)
+        feature_vector = torch.zeros(self._n_latents)
         cur_idx = 0
 
         size_y = self.config.SY
