@@ -9,8 +9,8 @@ class DummyOutputRepresentation(BaseOutputRepresentation):
     def __init__(self, wrapped_input_space_key=None, **kwargs) -> None:
         super().__init__(wrapped_input_space_key=wrapped_input_space_key, **kwargs)
         
-    def map(self, observations, is_output_new_discovery, **kwargs):
-        return observations
+    def map(self, input, is_output_new_discovery, **kwargs):
+        return input
 
     def calc_distance(self, embedding_a: torch.Tensor, embedding_b: torch.Tensor, **kwargs) -> torch.Tensor:
         # L2 + add regularizer to avoid dead outcomes

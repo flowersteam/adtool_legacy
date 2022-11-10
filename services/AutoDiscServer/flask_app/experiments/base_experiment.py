@@ -108,7 +108,8 @@ class BaseExperiment():
         # if the seed is the first to have not crashed has arrived in this checkpoint
         # AND 
         # if we need to make a new backup afterwards then we create a new checkpoint
-        if not any(value == int(SeedStatusEnum.DONE) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()):   
+        if not any(value == int(SeedStatusEnum.DONE) for value in self.checkpoints_history[current_checkpoint_id]["seeds_status"].values()) \
+            and self.progresses[seed] < self.experiment_config['experiment']['config']["nb_iterations"]: # do not add a new checkpoint if save is at last iteration 
                 checkpoint_id = self._on_checkpoint_needed_callback(self.id, current_checkpoint_id)
                 self.checkpoints_history[checkpoint_id] = {
                     "seeds_status": {},
@@ -159,9 +160,10 @@ class BaseExperiment():
 #region utils
     def _get_current_checkpoint_id(self, seed: int) -> int:
         current_checkpoint_id = next(
-            checkpoint_id 
+            (checkpoint_id 
             for checkpoint_id, history in self.checkpoints_history.items()
-            if seed not in history["seeds_status"] or history["seeds_status"][seed] != int(SeedStatusEnum.DONE)
+            if seed not in history["seeds_status"] or history["seeds_status"][seed] != int(SeedStatusEnum.DONE)),
+            list(self.checkpoints_history.keys())[-1] # return last checkpoint otherwise
         )
         return current_checkpoint_id
 

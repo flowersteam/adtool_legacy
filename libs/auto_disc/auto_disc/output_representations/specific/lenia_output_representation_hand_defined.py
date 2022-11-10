@@ -225,7 +225,7 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
         super().__init__('states', **kwargs)
 
         # model
-        self.statistic_names = ['activation_mass', 'activation_volume',
+        self._statistic_names = ['activation_mass', 'activation_volume',
                                 'activation_density', 'activation_mass_distribution',
                                 'activation_hu1', 'activation_hu2',
                                 'activation_hu3', 'activation_hu4',
@@ -235,12 +235,12 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
                                 'activation_flusser11', 'activation_flusser12',
                                 'activation_flusser13'
                                 ]
-        self.n_latents = len(self.statistic_names)
+        self._n_latents = len(self._statistic_names)
 
     def calc_static_statistics(self, final_obs: torch.Tensor) -> torch.Tensor:
         '''Calculates the final statistics for lenia last observation'''
 
-        feature_vector = torch.zeros(self.n_latents)
+        feature_vector = torch.zeros(self._n_latents)
         cur_idx = 0
 
         size_y = self.config.SY
@@ -350,17 +350,17 @@ class LeniaHandDefinedRepresentation(BaseOutputRepresentation):
 
         return feature_vector
     
-    def map(self, observations: Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
+    def map(self, input: Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
         """
-            Maps the observations of a system to an embedding vector
+            Compute statistics on Lenia's output
             Args:
-                parameters: input parameters
+                input: Lenia's output
                 is_output_new_discovery: indicates if it is a new discovery
             Returns:
                 Return a torch tensor in dict
         """
 
-        embedding = self.calc_static_statistics(observations.states[-1])
+        embedding = self.calc_static_statistics(input.states[-1])
 
         return {'embedding': embedding}
 

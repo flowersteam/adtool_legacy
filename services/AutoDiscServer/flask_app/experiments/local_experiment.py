@@ -115,8 +115,7 @@ class LocalExperiment(BaseExperiment):
                                                         run_parameters,(json)
                                                         raw_output(file),
                                                         output(json),
-                                                        rendered_output(file),
-                                                        step_observations(file)
+                                                        rendered_output(file)
         """
         saves={}
         files_to_save={}
@@ -124,10 +123,7 @@ class LocalExperiment(BaseExperiment):
         to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
 
         for save_item in to_save_outputs:
-            if save_item == "step_observations":
-                kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
-
-            if save_item == "raw_output" or save_item == "step_observations":
+            if save_item == "raw_output":
                 files_to_save[save_item] = ('{}_{}_{}'.format(save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
             elif save_item == "rendered_output":
                 filename = "exp_{}_idx_{}".format(kwargs["experiment_id"], kwargs["run_idx"])

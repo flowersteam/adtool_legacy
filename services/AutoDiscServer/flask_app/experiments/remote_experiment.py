@@ -463,8 +463,7 @@ class RemoteExperiment(BaseExperiment):
                                                             run_parameters,(json)
                                                             raw_output(file),
                                                             output(json),
-                                                            rendered_output(file),
-                                                            step_observations(file)
+                                                            rendered_output(file)
             """
             try:
                 saves={}
@@ -478,10 +477,7 @@ class RemoteExperiment(BaseExperiment):
 
                 for save_item in to_save_outputs:
                     if kwargs["sub_folders"] is not None and save_item in kwargs["sub_folders"]:
-                        # if save_item == "step_observations":
-                        #     kwargs[save_item] = serialize_autodisc_space(kwargs[save_item])
-
-                        if save_item == "raw_output" or save_item == "step_observations":
+                        if save_item == "raw_output":
                             files_to_save[save_item] = ('{}_{}_{}'.format(
                                 save_item, kwargs["experiment_id"], kwargs["run_idx"]), 
                                 open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))

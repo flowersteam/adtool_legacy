@@ -9,7 +9,7 @@
         <div *ngFor="let checkpoint of experiment.checkpoints; let index = index" class="accordion-item">
           <h2 class="accordion-header" [attr.id]="'accordionCheckpoints-heading' + checkpoint.id">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#accordionCheckpoints-collapse' + checkpoint.id" aria-expanded="false" aria-controls="accordionCheckpoints-collapseOne">
-              Checkpoint n°{{index + 1}} : {{experiment.config.save_frequency * (index+1)}} iterations
+              Checkpoint n°{{index + 1}} : {{math.min(experiment.config.save_frequency * (index+1), experiment.config.nb_iterations)}} iterations
             </button>
           </h2>
           <div [attr.id]="'accordionCheckpoints-collapse' + checkpoint.id" class="accordion-collapse collapse" [attr.aria-labelledby]="'accordionCheckpoints-heading' + checkpoint.id">
