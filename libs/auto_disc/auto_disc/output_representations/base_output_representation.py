@@ -25,12 +25,12 @@ class BaseOutputRepresentation (BaseAutoDiscModule):
                 self.output_space[key] = input_space[key]
         
 
-    def map(self, observations, is_output_new_discovery, **kwargs):
+    def map(self, input, is_output_new_discovery, **kwargs):
         """
-            Maps the observations of a system to an embedding vector
+            Map the input (system's output) to another space (towards the explorer's input space)
 
             Args:
-                parameters: input parameters
+                input: input parameters
                 is_output_new_discovery: indicates if it is a new discovery
         """
         raise NotImplementedError

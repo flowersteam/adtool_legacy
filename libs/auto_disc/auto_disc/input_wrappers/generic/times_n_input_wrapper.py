@@ -24,7 +24,7 @@ class TimesNInputWrapper(BaseInputWrapper):
         del self.input_space[self._initial_input_space_keys[0]]
         self._initial_input_space_keys = [new_key]
 
-    def map(self, parameters: Dict, is_input_new_discovery, **kwargs) -> Dict:
-        parameters[self._wrapped_output_space_key] = parameters[self._initial_input_space_keys[0]] * self.config['n']
-        del parameters[self._initial_input_space_keys[0]]
-        return parameters
+    def map(self, input: Dict, is_input_new_discovery, **kwargs) -> Dict:
+        input[self._wrapped_output_space_key] = input[self._initial_input_space_keys[0]] * self.config['n']
+        del input[self._initial_input_space_keys[0]]
+        return input

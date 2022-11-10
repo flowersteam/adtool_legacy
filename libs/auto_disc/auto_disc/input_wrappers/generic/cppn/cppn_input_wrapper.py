@@ -20,7 +20,7 @@ class CppnInputWrapper(BaseInputWrapper):
     def __init__(self, wrapped_output_space_key :str, **kwargs) -> None:
         super().__init__(wrapped_output_space_key, **kwargs)
 
-    def map(self, parameters: Dict[str, Any], is_input_new_discovery : bool, **kwargs) -> Dict[str, torch.Tensor]:
+    def map(self, input: Dict[str, Any], is_input_new_discovery : bool, **kwargs) -> Dict[str, torch.Tensor]:
         """
             Map the input parameters (from the explorer) to the cppn output parameters (sytem input)
 
@@ -30,7 +30,7 @@ class CppnInputWrapper(BaseInputWrapper):
             Returns:
                 parameters: parameters after map to match system input
         """
-        cppn_genome = parameters['genome']
+        cppn_genome = input['genome']
         initialization_cppn = pytorchneat.rnn.RecurrentNetwork.create(cppn_genome, self.input_space['genome'].neat_config)
 
         cppn_output_height = int(self.output_space[self._wrapped_output_space_key].shape[1])
@@ -40,8 +40,8 @@ class CppnInputWrapper(BaseInputWrapper):
         cppn_output = initialization_cppn.activate(cppn_input, self.config.n_passes)
         cppn_net_output = (1.0 - cppn_output.abs()).squeeze()
 
-        parameters[self._wrapped_output_space_key] = cppn_net_output
-        del parameters['genome']
-        return parameters
+        input[self._wrapped_output_space_key] = cppn_net_output
+        del input['genome']
+        return input
 
         

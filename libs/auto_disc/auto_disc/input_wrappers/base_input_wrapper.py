@@ -24,12 +24,12 @@ class BaseInputWrapper(BaseAutoDiscModule):
             if key != self._wrapped_output_space_key:
                 self.input_space[key] = output_space[key]
 
-    def map(self, parameters, is_input_new_discovery, **kwargs):
+    def map(self, input, is_input_new_discovery, **kwargs):
         """
             Map the input parameters (from the explorer) to the output parameters (sytem input)
 
             Args:
-                parameters: input parameters
+                input: input parameters
                 is_input_new_discovery: indicates if it is a new discovery
         """
         raise NotImplementedError
