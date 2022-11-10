@@ -288,7 +288,7 @@ class ExperimentPipeline():
                 self._system.logger.info("[DISCOVERY] - New discovery from experiment {} with seed {}".format(self.experiment_id, self.seed))
                 self._explorer.optimize() # TODO callbacks
 
-                if (run_idx+1) % self.save_frequency == 0:
+                if (run_idx + 1) % self.save_frequency == 0 or run_idx + 1 == n_exploration_runs:
                     self._raise_callbacks(
                         self._on_save_callbacks,
                         run_idx=run_idx,
