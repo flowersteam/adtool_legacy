@@ -38,9 +38,9 @@ class IMGEPExplorer(BaseExplorer):
                 input_distance_fn: a method to calc distance
         """
         super().initialize(input_space, output_space, input_distance_fn)
-        if len(self._input_space) > 1:
+        if len(self.input_space) > 1:
             raise NotImplementedError("Only 1 vector can be accepted as input space")
-        self._outter_input_space_key = list(self._input_space.spaces.keys())[0] # select first key in DictSpace
+        self._outter_input_space_key = list(self.input_space.spaces.keys())[0] # select first key in DictSpace
 
     def expand_box_goal_space(self, space: BoxSpace, observations: torch.Tensor) -> None:
         """
@@ -62,7 +62,7 @@ class IMGEPExplorer(BaseExplorer):
         """ Defines the next goal of the exploration. """
 
         if self.config.goal_selection_type == 'random':
-            target_goal = self._input_space.sample()
+            target_goal = self.input_space.sample()
         else:
             raise ValueError(
                 'Unknown goal generation type {!r} in the configuration!'.format(self.config.goal_selection_type))
@@ -84,7 +84,7 @@ class IMGEPExplorer(BaseExplorer):
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
-            goal_distances = self._input_distance_fn(target_goal, goal_library)
+            goal_distances = self.input_distance_fn(target_goal, goal_library)
 
             # select goal with minimal distance
             source_policy_idx = torch.argmin(goal_distances)
@@ -105,7 +105,7 @@ class IMGEPExplorer(BaseExplorer):
         # random sampling if not enough in library
         if self.CURRENT_RUN_INDEX < self.config.num_of_random_initialization:
             # initialize the parameters
-            policy_parameters = self._output_space.sample()
+            policy_parameters = self.output_space.sample()
             # for parameter_key, parameter_space in self._output_space.items():
             #     policy_parameters[parameter_key] = sample_value(parameter_space)
 
@@ -118,7 +118,7 @@ class IMGEPExplorer(BaseExplorer):
             source_policy_idx = self._get_source_policy_idx(target_goal, history['input'])
             source_policy = history[int(source_policy_idx)]['output']
 
-            policy_parameters = self._output_space.mutate(source_policy)
+            policy_parameters = self.output_space.mutate(source_policy)
 
         # TODO: Target goal
         # run with parameters
@@ -136,15 +136,15 @@ class IMGEPExplorer(BaseExplorer):
                 observations: observations/results of previous explorations
         """
         if self.config.use_exandable_goal_space:
-            self.expand_box_goal_space(self._input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
-            self.logger.debug("Imgep goal space was extend")
+            self.expand_box_goal_space(self.input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
+            self.logger.debug("Imgep goal space was extended")
 
     def optimize(self):
         pass
 
     def save(self) -> typing.Dict[str, DictSpace]:
-        return {'input_space': self._input_space}
+        return {'input_space': self.input_space}
 
     def load(self, saved_dict) -> None:
-        self._input_space = saved_dict['input_space']
+        self.input_space = saved_dict['input_space']
 

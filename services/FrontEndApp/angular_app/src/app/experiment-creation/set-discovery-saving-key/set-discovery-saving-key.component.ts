@@ -53,7 +53,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
         this.getDiscoverySavingKeysUse()
       }
       else{
-        this.toasterService.showError(response.message ?? '', "Error getting discoery saving keys", {timeOut: 0, extendedTimeOut: 0});
+        this.toasterService.showError(response.message ?? '', "Error getting discovery saving keys", {timeOut: 0, extendedTimeOut: 0});
       }
     });
   }

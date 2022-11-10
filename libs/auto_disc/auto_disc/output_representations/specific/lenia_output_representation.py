@@ -21,17 +21,17 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
     def __init__(self, wrapped_input_space_key: str =None, **kwargs) -> None:
         super().__init__('states', **kwargs)
 
-    def map(self, observations: typing.Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
+    def map(self, input: typing.Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
         """
-            Maps the observations of a system to an embedding vector
+            Flatten Lenia's output
             Args:
-                parameters: input parameters
+                input: Lenia's output
                 is_output_new_discovery: indicates if it is a new discovery
             Returns:
                 Return a torch tensor in dict
         """
         # filter low values
-        filtered_im = torch.where(observations.states[-1] > 0.2, observations.states[-1], torch.zeros_like(observations.states[-1]))
+        filtered_im = torch.where(input.states[-1] > 0.2, input.states[-1], torch.zeros_like(input.states[-1]))
 
         # recenter
         mu_0 = filtered_im.sum()

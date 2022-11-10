@@ -8,6 +8,7 @@ import { Component, OnInit, Input } from '@angular/core';
 export class CheckpointsDetailsComponent implements OnInit {
 
   @Input() experiment?: any;
+  math = Math;
 
   constructor() { }
 

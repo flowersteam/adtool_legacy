@@ -8,8 +8,7 @@ class BaseOnDiscoveryCallback(BaseCallback):
                         "run_parameters", 
                         "raw_output", 
                         "output",
-                        "rendered_output",
-                        "step_observations"]
+                        "rendered_output"]
 
     def __init__(self, to_save_outputs: List[str], **kwargs) -> None:
         """

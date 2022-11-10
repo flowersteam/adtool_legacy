@@ -20,11 +20,11 @@ class TimesNInputWrapper(BaseInputWrapper):
 
         # Change key name to avoid issues with multiple same wrappers stacked
         new_key = 'Times{0}_{1}'.format(self.config['n'], wrapped_output_space_key)
-        self.input_space[new_key] = self.input_space[self.initial_input_space_keys[0]]
-        del self.input_space[self.initial_input_space_keys[0]]
-        self.initial_input_space_keys = [new_key]
+        self.input_space[new_key] = self.input_space[self._initial_input_space_keys[0]]
+        del self.input_space[self._initial_input_space_keys[0]]
+        self._initial_input_space_keys = [new_key]
 
-    def map(self, parameters: Dict, is_input_new_discovery, **kwargs) -> Dict:
-        parameters[self.wrapped_output_space_key] = parameters[self.initial_input_space_keys[0]] * self.config['n']
-        del parameters[self.initial_input_space_keys[0]]
-        return parameters
+    def map(self, input: Dict, is_input_new_discovery, **kwargs) -> Dict:
+        input[self._wrapped_output_space_key] = input[self._initial_input_space_keys[0]] * self.config['n']
+        del input[self._initial_input_space_keys[0]]
+        return input
