@@ -1,6 +1,6 @@
 #!/bin/bash
 
-chmod 777 -R services/JupyterLab/Notebooks/
+chmod 777 -R services/JupyterLab/Notebooks/ # Needed for both the web app and Jupyter docker container to use this folder
 docker-compose -f services/docker-compose.yml --profile prod up --build
 
 # saves docker logs on the disk
