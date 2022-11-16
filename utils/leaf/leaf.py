@@ -17,7 +17,7 @@ class Leaf:
     def create_locator(self, bin, *args, **kwargs) -> 'Locator':
         raise NotImplementedError()
 
-    def store_locator(self, loc) -> None:
+    def store_locator(self, loc: 'Locator') -> None:
         """ Store Locator in persistent storage with relationship to the Leaf """
         raise NotImplementedError()
 
