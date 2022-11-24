@@ -20,8 +20,8 @@ class DiskPipeline(Leaf):
     @classmethod
     def retrieve_locator(cls, leaf_id: str) -> 'Locator':
         with open(f"/tmp/PipelineDir/{leaf_id}", "rb") as f:
-            bin = Locator.deserialize(f.read())
-        return bin
+            loc = Locator.deserialize(f.read())
+        return loc
 
 
 class DiskLocator(Locator):
