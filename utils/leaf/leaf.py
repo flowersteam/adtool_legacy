@@ -116,6 +116,7 @@ class Leaf:
 
         # TODO: perhaps think about the asymmetry of the recursive save/load between this pair and the serialize/deserialize pair
         locator = loaded_cls.retrieve_locator(hash)
+        # TODO: load locator dependencies along with the leaf dependencies. ATTENTION: This should happen automatically if they are within the same module namespace but perhaps needs to do more work otherwise.
         bin = locator.retrieve()
         loaded_obj = loaded_cls.deserialize(bin)
         return loaded_obj
