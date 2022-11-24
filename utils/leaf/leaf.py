@@ -60,7 +60,7 @@ class Leaf:
         if self.__module__ == "__main__":
             raise Exception(
                 "Please don't run anything in __main__ namespace. Try packaging your custom module and running it from a wrapper script.")
-        if bin == None:
+        if bin is None:
             bin = self.serialize()
         self.uid = get_qualified_class_path(
             self) + "|" + sha1(bin).hexdigest()
@@ -123,7 +123,7 @@ class Leaf:
 
 
 class Locator:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bin,  *args, **kwargs):
         """ Store all stateful information needed to locate the resource in instance variables """
         raise NotImplementedError
 
