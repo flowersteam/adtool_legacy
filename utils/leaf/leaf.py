@@ -1,4 +1,4 @@
-from typing import *
+from typing import Union, Tuple
 from hashlib import sha1
 import pickle
 # for dynamic discovery and loading of Python classes
@@ -50,7 +50,7 @@ class Leaf:
         else:
             super().__delattr__(name)
 
-    def _parse_leaf_hash(hash: str) -> Tuple[type, str]:
+    def _parse_leaf_hash(hash: str) -> Tuple[object, str]:
         """ Parses hashes with form module.class|sha1hex """
         class_path, _ = hash.split("|")
         return_class = locate(class_path)
@@ -59,11 +59,12 @@ class Leaf:
     def _update_uid(self, bin: bytes = None) -> None:
         if self.__module__ == "__main__":
             raise Exception(
-                "Please don't run anything in __main__ namespace. Try packaging your custom module and running it from a wrapper script.")
+                "Please don't run anything in __main__ namespace. \
+                Try packaging your custom module and running it from a wrapper script.")
         if bin is None:
             bin = self.serialize()
-        self.uid = get_qualified_class_path(
-            self) + "|" + sha1(bin).hexdigest()
+        self.uid = \
+            get_qualified_class_path(self) + "|" + sha1(bin).hexdigest()
 
         return self.uid
 
