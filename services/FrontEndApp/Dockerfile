@@ -3,7 +3,7 @@ FROM nginx:stable-alpine
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 # Install NPM and Angular CLI
 RUN apk add --update npm
-RUN npm install -g @angular/cli@latest
+RUN npm install -g @angular/cli@v14-lts
 # set bash scrpt to manege docker ip
 COPY bash/set-ip-from-hostname.sh /usr/src/bash/set-ip-from-hostname.sh
 RUN chmod 777 /usr/src/bash/set-ip-from-hostname.sh
