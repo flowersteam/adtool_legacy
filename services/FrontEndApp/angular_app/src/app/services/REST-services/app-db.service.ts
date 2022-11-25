@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 
 import { environment } from './../../../environments/environment';
-import {Experiment} from "../../entities/experiment";
+import { Experiment } from "../../entities/experiment";
 import { RESTResponse, httpErrorResponseToRESTResponse, httpResponseToRESTResponse } from '../../entities/rest_response';
 
 import { Observable, of } from 'rxjs';
@@ -14,16 +14,17 @@ import { Observable, of } from 'rxjs';
 export class AppDbService {
 
   private appDBUrl
-  constructor(private http: HttpClient) { 
-    this.appDBUrl = "http://"+ environment.APPDB_HOST +":" + environment.APP_DB_API_PORT;
-    console.log(this.appDBUrl);
+  constructor(private http: HttpClient) {
+    //    this.appDBUrl = "http://" + environment.APPDB_HOST + ":" + environment.APP_DB_API_PORT;
+    this.appDBUrl = "http://127.0.0.1:4201/app-db-api";
+    console.log("appDBUrl:" + this.appDBUrl);
   }
 
   /** GET LightExperiments from the AppDB */
   getLightExperiments(): Observable<RESTResponse<Experiment[]>> {
     return this.http.get<Experiment[]>(
-      this.appDBUrl + 
-      "/experiments?select=id,name,created_on,progress,exp_status,archived,config," + 
+      this.appDBUrl +
+      "/experiments?select=id,name,created_on,progress,exp_status,archived,config," +
       "systems(name)," +
       "explorers(name)," +
       "input_wrappers(name)," +
@@ -40,8 +41,8 @@ export class AppDbService {
 
   getExperimentById(id: number): Observable<RESTResponse<Experiment>> {
     return this.http.get<Experiment>(
-      this.appDBUrl + 
-      "/experiments?select=id,name,created_on,progress,exp_status,config,archived,checkpoint_saves_archived,discoveries_archived," + 
+      this.appDBUrl +
+      "/experiments?select=id,name,created_on,progress,exp_status,config,archived,checkpoint_saves_archived,discoveries_archived," +
       "systems(name,config)," +
       "explorers(name,config)," +
       "input_wrappers(name,config,index)," +
@@ -49,8 +50,8 @@ export class AppDbService {
       "checkpoints!experiment_id(id,parent_id,status)" +
       "&id=eq." + id,
       {
-        headers: new HttpHeaders({ 
-          'Content-Type': 'application/json', 
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
           'Accept': 'application/vnd.pgrst.object+json' // Get a single json element instead of an array 
         }),
         observe: 'response'
@@ -63,10 +64,10 @@ export class AppDbService {
 
   private patchExperimentById(id: number, patchObject: Object): Observable<RESTResponse<Experiment>> {
     return this.http.patch<Experiment>(
-      this.appDBUrl + 
+      this.appDBUrl +
       "/experiments?id=eq." + id,
       patchObject,
-      {observe: 'response'})
+      { observe: 'response' })
       .pipe(
         map(response => { return httpResponseToRESTResponse<Experiment>(response); }),
         catchError(response => { return of(httpErrorResponseToRESTResponse<Experiment>(response)); })
@@ -74,21 +75,21 @@ export class AppDbService {
   }
 
   updateArchiveExperimentStatusById(id: number, status: boolean): Observable<RESTResponse<Experiment>> {
-    return this.patchExperimentById(id, {'archived': status});
+    return this.patchExperimentById(id, { 'archived': status });
   }
 
   archiveExperimentCheckpointSavesById(id: number): Observable<RESTResponse<Experiment>> {
-    return this.patchExperimentById(id, {'checkpoint_saves_archived': true});
+    return this.patchExperimentById(id, { 'checkpoint_saves_archived': true });
   }
 
   archiveExperimentDiscoveriesById(id: number): Observable<RESTResponse<Experiment>> {
-    return this.patchExperimentById(id, {'discoveries_archived': true});
+    return this.patchExperimentById(id, { 'discoveries_archived': true });
   }
 
 
   getAllLogLevels(): Observable<RESTResponse<any>> {
     return this.http.get<any>(
-      this.appDBUrl + 
+      this.appDBUrl +
       "/log_levels",
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -102,8 +103,8 @@ export class AppDbService {
 
   getLogs(filter: string): Observable<RESTResponse<any>> {
     return this.http.get<any>(
-      this.appDBUrl + 
-      "/logs"+ filter,
+      this.appDBUrl +
+      "/logs" + filter,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
         observe: 'response'
@@ -116,8 +117,8 @@ export class AppDbService {
 
   getPreparingLogs(filter: string): Observable<any> {
     return this.http.get<any>(
-      this.appDBUrl + 
-      "/preparing_logs"+ filter,
+      this.appDBUrl +
+      "/preparing_logs" + filter,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
         observe: 'response'
