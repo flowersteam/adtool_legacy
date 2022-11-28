@@ -2,9 +2,11 @@ from addict import Dict
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 from auto_disc.utils.config_parameters import IntegerConfigParameter
 from auto_disc.base_autodisc_module import BaseAutoDiscModule
+from auto_disc.input_wrappers import BaseInputWrapper
 from leaf.leaf import Leaf
 from copy import deepcopy
 import numpy as np
+from typing import Any
 
 
 from leaf.tests.test_leaf import DummyDB, DummyLocator
@@ -12,7 +14,7 @@ from leaf.leaf import Locator
 
 
 @IntegerConfigParameter(name="n", default=1)
-class TimesNInputWrapper(Leaf):
+class TimesNInputWrapper(BaseInputWrapper):
     CONFIG_DEFINITION = {}
 
     input_space = DictSpace(
@@ -38,3 +40,20 @@ class TimesNInputWrapper(Leaf):
     @classmethod
     def retrieve_locator(cls, leaf_id):
         return Locator.deserialize(DummyDB.LocDB[leaf_id])
+
+
+class DummySaveService(Leaf):
+    def create_locator(self, bin):
+        return DummyLocator(bin)
+
+    def store_locator(self, loc):
+        DummyDB.LocDB[self.uid] = loc.serialize()
+        return
+
+    @classmethod
+    def retrieve_locator(cls, leaf_id):
+        return Locator.deserialize(DummyDB.LocDB[leaf_id])
+
+    def __init__(self, object_to_save: Any) -> None:
+        super().__init__()
+        self.data = object_to_save

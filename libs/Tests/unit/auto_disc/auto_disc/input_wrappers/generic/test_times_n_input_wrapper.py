@@ -1,3 +1,4 @@
+from auto_disc.input_wrappers.generic.times_n_input_wrapper import DummySaveService
 from auto_disc.input_wrappers.generic import TimesNInputWrapper
 import os
 import sys
@@ -49,12 +50,14 @@ def test_map():
 
 def test_save_load():
     wrapped_output_space_key = "a"
-    timesNInputWrapper = TimesNInputWrapper(wrapped_output_space_key)
+    timesNInputWrapper = DummySaveService(
+        TimesNInputWrapper(wrapped_output_space_key))
 
     timesNInputWrapper.save_leaf()
     saved_uid = timesNInputWrapper.uid
     del timesNInputWrapper
-    new_wrapper = TimesNInputWrapper.load_leaf(saved_uid)
+
+    new_wrapper = DummySaveService.load_leaf(saved_uid).data
     assert (
         new_wrapper.config == {'n': 1}
         and new_wrapper.CONFIG_DEFINITION == {'n': {'default': 1, 'type': 'INTEGER', 'min': None, 'max': None}}
