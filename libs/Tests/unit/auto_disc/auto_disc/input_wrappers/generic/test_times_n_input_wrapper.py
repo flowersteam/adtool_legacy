@@ -28,3 +28,35 @@ def test_map():
     new_parameters = timesNInputWrapper.map(parameters)
     assert new_parameters == {"a": 50, "b": -1}
     assert parameters == {"a": 5, "b": -1}
+
+
+# def test_dynamic_overloading():
+#     wrapped_output_space_key = "a"
+#     timesNInputWrapper = TimesNInputWrapper(wrapped_output_space_key)
+#     service = LocatorService()
+
+#     # dynamic overloading
+#     timesNInputWrapper.create_locator = LocatorService.create_locator.__get__(
+#         timesNInputWrapper, TimesNInputWrapper)
+#     timesNInputWrapper.store_locator = LocatorService.store_locator.__get__(
+#         timesNInputWrapper, TimesNInputWrapper)
+#     timesNInputWrapper.retrieve_locator = LocatorService.retrieve_locator.__get__(
+#         timesNInputWrapper, TimesNInputWrapper)
+#     assert timesNInputWrapper.create_locator is not None
+#     assert timesNInputWrapper.store_locator is not None
+#     assert timesNInputWrapper.retrieve_locator is not None
+
+
+def test_save_load():
+    wrapped_output_space_key = "a"
+    timesNInputWrapper = TimesNInputWrapper(wrapped_output_space_key)
+
+    timesNInputWrapper.save_leaf()
+    saved_uid = timesNInputWrapper.uid
+    del timesNInputWrapper
+    new_wrapper = TimesNInputWrapper.load_leaf(saved_uid)
+    assert (
+        new_wrapper.config == {'n': 1}
+        and new_wrapper.CONFIG_DEFINITION == {'n': {'default': 1, 'type': 'INTEGER', 'min': None, 'max': None}}
+        and new_wrapper._wrapped_output_space_key == "a"
+    )
