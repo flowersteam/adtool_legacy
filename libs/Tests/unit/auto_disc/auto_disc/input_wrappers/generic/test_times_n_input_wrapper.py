@@ -1,3 +1,4 @@
+from leafstructs.container import provide_leaf_as_service
 from auto_disc.input_wrappers.generic.times_n_input_wrapper import DummySaveService
 from auto_disc.input_wrappers.generic import TimesNInputWrapper
 import os
@@ -50,16 +51,16 @@ def test_map():
 
 def test_save_load():
     wrapped_output_space_key = "a"
-    timesNInputWrapper = DummySaveService(
-        TimesNInputWrapper(wrapped_output_space_key))
+    timesNInputWrapper = provide_leaf_as_service(
+        TimesNInputWrapper(wrapped_output_space_key), DummySaveService)
 
     timesNInputWrapper.save_leaf()
     saved_uid = timesNInputWrapper.uid
     del timesNInputWrapper
 
-    new_wrapper = DummySaveService.load_leaf(saved_uid).data
+    new_wrapper = DummySaveService.load_leaf(saved_uid)
     assert (
         new_wrapper.config == {'n': 1}
         and new_wrapper.CONFIG_DEFINITION == {'n': {'default': 1, 'type': 'INTEGER', 'min': None, 'max': None}}
-        and new_wrapper._wrapped_output_space_key == "a"
+        and new_wrapper._wrapped_key == "a"
     )

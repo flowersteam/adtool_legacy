@@ -1,59 +1,50 @@
-from addict import Dict
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 from auto_disc.utils.config_parameters import IntegerConfigParameter
-from auto_disc.base_autodisc_module import BaseAutoDiscModule
-from auto_disc.input_wrappers import BaseInputWrapper
 from leaf.leaf import Leaf
 from copy import deepcopy
 import numpy as np
+from addict import Dict
 from typing import Any
-
 
 from leaf.tests.test_leaf import DummyDB, DummyLocator
 from leaf.leaf import Locator
 
 
 @IntegerConfigParameter(name="n", default=1)
-class TimesNInputWrapper(BaseInputWrapper):
+class TimesNInputWrapper(Leaf):
     CONFIG_DEFINITION = {}
 
     input_space = DictSpace(
         input_parameter=BoxSpace(low=-np.inf, high=np.inf, shape=())
     )
 
-    def __init__(self, wrapped_output_space_key: str) -> None:
+    def __init__(self, wrapped_key: str) -> None:
         super().__init__()
-        self._wrapped_output_space_key = wrapped_output_space_key
+        self.input_space = deepcopy(self.input_space)
+        self.input_space.initialize(self)
+        self._wrapped_key = wrapped_key
+        self._initial_input_space_keys = [key for key in self.input_space]
 
     def map(self, input: Dict) -> Dict:
+        # must do because dicts are mutable types
         output = deepcopy(input)
-        output[self._wrapped_output_space_key] = output[self._wrapped_output_space_key] * self.config["n"]
+
+        output[self._wrapped_key] = \
+            output[self._wrapped_key] * self.config["n"]
+
         return output
-
-    def create_locator(self, bin):
-        return DummyLocator(bin)
-
-    def store_locator(self, loc):
-        DummyDB.LocDB[self.uid] = loc.serialize()
-        return
-
-    @classmethod
-    def retrieve_locator(cls, leaf_id):
-        return Locator.deserialize(DummyDB.LocDB[leaf_id])
 
 
 class DummySaveService(Leaf):
+    locator_table = DummyDB.LocDB
+
     def create_locator(self, bin):
         return DummyLocator(bin)
 
     def store_locator(self, loc):
-        DummyDB.LocDB[self.uid] = loc.serialize()
+        DummySaveService.locator_table[self.uid] = loc.serialize()
         return
 
     @classmethod
     def retrieve_locator(cls, leaf_id):
-        return Locator.deserialize(DummyDB.LocDB[leaf_id])
-
-    def __init__(self, object_to_save: Any) -> None:
-        super().__init__()
-        self.data = object_to_save
+        return Locator.deserialize(DummySaveService.locator_table[leaf_id])
