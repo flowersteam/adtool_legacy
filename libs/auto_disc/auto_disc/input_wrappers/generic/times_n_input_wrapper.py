@@ -20,7 +20,7 @@ class TimesNInputWrapper(Leaf):
     def __init__(self, wrapped_key: str) -> None:
         super().__init__()
         self.input_space = deepcopy(self.input_space)
-        self.input_space.initialize(self)
+        # self.input_space.initialize(self)
         self._wrapped_key = wrapped_key
         self._initial_input_space_keys = [key for key in self.input_space]
 

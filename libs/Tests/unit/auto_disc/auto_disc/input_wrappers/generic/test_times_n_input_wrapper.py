@@ -17,7 +17,7 @@ def test_init():
     assert (
         timesNInputWrapper.config == {'n': 1}
         and timesNInputWrapper.CONFIG_DEFINITION == {'n': {'default': 1, 'type': 'INTEGER', 'min': None, 'max': None}}
-        and timesNInputWrapper._wrapped_output_space_key == "a"
+        and timesNInputWrapper._wrapped_key == "a"
     )
 
 
