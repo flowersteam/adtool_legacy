@@ -4,7 +4,6 @@ from leaf.leaf import Leaf
 from copy import deepcopy
 import numpy as np
 from addict import Dict
-from typing import Any
 
 from leaf.tests.test_leaf import DummyDB, DummyLocator
 from leaf.leaf import Locator
