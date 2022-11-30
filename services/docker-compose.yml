@@ -17,8 +17,7 @@ services:
       - "./AppDB/saved_data:/var/lib/postgresql/data"
       - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
   app-db-api:
-    platform: linux/arm64/v8
-    build: ./AppDB/API
+    image: postgrest/postgrest:v9.0.0.20220531
     environment:
       PGRST_DB_URI: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@app-db:$POSTGRES_PORT/$POSTGRES_DB
       PGRST_DB_SCHEMA: $PGRST_DB_SCHEMA
