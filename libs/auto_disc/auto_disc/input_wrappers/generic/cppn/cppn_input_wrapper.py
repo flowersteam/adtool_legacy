@@ -16,12 +16,27 @@ class CppnInputWrapper(Leaf):
         genome=CPPNGenomeSpace()
     )
 
-    def __init__(self, wrapped_key: str, **kwargs) -> None:
+    def __init__(self, wrapped_key: str, output_space: DictSpace = None, **kwargs) -> None:
+        # TODO: logger kwarg is not yet handled
         super().__init__()
-        self.input_space = deepcopy(self.input_space)
-        # self.input_space.initialize(self)
+
         self._wrapped_key = wrapped_key
+
+        self.initialize_spaces(output_space)
+
+    def initialize_spaces(self, output_space: DictSpace = None) -> None:
+        wrapped_key = self._wrapped_key
+
+        self.input_space = deepcopy(self.input_space)
         self._initial_input_space_keys = [key for key in self.input_space]
+
+        self._wrapped_key = wrapped_key
+
+        if output_space is not None:
+            self.output_space = output_space
+            for key in iter(output_space):
+                if key != self._wrapped_key:
+                    self.input_space[key] = output_space[key]
 
     def map(self, input: Dict[str, Any], **kwargs) -> Dict[str, torch.Tensor]:
         """

@@ -136,6 +136,8 @@ class ExperimentPipeline():
 
         for i in reversed(range(len(self._input_wrappers))):
             # self._input_wrappers[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
+
+            #### #146: KEY LOGIC HERE TO REPRODUCE ####
             if i == len(self._input_wrappers) - 1:
                 self._input_wrappers[i].initialize(
                     output_space=self._system.input_space)
@@ -152,6 +154,7 @@ class ExperimentPipeline():
 
             self._input_wrappers[i].set_history_access_fn(access_history_fn(keys=['idx', input_key, output_key],
                                                                             new_keys=['idx', 'input', 'output']))
+            #### #146: KEY LOGIC CI-DESSUS A REPRODUIRE ####
 
         ### EXPLORER ###
         self._explorer = explorer
