@@ -27,6 +27,7 @@ RUN apt-get install -y curl procps vim
 
 # placed here to allowed efficient caching of src changes
 COPY services/AutoDiscServer/flask_app/ /usr/src/services/flask_app/
+
 # start daemons
 VOLUME ["/usr/src/services", "/usr/src/libs"]
 WORKDIR /usr/src/services/flask_app

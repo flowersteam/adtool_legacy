@@ -54,6 +54,7 @@ services:
       - prod
   ##### AUTODISC SERVER #####
   autodisc-server:
+    # will break on ARM if not explicity set
     platform: linux/amd64
     build:
       context: ../
@@ -80,6 +81,7 @@ services:
       - prod
   ##### JUPYTER LAB #####
   jupyter:
+    # will break on ARM if not explicity set
     platform: linux/amd64
     build: ./JupyterLab
     environment:
