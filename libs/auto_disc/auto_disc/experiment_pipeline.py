@@ -216,7 +216,7 @@ class ExperimentPipeline():
             self._process_output(
                 output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
 
-    def _process_run_parameters(self, run_parameters: Dict[str, Any], document_id: int, starting_index: int = 0, is_input_new_discovery: bool = True) -> Dict[str, Any]:
+    def _process_run_parameters(self, run_parameters: Dict[str, Any], document_id: int, starting_index: int = 0) -> Dict[str, Any]:
         """
             Process the run_parameters and store it in the tinyDB to make it usable in different modules of the experiment
 
@@ -232,7 +232,7 @@ class ExperimentPipeline():
 
         for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
             run_parameters = input_wrapper.map(
-                copy(run_parameters), is_input_new_discovery)
+                copy(run_parameters))
             if i == len(self._input_wrappers) - 1:
                 self.db.update({'run_parameters': copy(
                     run_parameters)}, doc_ids=[document_id])
