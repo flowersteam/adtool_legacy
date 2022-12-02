@@ -14,6 +14,9 @@ from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
 from auto_disc.utils.callbacks.interact_callbacks import Interact
+from auto_disc.systems.base_system import BaseSystem
+from auto_disc.explorers.base_explorer import BaseExplorer
+from depinj.injector import inject
 
 
 class CancellationToken:
@@ -147,13 +150,9 @@ class ExperimentPipeline():
                     output_space=self._input_wrappers[i+1].input_space)
                 output_key = f'run_parameters_{i}'
 
-            if i == 0:
-                input_key = 'raw_run_parameters'
-            else:
-                input_key = f'run_parameters_{i-1}'
-
-            self._input_wrappers[i].set_history_access_fn(access_history_fn(keys=['idx', input_key, output_key],
-                                                                            new_keys=['idx', 'input', 'output']))
+            _access_history = access_history_fn(
+                keys=['idx', input_key, output_key], new_keys=['idx', 'input', 'output'])
+            inject(self._input_wrappers[i], _access_history)
             #### #146: KEY LOGIC CI-DESSUS A REPRODUIRE ####
 
         ### EXPLORER ###
@@ -224,7 +223,6 @@ class ExperimentPipeline():
                 run_parameters: current run_parameters
                 document_id: current document id
                 starting_index: first index to consider in the outputs representations list
-                is_input_new_discovery: indiacte if the current input come from a new discovery
 
             Returns:
                 output: The current output after it was processed 
