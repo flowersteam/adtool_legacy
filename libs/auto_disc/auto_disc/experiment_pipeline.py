@@ -141,14 +141,7 @@ class ExperimentPipeline():
             # self._input_wrappers[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
 
             #### #146: KEY LOGIC HERE TO REPRODUCE ####
-            if i == len(self._input_wrappers) - 1:
-                self._input_wrappers[i].initialize(
-                    output_space=self._system.input_space)
-                output_key = f'run_parameters'
-            else:
-                self._input_wrappers[i].initialize(
-                    output_space=self._input_wrappers[i+1].input_space)
-                output_key = f'run_parameters_{i}'
+            input_key, output_key = self.quarantine(i)
 
             _access_history = access_history_fn(
                 keys=['idx', input_key, output_key], new_keys=['idx', 'input', 'output'])
@@ -175,6 +168,19 @@ class ExperimentPipeline():
         self._on_save_callbacks = on_save_callbacks
         self.interact_callbacks = interact_callbacks
         self.cancellation_token = CancellationToken()
+
+    def quarantine(self, i) -> Tuple[str, str]:
+        if i == len(self._input_wrappers) - 1:
+            output_key = 'run_parameters'
+        else:
+            output_key = f'run_parameters_{i}'
+
+        if i == 0:
+            input_key = 'raw_run_parameters'
+        else:
+            input_key = f'run_parameters_{i-1}'
+
+        return (input_key, output_key)
 
     def _process_output(self, output: typing.Dict[str, torch.Tensor], document_id: int, starting_index: int = 0, is_output_new_discovery: bool = True) -> Dict[str, torch.Tensor]:
         """
