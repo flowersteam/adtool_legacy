@@ -184,10 +184,11 @@ def delete_checkpoint_save_by_id(id):
 
 
 # remove multiple checkpoint save given a checkpoint id
-@app.route('/checkpoint_saves/', methods=['DELETE'])
+@app.route('/checkpoint_saves', methods=['DELETE'])
 def delete_checkpoint_saves():
-    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id is not None:
+    checkpoint_id_str = request.args.get('checkpoint_id', default=None)
+    if checkpoint_id_str is not None:
+        checkpoint_id = int(checkpoint_id_str)
         db.checkpoint_saves.delete_many({"checkpoint_id": checkpoint_id})
         return make_response(jsonify({'success': True}), 200)
     else:

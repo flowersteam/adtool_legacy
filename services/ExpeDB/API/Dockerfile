@@ -19,7 +19,9 @@ RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
 RUN apt-get install -y curl procps vim
 
 # placed here to allowed efficient caching of src changes
+# TODO: actually need to put app.py here for efficient caching
 COPY ./flask_app/ /usr/src/services/flask_app/
+
 # start daemons
 VOLUME ["/usr/src/services"]
 WORKDIR /usr/src/services/flask_app
