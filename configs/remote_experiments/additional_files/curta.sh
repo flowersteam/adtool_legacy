@@ -2,7 +2,7 @@
 sbatch <<EOT
 #!/bin/sh
 #SBATCH -p inria
-#SBATCH -t 00:30:00
+#SBATCH -t 00:10:00
 #SBATCH --job-name=auto_disc_experiment
 #SBATCH -o %x-%j.out
 #SBATCH -e %x-%j.err

@@ -1,0 +1,14 @@
+name: 
+  flower-gpu
+ssh_configuration: 
+  flower-gpu
+work_path:
+  /home/mperie/auto_disc
+local_tmp_path:
+  /tmp/auto_disc
+execution:
+  bash additional_files/flower-gpu.sh $NB_SEEDS $ARGS > $EXPE_ID
+cancellation:
+  for pid in $RUN_ID; do kill -9 $pid; done
+check_experiment_launched_every:
+  1
