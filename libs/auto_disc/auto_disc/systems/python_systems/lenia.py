@@ -62,22 +62,22 @@ class Lenia(BasePythonSystem):
             self.config.SX // 2 - math.ceil(self.input_space['init_state'].shape[0] / 2):self.config.SX // 2 + self.input_space['init_state'].shape[0] // 2
         ] = run_parameters.init_state
         # self.state = init_state.to(self.device)
-        self.state = init_state
+        self._state = init_state
         del run_parameters.init_state
 
         if self.config.version.lower() == 'pytorch_fft':
-            self.automaton = LeniaStepFFT(SX=self.config.SX, SY=self.config.SY, **run_parameters)
+            self._automaton = LeniaStepFFT(SX=self.config.SX, SY=self.config.SY, **run_parameters)
         elif self.config.version.lower() == 'pytorch_conv2d':
-            self.automaton = LeniaStepConv2d(**run_parameters)
+            self._automaton = LeniaStepConv2d(**run_parameters)
         else:
             raise ValueError('Unknown lenia version (config.version = {!r})'.format(self.config.version))
 
         self._observations = Dict()
         # self._observations.timepoints = list(range(self.config.final_step))
         self._observations.states = torch.empty((self.config.final_step, self.config.SX, self.config.SY))
-        self._observations.states[0] = self.state
+        self._observations.states[0] = self._state
 
-        self.step_idx = 0
+        self._step_idx = 0
 
         current_observation = Dict()
         current_observation.state = self._observations.states[0]
@@ -85,18 +85,18 @@ class Lenia(BasePythonSystem):
         return current_observation
 
     def step(self, action=None) -> typing.Tuple[typing.Dict[str, torch.Tensor], int, bool, None]:
-        if self.step_idx >= self.config.final_step:
+        if self._step_idx >= self.config.final_step:
             raise Exception("Final step already reached, please reset the system.")
 
-        self.step_idx += 1
-        self.state = self.automaton(self.state)
+        self._step_idx += 1
+        self._state = self._automaton(self._state)
 
-        self._observations.states[self.step_idx] = self.state[0,0,:,:]
+        self._observations.states[self._step_idx] = self._state[0,0,:,:]
 
         current_observation = Dict()
-        current_observation.state = self._observations.states[self.step_idx]
+        current_observation.state = self._observations.states[self._step_idx]
 
-        return current_observation, 0, self.step_idx >= self.config.final_step - 1, None
+        return current_observation, 0, self._step_idx >= self.config.final_step - 1, None
 
     def observe(self) -> typing.Dict[str, torch.Tensor]:
         return self._observations

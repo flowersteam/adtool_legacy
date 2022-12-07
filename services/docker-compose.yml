@@ -2,7 +2,7 @@
 
 version: '3' # TODO
 services:
-##### APP DB #####
+  ##### APP DB #####
   app-db:
     image: postgres:10.16
     command: -p $POSTGRES_PORT
@@ -17,17 +17,18 @@ services:
       - "./AppDB/saved_data:/var/lib/postgresql/data"
       - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
   app-db-api:
-    image: postgrest/postgrest:v7.0.1
+    image: postgrest/postgrest:v9.0.0.20220531
     environment:
       PGRST_DB_URI: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@app-db:$POSTGRES_PORT/$POSTGRES_DB
       PGRST_DB_SCHEMA: $PGRST_DB_SCHEMA
       PGRST_DB_ANON_ROLE: $PGRST_DB_ANON_ROLE
       PGRST_SERVER_PORT: $APP_DB_API_PORT
+      PGRST_LOG_LEVEL: info
     ports:
       - "$APP_DB_API_PORT:$APP_DB_API_PORT"
     depends_on:
       - app-db
-##### EXPE DB #####
+  ##### EXPE DB #####
   expe-db:
     image: mongo
     command: mongod --port $MONGO_PORT
@@ -45,19 +46,20 @@ services:
       MONGODB_PORT: $MONGO_PORT
     ports:
       - "$EXPOSED_EXPE_DB_API_PORT:$EXPE_DB_API_PORT"
-    volumes: 
+    volumes:
       - "./ExpeDB/API/flask_app:/usr/src/flask_app"
     links:
       - expe-db
     profiles:
       - prod
-##### AUTODISC SERVER #####
+  ##### AUTODISC SERVER #####
   autodisc-server:
-    build: 
+    platform: linux/amd64
+    build:
       context: ../
-      dockerfile: services/AutoDiscServer/Dockerfile
+      dockerfile: ./services/AutoDiscServer/Dockerfile
     environment:
-      EXPEDB_CALLER_HOST: expe-db-api 
+      EXPEDB_CALLER_HOST: expe-db-api
       EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
       APPDB_CALLER_HOST: app-db-api
       APPDB_CALLER_PORT: $APP_DB_API_PORT
@@ -65,22 +67,23 @@ services:
       SSH_CONFIG_FILE: "/root/.ssh/config"
     ports:
       - "$EXPOSED_AUTODISC_SERVER_PORT:$AUTODISC_SERVER_PORT"
-    volumes: 
-      - "./AutoDiscServer/flask_app:/usr/src/services/AutoDiscServer/flask_app"
-      - "../libs/auto_disc:/usr/src/libs/auto_disc"
+    volumes:
+      - "./AutoDiscServer/flask_app:/usr/src/services/flask_app"
+      - "../libs:/usr/src/libs"
       - "../configs:/usr/src/configs"
-      - "$SSH_CONFIG_FOLDER:/usr/src/.ssh"
+      - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
       - "$SSH_SOCK_PATH:/ssh-agent"
     links:
       - expe-db-api
       - app-db-api
     profiles:
       - prod
-##### JUPYTER LAB #####
+  ##### JUPYTER LAB #####
   jupyter:
+    platform: linux/amd64
     build: ./JupyterLab
     environment:
-      EXPEDB_CALLER_HOST: expe-db-api 
+      EXPEDB_CALLER_HOST: expe-db-api
       EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
       PYTHONPATH: "/usr/src/auto_disc_db"
     ports:
@@ -89,20 +92,20 @@ services:
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
       - "../libs/auto_disc_db:/usr/src/auto_disc_db"
     links:
-      - expe-db-api  
+      - expe-db-api
     profiles:
-      - prod 
-##### FRONTEND APP #####
+      - prod
+  ##### FRONTEND APP #####
   app:
     build: ./FrontEndApp
     environment:
-      EXPEDB_HOST: expe-db-api 
+      EXPEDB_HOST: expe-db-api
       EXPE_DB_API_PORT: $EXPE_DB_API_PORT
       APPDB_HOST: app-db-api
       APP_DB_API_PORT: $APP_DB_API_PORT
       AUTODISC_SERVER_HOST: autodisc-server
       AUTODISC_SERVER_PORT: $AUTODISC_SERVER_PORT
-      JUPYTER_HOST: jupyter 
+      JUPYTER_HOST: jupyter
       JUPYTER_PORT: $JUPYTER_PORT
     ports:
       - "$EXPOSED_APP_PORT:80"
@@ -116,7 +119,24 @@ services:
       - jupyter
     profiles:
       - prod
-##### MONITORING TOOLS #####
+  ##### GATEWAY #####
+  gateway:
+    build:
+      context: ../
+      dockerfile: ./services/Gateway/Dockerfile
+    ports:
+      - "$GATEWAY_PORT:$GATEWAY_PORT"
+    volumes:
+      - "../configs:/rtime/userconf.d"
+    links:
+      - expe-db-api
+      - app-db-api
+      - autodisc-server
+      - jupyter
+      - app
+    profiles:
+      - prod
+  ##### MONITORING TOOLS #####
   portainer:
     image: portainer/portainer-ce:2.11.1
     profiles:
@@ -137,10 +157,10 @@ services:
     image: dpage/pgadmin4
     profiles:
       - monitoring
-    ports: 
+    ports:
       - "$PGADMIN_PORT:5050"
     environment:
-      PGADMIN_LISTEN_PORT: 5050 
+      PGADMIN_LISTEN_PORT: 5050
       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
     volumes:

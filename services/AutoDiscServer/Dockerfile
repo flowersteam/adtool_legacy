@@ -1,34 +1,30 @@
-FROM nginx:latest
-# Setup NGINX reverse proxy
-RUN rm /etc/nginx/conf.d/default.conf
-COPY services/AutoDiscServer/nginx/nginx.conf /etc/nginx/conf.d/
-# Install miniconda and python
-RUN apt-get update && apt-get -y upgrade \
-  && apt-get install -y --no-install-recommends \
-    git \
-    wget \
-    openssh-client \
-    g++ \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-py37_4.10.3-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-py37_4.10.3-Linux-x86_64.sh \
-    && echo "Running $(conda --version)" && \
-    conda init bash && \
-    . /root/.bashrc && \
-    conda update conda && \
-    conda install python=3.7 pip
-# Install packages for auto_disc lib
+FROM python:3.7.14-slim
+
+RUN apt-get update -y
+RUN apt-get install -y gcc
+
+# AutoDiscServer dependency resolution
+# NOTE: can only run in the build context provided in docker-compose.yml
+COPY services/AutoDiscServer/flask_app/app.py /usr/src/services/flask_app/app.py
+COPY services/AutoDiscServer/flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
+COPY libs/auto_disc /usr/src/libs/auto_disc
 WORKDIR /usr/src/libs/auto_disc
-COPY libs/auto_disc/setup.py .
-RUN pip install -e .
-# Install packages for flask app
-WORKDIR /usr/src/services/AutoDiscServer/flask_app
-COPY services/AutoDiscServer/flask_app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-# Copy ssh folder and launch Gunicorn as daemon and NGINX
-CMD cp -r /usr/src/.ssh /root/.ssh ; chmod 600 -R /root/.ssh ; gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; /docker-entrypoint.sh nginx -g "daemon off;"
+RUN pip install -e . 
+RUN pip install -r /usr/src/services/flask_app/requirements.txt
+
+# nginx setup
+RUN apt-get install -y nginx 
+RUN rm /etc/nginx/sites-enabled/default
+COPY services/AutoDiscServer/nginx/nginx.conf /etc/nginx/sites-available/flask
+RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
+
+# dev tools
+RUN apt-get install -y curl procps vim
+
+# placed here to allowed efficient caching of src changes
+COPY services/AutoDiscServer/flask_app/ /usr/src/services/flask_app/
+# start daemons
+VOLUME ["/usr/src/services", "/usr/src/libs"]
+WORKDIR /usr/src/services/flask_app
+#CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; nginx -g "daemon off;"
+CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"

@@ -35,7 +35,6 @@ def test___call__():
         "raw_output": "something",
         "output": torch.rand(2),
         "rendered_output": [dummy_bytes,"2","3"],
-        "step_observations": 3,
         "experiment_id": 1,
         "seed": 3,
         "run_idx": 10, 

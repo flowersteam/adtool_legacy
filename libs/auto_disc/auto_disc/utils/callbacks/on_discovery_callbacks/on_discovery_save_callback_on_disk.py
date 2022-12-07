@@ -28,8 +28,7 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
                                                     run_parameters,(pickle)
                                                     raw_output(pickle),
                                                     output(pickle),
-                                                    rendered_output(changes according to the render function of the current system),
-                                                    step_observations(pickle)
+                                                    rendered_output(changes according to the render function of the current system)
         Args:
             kwargs: run_idx, experiment_id, seed...
         """

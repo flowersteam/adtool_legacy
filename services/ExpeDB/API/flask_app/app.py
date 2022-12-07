@@ -10,11 +10,15 @@ from utils import ExpeDBConfig
 config = ExpeDBConfig()
 app = Flask(__name__)
 CORS(app)
-client = MongoClient('mongodb://{}:{}/'.format(config.MONGODB_HOST, config.MONGODB_PORT), username=config.MONGODB_USERNAME, password=config.MONGODB_PASSWORD)
+client = MongoClient('mongodb://{}:{}/'.format(config.MONGODB_HOST, config.MONGODB_PORT),
+                     username=config.MONGODB_USERNAME, password=config.MONGODB_PASSWORD,
+                     socketTimeoutMS=0, connectTimeoutMS=0)
 db = client.main_db
 fs = GridFS(db)
 
-# Return request with a document matching filter 
+# Return request with a document matching filter
+
+
 def _get_one_by_filter(collection, filter, query=None):
     element = collection.find_one(filter, query)
     if element:
@@ -23,7 +27,9 @@ def _get_one_by_filter(collection, filter, query=None):
     else:
         return make_response("No element found matching {} in collection {}".format(filter, collection), 403)
 
-# Return request with multiple documents matching filter 
+# Return request with multiple documents matching filter
+
+
 def _get_multiple_by_filter(collection, filter, query=None):
     elements = []
     for element in collection.find(filter, query):
@@ -31,9 +37,11 @@ def _get_multiple_by_filter(collection, filter, query=None):
         elements.append(element)
     return make_response(jsonify(elements), 200)
 
-# Return request with a file from a document 
+# Return request with a file from a document
+
+
 def _get_file_from_document(document, filename):
-    if not filename in document: 
+    if not filename in document:
         return make_response("No file {} found with in document with id {}".format(filename, document['_id']), 403)
     file = fs.get(ObjectId(document[filename]))
     return send_file(file, attachment_filename=file.filename)
@@ -48,13 +56,13 @@ def _add_files_to_document(collection, document, files):
         updates_to_do['$set'][file_name] = str(file_id)
     # Add GridFS ids and filenames to document
     collection.update_one({"_id": document["_id"]}, updates_to_do)
-    return make_response(jsonify({'success':True}), 200)
+    return make_response(jsonify({'success': True}), 200)
 
 
 #################################
 ########## DISCOVERIES ##########
 # GET
-@app.route('/discoveries', methods=['GET']) # list discoveries given filter
+@app.route('/discoveries', methods=['GET'])  # list discoveries given filter
 def list_discoveries():
     filter = request.args.get('filter', default=None)
     if filter is not None:
@@ -63,11 +71,14 @@ def list_discoveries():
     else:
         return make_response("You must provide a filter in the request args", 403)
 
-@app.route('/discoveries/<id>', methods=['GET']) # get a discovery by its id
+
+@app.route('/discoveries/<id>', methods=['GET'])  # get a discovery by its id
 def get_discovery_by_id(id):
     return _get_one_by_filter(db.discoveries, {"_id": ObjectId(id)})
 
-@app.route('/discoveries/<id>/<file>', methods=['GET']) # get file from a discovery by its name
+
+# get file from a discovery by its name
+@app.route('/discoveries/<id>/<file>', methods=['GET'])
 def get_discovery_file(id, file):
     discovery = db.discoveries.find_one({"_id": ObjectId(id)})
     if discovery:
@@ -76,12 +87,16 @@ def get_discovery_file(id, file):
         return make_response("No discovery found with id {}".format(id), 403)
 
 # POST
-@app.route('/discoveries', methods=['POST']) # add a discovery
+
+
+@app.route('/discoveries', methods=['POST'])  # add a discovery
 def create_discovery():
     added_discovery_id = db.discoveries.insert_one(request.json).inserted_id
     return make_response(jsonify({"ID": str(added_discovery_id)}), 200)
 
-@app.route('/discoveries/<id>/files', methods=['POST']) # add files to a discovery
+
+# add files to a discovery
+@app.route('/discoveries/<id>/files', methods=['POST'])
 def add_discovery_files(id):
     discovery = db.discoveries.find_one({"_id": ObjectId(id)})
     if discovery:
@@ -90,17 +105,22 @@ def add_discovery_files(id):
         return make_response("No discovery found with id {}".format(id), 403)
 
 # DELETE
-@app.route('/discoveries/<id>', methods=['DELETE']) # remove a discovery by its id
+
+
+# remove a discovery by its id
+@app.route('/discoveries/<id>', methods=['DELETE'])
 def delete_discovery_by_id(id):
     db.discoveries.delete_one({"_id": ObjectId(id)})
-    return make_response(jsonify({'success':True}), 200)
+    return make_response(jsonify({'success': True}), 200)
 
-@app.route('/discoveries/', methods=['DELETE']) # remove multiple discoveries given a checkpoint id
+
+# remove multiple discoveries given a checkpoint id
+@app.route('/discoveries/', methods=['DELETE'])
 def delete_discoveries():
     checkpoint_id = int(request.args.get('checkpoint_id', default=None))
     if checkpoint_id is not None:
         db.discoveries.delete_many({"checkpoint_id": checkpoint_id})
-        return make_response(jsonify({'success':True}), 200)
+        return make_response(jsonify({'success': True}), 200)
     else:
         return make_response("You must provide a checkpoint_id in the request args", 403)
 
@@ -108,7 +128,8 @@ def delete_discoveries():
 ######################################
 ########## CHECKPOINT SAVES ##########
 # GET
-@app.route('/checkpoint_saves', methods=['GET']) # list checkpoint saves given filter
+# list checkpoint saves given filter
+@app.route('/checkpoint_saves', methods=['GET'])
 def list_checkpoint_saves():
     filter = request.args.get('filter', default=None)
     if filter is not None:
@@ -117,11 +138,15 @@ def list_checkpoint_saves():
     else:
         return make_response("You must provide a filter in the request args", 403)
 
-@app.route('/checkpoint_saves/<id>', methods=['GET']) # get a checkpoint save by its id
+
+# get a checkpoint save by its id
+@app.route('/checkpoint_saves/<id>', methods=['GET'])
 def get_checkpoint_save_by_id(id):
     return _get_one_by_filter(db.checkpoint_saves, {"_id": ObjectId(id)})
 
-@app.route('/checkpoint_saves/<id>/<file>', methods=['GET']) # get file from a checkpoint save by its name
+
+# get file from a checkpoint save by its name
+@app.route('/checkpoint_saves/<id>/<file>', methods=['GET'])
 def get_checkpoint_save_file(id, file):
     checkpoint_save = db.checkpoint_saves.find_one({"_id": ObjectId(id)})
     if checkpoint_save:
@@ -130,12 +155,17 @@ def get_checkpoint_save_file(id, file):
         return make_response("No checkpoint_save found with id {}".format(id), 403)
 
 # POST
-@app.route('/checkpoint_saves', methods=['POST']) # add a checkpoint save
+
+
+@app.route('/checkpoint_saves', methods=['POST'])  # add a checkpoint save
 def create_checkpoint_save():
-    added_checkpoint_save_id = db.checkpoint_saves.insert_one(request.json).inserted_id
+    added_checkpoint_save_id = db.checkpoint_saves.insert_one(
+        request.json).inserted_id
     return make_response(jsonify({"ID": str(added_checkpoint_save_id)}), 200)
 
-@app.route('/checkpoint_saves/<id>/files', methods=['POST']) # add files to a checkpoint save
+
+# add files to a checkpoint save
+@app.route('/checkpoint_saves/<id>/files', methods=['POST'])
 def add_checkpoint_save_files(id):
     checkpoint_save = db.checkpoint_saves.find_one({"_id": ObjectId(id)})
     if checkpoint_save:
@@ -144,24 +174,32 @@ def add_checkpoint_save_files(id):
         return make_response("No checkpoint_save found with id {}".format(id), 403)
 
 # DELETE
-@app.route('/checkpoint_saves/<id>', methods=['DELETE']) # remove a checkpoint save by its id
+
+
+# remove a checkpoint save by its id
+@app.route('/checkpoint_saves/<id>', methods=['DELETE'])
 def delete_checkpoint_save_by_id(id):
     db.checkpoint_saves.delete_one({"_id": ObjectId(id)})
-    return make_response(jsonify({'success':True}), 200)
+    return make_response(jsonify({'success': True}), 200)
 
-@app.route('/checkpoint_saves/', methods=['DELETE']) # remove multiple checkpoint save given a checkpoint id
+
+# remove multiple checkpoint save given a checkpoint id
+@app.route('/checkpoint_saves', methods=['DELETE'])
 def delete_checkpoint_saves():
-    checkpoint_id = int(request.args.get('checkpoint_id', default=None))
-    if checkpoint_id is not None:
+    checkpoint_id_str = request.args.get('checkpoint_id', default=None)
+    if checkpoint_id_str is not None:
+        checkpoint_id = int(checkpoint_id_str)
         db.checkpoint_saves.delete_many({"checkpoint_id": checkpoint_id})
-        return make_response(jsonify({'success':True}), 200)
+        return make_response(jsonify({'success': True}), 200)
     else:
         return make_response("You must provide a checkpoint_id in the request args", 403)
 
 ######################################
 ########## DATA SAVES ##########
 # GET
-@app.route('/data_saves', methods=['GET']) # list data saves given filter
+
+
+@app.route('/data_saves', methods=['GET'])  # list data saves given filter
 def list_data_saves():
     filter = request.args.get('filter', default=None)
     if filter is not None:
@@ -170,11 +208,14 @@ def list_data_saves():
     else:
         return make_response("You must provide a filter in the request args", 403)
 
-@app.route('/data_saves/<id>', methods=['GET']) # get a data save by its id
+
+@app.route('/data_saves/<id>', methods=['GET'])  # get a data save by its id
 def get_data_save_by_id(id):
     return _get_one_by_filter(db.data_saves, {"_id": ObjectId(id)})
 
-@app.route('/data_saves/<id>/<file>', methods=['GET']) # get file from a data save by its name
+
+# get file from a data save by its name
+@app.route('/data_saves/<id>/<file>', methods=['GET'])
 def get_data_save_file(id, file):
     data_save = db.data_saves.find_one({"_id": ObjectId(id)})
     if data_save:
@@ -183,12 +224,16 @@ def get_data_save_file(id, file):
         return make_response("No data_save found with id {}".format(id), 403)
 
 # POST
-@app.route('/data_saves', methods=['POST']) # add a data save
+
+
+@app.route('/data_saves', methods=['POST'])  # add a data save
 def create_data_save():
     added_data_save_id = db.data_saves.insert_one(request.json).inserted_id
     return make_response(jsonify({"ID": str(added_data_save_id)}), 200)
 
-@app.route('/data_saves/<id>/files', methods=['POST']) # add files to a data save
+
+# add files to a data save
+@app.route('/data_saves/<id>/files', methods=['POST'])
 def add_data_save_files(id):
     data_save = db.data_saves.find_one({"_id": ObjectId(id)})
     if data_save:
@@ -202,19 +247,25 @@ def patch_data_by_id(id):
     return make_response(jsonify({"data updated": str(update_data)}), 200)
 
 # DELETE
-@app.route('/data_saves/<id>', methods=['DELETE']) # remove a data save by its id
+
+
+# remove a data save by its id
+@app.route('/data_saves/<id>', methods=['DELETE'])
 def delete_data_save_by_id(id):
     db.data_saves.delete_one({"_id": ObjectId(id)})
-    return make_response(jsonify({'success':True}), 200)
+    return make_response(jsonify({'success': True}), 200)
 
-@app.route('/data_saves/', methods=['DELETE']) # remove multiple data save given a data id
+
+# remove multiple data save given a data id
+@app.route('/data_saves/', methods=['DELETE'])
 def delete_data_saves():
     data_id = int(request.args.get('data_id', default=None))
     if data_id is not None:
         db.data_saves.delete_many({"data_id": data_id})
-        return make_response(jsonify({'success':True}), 200)
+        return make_response(jsonify({'success': True}), 200)
     else:
         return make_response("You must provide a data_id in the request args", 403)
 
+
 if __name__ == '__main__':
-	app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)
+    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)

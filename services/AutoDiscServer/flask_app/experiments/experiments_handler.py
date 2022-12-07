@@ -89,7 +89,8 @@ class ExperimentsHandler():
         try:
             # Add experiment in DB and obtain the id
             exp_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M %Z")
-            response = self._app_db_caller("/experiments", AppDBMethods.POST, {
+            print("Before response")
+            request = {
                                         "name": parameters['experiment']['name'],
                                         "created_on": exp_date,
                                         "config": parameters['experiment']['config'],
@@ -98,9 +99,14 @@ class ExperimentsHandler():
                                         "archived": False,
                                         "checkpoint_saves_archived": False,
                                         "discoveries_archived": False
-                                     })
-            id = response.headers["Location"].split(".")
-            id = int(id[1])
+            }
+
+            r = self._app_db_caller(
+                "/experiments", AppDBMethods.POST, request)
+            assert r.status_code == 201
+            response = self._app_db_caller(
+                "/experiments?select=id&order=id.desc&limit=1", AppDBMethods.GET, {})
+            id = response.json()[0]["id"]
 
             experiment = self._create_experiment(id, parameters)
 
@@ -193,7 +199,9 @@ class ExperimentsHandler():
                                 "parent_id": previous_checkpoint_id,
                                 "status": int(CheckpointsStatusEnum.RUNNING)
                             })
-        id = response.headers["Location"].split(".")[1]
+        response = self._app_db_caller(
+            f"/checkpoints?experiment_id=eq.{experiment_id}&select=id&order=id.desc&limit=1", AppDBMethods.GET, {})
+        id = response.json()[0]["id"]
         return int(id)
 
     def on_checkpoint_finished_callback(self, experiment_id, checkpoint_id):
