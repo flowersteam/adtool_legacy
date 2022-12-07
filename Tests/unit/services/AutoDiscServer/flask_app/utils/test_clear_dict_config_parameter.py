@@ -4,12 +4,12 @@ import sys
 from copy import deepcopy
 from unittest import mock
 
-classToTestFolderPath = os.path.abspath(__file__)
-classToTestFolderPath = classToTestFolderPath.split('/')
-classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer"
 
-sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
+classToTestFolderPath = os.path.dirname(__file__)
+classToTestFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*6 ))
+AutoDiscServerPath = classToTestFolderPath + "/services/AutoDiscServer"
+
+sys.path.append(os.path.dirname(AutoDiscServerPath))
 
 from AutoDiscServer.flask_app.utils import clear_dict_config_parameter
 #endregion

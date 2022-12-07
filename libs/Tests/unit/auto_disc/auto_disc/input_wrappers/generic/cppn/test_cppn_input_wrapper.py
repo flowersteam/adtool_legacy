@@ -7,10 +7,10 @@ import unittest
 
 import numpy as np
 
-classToTestFolderPath = os.path.abspath(__file__)
-classToTestFolderPath = classToTestFolderPath.split('/')
-classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc/auto_disc"
+classToTestFolderPath = os.path.dirname(__file__)
+auto_discFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*8 + "/libs/auto_disc/auto_disc"))
+sys.path.insert(0, os.path.dirname(auto_discFolderPath))
+
 
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
 import auto_disc

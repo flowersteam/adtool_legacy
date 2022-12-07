@@ -9,12 +9,11 @@ from unittest.case import _AssertRaisesContext
 from addict import Dict
 import torch
 
-classToTestFolderPath = os.path.abspath(__file__)
-classToTestFolderPath = classToTestFolderPath.split('/')
-classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc/auto_disc"
-
+classToTestFolderPath = os.path.dirname(__file__)
+auto_discFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*6 + "/libs/auto_disc/auto_disc"))
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
+
+
 from auto_disc import explorers
 from auto_disc.utils.spaces import BoxSpace, DictSpace
 from auto_disc.input_wrappers.generic import DummyInputWrapper

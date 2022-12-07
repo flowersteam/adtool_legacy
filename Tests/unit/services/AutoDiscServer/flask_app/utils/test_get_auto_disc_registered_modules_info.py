@@ -4,14 +4,14 @@ import sys
 from copy import deepcopy
 from unittest import mock
 
-classToTestFolderPath = os.path.abspath(__file__)
-classToTestFolderPath = classToTestFolderPath.split('/')
-classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer"
-auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc"
+classToTestFolderPath = os.path.dirname(__file__)
+classToTestFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*6 ))
 
-sys.path.insert(0, os.path.dirname(AutoDiscServerPath))
-sys.path.insert(0, os.path.dirname(auto_discFolderPath))
+AutoDiscServerPath = classToTestFolderPath + "/services/AutoDiscServer"
+auto_discFolderPath = classToTestFolderPath + "/libs/auto_disc/auto_disc"
+
+sys.path.append(os.path.dirname(AutoDiscServerPath))
+sys.path.append(os.path.dirname(auto_discFolderPath))
 
 from AutoDiscServer.flask_app.utils.get_auto_disc_registered_modules_info import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, check_jsonify
 from auto_disc import REGISTRATION
@@ -59,12 +59,13 @@ def test_get_auto_disc_registered_callbacks():
     ## exec
     info = get_auto_disc_registered_callbacks(REGISTRATION['callbacks'])
     ## assert
-    assert len(info) == 6
+    assert len(info) == 7
     assert info[0]["name_callbacks_category"] == "on_discovery"
     assert info[1]["name_callbacks_category"] == "on_cancelled"
     assert info[2]["name_callbacks_category"] == "on_error"
     assert info[3]["name_callbacks_category"] == "on_finished"
     assert info[4]["name_callbacks_category"] == "on_saved"
     assert info[5]["name_callbacks_category"] == "on_save_finished"
+    assert info[6]["name_callbacks_category"] == "interact"
 
 #endregion

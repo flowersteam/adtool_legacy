@@ -9,11 +9,11 @@ import pytest_mock
 from requests import patch
 from os import environ as env
 
-classToTestFolderPath = os.path.abspath(__file__)
-classToTestFolderPath = classToTestFolderPath.split('/')
-classToTestFolderPath = classToTestFolderPath[0:classToTestFolderPath.index("AutomatedDiscoveryTool")+1]
-AutoDiscServerPath = "/".join(classToTestFolderPath) + "/services/AutoDiscServer"
-auto_discFolderPath = "/".join(classToTestFolderPath) + "/libs/auto_disc/auto_disc"
+classToTestFolderPath = os.path.dirname(__file__)
+classToTestFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*6 ))
+
+AutoDiscServerPath = classToTestFolderPath + "/services/AutoDiscServer"
+auto_discFolderPath = classToTestFolderPath + "/libs/auto_disc/auto_disc"
 ExperimentPath = AutoDiscServerPath + "/flask_app/experiments"
 
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
