@@ -87,6 +87,8 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         if additional_callbacks is not None:
             if callback_key != "interact":
                 callbacks[callback_key].extend(additional_callbacks[callback_key])
+            else:
+                callbacks[callback_key].update(additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
             callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
             if callback_key == "interact":

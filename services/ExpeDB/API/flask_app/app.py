@@ -195,6 +195,11 @@ def add_data_save_files(id):
         return _add_files_to_document(db.data_saves, data_save, request.files)
     else:
         return make_response("No data_save found with id {}".format(id), 403)
+# PATCH
+@app.route('/data_saves/<id>', methods=['PATCH']) # PATCH data
+def patch_data_by_id(id):
+    update_data = db.data_saves.find_one_and_update({"_id" : ObjectId(id)}, {"$set": request.get_json()})
+    return make_response(jsonify({"data updated": str(update_data)}), 200)
 
 # DELETE
 @app.route('/data_saves/<id>', methods=['DELETE']) # remove a data save by its id

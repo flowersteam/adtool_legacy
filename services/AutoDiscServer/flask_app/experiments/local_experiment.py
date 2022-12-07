@@ -1,3 +1,4 @@
+from time import sleep
 from experiments import BaseExperiment
 from utils.DB import AppDBLoggerHandler, AppDBMethods
 from utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
@@ -27,7 +28,7 @@ class LocalExperiment(BaseExperiment):
             "on_cancelled": [self.on_cancelled],
             "on_error": [self.on_error],
             "on_saved": [self.save_modules_to_expe_db],
-            "interact": {}
+            "interact": {"saveExpeDB": self.save_data_to_expe_db, "readExpeDB": self.read_data_from_exp_db}
         }
         
         self._additional_handlers = [AppDBLoggerHandler('http://{}:{}'.format(self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)]
@@ -167,18 +168,18 @@ class LocalExperiment(BaseExperiment):
                                 )["ID"]
         self._expe_db_caller("/checkpoint_saves/" + module_id + "/files", files=files_to_save)
 
-    def save_data_to_expe_db(self, data, seed, dict_info=None, **kwargs):
-        request_dict={
-                        "experiment_id": self.id,
-                        "checkpoint_id": self._get_current_checkpoint_id(seed),
-                        "seed": seed,
-                    }
-        if isinstance(dict_info, dict):
-            request_dict.update(dict_info)
+    def save_data_to_expe_db(self, data, dict_info, **kwargs):
+        request_dict={"checkpoint_id": self._get_current_checkpoint_id(dict_info["seed"])}
+        request_dict.update(dict_info)
         data_id = self._expe_db_caller("/data_saves", request_dict=request_dict)["ID"]
         data_to_save = pickle.dumps(data)
         file_to_save = {"data":data_to_save}
         self._expe_db_caller("/data_saves/" + data_id + "/files", files=file_to_save)
+
+    def read_data_from_exp_db(self, filter_attribut):
+        response = self._expe_db_caller.read("/data_saves", filter_attribut)
+        response = self._expe_db_caller.read_file("/data_saves", response, "data")
+        return response[0]
 #endregion
 
 #region utils

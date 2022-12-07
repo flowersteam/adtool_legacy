@@ -51,8 +51,8 @@ REGISTRATION = {
         },
         'interact':{
             'base': interact_callbacks.BaseInteractCallback,
-            'saveExpeDB': interact_callbacks.SaveExpeDBInteractCallback,
             'saveDisk': interact_callbacks.SaveDiskInteractCallback,
+            'readDisk': interact_callbacks.ReadDiskInteractCallback
         },
     },
     'logger_handlers':{

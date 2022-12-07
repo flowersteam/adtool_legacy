@@ -71,10 +71,6 @@ class BaseExperiment():
                     }
                 ],
                 'interact':[
-                    {
-                        'name' :'saveExpeDB',
-                        'config' : {}
-                    }
                 ]
             }
 

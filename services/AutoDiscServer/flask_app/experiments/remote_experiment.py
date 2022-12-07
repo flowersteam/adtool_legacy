@@ -38,6 +38,10 @@ class RemoteExperiment(BaseExperiment):
                 {
                     'name' :'saveDisk',
                     'config' : {"folder_path": self.__host_profile["work_path"]+"/data_saves/"}
+                },
+                {
+                    'name' :'readDisk',
+                    'config' : {"folder_path": self.__host_profile["work_path"]+"/data_saves/"}
                 }
             ]
             }
@@ -193,6 +197,8 @@ class RemoteExperiment(BaseExperiment):
         # make logs folder on remote server
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "logs"))
         self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "run_ids"))
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "out"))
+        self.shell.sendline("mkdir {}/{}".format(self.__host_profile["work_path"], "data"))
 
         self._app_db_caller("/preparing_logs", 
                                 AppDBMethods.POST, {
@@ -232,6 +238,40 @@ class RemoteExperiment(BaseExperiment):
             if not os.path.exists("{}{}/".format(local_folder, sub_folder)):
                 os.makedirs("{}{}/".format(local_folder, sub_folder))
             self.__pull_folder("{}{}/idx_{}.*".format(remote_path, sub_folder, run_idx), "{}{}/".format(local_folder, sub_folder))
+
+    def send_feedback_to_remote_server(self, request_dict):
+        response = []
+        filter_attribut = {}
+        filter_attribut["experiment_id"] = request_dict["experiment_id"]
+        filter_attribut["seed"] = request_dict["seed"]
+        filter_attribut["idx"] = request_dict["idx"]
+        while response == [] or response == None or response["type"] == "question":
+            try:
+                response = self._expe_db_caller.read("/data_saves", filter_attribut)[0]
+            except:
+                print(response)
+            sleep(self.__host_profile["check_experiment_launched_every"])
+        
+        response = self._expe_db_caller.read_file("/data_saves", response, "data")
+        local_path = self.__host_profile["local_tmp_path"]+"/remote_experiment/push_to_server/data_saves/{}/{}".format(filter_attribut["experiment_id"], filter_attribut["seed"])
+        
+        to_save = {}
+        to_save["data"] = response.pop("file_data")
+        to_save["dict_info"] = response
+
+        item_to_save = ["data", "dict_info"]
+
+        for save_item in item_to_save:
+            folder = "{}/{}".format(local_path, save_item)
+            filename = "{}/idx_{}.pickle".format(folder, filter_attribut["idx"])
+            
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            with open(filename, 'wb') as out_file:
+                pickle.dump(to_save[save_item], out_file)
+        self.__push_folder(local_path, "{}/data_saves/{}".format(self.__host_profile["work_path"], filter_attribut["experiment_id"]))
+        return response
+
 #endregion
 
 #region monitor
@@ -279,7 +319,8 @@ class RemoteExperiment(BaseExperiment):
 
         if self.__new_files_saved_on_remote_disk(message):
             remote_path, sub_folders, run_idx = self.__get_saved_files_to_pull(message)
-            super().on_progress(seed_number, run_idx + 1)
+            if remote_path != "data_saves":
+                super().on_progress(seed_number, run_idx + 1)
             if sub_folders is not None:
                 self.__pull_files(remote_path, sub_folders, run_idx, local_folder)
             if remote_path.split("/")[-4] == "outputs":
@@ -545,6 +586,8 @@ class RemoteExperiment(BaseExperiment):
                 request_dict.update(dict_info)
             data_id = self._expe_db_caller("/data_saves", request_dict=request_dict)["ID"]
             self._expe_db_caller("/data_saves/" + data_id + "/files", files=files_to_save)
+            if request_dict["type"] != None and request_dict["type"] == "question":
+                self.send_feedback_to_remote_server(request_dict)
         except Exception as ex:
             print("ERROR : error while saving interact data in experiment {} run_idx {} seed {} = {}".format(self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
 
