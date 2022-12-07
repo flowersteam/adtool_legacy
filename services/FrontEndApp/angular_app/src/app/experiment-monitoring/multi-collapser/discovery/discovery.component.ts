@@ -127,9 +127,6 @@ export class DiscoveryComponent implements OnInit {
                     video.src = window.URL.createObjectURL(response.data);
                   } 
                 }
-                else{
-                  this.toasterService.showError(response.message ?? '', "Error getting rendered output for discovery id°" + discovery._id);
-                }
               });
             }
           }
