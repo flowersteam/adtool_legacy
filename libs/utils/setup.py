@@ -7,7 +7,7 @@ assert sys.version_info.major == 3 and sys.version_info.minor in [6, 7], \
 
 setup(
     name='flowers-utils',
-    py_modules=['leaf', 'depinj'],
+    py_modules=['leaf', 'depinj', 'leafutils'],
     version="1.0",
     description="utils for flowers",
     author="Flowers Team Inria",

@@ -1,6 +1,6 @@
 from leaf.tests.test_leaf import DummyLocator, DummyModule
 from leaf.leaf import Leaf
-from leafstructs.service import provide_leaf_as_service
+from leafutils.leafstructs.service import provide_leaf_as_service
 
 
 class PlusOffset(Leaf):

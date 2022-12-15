@@ -12,6 +12,10 @@ WORKDIR /usr/src/libs/auto_disc
 RUN pip install -e . 
 RUN pip install -r /usr/src/services/flask_app/requirements.txt
 
+COPY libs/utils /usr/src/libs/utils
+WORKDIR /usr/src/libs/utils
+RUN pip install -e . 
+
 # nginx setup
 RUN apt-get install -y nginx 
 RUN rm /etc/nginx/sites-enabled/default
