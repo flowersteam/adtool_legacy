@@ -135,8 +135,7 @@ class LinearStorage(Locator):
         # TODO: check corner case with len(heads) == 0, need to initialize
 
         # copy buffer from the binary
-        tmp_stepper = Stepper()
-        stepper = tmp_stepper.deserialize(bin)
+        stepper = Stepper.deserialize(bin)
         buffer = stepper.buffer
 
         # truncate the last element which is to be added
