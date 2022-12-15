@@ -1,16 +1,9 @@
-from leaf.leaf import *
+from leaf.leaf import Leaf, Locator
 import pickle
 from hashlib import sha1
 
 
-class DummyDB():
-    LocDB = {}
-    ResDB = {}
-
-
 class DummyModule(Leaf):
-    locator_table = DummyDB.LocDB
-
     def __init__(self, s=None):
         super().__init__()
         self.internal_state = s
@@ -28,34 +21,29 @@ class DummyModule(Leaf):
     #     loaded_obj = cls(pickle.loads(bin))
     #     return loaded_obj
 
-    def create_locator(self, bin):
-        return DummyLocator(bin)
-
-    def store_locator(self, loc):
-        self.locator_table[self.uid] = loc.serialize()
-        return
-
     @classmethod
-    def retrieve_locator(cls, leaf_id):
-        return Locator.deserialize(cls.locator_table[leaf_id])
+    def create_locator(self, resource_uri: str = ""):
+        return DummyLocator(resource_uri)
 
 
 class DummyLocator(Locator):
-    def __init__(self, bin):
-        self.table = DummyDB.ResDB
-        self.uid = sha1(bin).hexdigest()
+    def __init__(self, resource_uri):
+        self.table = resource_uri
 
     def store(self, bin):
-        self.table[self.uid] = bin
-        return
+        uid = self.hash(bin)
+        self.table[uid] = bin
+        return uid
 
-    def retrieve(self):
-        return self.table[self.uid]
+    def retrieve(self, uid):
+        return self.table[uid]
 
 
 def setup_function(function):
-    global a
+    global a, ResDB, res_uri
     a = DummyModule([1, 2, 3, 4])
+    ResDB = {}
+    res_uri = ResDB
     return
 
 
@@ -72,51 +60,39 @@ def test_leaf_serialize():
 
 def test_leaf_deserialize():
     bin = a.serialize()
-    b = a.__class__.deserialize(bin)
+    b = a.deserialize(bin)
     assert a.__dict__ == b.__dict__
 
 
 def test_leaf_create_locator():
-    loc = a.create_locator(a.serialize())
+    loc = a.create_locator(res_uri)
     assert isinstance(loc, Locator)
-
-
-def test_leaf_store_locator_retrieve_locator():
-    bin = a.serialize()
-    a._update_uid(bin)
-    # must always set uid before create_locator() call
-    assert a.uid is not None
-    loc1 = a.create_locator(bin)
-    a.store_locator(loc1)
-    loc2 = a.retrieve_locator(a.uid)
-
-    assert loc1.__dict__ == loc2.__dict__
+    assert loc.table == ResDB
 
 
 def test_locator_store_retrieve():
     bin1 = a.serialize()
-    loc = a.create_locator(bin1)
-    loc.store(bin1)
+    loc = a.create_locator(res_uri)
+    uid = loc.store(bin1)
 
-    bin2 = loc.retrieve()
+    bin2 = loc.retrieve(uid)
     assert bin1 == bin2
 
 
 def test_leaf_save():
-    a.save_leaf()
-    uid = a.uid
+    uid = a.save_leaf(res_uri)
 
-    b = DummyModule.load_leaf(uid)
+    b = DummyModule()
+    b = b.load_leaf(uid, res_uri)
     assert b.internal_state == [1, 2, 3, 4]
     a.internal_state.append(5)
     a.internal_state = a.forward(1)
 
     # test uid updates after save_leaf
-    a.save_leaf()
-    new_uid = a.uid
+    new_uid = a.save_leaf(res_uri)
     assert new_uid != uid
 
-    c = DummyModule.load_leaf(new_uid)
+    c = b.load_leaf(new_uid, res_uri)
     assert c.internal_state == [2, 3, 4, 5, 6]
     assert b.internal_state == [1, 2, 3, 4]
     assert a.internal_state == c.internal_state != b.internal_state
@@ -124,4 +100,3 @@ def test_leaf_save():
 
 if __name__ == "__main__":
     setup_function(None)
-    test_leaf_store_locator_retrieve_locator()

@@ -149,5 +149,6 @@ def test_linearstorage_retrieve():
     x.retrieval_key = 7
 
     bin = x.retrieve()
-    stepper = Stepper.deserialize(bin)
+    tmp_stepper = Stepper()
+    stepper = tmp_stepper.deserialize(bin)
     assert stepper.buffer == [1, 2, 4, 8]
