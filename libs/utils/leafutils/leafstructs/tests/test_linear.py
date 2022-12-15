@@ -32,13 +32,13 @@ def teardown_function(function):
 
 
 def test_linearstorage__init__():
-    from leafstructs.linear import LinearStorage
+    from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
     assert str(x.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
 
 
 def test_linearstorage__get_heads():
-    from leafstructs.linear import LinearStorage
+    from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
     heads = x._get_heads()
 
@@ -50,7 +50,7 @@ def test_linearstorage__get_heads():
 
 
 def test_linearstorage__get_trajectory():
-    from leafstructs.linear import LinearStorage
+    from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
     _, trajectory, depths = x._get_trajectory(5)
     assert trajectory == [1, 2, 3, 4, 5]
@@ -62,7 +62,7 @@ def test_linearstorage__get_trajectory():
 
 
 def test_linearstorage__insert_node():
-    from leafstructs.linear import LinearStorage
+    from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
 
     def get_trajectory_table_length(locator):
@@ -89,7 +89,7 @@ def test_linearstorage__insert_node():
 
 
 def test_linearstorage__match_backwards():
-    from leafstructs.linear import LinearStorage
+    from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
 
     query_trajectory = [1, 2, 4, 8]
@@ -110,7 +110,7 @@ def test_linearstorage__match_backwards():
 
 
 def test_linearstorage__get_insertion_tuple():
-    from leafstructs.linear import LinearStorage, Stepper
+    from leafutils.leafstructs.linear import LinearStorage, Stepper
     x = LinearStorage(DB_PATH)
 
     query_trajectory = [1, 2, 4, 9]
@@ -124,7 +124,7 @@ def test_linearstorage__get_insertion_tuple():
 
 
 def test_linearstorage_store():
-    from leafstructs.linear import LinearStorage, Stepper
+    from leafutils.leafstructs.linear import LinearStorage, Stepper
     x = LinearStorage(DB_PATH)
 
     query_trajectory = [1, 2, 4, 9]
@@ -142,7 +142,7 @@ def test_linearstorage_store():
 
 
 def test_linearstorage_retrieve():
-    from leafstructs.linear import LinearStorage, Stepper
+    from leafutils.leafstructs.linear import LinearStorage, Stepper
     x = LinearStorage(DB_PATH)
 
     # mock storage of sequence
