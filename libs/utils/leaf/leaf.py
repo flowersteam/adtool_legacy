@@ -4,14 +4,6 @@ import pickle
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
 
-
-def get_qualified_class_path(inst):
-    qualified_class_name = inst.__class__.__qualname__
-    module_name = inst.__class__.__module__
-    class_path = module_name + "." + qualified_class_name
-    return class_path
-
-
 LeafUID = NewType("LeafUID", str)
 
 

@@ -20,6 +20,16 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
 
 
+def get_qualified_class_path(cls: type) -> str:
+    """
+    Returns the fully qualified class path, for use with dynamic imports.
+    """
+    qualified_class_name = cls.__qualname__
+    module_name = cls.__module__
+    class_path = module_name + "." + qualified_class_name
+    return class_path
+
+
 def create(parameters: Dict, experiment_id: int, seed: int,
            additional_callbacks: Dict[str, List[Callable]] = None,
            additional_handlers: List[AutoDiscLogger] = None,
