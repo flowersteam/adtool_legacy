@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "AppDB",
+            "Group": "AutoDisc servers",
+            "Port": 5432,
+            "Username": "autodisc",
+            "Host": "app-db",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres"
+        }
+    }
+}

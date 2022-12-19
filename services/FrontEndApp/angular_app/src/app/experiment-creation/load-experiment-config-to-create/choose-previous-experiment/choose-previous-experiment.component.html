@@ -1,0 +1,23 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary py-4">
+    <div class="container-fluid">
+      <h3 class="text-secondary fs-4">List of previous experiments</h3>
+      <div class="navbar-nav">
+        <button class="btn btn-light mx-2 text-secondary" (click)="sortExperimentsByDate()">Date 
+            <i [ngClass]="sortByDateAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill'" class="bi me-1" width="16" height="16"></i>
+          </button>
+          <div class="d-flex">
+            <input type="search" class="form-control" id="search-text" aria-describedby="search-text" 
+            [(ngModel)]="searchText" placeholder="Enter text to search" 
+            autofocus>
+          </div>   
+      </div>
+    </div>
+  </nav>
+<app-experiments-list
+  [experiments]="this.experiments"
+  [needRouter]=false
+  [needChoice]=true
+  [(experiment)]=this.experiment
+  (triggerParentMethod)="this.selectPreviousExperiment()"
+  [searchText]="this.searchText">
+</app-experiments-list>

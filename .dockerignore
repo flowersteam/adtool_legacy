@@ -1,0 +1,14 @@
+**/services/AppDB/saved_data
+**/services/ExpeDB/saved_data
+**/services/Utils/portainer_data
+**/services/JupyterLab/Notebooks
+**/*.pickle
+**/*.log
+**/*.md
+**/LICENSE
+**/node_modules
+**/__pycache__
+**/.git
+**/.vscode
+**/*.png
+**/*.gif

@@ -1,0 +1,195 @@
+# docker-compose.yml
+
+version: '3' # TODO
+services:
+  ##### APP DB #####
+  app-db:
+    image: postgres:10.16
+    command: -p $POSTGRES_PORT
+    hostname: app-db
+    environment:
+      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - "$POSTGRES_PORT:$POSTGRES_PORT"
+    volumes:
+      - "./AppDB/saved_data:/var/lib/postgresql/data"
+      - "./AppDB/init_scripts:/docker-entrypoint-initdb.d"
+  app-db-api:
+    image: postgrest/postgrest:v9.0.0.20220531
+    environment:
+      PGRST_DB_URI: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@app-db:$POSTGRES_PORT/$POSTGRES_DB
+      PGRST_DB_SCHEMA: $PGRST_DB_SCHEMA
+      PGRST_DB_ANON_ROLE: $PGRST_DB_ANON_ROLE
+      PGRST_SERVER_PORT: $APP_DB_API_PORT
+      PGRST_LOG_LEVEL: info
+    ports:
+      - "$APP_DB_API_PORT:$APP_DB_API_PORT"
+    depends_on:
+      - app-db
+  ##### EXPE DB #####
+  expe-db:
+    image: mongo
+    command: mongod --port $MONGO_PORT
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    ports:
+      - "$MONGO_PORT:$MONGO_PORT"
+    volumes:
+      - "./ExpeDB/saved_data:/data/db"
+  expe-db-api:
+    build: ./ExpeDB/API
+    environment:
+      MONGODB_HOST: expe-db
+      MONGODB_PORT: $MONGO_PORT
+    ports:
+      - "$EXPOSED_EXPE_DB_API_PORT:$EXPE_DB_API_PORT"
+    volumes:
+      - "./ExpeDB/API/flask_app:/usr/src/flask_app"
+    links:
+      - expe-db
+    profiles:
+      - prod
+  ##### AUTODISC SERVER #####
+  autodisc-server:
+    platform: linux/amd64
+    build:
+      context: ../
+      dockerfile: ./services/AutoDiscServer/Dockerfile
+    environment:
+      EXPEDB_CALLER_HOST: expe-db-api
+      EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
+      APPDB_CALLER_HOST: app-db-api
+      APPDB_CALLER_PORT: $APP_DB_API_PORT
+      SSH_AUTH_SOCK: /ssh-agent
+      SSH_CONFIG_FILE: "/root/.ssh/config"
+    ports:
+      - "$EXPOSED_AUTODISC_SERVER_PORT:$AUTODISC_SERVER_PORT"
+    volumes:
+      - "./AutoDiscServer/flask_app:/usr/src/services/flask_app"
+      - "../libs:/usr/src/libs"
+      - "../configs:/usr/src/configs"
+      - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
+      - "$SSH_SOCK_PATH:/ssh-agent"
+    links:
+      - expe-db-api
+      - app-db-api
+    profiles:
+      - prod
+  ##### JUPYTER LAB #####
+  jupyter:
+    platform: linux/amd64
+    build: ./JupyterLab
+    environment:
+      EXPEDB_CALLER_HOST: expe-db-api
+      EXPEDB_CALLER_PORT: $EXPE_DB_API_PORT
+      PYTHONPATH: "/usr/src/auto_disc_db"
+    ports:
+      - "$EXPOSED_JUPYTER_PORT:$JUPYTER_PORT"
+    volumes:
+      - "./JupyterLab/Notebooks:/usr/src/notebooks"
+      - "../libs/auto_disc_db:/usr/src/auto_disc_db"
+    links:
+      - expe-db-api
+    profiles:
+      - prod
+  ##### FRONTEND APP #####
+  app:
+    build: ./FrontEndApp
+    environment:
+      DEBUG: 1
+      EXPEDB_HOST: expe-db-api
+      EXPE_DB_API_PORT: $EXPE_DB_API_PORT
+      APPDB_HOST: app-db-api
+      APP_DB_API_PORT: $APP_DB_API_PORT
+      AUTODISC_SERVER_HOST: autodisc-server
+      AUTODISC_SERVER_PORT: $AUTODISC_SERVER_PORT
+      JUPYTER_HOST: jupyter
+      JUPYTER_PORT: $JUPYTER_PORT
+    ports:
+      - "$EXPOSED_APP_PORT:80"
+    volumes:
+      - "./FrontEndApp/angular_app:/usr/src/angular_app"
+      - "./JupyterLab/Notebooks:/usr/src/notebooks"
+    links:
+      - expe-db-api
+      - app-db-api
+      - autodisc-server
+      - jupyter
+    profiles:
+      - prod
+  ##### GATEWAY #####
+  gateway:
+    build:
+      context: ../
+      dockerfile: ./services/Gateway/Dockerfile
+    ports:
+      - "$GATEWAY_PORT:$GATEWAY_PORT"
+    volumes:
+      - "../configs:/rtime/userconf.d"
+    links:
+      - expe-db-api
+      - app-db-api
+      - autodisc-server
+      - jupyter
+      - app
+    profiles:
+      - prod
+  ##### MONITORING TOOLS #####
+  portainer:
+    image: portainer/portainer-ce:2.11.1
+    profiles:
+      - monitoring
+    ports:
+      - "$PORTAINER_PORT:8000"
+      - "$PORTAINER_HTTPS_PORT:9443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./Utils/portainer_data:/data"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s
+  app-db-monitoring:
+    image: dpage/pgadmin4
+    profiles:
+      - monitoring
+    ports:
+      - "$PGADMIN_PORT:5050"
+    environment:
+      PGADMIN_LISTEN_PORT: 5050
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
+    volumes:
+      - "./Utils/pgadmin_mapping/servers.json:/pgadmin4/servers.json"
+    depends_on:
+      - app-db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s
+  mongo-express:
+    image: mongo-express
+    profiles:
+      - monitoring
+    ports:
+      - "$MONGO_EXPRESS_PORT:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: expe-db
+      ME_CONFIG_MONGODB_PORT: $MONGO_PORT
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    depends_on:
+      - expe-db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 10s

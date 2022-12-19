@@ -10,6 +10,15 @@ services/ExpeDB/saved_data/*
 services/ExpeDB/API/flask_app/index.html
 services/AutoDiscServer/flask_app/*.html
 
+# host-specific configs
+configs
+!configs/networking/hosts.json
+!configs/remote_experiments/remote_server.yml
+!configs/remote_experiments/docker.yml
+
+# Mac
+.DS_Store
+
 ### VSCODE
 .vscode/
 

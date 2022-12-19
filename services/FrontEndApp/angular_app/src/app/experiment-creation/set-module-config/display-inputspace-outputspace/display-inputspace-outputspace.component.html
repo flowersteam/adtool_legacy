@@ -1,0 +1,21 @@
+<!--display two list-->
+<div class="card-group">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Input Space</h5>
+            <p class="card-text" *ngFor="let input of this.inputList"
+            [ngClass]="this.inputOutput == undefined || this.inputOutput[0].indexOf(input) < 0 ? 'active' : 'text-warning'">
+                {{input}}
+            </p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Output Space</h5>
+            <p class="card-text" *ngFor="let output of this.outputList"
+            [ngClass]="this.inputOutput == undefined || this.inputOutput[1].indexOf(output) < 0 ? 'active' : 'text-warning'">
+                {{output}}
+            </p>
+        </div>
+    </div>
+</div>

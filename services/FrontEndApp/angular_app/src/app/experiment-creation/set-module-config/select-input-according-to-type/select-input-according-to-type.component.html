@@ -1,0 +1,28 @@
+<label class="card-title col-12">Enter {{elt_config_key}}:</label>
+<!-- type integer -->
+<input *ngIf="this.actual_config_elt.type == 'INTEGER'" type="number" min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
+    class="form-control" [(ngModel)]="inputValue" (change)="this.returnToParent()">
+<!-- type decimal -->
+<input *ngIf="this.actual_config_elt.type == 'DECIMAL'" type="number" step={{this.calculStep()}} min="{{this.actual_config_elt.min}}" max="{{this.actual_config_elt.max}}"
+    class="form-control" [(ngModel)]="inputValue" (change)="this.returnToParent()">
+<!-- type boolean -->
+<label *ngIf="this.actual_config_elt.type == 'BOOLEAN'">
+    Yes : 
+    <input type="checkbox" [(ngModel)]="inputValue" (change)="this.returnToParent()">
+</label>
+<!-- type string -->
+<div *ngIf="this.actual_config_elt.type == 'STRING'">
+    <div *ngIf="this.actual_config_elt.possible_values == null;else choose_in_list">
+        <input type="text" class="form-control" [(ngModel)]="inputValue" (change)="this.returnToParent()">
+    </div>
+    <ng-template #choose_in_list class="dropdown">
+        
+        <select class="form-select" aria-label="Default select example" [(ngModel)]="inputValue" (change)="this.returnToParent()">
+            <option *ngFor="let choice of this.actual_config_elt.possible_values" >{{choice}}</option>
+        </select>
+    </ng-template>
+</div>
+<!-- type dict -->
+<div *ngIf="this.actual_config_elt.type == 'DICT'">
+    <app-set-dictionary [(inputValue)]="this.inputValue" (triggerParentMethod)="this.returnToParent()"></app-set-dictionary>
+</div>

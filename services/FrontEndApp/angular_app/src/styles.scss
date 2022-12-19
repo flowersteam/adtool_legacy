@@ -1,0 +1,48 @@
+// $theme-colors: (
+//   "primary":    "#AED9E0",
+//   "secondary":  "",
+//   // "success":    $success,
+//   // "info":       $info,
+//   // "warning":    $warning,
+//   // "danger":     $danger,
+//   // "light":      $light,
+//   // "dark":       $dark
+// );
+
+$primary: #AED9E0;
+$secondary: #5E6472;
+$highlighted: #FFA69E;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+@import "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+#sidebar{
+  height: 100vh;
+}
+
+.text-highlighted{
+  color: $highlighted;
+}
+
+.bg-highlighted{
+  background-color: $highlighted;
+}
+
+.btn-circle.btn-xl {
+  width: 70px;
+  height: 70px;
+  padding: 5px 10px;
+  border-radius: 35px;
+  font-size: 48px;
+  line-height: 1.33;
+}
+
+.btn-circle {
+  width: 50px;
+  height: 50px;
+  padding: 4px 0px;
+  border-radius: 25px;
+  text-align: center;
+  font-size: 30px;
+  line-height: 1.42857;
+}

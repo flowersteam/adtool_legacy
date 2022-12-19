@@ -1,0 +1,14 @@
+name: 
+  docker
+ssh_configuration: 
+  docker
+work_path:
+  /home/auto_disc
+local_tmp_path:
+  /tmp/auto_disc
+execution:
+  bash additional_files/docker.sh $NB_SEEDS $ARGS > $EXPE_ID
+cancellation:
+  for pid in $RUN_ID; do kill -9 $pid; done
+check_experiment_launched_every:
+  1

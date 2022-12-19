@@ -1,0 +1,140 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary py-4">
+    <div class="container-fluid">
+      <h3 class="text-secondary fs-4 mb-0">Create new experiments</h3>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="accordion col-9" id="accordionExample">
+            <!-- general information accordion -->
+            <div class="accordion-item mt-5">
+                <h2 class="accordion-header" id="headingGeneralInformation">
+                <button class="accordion-button text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneralInformation" aria-expanded="false" aria-controls="collapseGeneralInformation">
+                    <i class="bi bi-pen-fill me-2" width="16" height="16"></i> General Information
+                </button>
+                </h2>
+                <div id="collapseGeneralInformation" class="accordion-collapse collapse show" aria-labelledby="headingGeneralInformation">
+                    <div class="accordion-body">
+                        <app-set-experiment-config 
+                            [currentConfig]="this.createNewExperimentService.newExperiment.experiment"
+                            [hosts]="this.createNewExperimentService.allConfig.hosts">
+                        </app-set-experiment-config>
+                    </div>
+                </div>
+            </div>
+
+            <!-- system accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSystem">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="true" aria-controls="collapseSystem">
+                        <i class="bi bi-puzzle-fill me-2" width="16" height="16"></i> System
+                    </button>
+                </h2>
+                <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
+                    <div class="accordion-body">
+                        <app-set-module 
+                            [currentModule]="this.createNewExperimentService.newExperiment.system"
+                            [modules]="this.createNewExperimentService.allConfig.systems"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module>
+                    </div>
+                </div>
+            </div>
+
+            <!-- explorer accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingExplorer">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="true" aria-controls="collapseExplorer">
+                        <i class="bi bi-box me-2" width="16" height="16"></i> Explorer
+                    </button>
+                </h2>
+                <div id="collapseExplorer" class="accordion-collapse collapse" aria-labelledby="headingExplorer">
+                    <div class="accordion-body">
+                        <app-set-module 
+                            [currentModule]="this.createNewExperimentService.newExperiment.explorer"
+                            [modules]="this.createNewExperimentService.allConfig.explorers"
+                            [displayInputOutputSpace]="false">
+                        </app-set-module>
+                    </div>
+                </div>
+            </div>
+
+            <!-- input-wrapper accordion -->        
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingInputWrapper">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="true" aria-controls="collapseInputWrapper">
+                        <i class="bi bi-plug-fill me-2" width="16" height="16"></i> Input Wrappers
+                    </button>
+                </h2>
+                <div id="collapseInputWrapper" class="accordion-collapse collapse" aria-labelledby="headingInputWrapper">
+                    <div class="accordion-body">
+                        <!-- general information accordion -->
+                        <app-set-module-list
+                            key = "wrapped_output_space_key"
+                            [spaceItDependsOn]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).input_space : undefined"
+                            [currentModuleList]="this.createNewExperimentService.newExperiment.input_wrappers"
+                            [modules]="this.createNewExperimentService.allConfig.input_wrappers"
+                            [systems]="this.createNewExperimentService.allConfig.systems"
+                            [customModules]="this.createNewExperimentService.customConfig.input_wrappers"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module-list>    
+                    </div>
+                </div>
+            </div>
+
+            <!-- output-representation accordion -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOutputRepresentation">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="true" aria-controls="collapseOutputRepresentation">
+                        <i class="bi bi-plug-fill me-2" width="16" height="16"></i> Output Representations
+                    </button>
+                </h2>
+                <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
+                    <div class="accordion-body">
+                        <app-set-module-list
+                            key = "wrapped_input_space_key"
+                            [spaceItDependsOn]=" this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).output_space : undefined"
+                            [currentModuleList]="this.createNewExperimentService.newExperiment.output_representations"
+                            [modules]="this.createNewExperimentService.allConfig.output_representations"
+                            [systems]="this.createNewExperimentService.allConfig.systems"
+                            [customModules]="this.createNewExperimentService.customConfig.output_representations"
+                            [displayInputOutputSpace]="true">
+                        </app-set-module-list>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatDoYouWantToSave accordion -->
+            <div class="accordion-item mb-5">
+                <h2 class="accordion-header" id="headingWhatDoYouWantToSave">
+                    <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatDoYouWantToSave" aria-expanded="true" aria-controls="collapseWhatDoYouWantToSave">
+                        <i class="bi bi-journals me-2" width="16" height="16"></i> Saved in discoveries
+                    </button>
+                </h2>
+                <div id="collapseWhatDoYouWantToSave" class="accordion-collapse collapse" aria-labelledby="headingWhatDoYouWantToSave">
+                    <div class="accordion-body">
+                        <app-set-discovery-saving-key 
+                            [(inputValueCheckBox)]="this.createNewExperimentService.newExperiment.experiment.config.discovery_saving_keys"
+                            [system_name]="this.createNewExperimentService.newExperiment.system.name"
+                            [system_settings]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name) : undefined"
+                            [input_wrappers]="this.createNewExperimentService.newExperiment.input_wrappers"
+                            [input_wrappers_settings]="this.createNewExperimentService.newExperiment.input_wrappers.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.input_wrappers, this.createNewExperimentService.newExperiment.input_wrappers[0].name) : undefined"
+                            [output_representations]="this.createNewExperimentService.newExperiment.output_representations"
+                            [output_representations_settings]="this.createNewExperimentService.newExperiment.output_representations.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.output_representations, this.createNewExperimentService.newExperiment.output_representations[this.createNewExperimentService.newExperiment.output_representations.length -1].name) : undefined">
+                        </app-set-discovery-saving-key>
+                    </div>
+                </div>
+            </div>    
+        </div>
+        <!-- accordion is finished -->
+
+        <div class="col-3">
+            <app-load-experiment-config-to-create 
+                [currentExperiment]="this.createNewExperimentService.newExperiment">
+            </app-load-experiment-config-to-create>
+        </div>
+
+    </div>
+    <button id="btn_create_exp" type="button" class="btn btn-primary mb-5" (click)="this.createExperiment()">Create Experiment</button>
+</div>
