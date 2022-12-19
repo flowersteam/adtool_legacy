@@ -96,6 +96,7 @@ You can start then by going in `services`: `cd services` and launching the follo
 ```
 sudo docker-compose --profile monitoring up
 ```
+
 *Warning*: This command will start all the docker services or attach the already launched ones otherwise.
 
 #### Portainer
