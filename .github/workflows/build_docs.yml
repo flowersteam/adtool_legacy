@@ -27,11 +27,10 @@ jobs:
         run: pip3 install pdoc==12.3.0
 
       - name: Generate doc
-        run: pdoc --output-dir docs libs/auto_disc/auto_disc/
+        run: pdoc --output-dir ./docs/adtool ./libs/auto_disc/auto_disc/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/adtool
-          destination_dir: docs
