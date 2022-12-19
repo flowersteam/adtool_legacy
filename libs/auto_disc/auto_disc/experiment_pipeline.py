@@ -4,7 +4,7 @@ import traceback
 import torch
 
 import typing
-from typing import Dict, Type, Callable, List, Any
+from typing import Dict, Type, Callable, List, Any, Tuple
 from auto_disc import systems, explorers
 from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.output_representations import BaseOutputRepresentation
