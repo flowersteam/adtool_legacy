@@ -27,7 +27,7 @@ jobs:
         run: pip3 install pdoc==12.3.0
 
       - name: Generate doc
-        run: pdoc --html --output-dir docs libs/auto_disc/auto_disc/ --skip-errors --force
+        run: pdoc --output-dir docs libs/auto_disc/auto_disc/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
