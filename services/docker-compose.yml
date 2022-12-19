@@ -99,7 +99,6 @@ services:
   app:
     build: ./FrontEndApp
     environment:
-      DEBUG: 1
       EXPEDB_HOST: expe-db-api
       EXPE_DB_API_PORT: $EXPE_DB_API_PORT
       APPDB_HOST: app-db-api
