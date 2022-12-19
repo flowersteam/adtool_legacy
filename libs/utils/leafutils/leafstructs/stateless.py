@@ -12,4 +12,4 @@ class StatelessService(Leaf):
         return LeafUID('')
 
     def load_leaf(self, uid: 'LeafUID', resource_uri: str = "") -> 'Leaf':
-        return LeafUID('')
+        return self
