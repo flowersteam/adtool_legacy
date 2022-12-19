@@ -1,0 +1,37 @@
+name: build_docs
+on:
+  push:
+    branches:
+      - prod
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python env
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install auto_disc dependencies
+        working-directory: ./libs/auto_disc
+        run: pip3 install -e .
+
+      - name: Install utils dependencies
+        working-directory: ./libs/utils
+        run: pip3 install -e .
+
+      - name: Install pdoc
+        run: pip3 install pdoc==12.3.0
+
+      - name: Generate doc
+        run: pdoc --html --output-dir docs libs/auto_disc/auto_disc/ --skip-errors --force
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/adtool
+          destination_dir: docs
