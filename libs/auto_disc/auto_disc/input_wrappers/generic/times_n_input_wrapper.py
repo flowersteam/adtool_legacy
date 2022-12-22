@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 from addict import Dict
 
-from leaf.tests.test_leaf import DummyDB, DummyLocator
+from leaf.tests.test_leaf import DummyLocator
 from leaf.leaf import Locator
 
 
@@ -32,18 +32,3 @@ class TimesNInputWrapper(Leaf):
             output[self._wrapped_key] * self.config["n"]
 
         return output
-
-
-class DummySaveService(Leaf):
-    locator_table = DummyDB.LocDB
-
-    def create_locator(self, bin):
-        return DummyLocator(bin)
-
-    def store_locator(self, loc):
-        DummySaveService.locator_table[self.uid] = loc.serialize()
-        return
-
-    @classmethod
-    def retrieve_locator(cls, leaf_id):
-        return Locator.deserialize(DummySaveService.locator_table[leaf_id])
