@@ -9,25 +9,15 @@ import numpy as np
 from auto_disc.utils.logger import AutoDiscLogger
 from auto_disc import ExperimentPipeline
 from auto_disc import REGISTRATION
+from auto_disc.newarch.registration import get_cls_from_path, get_path_from_cls
 import sys
 import argparse
 import json
 import os
 from typing import Callable, Dict, List
-from pydoc import locate as locate_cls
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
-
-
-def get_qualified_class_path(cls: type) -> str:
-    """
-    Returns the fully qualified class path, for use with dynamic imports.
-    """
-    qualified_class_name = cls.__qualname__
-    module_name = cls.__module__
-    class_path = module_name + "." + qualified_class_name
-    return class_path
 
 
 def create(parameters: Dict, experiment_id: int, seed: int,
@@ -54,8 +44,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
     # Get logger
     handlers = []
     for logger_handler in parameters['logger_handlers']:
-        handler_key = logger_handler['name']
-        handler_class = REGISTRATION['logger_handlers'][handler_key]
+        handler_class = get_cls_from_path(logger_handler['name'])
         handler = handler_class(
             **logger_handler['config'], experiment_id=experiment_id)
         handlers.append(handler)
@@ -65,18 +54,18 @@ def create(parameters: Dict, experiment_id: int, seed: int,
     logger = AutoDiscLogger(experiment_id, seed, handlers)
 
     # Get explorer
-    explorer_class = REGISTRATION['explorers'][parameters['explorer']['name']]
+    explorer_class = get_cls_from_path(parameters['explorer']['name'])
     explorer = explorer_class(
         logger=logger, **parameters['explorer']['config'])
 
     # Get system
-    system_class = REGISTRATION['systems'][parameters['system']['name']]
+    system_class = get_cls_from_path(parameters['system']['name'])
     system = system_class(logger=logger, **parameters['system']['config'])
 
     # Get input wrappers
     input_wrappers = []
     for _input_wrapper in parameters['input_wrappers']:
-        input_wrapper_class = REGISTRATION['input_wrappers'][_input_wrapper['name']]
+        input_wrapper_class = get_cls_from_path(_input_wrapper['name'])
         input_wrappers.append(
             input_wrapper_class(
                 logger=logger, output_space=system.input_space, **_input_wrapper['config'])
@@ -85,7 +74,8 @@ def create(parameters: Dict, experiment_id: int, seed: int,
     # Get output representations
     output_representations = []
     for _output_representation in parameters['output_representations']:
-        output_representation_class = REGISTRATION['output_representations'][_output_representation['name']]
+        output_representation_class = get_cls_from_path(
+            _output_representation['name'])
         output_representations.append(
             output_representation_class(
                 logger=logger, **_output_representation['config'])
@@ -111,7 +101,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
                 callbacks[callback_key].update(
                     additional_callbacks[callback_key])
         for _callback in parameters['callbacks'][callback_key]:
-            callback_class = REGISTRATION['callbacks'][callback_key][_callback['name']]
+            callback_class = get_cls_from_path(_callback['name'])
             if callback_key == "interact":
                 callbacks[callback_key].update(
                     {_callback['name']: callback_class(
