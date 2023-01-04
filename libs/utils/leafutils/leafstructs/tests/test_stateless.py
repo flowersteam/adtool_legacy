@@ -1,6 +1,6 @@
 from leaf.leaf import Leaf
-from leafstructs.stateless import StatelessService
-from leafstructs.service import provide_leaf_as_service
+from leafutils.leafstructs.stateless import StatelessService
+from leafutils.leafstructs.service import provide_leaf_as_service
 
 
 class PlusOffset(Leaf):

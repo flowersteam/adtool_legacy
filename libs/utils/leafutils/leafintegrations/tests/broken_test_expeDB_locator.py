@@ -1,6 +1,6 @@
-from leafintegrations.expeDB_locator import ExpeDBService, ExpeDBLocator
+from leafutils.leafintegrations.expeDB_locator import ExpeDBService, ExpeDBLocator
 from leaf.tests.test_leaf import DummyModule
-from leafstructs.service import modify_leaf_cls, provide_leaf_as_service
+from leafutils.leafstructs.service import provide_leaf_as_service
 import requests
 import codecs
 
