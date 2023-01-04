@@ -8,8 +8,7 @@ import random
 import numpy as np
 from auto_disc.utils.logger import AutoDiscLogger
 from auto_disc import ExperimentPipeline
-from auto_disc import REGISTRATION
-from auto_disc.newarch.registration import get_cls_from_path, get_path_from_cls
+from auto_disc.newarch.registration import get_cls_from_path
 import sys
 import argparse
 import json
