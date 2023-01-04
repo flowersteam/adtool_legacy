@@ -1,0 +1,61 @@
+{
+    "experiment": {
+        "name": "smallDemo",
+        "config": {
+            "host": "local",
+            "nb_seeds": 1,
+            "nb_iterations": 2,
+            "save_frequency": 1,
+            "discovery_saving_keys": [
+                "Parameters sent by the explorer before input wrappers",
+                "Parameters sent by the explorer after input wrappers",
+                "Raw system output",
+                "Representation of system output",
+                "Rendered system output"
+            ]
+        }
+    },
+    "system": {
+        "name": "PythonLenia",
+        "config": {
+            "SX": 8,
+            "SY": 8,
+            "version": "pytorch_fft",
+            "final_step": 200,
+            "scale_init_state": 1
+        }
+    },
+    "explorer": {
+        "name": "IMGEPExplorer",
+        "config": {
+            "goal_selection_type": "random",
+            "use_exandable_goal_space": true,
+            "num_of_random_initialization": 10,
+            "source_policy_selection_type": "optimal"
+        }
+    },
+    "input_wrappers": [
+        {
+            "name": "generic.CPPN",
+            "config": {
+                "n_passes": 2,
+                "wrapped_output_space_key": "init_state"
+            },
+            "index": 0
+        }
+    ],
+    "output_representations": [
+        {
+            "name": "specific.LeniaFlattenImage",
+            "config": {
+                "SX": 8,
+                "SY": 8,
+                "distance_function": "L2",
+                "wrapped_input_space_key": "states"
+            },
+            "index": 0
+        }
+    ],
+    "callbacks": [],
+    "logger_handlers": []
+}
