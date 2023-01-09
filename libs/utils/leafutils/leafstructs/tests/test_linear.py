@@ -53,9 +53,9 @@ def test_linearstorage__get_trajectory():
     from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
     _, trajectory, depths = x._get_trajectory(5)
-    assert trajectory == [1, 2, 3, 4, 5]
+    assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
     _, trajectory, depths = x._get_trajectory(7)
-    assert trajectory == [1, 2, 4, 8]
+    assert trajectory == [bytes(1), bytes(2), bytes(4), bytes(8)]
     assert len(trajectory) - 1 == depths[0]
 
     return
@@ -92,19 +92,19 @@ def test_linearstorage__match_backwards():
     from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
 
-    query_trajectory = [1, 2, 4, 8]
+    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(8)]
     return_ids = x._match_backwards(query_trajectory)
     assert return_ids == [1, 2, 6, 7]
 
-    query_trajectory = [1, 2, 4]
+    query_trajectory = [bytes(1), bytes(2), bytes(4)]
     return_ids = x._match_backwards(query_trajectory)
     assert return_ids == [1, 2, 6]
 
-    query_trajectory = [1, 2, 3]
+    query_trajectory = [bytes(1), bytes(2), bytes(3)]
     return_ids = x._match_backwards(query_trajectory)
     assert return_ids == [1, 2, 3]
 
-    query_trajectory = [1, 2, 5]
+    query_trajectory = [bytes(1), bytes(2), bytes(5)]
     with pytest.raises(Exception):
         return_ids = x._match_backwards(query_trajectory)
 
@@ -113,13 +113,13 @@ def test_linearstorage__get_insertion_tuple():
     from leafutils.leafstructs.linear import LinearStorage, Stepper
     x = LinearStorage(DB_PATH)
 
-    query_trajectory = [1, 2, 4, 9]
+    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     stepper = Stepper()
     stepper.buffer = query_trajectory
     bin = stepper.serialize()
 
     parent_id, content = x._get_insertion_tuple(bin)
-    assert content == 9
+    assert content == bytes(9)
     assert parent_id == 6
 
 
@@ -127,17 +127,16 @@ def test_linearstorage_store():
     from leafutils.leafstructs.linear import LinearStorage, Stepper
     x = LinearStorage(DB_PATH)
 
-    query_trajectory = [1, 2, 4, 9]
+    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     stepper = Stepper()
     stepper.buffer = query_trajectory
     bin = stepper.serialize()
 
-    x.store(bin)
+    retrieval_key = x.store(bin)
 
     # assert that retrieval_key is stored
     # and can successfully retrieve trajectory
-    assert x.retrieval_key is not None
-    ids, _, _ = x._get_trajectory(x.retrieval_key)
+    ids, _, _ = x._get_trajectory(retrieval_key)
     assert ids == [1, 2, 6, 8]
 
 
@@ -146,9 +145,9 @@ def test_linearstorage_retrieve():
     x = LinearStorage(DB_PATH)
 
     # mock storage of sequence
-    x.retrieval_key = 7
+    retrieval_key = 7
 
-    bin = x.retrieve()
+    bin = x.retrieve(retrieval_key)
     tmp_stepper = Stepper()
     stepper = tmp_stepper.deserialize(bin)
-    assert stepper.buffer == [1, 2, 4, 8]
+    assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(8)]

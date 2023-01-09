@@ -1,7 +1,8 @@
-from leaf.leaf import Leaf, Locator
+from leaf.leaf import Leaf, Locator, LeafUID
 from typing import Tuple, List
 from sqlalchemy import create_engine, text, event
 from sqlalchemy.engine import Engine
+import codecs
 
 
 class Stepper(Leaf):
@@ -9,15 +10,27 @@ class Stepper(Leaf):
         super().__init__()
         self.buffer = []
 
-    def step(self):
-        length = len(self.buffer)
-        self.buffer.append(length+1)
-
 
 class LinearStorage(Locator):
     """
     Locator which stores branching, linear data
-    with minimal redundancies in a SQLite db
+    with minimal redundancies in a SQLite db.
+
+    To use, one should override `deserialize` of
+    your Leaf module class to output a serialized `Stepper`
+    object, for example:
+        ```
+        class A(Leaf):
+
+            def __init__(self, buffer = []):
+                super().__init__()
+                self.buffer = buffer
+
+            def serialize(self):
+                stepper = Stepper()
+                stepper.buffer = self.buffer
+                return stepper.serialize()
+        ```
     """
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -25,29 +38,39 @@ class LinearStorage(Locator):
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
+    @staticmethod
+    def _convert_bytes_to_base64_str(bin: bytes) -> str:
+        tmp = codecs.encode(bin, encoding="base64").decode()
+        # prune newline
+        if tmp[-1] == '\n':
+            out_str = tmp[:-1]
+        return out_str
+
+    @staticmethod
+    def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
+        return codecs.decode(b64_str.encode(), encoding="base64")
+
     def __init__(self, db_url):
         self.engine = create_engine(f"sqlite+pysqlite:///{db_url}", echo=True)
 
-    def store(self, bin: bytes) -> None:
-        parent_id, content = self._get_insertion_tuple(bin)
-        id = self._insert_node(content, parent_id)
+    def store(self, bin: bytes) -> 'LeafUID':
+        parent_id, delta = self._get_insertion_tuple(bin)
+        id = self._insert_node(delta, parent_id)
 
-        # assign the id in the instance so it can be retrieved
-        self.retrieval_key = id
-        return
+        return id
 
-    def retrieve(self) -> bytes:
-        _, trajectory, _ = self._get_trajectory(self.retrieval_key)
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        _, trajectory, _ = self._get_trajectory(uid)
         stepper = Stepper()
         stepper.buffer = trajectory
         bin = stepper.serialize()
         return bin
 
-    def _insert_node(self, content: int, parent_id: int = None) -> int:
+    def _insert_node(self, delta: str, parent_id: int = None) -> int:
         with self.engine.begin() as conn:
             conn.execute(
                 text("INSERT INTO trajectories (content) VALUES (:z)"),
-                {"z": content})
+                {"z": delta})
 
             # SQLite exclusive function call to get ID of just inserted row
             res = conn.execute(text("SELECT last_insert_rowid()"))
@@ -59,7 +82,7 @@ class LinearStorage(Locator):
                     {"y": parent_id, "z": id})
         return id
 
-    def _get_trajectory(self, id: int):
+    def _get_trajectory(self, id: int) -> Tuple[List[int], List[str], List[int]]:
         query = \
             '''
             WITH tree_inheritance AS (
@@ -86,7 +109,8 @@ class LinearStorage(Locator):
             result = result.all()
 
             ids = [w for (w, _, _) in result]
-            trajectory = [w for (_, w, _) in result]
+            trajectory = [self._convert_base64_str_to_bytes(
+                w) for (_, w, _) in result]
             depths = [w for (_, _, w) in result]
 
         return ids, trajectory, depths
@@ -105,7 +129,7 @@ class LinearStorage(Locator):
 
         return heads
 
-    def _match_backwards(self, buffer: list):
+    def _match_backwards(self, buffer: list) -> List[int]:
         """
         Searches in the DB for the buffer sequence and returns
         the trajectory in the DB which matches, labelled by id.
@@ -129,12 +153,11 @@ class LinearStorage(Locator):
 
         return return_ids
 
-    def _get_insertion_tuple(self, bin: bytes) -> Tuple[int, int]:
+    def _get_insertion_tuple(self, bin: bytes) -> Tuple[int, str]:
         """
         Matches the binary-encoded sequence with the appropriate
         DB primary key of where to insert the latest time step (i.e., the parent).
         Returns this key and the binary delta (to insert)
-        TODO: here it's just an int, for MWE.
         """
         # TODO: check corner case with len(heads) == 0, need to initialize
 
@@ -144,14 +167,15 @@ class LinearStorage(Locator):
         buffer = stepper.buffer
 
         # truncate the last element which is to be added
-        content = buffer[-1]
+        delta = buffer[-1]
         buffer = buffer[:-1]
+        delta = self._convert_bytes_to_base64_str(delta)
 
         # retrieve the id where to insert
         match_ids = self._match_backwards(buffer)
         parent_id = match_ids[-1]
 
-        return (parent_id, content)
+        return (parent_id, delta)
 
     @staticmethod
     def _list_contains(small: list, big: list) -> Tuple[int, int]:
