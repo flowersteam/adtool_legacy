@@ -15,6 +15,10 @@ class Stepper(Leaf):
 
 
 class LinearStorage(Locator):
+    """
+    Locator which stores branching, linear data
+    with minimal redundancies in a SQLite db
+    """
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
@@ -159,7 +163,7 @@ class LinearStorage(Locator):
             for j in range(len(small)):
                 if big[i+j] != small[j]:
                     break
-            # else is triggered if for loop exists without breaking
+            # else is triggered if for loop exits without breaking
             else:
                 return i, i+len(small)
 
