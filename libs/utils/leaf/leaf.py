@@ -10,7 +10,9 @@ LeafUID = NewType("LeafUID", str)
 class Leaf:
 
     @classmethod
-    def create_locator(cls, resource_uri: str = "", *args, **kwargs) -> 'Locator':
+    def create_locator(cls,
+                       resource_uri: str = "", *args, **kwargs
+                       ) -> 'Locator':
         raise NotImplementedError()
 
     def __init__(self) -> None:
@@ -76,7 +78,10 @@ class Leaf:
         return uid
 
     def serialize(self) -> bytes:
-        """ Serializes object to pickle, turning all submodules into uniquely identifiable hashes """
+        """ 
+        Serializes object to pickle, 
+        turning all submodules into uniquely identifiable hashes 
+        """
         # recursively pointerize all submodules
         old_modules = self._modules
         modules_by_ref = {}
@@ -128,7 +133,10 @@ class Leaf:
         return container_leaf
 
     def save_leaf(self, resource_uri: str, *args, **kwargs) -> 'LeafUID':
-        """ Save entire structure of object. The suggested way to customize behavior is overloading serialize() and create_locator() """
+        """
+        Save entire structure of object. The suggested way to customize 
+        behavior is overloading serialize() and create_locator() 
+        """
         # recursively save contained leaves
         for m in self._modules.values():
             if isinstance(m, str):
