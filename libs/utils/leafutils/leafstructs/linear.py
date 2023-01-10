@@ -83,6 +83,9 @@ class LinearStorage(Locator):
         return id
 
     def _get_trajectory(self, id: int) -> Tuple[List[int], List[str], List[int]]:
+        """
+        Retrieves trajectory which has HEAD at id
+        """
         query = \
             '''
             WITH tree_inheritance AS (
