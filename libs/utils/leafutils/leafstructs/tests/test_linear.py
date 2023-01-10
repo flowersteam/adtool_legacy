@@ -128,6 +128,29 @@ def test_linearstorage_store():
     x = LinearStorage(DB_PATH)
 
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
+    parent_id = 6
+    stepper = Stepper()
+    stepper.buffer = query_trajectory
+    bin = stepper.serialize()
+
+    retrieval_key = x.store(bin, 6)
+
+    # assert that retrieval_key is stored
+    # and can successfully retrieve trajectory
+    ids, trajectory, _ = x._get_trajectory(retrieval_key)
+    assert ids == [1, 2, 6, 8]
+    assert trajectory == [bytes(1), bytes(2), bytes(4), bin]
+
+    # assert unpacking of stepper object
+    new_stepper = stepper.deserialize(bin)
+    assert query_trajectory == new_stepper.buffer
+
+
+def test_linearstorage_store_instance_var():
+    from leafutils.leafstructs.linear import LinearStorage, Stepper
+    x = LinearStorage(DB_PATH, leaf_uid=6)
+
+    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     stepper = Stepper()
     stepper.buffer = query_trajectory
     bin = stepper.serialize()
@@ -136,8 +159,9 @@ def test_linearstorage_store():
 
     # assert that retrieval_key is stored
     # and can successfully retrieve trajectory
-    ids, _, _ = x._get_trajectory(retrieval_key)
+    ids, trajectory, _ = x._get_trajectory(retrieval_key)
     assert ids == [1, 2, 6, 8]
+    assert trajectory == [bytes(1), bytes(2), bytes(4), bin]
 
 
 def test_linearstorage_retrieve():

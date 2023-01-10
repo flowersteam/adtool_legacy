@@ -50,16 +50,31 @@ class LinearStorage(Locator):
     def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
         return codecs.decode(b64_str.encode(), encoding="base64")
 
-    def __init__(self, db_url):
+    def __init__(self, db_url: str, leaf_uid: str = ""):
         self.engine = create_engine(f"sqlite+pysqlite:///{db_url}", echo=True)
+        self.leaf_uid = leaf_uid
 
-    def store(self, bin: bytes) -> 'LeafUID':
-        parent_id, delta = self._get_insertion_tuple(bin)
+    def store(self, bin: bytes, parent_id: int = None) -> 'LeafUID':
+        """
+        Stores the bin as a child node of the node given by parent_id.
+        #### Returns:
+        - leaf_uid (LeafUID): indicating the SQLite unique key corresponding
+                              to the inserted node
+        """
+        #        parent_id, delta = self._get_insertion_tuple(bin)
+        if parent_id is None:
+            parent_id = self.leaf_uid
+        delta = self._convert_bytes_to_base64_str(bin)
         id = self._insert_node(delta, parent_id)
-
         return id
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
+        """
+        Retrieve entire trajectory of saved data starting from the leaf node
+        given by uid, traversing backwards towards the root.
+        #### Returns:
+        - bin (bytes): trajectory packed as a Stepper bin
+        """
         _, trajectory, _ = self._get_trajectory(uid)
         stepper = Stepper()
         stepper.buffer = trajectory
