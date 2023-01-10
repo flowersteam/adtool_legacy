@@ -82,7 +82,8 @@ class LinearStorage(Locator):
                     {"y": parent_id, "z": id})
         return id
 
-    def _get_trajectory(self, id: int) -> Tuple[List[int], List[str], List[int]]:
+    def _get_trajectory(self, id: int
+                        ) -> Tuple[List[int], List[str], List[int]]:
         """
         Retrieves trajectory which has HEAD at id
         """
@@ -159,7 +160,7 @@ class LinearStorage(Locator):
     def _get_insertion_tuple(self, bin: bytes) -> Tuple[int, str]:
         """
         Matches the binary-encoded sequence with the appropriate
-        DB primary key of where to insert the latest time step (i.e., the parent).
+        DB primary key of where to insert the latest time step (the parent).
         Returns this key and the binary delta (to insert)
         """
         # TODO: check corner case with len(heads) == 0, need to initialize
