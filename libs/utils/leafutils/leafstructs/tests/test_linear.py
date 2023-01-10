@@ -119,7 +119,7 @@ def test_linearstorage__get_insertion_tuple():
     bin = stepper.serialize()
 
     parent_id, content = x._get_insertion_tuple(bin)
-    assert content == bytes(9)
+    assert content == x._convert_bytes_to_base64_str(bytes(9))
     assert parent_id == 6
 
 
