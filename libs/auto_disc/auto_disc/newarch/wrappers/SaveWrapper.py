@@ -25,22 +25,32 @@ class SaveWrapper(Leaf):
                  ) -> None:
         super().__init__()
 
+        # process key wrapping
         if len(wrapped_keys) != len(posttransform_keys):
             raise ValueError(
                 "wrapped_keys and transformed_keys must be same length.")
 
         self.wrapped_keys = wrapped_keys
         self.posttransform_keys = posttransform_keys
-        self.inputs_to_save = inputs_to_save
-        self.outputs_to_save = outputs_to_save
+
+        # process saving spec
+        if len(inputs_to_save) > 0 and len(outputs_to_save) > 0:
+            raise ValueError(
+                '''
+                Saving both inputs and outputs of this wrapper is not supported.
+                Compose multiple wrappers for this functionality.
+                '''
+            )
+        elif len(inputs_to_save) == 0 and len(outputs_to_save) == 0:
+            # save inputs by default
+            self.inputs_to_save = wrapped_keys
+            self.outputs_to_save = outputs_to_save
+        else:
+            self.inputs_to_save = inputs_to_save
+            self.outputs_to_save = outputs_to_save
+
         self.input_buffer: list = []
         self.output_buffer: list = []
-
-        # default save values
-        if len(self.inputs_to_save) == 0:
-            self.inputs_to_save = self.wrapped_keys
-        if len(self.outputs_to_save) == 0:
-            self.outputs_to_save = self.posttransform_keys
 
     def map(self, input: Dict) -> Dict:
         """
@@ -52,17 +62,19 @@ class SaveWrapper(Leaf):
         # must do because dicts are mutable types
         intermed_dict = deepcopy(input)
 
-        saved_input = {}
-        for key in self.inputs_to_save:
-            saved_input[key] = intermed_dict[key]
-        self.input_buffer.append(saved_input)
+        if len(self.inputs_to_save) > 0:
+            saved_input = {}
+            for key in self.inputs_to_save:
+                saved_input[key] = intermed_dict[key]
+            self.input_buffer.append(saved_input)
 
         output = self._transform_keys(intermed_dict)
 
-        saved_output = {}
-        for key in self.outputs_to_save:
-            saved_output[key] = output[key]
-        self.output_buffer.append(saved_output)
+        if len(self.outputs_to_save) > 0:
+            saved_output = {}
+            for key in self.outputs_to_save:
+                saved_output[key] = output[key]
+            self.output_buffer.append(saved_output)
 
         return output
 
