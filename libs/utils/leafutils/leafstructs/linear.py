@@ -98,7 +98,7 @@ class LinearStorage(Locator):
         return id
 
     def _get_trajectory(self, id: int
-                        ) -> Tuple[List[int], List[str], List[int]]:
+                        ) -> Tuple[List[int], List[bytes], List[int]]:
         """
         Retrieves trajectory which has HEAD at id
         """
@@ -127,10 +127,10 @@ class LinearStorage(Locator):
             # persist the result into Python list
             result = result.all()
 
-            ids = [w for (w, _, _) in result]
+            ids: List[int] = [w for (w, _, _) in result]
             trajectory = [self._convert_base64_str_to_bytes(
                 w) for (_, w, _) in result]
-            depths = [w for (_, _, w) in result]
+            depths: List[int] = [w for (_, _, w) in result]
 
         return ids, trajectory, depths
 
