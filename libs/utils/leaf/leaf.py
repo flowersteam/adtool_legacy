@@ -178,10 +178,6 @@ class Leaf:
 
 class Locator:
     def __init__(self,  *args, **kwargs):
-        """ 
-        Store all stateful information, given in the bin argument, 
-        needed to locate the resource in instance variables
-        """
         raise NotImplementedError
 
     def store(self, bin: bytes) -> 'LeafUID':

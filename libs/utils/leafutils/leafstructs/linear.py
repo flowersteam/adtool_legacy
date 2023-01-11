@@ -50,11 +50,11 @@ class LinearStorage(Locator):
     def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
         return codecs.decode(b64_str.encode(), encoding="base64")
 
-    def __init__(self, db_url: str, leaf_uid: str = ""):
+    def __init__(self, db_url: str, leaf_uid: int = -1):
         self.engine = create_engine(f"sqlite+pysqlite:///{db_url}", echo=True)
         self.leaf_uid = leaf_uid
 
-    def store(self, bin: bytes, parent_id: int = None) -> 'LeafUID':
+    def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
         """
         Stores the bin as a child node of the node given by parent_id.
         #### Returns:
