@@ -49,6 +49,16 @@ def test_map():
     assert wrapper.output_buffer == []
 
 
+def test_map_default():
+    input = {"data": 1}
+    wrapper = SaveWrapper()
+    output = wrapper.map(input)
+    assert output["data"] == 1
+    assert len(output) == 1
+    assert wrapper.input_buffer == [{"data": 1}]
+    assert wrapper.output_buffer == []
+
+
 def test_map_complex():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(

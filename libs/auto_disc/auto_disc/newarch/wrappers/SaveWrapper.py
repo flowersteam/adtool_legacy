@@ -65,19 +65,28 @@ class SaveWrapper(Leaf):
         # must do because dicts are mutable types
         intermed_dict = deepcopy(input)
 
-        if len(self.inputs_to_save) > 0:
-            saved_input = {}
-            for key in self.inputs_to_save:
-                saved_input[key] = intermed_dict[key]
+        # default short circuit
+        if len(self.wrapped_keys) == 0 and len(self.posttransform_keys) == 0:
+            # save all inputs by default
+            saved_input = deepcopy(intermed_dict)
             self.input_buffer.append(saved_input)
 
-        output = self._transform_keys(intermed_dict)
+            output = intermed_dict
 
-        if len(self.outputs_to_save) > 0:
-            saved_output = {}
-            for key in self.outputs_to_save:
-                saved_output[key] = output[key]
-            self.output_buffer.append(saved_output)
+        else:
+            if len(self.inputs_to_save) > 0:
+                saved_input = {}
+                for key in self.inputs_to_save:
+                    saved_input[key] = intermed_dict[key]
+                self.input_buffer.append(saved_input)
+
+            output = self._transform_keys(intermed_dict)
+
+            if len(self.outputs_to_save) > 0:
+                saved_output = {}
+                for key in self.outputs_to_save:
+                    saved_output[key] = output[key]
+                self.output_buffer.append(saved_output)
 
         return output
 
