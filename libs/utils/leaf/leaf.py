@@ -146,7 +146,7 @@ class Leaf:
                 m.save_leaf(resource_uri)
 
         # save this leaf
-        bin = self.serialize(*args, **kwargs)
+        bin = self.serialize()
         loc = self.create_locator(resource_uri, *args, **kwargs)
         uid = loc.store(bin)
 
