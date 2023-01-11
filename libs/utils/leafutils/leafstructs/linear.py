@@ -62,7 +62,7 @@ class LinearStorage(Locator):
                               to the inserted node
         """
         #        parent_id, delta = self._get_insertion_tuple(bin)
-        if parent_id is None:
+        if parent_id == -1:
             parent_id = self.leaf_uid
         delta = self._convert_bytes_to_base64_str(bin)
         id = self._insert_node(delta, parent_id)
@@ -81,7 +81,7 @@ class LinearStorage(Locator):
         bin = stepper.serialize()
         return bin
 
-    def _insert_node(self, delta: str, parent_id: int = None) -> int:
+    def _insert_node(self, delta: str, parent_id: int = -1) -> int:
         with self.engine.begin() as conn:
             conn.execute(
                 text("INSERT INTO trajectories (content) VALUES (:z)"),
@@ -91,7 +91,7 @@ class LinearStorage(Locator):
             res = conn.execute(text("SELECT last_insert_rowid()"))
             id = res.all()[0][0]
 
-            if parent_id is not None:
+            if parent_id != -1:
                 conn.execute(
                     text("INSERT INTO tree (id, child_id) VALUES (:y, :z)"),
                     {"y": parent_id, "z": id})
