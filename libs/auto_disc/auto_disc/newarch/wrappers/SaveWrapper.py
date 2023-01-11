@@ -1,6 +1,9 @@
 from copy import deepcopy
 from typing import Dict, List
-from leaf.leaf import Leaf
+from leaf.leaf import Leaf, Locator, LeafUID
+from leafutils.leafstructs.linear import LinearStorage, Stepper
+from uuid import uuid1
+import sqlite3
 
 
 class SaveWrapper(Leaf):
@@ -77,6 +80,31 @@ class SaveWrapper(Leaf):
             self.output_buffer.append(saved_output)
 
         return output
+
+    def serialize(self) -> bytes:
+        """
+        Save desired buffer through a Stepper module,
+        as required by LinearStorage
+        """
+        stepper = Stepper()
+        if len(self.inputs_to_save) > 0:
+            stepper.buffer = self.input_buffer
+        elif len(self.outputs_to_save) > 0:
+            stepper.buffer = self.output_buffer
+        return stepper.serialize()
+
+    def save_leaf(self, resource_uri: str, leaf_uid: int = -1) -> 'LeafUID':
+        uid = super().save_leaf(resource_uri, leaf_uid)
+
+        # clear cache
+        self.input_buffer = []
+        self.output_buffer = []
+        return uid
+
+    @classmethod
+    def create_locator(cls, resource_uri: str = "", leaf_uid: int = -1
+                       ) -> 'Locator':
+        return LinearStorage(resource_uri, leaf_uid)
 
     def _transform_keys(self, old_dict: Dict) -> Dict:
 
