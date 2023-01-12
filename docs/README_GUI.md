@@ -1,9 +1,9 @@
 # User documentation
 ## Home
 
-After starting the application and opening it in a browser at http://localhost:4200/home (localhost if you run the application locally), you will access the page presented in the picture below. 
+After starting the application and opening it in a browser at http://localhost:4201/home (localhost if you run the application locally), you will access the page presented in the picture below. 
 
-![image](../../../docs/user_doc_images/home/all-note.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/home/all-note.png" width="800"/>
 
 First you can see a list of experiments and  for each experience some brief information. If you click on an item in the list you will be redirected to the experiment monitoring page
 The numbers below correspond to those in red in the picture.
@@ -17,7 +17,7 @@ The numbers below correspond to those in red in the picture.
 ## Experiment creation
 
 ### General presentation
-![image](../../../docs/user_doc_images/creation/all.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/creation/all.png" width="800"/>
 
 This page consists of 4 parts:
 
@@ -29,7 +29,7 @@ This page consists of 4 parts:
 Now we will see each part of the accordion.
 
 General information:
-![image](../../../docs/user_doc_images/creation/general-information.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/creation/general-information.png" width="800"/>
 
     1: The name of the experiment. Must contain only alpha numeric characters, "-" and "_".
     2: The number of iterations. How many generations of the system will be explored.
@@ -44,24 +44,24 @@ The monitoring experiment page give you access to the tools to manage the experi
 
 The *Details* part displays information about the experiment config. You have access to all modules used in the experiment, the current system, the current explorer, the list of input wrappers and output representations and the config for each of them and you can see all items the experiment has saved.
 
-![image](../../../docs/user_doc_images/monitoring/details.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/details.png" width="800"/>
 
 The *checkpoints* part displays every checkpoint id with its status (Done, running, error...) and the experiment iteration number when the checkpoint was created.
 
-![image](../../../docs/user_doc_images/monitoring/checkpoints.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/checkpoints.png" width="800"/>
 
 The *jupyter* part gives you access to tools to monitor many things. In it you have acces to the database and every results produced by an experiment.
 The "dataset_template" notebook show you how to acces the database and demonstrate a simple way to manipulate data.
 The yellow/blue popover informs weither the jupyter kernel is available and connected to the database or not.
 
-![image](../../../docs/user_doc_images/monitoring/jupyter.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/jupyter.png" width="800"/>
 
 The *discoveries* part displays all discoveries made by the experiment. You can filter them by seed, by iteration range and the number of discoveries per page at will.
 
-![image](../../../docs/user_doc_images/monitoring/discoveries.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/discoveries.png" width="800"/>
 
 
 Finally you have a *logs* part where you can read all logs made by the experiment and filter them by checkpoints, seeds or log levels.
 
 
-![image](../../../docs/user_doc_images/monitoring/logs.png)
+<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/logs.png" width="800"/>
