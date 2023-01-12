@@ -22,7 +22,7 @@ class DummyModule(Leaf):
     #     return loaded_obj
 
     @classmethod
-    def create_locator(self, resource_uri: str = ""):
+    def create_locator(cls, resource_uri: str = "") -> 'Locator':
         return DummyLocator(resource_uri)
 
 
