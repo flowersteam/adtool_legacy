@@ -4,7 +4,8 @@ from leaf.leaf import Leaf, Locator, LeafUID
 
 class StatelessService(Leaf):
     """
-    Service implementation for stateless functions.
+    Service implementation for stateless functions. Can be inherited from or
+    dynamically injected.
     NOTE: Essentially does nothing except mimick the interface.
     """
 
