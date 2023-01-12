@@ -8,10 +8,11 @@ Six different types of callbacks can be implemented in the `AutomatedDiscoveryTo
 - on_save_finished_callbacks : called when the experiment has finished saving
 
 
-1) Each callback type has its own folder. 
+1. Each callback type has its own folder. 
 To add a new callback create the file in the associated folder
 
     Example: 
+
     ```
     libs/auto_disc/auto_disc/utils/callbacks/on_cancelled_callbacks/my_beautiful_new_on_cancelled_callback.py
     ```
@@ -20,8 +21,10 @@ To add a new callback create the file in the associated folder
     libs/auto_disc/auto_disc/utils/callbacks/on_discovery_callbacks/my_beautiful_new_on_discovery_callback.py
     ```
 
-2) The new callback must inherits base callback class of its own type.
-   example:
+2. The new callback must inherits base callback class of its own type.
+
+   Example:
+
    ```
         class MyBeautifulNewOnCancelledCallback(BaseOnCancelledCallback):
             pass
@@ -49,16 +52,18 @@ To add a new callback create the file in the associated folder
     Each time our callback will be raised the `__call__` method will be executed.
 
 
-3) Add import header file, e.g., `libs/auto_disc/auto_disc/utils/callbacks/callbacks_sub_folder/__init__.py`
+3. Add import header file, e.g., `libs/auto_disc/auto_disc/utils/callbacks/callbacks_sub_folder/__init__.py`
 
-    example: 
+    Example: 
+
     ```
-        libs/auto_disc/auto_disc/utils/callbacks/on_discovery_callbacks/__init__.py
-        libs/auto_disc/auto_disc/utils/callbacks/on_cancelled_callbacks/__init__.py
+    libs/auto_disc/auto_disc/utils/callbacks/on_discovery_callbacks/__init__.py
+    libs/auto_disc/auto_disc/utils/callbacks/on_cancelled_callbacks/__init__.py
     ```
-4) Add new callback in registration.py in REGISTRATION dict
+4. Add new callback in registration.py in REGISTRATION dict
 
    Example modification:
+
    ```
    REGISTRATION = {
         ...
@@ -118,4 +123,4 @@ To add a new callback create the file in the associated folder
     }
    ```
 
-5) For now the software does not permit to add custom callback via GUI. You may use the libs independently like in `libs/test/AutoDiscExperiment.py` and add manually your personal callbacks. The other way is to manually add your callback in `services/AutodiscServer/flask/experiments/remote_experiments.py` on the `__init__` method to use your own callbacks with the full software package.
+5. For now the software does not permit to add custom callback via GUI. You may use the libs independently like in `libs/test/AutoDiscExperiment.py` and add manually your personal callbacks. The other way is to manually add your callback in `services/AutodiscServer/flask/experiments/remote_experiments.py` on the `__init__` method to use your own callbacks with the full software package.
