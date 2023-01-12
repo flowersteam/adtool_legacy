@@ -16,7 +16,7 @@ Our software is broken down into two parts:
 
 ### Launching the software
 1. Run the following command: `sudo ./start_app.sh`
-2. Your application should be accessible on `http://localhost:4200`
+2. Your application should be accessible on `http://localhost:4201`
 3. If you want to modify the port on which the application starts (as well as other configuration parameters for DataBases, network...), you can modify the [.env](services/.env) file in the [services](services) directory.
 
 ### Using the web app
