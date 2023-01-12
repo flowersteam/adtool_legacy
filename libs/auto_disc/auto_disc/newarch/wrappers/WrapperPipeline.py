@@ -24,8 +24,8 @@ class WrapperPipeline(Leaf):
                  outputs_to_save: List[str] = []):
         super().__init__()
 
-        self.inputs_to_save = inputs_to_save
-        self.outputs_to_save = outputs_to_save
+        # self.inputs_to_save = inputs_to_save
+        # self.outputs_to_save = outputs_to_save
 
         # set wrappers as submodules
         # NOTE: wrappers are therefore not individually

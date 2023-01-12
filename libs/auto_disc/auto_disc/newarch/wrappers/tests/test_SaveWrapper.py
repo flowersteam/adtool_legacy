@@ -27,7 +27,6 @@ def setup_function(function):
 def teardown_function(function):
     global DB_PATH
     os.remove(DB_PATH)
-
     return
 
 
