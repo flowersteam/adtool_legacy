@@ -1,5 +1,5 @@
 # Add a new module to the libs 
-Four different types of modules can be implemented in the AutomatedDiscoveryTool libs
+Four different types of modules can be implemented in the Automated Discovery Tool libs
 
 - Systems
 - Explorers

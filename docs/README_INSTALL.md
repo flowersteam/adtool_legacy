@@ -1,5 +1,5 @@
-# AutomatedDiscoveryTool
-We're pleased to introduce AutomatedDiscoveryTool, a software for assisted automated discovery and exploration of complex systems.
+# Automated Discovery Tool
+We're pleased to introduce Automated Discovery Tool, a software for assisted automated discovery and exploration of complex systems.
 
 
 ## Installation
@@ -9,7 +9,7 @@ To install docker:
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
 
-## Using AutomatedDiscoveryTool
+## Using Automated Discovery Tool
 Our software is broken down into two parts:
 - a Python Lib [auto_disc](libs/auto_disc) where you can use/download/implement systems to explore as well as exploration algorithms.
 - a web application allowing you to perform assisted automated discovery experiments using a user-friendly interface.

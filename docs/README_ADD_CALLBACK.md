@@ -1,5 +1,5 @@
 # Add a new callback to the libs 
-Six different types of callbacks can be implemented in the `AutomatedDiscoveryTool` libs, namely:
+Six different types of callbacks can be implemented in the `Automated Discovery Tool` libs, namely:
 - on_cancelled_callbacks : called when user decides to cancel the experiment in the frontend
 - on_discovery_callbacks : called each time the experiment makes a new discovery
 - on_error_callbacks : called when experiment raises an error during execution
