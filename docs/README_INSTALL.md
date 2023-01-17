@@ -10,9 +10,17 @@ To install docker:
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
 
 ## Using Automated Discovery Tool
-Our software is broken down into two parts:
-- a Python Lib [auto_disc](libs/auto_disc) where you can use/download/implement systems to explore as well as exploration algorithms.
-- a web application allowing you to perform assisted automated discovery experiments using a user-friendly interface.
+Our software consists of two primary parts:
+- a Python library called [`auto_disc`](libs/auto_disc) where you can 
+use/download/implement systems to explore as well as exploration algorithms.
+- a web application allowing you to perform assisted automated discovery 
+experiments using a user-friendly interface.
+
+The `auto_disc` library can be used independently of the rest of
+Automated Discovery Tool, for example to implement some bespoke remote computing
+solutions, but its main purpose is to present a standardized interface for 
+managing experimental data and configurational metadata which is
+modified and displayed by the GUI.
 
 ### Launching the software
 1. Run the following command: `sudo ./start_app.sh`
@@ -39,7 +47,16 @@ By default, experiments will be launched locally. However, some large experiment
 Please follow these instructions when contributing on the project.
 
 ### Installation
-#### AutoDisc Lib
+The software is implemented in various microservices
+- `auto_disc` library : a pure Python API for implementing custom experiments \
+and search algorithms to use in the software
+- AutoDiscServer : simple service which performs the operations specified by
+functionality in `auto_disc` library.
+- FrontEndApp : web GUI implemented in Angular for interacting with the software
+- AppDB & ExpeDB : databases which manage the metadata of experiments (linked
+with the FrontEnd) and resulting experimental data, respectively
+- JupyterLab : Jupyter instance allowing interaction with experimental data
+#### `auto_disc` library
 1. If you do not already have it, please install [Conda](https://www.anaconda.com/)
 2. Create *autoDiscTool* conda environment: `conda env create --name autoDiscTool python=3.7 `
 3. Activate *autoDiscTool* conda environment: `conda activate autoDiscTool`
@@ -47,20 +64,20 @@ Please follow these instructions when contributing on the project.
 5. Install package: `pip install -e .`
 #### AutoDiscServer
 1. Install flask: `pip install -r services/AutoDiscServer/flask_app/requirements.txt`
-### App DB & Expe DB
+### FrontEndApp
+1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
+2. Enter the front-end app folder: `cd services/FrontEndApp/angular_app/`.
+3. Install required packages: `npm install`
+### AppDB & ExpeDB
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
 3. Go to the service folder: `cd services`.
 4. Generate containers `sudo docker-compose -f services/docker-compose.yml create`
 5. Install the Expe DB REST API requirements: `pip install -r ExpeDB/API/flask_app/requirements.txt`
-### Front-end app
-1. Install Angular: [`LINK`](https://angular.io/guide/setup-local)
-2. Enter the front-end app folder: `cd services/FrontEndApp/angular_app/`.
-3. Install required packages: `npm install`
-#### Jupyter Lab
+#### JupyterLab
 1. Install jupyter: `pip install -r JupyterLab/requirements.txt`
 
-### Testing the auto_disc lib alone
+### Testing the auto_disc library alone
 1. Edit the `libs/tests/AutoDiscExperiment.py` file to configure the experiment
 2. Launch the experiment: `python libs/tests/AutoDiscExperiment.py`
 
