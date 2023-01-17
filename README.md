@@ -1,5 +1,5 @@
-# AutomatedDiscoveryTool
-We're pleased to introduce AutomatedDiscoveryTool, a software for assisted 
+# Automated Discovery Tool
+We're pleased to introduce Automated Discovery Tool, a software for assisted 
 and automated discovery of patterns in the exploration of complex systems.
 
 Automated Discovery Tool is a software package developed in the 

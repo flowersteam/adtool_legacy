@@ -1,12 +1,11 @@
 # Add a new callback to the libs 
-Six different types of callbacks can be implemented in the AutomatedDiscoveryTool libs (on_cancelled, on_discovery, on_error, on_finished, on_save, on_save_finished).<br/>
-
-on_cancelled_callbacks are called when the user decides to stop the callbacks and cancel it.<br/>
-on_discovery_callbacks are called each time the experiment makes a new discovery.<br/>
-on_error_callbacks are called when the experiment crashes and raises an error.<br/>
-on_finished_callbacks are called when the experiment ends.<br/>
-on_save_callbacks are called when the experiment saves data.<br/>
-on_save_finished_callbacks are called when the experiment has finished saving.<br/>
+Six different types of callbacks can be implemented in the `Automated Discovery Tool` libs, namely:
+- on_cancelled_callbacks : called when user decides to cancel the experiment in the frontend
+- on_discovery_callbacks : called each time the experiment makes a new discovery
+- on_error_callbacks : called when experiment raises an error during execution
+- on_finished_callbacks : called when the experiment ends
+- on_save_callbacks : called when the experiment saves its state
+- on_save_finished_callbacks : called when the experiment has finished saving
 
 
 1. Each callback type has its own folder. 
