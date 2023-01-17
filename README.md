@@ -1,4 +1,4 @@
-# Automated Discovery Tool
+# Automated Discovery Tool: Assisted and Automated Discovery for Complex Systems
 We're pleased to introduce Automated Discovery Tool, a software for assisted 
 and automated discovery of patterns in the exploration of complex systems.
 
@@ -7,6 +7,24 @@ Automated Discovery Tool is a software package developed in the
 integrated solution for studying complex systems through curiosity-search 
 methods, consisting of a user-friendly Web UI and an extensible Python library 
 for user-defined experimentation systems and search algorithms. 
+
+Searching the configuration space of complex systems is often done
+manually, i.e., by a human who individually identifies interesting patterns
+or behaviors of the system. Automated Discovery Tool thus assists in automating 
+this *exploratory phase* of researching a new system which is theorized to be 
+capable of interesting, yet unknown behavior. This is the case for many projects
+in the natural sciences and elsewhere. For example, physicists and chemists 
+may use the tool study the emergence of novel structures and 
+materials from a physical system, or digital artists and designers may use the
+tool to automatically generate or iterate on existing designs during the 
+creative process.
+
+Please note that this software is currently in an **alpha stage** of 
+development: it is functional and has been used internally at Inria FLOWERS to 
+study cellular automata since 2021, but may not have features which are 
+convenient for different workflows. For more details on the development of 
+Automated Discovery Tool, see the following 
+[usage and technical section](#usage-and-technical-documentation).
 
 ![Short demo](demo.gif)
 
@@ -42,9 +60,11 @@ proposes a software package for both :
 pipelines for arbitrary systems and search methods, and
 - the human-supervised exploration of such systems.
 
-In its current state, the Lenia system is implemented and can be explored
-using the curiosity search algorithms described. The Python API described in 
-the [technical documentation](https://developmentalsystems.org/adtool/) can be
+The repo comes with an existing implementation of the 
+[Lenia system](https://chakazul.github.io/lenia.html)
+which can be explored using the curiosity search algorithms described. 
+The Python API described in the 
+[technical documentation](https://developmentalsystems.org/adtool/) can be
 used to add custom systems and (optionally) search algorithms.
 ### Installation
 The application uses [Docker](https://www.docker.com) and will install
@@ -53,6 +73,15 @@ compatibility, and the application has been tested on MacOS and Linux.
 ### Usage and Technical Documentation
 Please see the online documentation at https://developmentalsystems.org/adtool/.
 
-Please note that the software is currently in an **alpha stage** as of January
-2023, and breaking changes to the API may occur. Related questions can be
-directed to [Jesse Lin](https://github.com/jesseylin).
+Please note that as the software is currently in an **alpha stage** as of 
+January 2023, breaking changes to the API may occur. This is due to the current
+progress towards two key developmental milestones:
+- Streamlining of the API, allowing checkpointing and restoring of experiments
+with arbitrary data, à la Git
+- Implementation of a human interface for interaction with the
+search process itself, allowing custom human intervention at each step taken
+
+Due to the software currently being in an early stage of development, there may
+be questions which are not immediately answered by documentation, and you may
+instead direct them to [Jesse Lin](https://github.com/jesseylin) 
+who is happy to respond.
