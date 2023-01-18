@@ -41,8 +41,9 @@ class Leaf:
 
         if isinstance(value, Leaf):
 
-            # set leaf in module dict
+            # set leaf in module dict, and in subleaf instance variable
             self._modules[name] = value
+            value.name = name
 
             # store pointer to parent container
             value._set_attr_override("_container_ptr", self)

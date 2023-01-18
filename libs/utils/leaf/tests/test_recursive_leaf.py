@@ -24,22 +24,16 @@ class DummyContained(Leaf):
     def retrieve_metadata(self):
         return self._container_state["metadata"]
 
-    def create_locator(self, bin):
-        return DummyLocator(bin)
-
-    def store_locator(self, loc):
-        self.locator_table[self.uid] = loc.serialize()
-        return
-
     @classmethod
-    def retrieve_locator(cls, leaf_uid):
-        return Locator.deserialize(cls.locator_table[leaf_uid])
+    def create_locator(self, resource_uri):
+        return DummyLocator(resource_uri)
 
 
 class DummyContainer(Leaf):
     def __init__(self):
         super().__init__()
         self.l1 = DummyContained([1, 2, 3, 4])
+        self.l2 = DummyContained([1, 2, 3, 4])
         self.metadata = 42
 
     def create_locator(self, bin: bytes) -> 'Locator':
@@ -90,6 +84,11 @@ def test_pipeline_container_ptr():
     assert a.l2._container_ptr == a
 
 
+def test_pipeline_container_subleaf_names():
+    assert a.l1.name == "l1"
+    assert a.l2.name == "l2"
+
+
 def test_pipeline_serialize_recursively():
     bin = a.serialize()
     obj = pickle.loads(bin)
@@ -123,6 +122,16 @@ def test_container_call_inner():
     assert a.l1.retrieve_metadata() == 42
     a.metadata = 16
     assert a.l1.retrieve_metadata() == 16
+
+
+def test_container_serialize_recursively():
+    bin = a.serialize()
+    obj = pickle.loads(bin)
+    assert isinstance(obj._modules["l1"], str)
+    assert isinstance(obj._modules["l2"], str)
+    assert obj._modules["l1"] == a.l1._get_uid_base_case()
+    assert obj._modules["l2"] == a.l2._get_uid_base_case()
+    assert obj._modules["l1"] != obj._modules["l2"]
 
 
 if __name__ == "__main__":
