@@ -3,8 +3,9 @@ from auto_disc.newarch.wrappers \
 from leaf.leaf import Leaf
 from typing import Dict
 from copy import deepcopy
-
 from leafutils.leafstructs.stateless import StatelessService
+import pathlib
+import tempfile
 
 
 class IncrementerWrapper(StatelessService):
@@ -32,22 +33,18 @@ class FakeExperimentPipeline(Leaf):
 
 def setup_db():
     import sqlite3
-    import pathlib
     global FILE_PATH, DB_PATH
 
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    DB_REL_PATH = "/tmp.sqlite"
     SCRIPT_REL_PATH = "/mockDB.sql"
-
-    DB_PATH = FILE_PATH + DB_REL_PATH
     SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
 
+    _, DB_PATH = tempfile.mkstemp(suffix=".sqlite", dir=FILE_PATH)
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     with open(SCRIPT_PATH) as f:
         query_string = f.read()
         cur.executescript(query_string)
-
     return
 
 

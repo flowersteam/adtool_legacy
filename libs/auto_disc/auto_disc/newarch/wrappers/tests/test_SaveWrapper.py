@@ -2,6 +2,7 @@ from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from leafutils.leafstructs.linear import Stepper
 import os
 import pathlib
+import tempfile
 
 
 def setup_function(function):
@@ -9,18 +10,15 @@ def setup_function(function):
     global FILE_PATH, DB_PATH
 
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    DB_REL_PATH = "/tmp.sqlite"
     SCRIPT_REL_PATH = "/mockDB.sql"
-
-    DB_PATH = FILE_PATH + DB_REL_PATH
     SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
 
+    _, DB_PATH = tempfile.mkstemp(suffix=".sqlite", dir=FILE_PATH)
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     with open(SCRIPT_PATH) as f:
         query_string = f.read()
         cur.executescript(query_string)
-
     return
 
 
