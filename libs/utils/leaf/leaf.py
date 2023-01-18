@@ -72,7 +72,7 @@ class Leaf:
 
         # NOTE: This function is non-recursive, as .serialize() is recursive
         bin = self.serialize()
-        loc = self.create_locator()
+        loc = self.create_locator("")
         uid = loc.hash(bin)
 
         return uid
