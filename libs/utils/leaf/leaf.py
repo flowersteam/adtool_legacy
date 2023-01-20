@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Dict, Any, NewType
+from typing import Union, Tuple, Dict, Any, NewType, Optional
 from hashlib import sha1
 import pickle
 # for dynamic discovery and loading of Python classes
@@ -9,14 +9,10 @@ LeafUID = NewType("LeafUID", str)
 
 class Leaf:
 
-    @classmethod
-    def create_locator(cls,
-                       resource_uri: str = "", *args, **kwargs
-                       ) -> 'Locator':
-        raise NotImplementedError()
-
     def __init__(self) -> None:
         self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
+        self.name: str = ""
+        self.locator: Locator = StatelessLocator()
 
     def __getattr__(self, name: str) -> Union[object, 'Leaf']:
         """ 
@@ -48,6 +44,9 @@ class Leaf:
             # store pointer to parent container
             value._set_attr_override("_container_ptr", self)
 
+            # default initialization of locator resource_uri
+            value.locator = value._retrieve_parent_locator()
+
         else:
 
             super().__setattr__(name, value)
@@ -65,6 +64,12 @@ class Leaf:
         else:
             super().__delattr__(name)
 
+    def _retrieve_parent_locator(self) -> 'Locator':
+        module = self
+        while getattr(module, "_container_ptr", None) is not None:
+            module = module._container_ptr
+        return module.locator
+
     def _get_uid_base_case(self) -> 'LeafUID':
         """
         Retrieves the UID of the Leaf, which depends on the Locator,
@@ -73,8 +78,7 @@ class Leaf:
 
         # NOTE: This function is non-recursive, as .serialize() is recursive
         bin = self.serialize()
-        loc = self.create_locator("")
-        uid = loc.hash(bin)
+        uid = self.locator.hash(bin)
 
         return uid
 
@@ -100,12 +104,23 @@ class Leaf:
         if old_container_ptr is not None:
             del self._container_ptr
 
+        # strip Locator object
+        # which is necessary as the meaningful data does not depend on this
+
+        # failsafe to set the default init in case something weird happens
+        old_locator = getattr(self, "locator", StatelessLocator())
+        if not isinstance(old_locator, StatelessLocator):
+            self.locator = StatelessLocator()
+
         bin = pickle.dumps(self)
 
-        # restore submodules and _container_ptr
+        # restore variables
         self._set_attr_override("_modules", old_modules)
         if old_container_ptr is not None:
             self._set_attr_override("_container_ptr", old_container_ptr)
+        if not isinstance(old_locator, StatelessLocator):
+            self._set_attr_override("locator", old_locator)
+
         return bin
 
     def deserialize(self, bin: bytes, resource_uri: str = "") -> 'Leaf':
@@ -133,11 +148,15 @@ class Leaf:
 
         return container_leaf
 
-    def save_leaf(self, resource_uri: str, *args, **kwargs) -> 'LeafUID':
+    def save_leaf(self, resource_uri: str = '', *args, **kwargs) -> 'LeafUID':
         """
         Save entire structure of object. The suggested way to customize 
         behavior is overloading serialize() and create_locator() 
         """
+        # check stateless
+        if isinstance(self.locator, StatelessLocator):
+            return LeafUID('')
+
         # recursively save contained leaves
         for m in self._modules.values():
             if isinstance(m, str):
@@ -148,13 +167,19 @@ class Leaf:
 
         # save this leaf
         bin = self.serialize()
-        loc = self.create_locator(resource_uri, *args, **kwargs)
-        uid = loc.store(bin)
+        # override default initialization in Locator
+        if resource_uri != '':
+            self.locator.resource_uri = resource_uri
+        uid = self.locator.store(bin)
+        print(f"Stored {uid}")
 
         return uid
 
-    def load_leaf(self, uid: 'LeafUID', resource_uri: str = "") -> 'Leaf':
+    def load_leaf(self, uid: 'LeafUID', resource_uri: str = '') -> 'Leaf':
         """ Load entire structure of object, not mutating self """
+        # check stateless
+        if isinstance(self.locator, StatelessLocator):
+            return self
 
         # TODO: this doesn't work(?) if we dynamically overload
         # the locator related methods in a leaf
@@ -165,20 +190,29 @@ class Leaf:
         # recursive save/load between this pair and
         # the serialize/deserialize pair
 
-        locator = self.create_locator(resource_uri)
+        # override default initialization in Locator
+        if resource_uri != '':
+            self.locator.resource_uri = resource_uri
 
         # TODO: load locator dependencies along with the leaf dependencies.
         # ATTENTION: This should happen automatically if they are within the
         # same module namespace but perhaps needs to do more work otherwise.
 
-        bin = locator.retrieve(uid)
+        bin = self.locator.retrieve(uid)
         loaded_obj = self.deserialize(bin, resource_uri)
 
         return loaded_obj
 
 
 class Locator:
-    def __init__(self,  *args, **kwargs):
+    """
+    Class which handles data management and the saving/loading of binary data.
+    Should have at least an instance variable called `resource_uri`, although
+    it may be an empty string.
+    """
+
+    def __init__(self, resource_uri: str = '', *args, **kwargs):
+        self.resource_uri = resource_uri
         raise NotImplementedError
 
     def store(self, bin: bytes) -> 'LeafUID':
@@ -199,3 +233,18 @@ class Locator:
     def hash(bin: bytes) -> 'LeafUID':
         """ Hashes the bin to give Leaf a uid"""
         return LeafUID(sha1(bin).hexdigest())
+
+
+class StatelessLocator(Locator):
+    """
+    Default Locator class, for stateless modules
+    """
+
+    def __init__(self, resource_uri: str = '', *args, **kwargs):
+        self.resource_uri = resource_uri
+
+    def store(self, bin: bytes) -> 'LeafUID':
+        raise Exception("This module is stateless.")
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        raise Exception("This module is stateless.")
