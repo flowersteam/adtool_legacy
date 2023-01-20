@@ -12,7 +12,7 @@ class Stepper(Leaf):
         self.buffer = []
 
 
-class LinearStorage(Locator):
+class LinearLocator(Locator):
     """
     Locator which stores branching, linear data
     with minimal redundancies in a SQLite db.

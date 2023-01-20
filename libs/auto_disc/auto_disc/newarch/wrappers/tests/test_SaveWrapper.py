@@ -1,6 +1,6 @@
 from leaf.leaf import StatelessLocator
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
-from leafutils.leafstructs.linear import Stepper
+from leafutils.leafstructs.linear import Stepper, LinearLocator
 import os
 import pathlib
 import tempfile
@@ -34,8 +34,10 @@ def test___init__():
     wrapper = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"],
                           inputs_to_save=["in"])
     wrapper_def = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"])
-    assert isinstance(wrapper.locator, StatelessLocator)
-    assert isinstance(wrapper_def.locator, StatelessLocator)
+    assert isinstance(wrapper.locator, LinearLocator)
+    assert isinstance(wrapper_def.locator, LinearLocator)
+    assert wrapper.locator.resource_uri == ""
+    assert wrapper_def.locator.resource_uri == ""
     del wrapper.locator
     del wrapper_def.locator
     assert wrapper.__dict__ == wrapper_def.__dict__
