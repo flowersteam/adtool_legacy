@@ -1,8 +1,9 @@
 from leaf.leaf import Leaf, Locator, LeafUID
-from typing import Tuple, List
+from typing import Tuple, List, Union, Any
 from sqlalchemy import create_engine, text, event
 from sqlalchemy.engine import Engine
 import codecs
+import tempfile
 
 
 class Stepper(Leaf):
@@ -50,9 +51,26 @@ class LinearStorage(Locator):
     def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
         return codecs.decode(b64_str.encode(), encoding="base64")
 
-    def __init__(self, db_url: str, leaf_uid: int = -1):
-        self.engine = create_engine(f"sqlite+pysqlite:///{db_url}", echo=True)
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "db_url":
+            super().__setattr__(name, value)
+            super().__setattr__("engine",
+                                create_engine(
+                                    f"sqlite+pysqlite:///{value}", echo=True)
+                                )
+        else:
+            super().__setattr__(name, value)
+
+        return
+
+    def __init__(self, db_url: str = "", leaf_uid: int = -1):
+        self.db_url = db_url
         self.leaf_uid = leaf_uid
+
+        if db_url != "":
+            self.engine = create_engine(
+                f"sqlite+pysqlite:///{db_url}", echo=True
+            )
 
     def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
         """

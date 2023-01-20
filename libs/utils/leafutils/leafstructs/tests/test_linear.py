@@ -35,6 +35,9 @@ def test_linearstorage__init__():
     from leafutils.leafstructs.linear import LinearStorage
     x = LinearStorage(DB_PATH)
     assert str(x.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
+    y = LinearStorage()
+    y.db_url = DB_PATH
+    assert str(y.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
 
 
 def test_linearstorage__get_heads():
