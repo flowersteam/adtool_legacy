@@ -52,7 +52,7 @@ class LinearStorage(Locator):
         return codecs.decode(b64_str.encode(), encoding="base64")
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name == "db_url":
+        if name == "resource_uri":
             super().__setattr__(name, value)
             super().__setattr__("engine",
                                 create_engine(
@@ -63,13 +63,13 @@ class LinearStorage(Locator):
 
         return
 
-    def __init__(self, db_url: str = "", leaf_uid: int = -1):
-        self.db_url = db_url
+    def __init__(self, resource_uri: str = "", leaf_uid: int = -1):
+        self.resource_uri = resource_uri
         self.leaf_uid = leaf_uid
 
-        if db_url != "":
+        if resource_uri != "":
             self.engine = create_engine(
-                f"sqlite+pysqlite:///{db_url}", echo=True
+                f"sqlite+pysqlite:///{resource_uri}", echo=True
             )
 
     def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':

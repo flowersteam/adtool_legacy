@@ -36,7 +36,7 @@ def test_linearstorage__init__():
     x = LinearStorage(DB_PATH)
     assert str(x.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
     y = LinearStorage()
-    y.db_url = DB_PATH
+    y.resource_uri = DB_PATH
     assert str(y.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
 
 

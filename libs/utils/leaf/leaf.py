@@ -14,7 +14,7 @@ class Leaf:
         self.name: str = ""
         self.locator: Locator = StatelessLocator()
 
-    def __getattr__(self, name: str) -> Union[object, 'Leaf']:
+    def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
         """ 
         __getattr__ is called as a fallback in case regular 
         attribute name resolution fails, which will happen with modules 
@@ -33,7 +33,7 @@ class Leaf:
         # fallback
         raise AttributeError("Could not get attribute.")
 
-    def __setattr__(self, name: str, value: Union[object, 'Leaf']) -> None:
+    def __setattr__(self, name: str, value: Union[Any, 'Leaf']) -> None:
 
         if isinstance(value, Leaf):
 
