@@ -148,7 +148,7 @@ class Leaf:
 
         return container_leaf
 
-    def save_leaf(self, resource_uri: str = '', *args, **kwargs) -> 'LeafUID':
+    def save_leaf(self, resource_uri: str = "", *args, **kwargs) -> 'LeafUID':
         """
         Save entire structure of object. The suggested way to customize 
         behavior is overloading serialize() and create_locator() 
@@ -170,7 +170,7 @@ class Leaf:
         # override default initialization in Locator
         if resource_uri != '':
             self.locator.resource_uri = resource_uri
-        uid = self.locator.store(bin)
+        uid = self.locator.store(bin, *args, **kwargs)
         print(f"Stored {uid}")
 
         return uid
