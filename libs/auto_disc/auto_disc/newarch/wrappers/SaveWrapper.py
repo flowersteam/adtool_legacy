@@ -27,6 +27,7 @@ class SaveWrapper(Leaf):
                  outputs_to_save: List[str] = []
                  ) -> None:
         super().__init__()
+        self.locator = LinearStorage("")
 
         # process key wrapping
         if len(wrapped_keys) != len(posttransform_keys):
@@ -54,6 +55,9 @@ class SaveWrapper(Leaf):
 
         self.input_buffer: list = []
         self.output_buffer: list = []
+
+        if len(self._modules) > 0:
+            raise Exception("SaveWrappers should never define submodules.")
 
     def map(self, input: Dict) -> Dict:
         """
@@ -110,10 +114,12 @@ class SaveWrapper(Leaf):
         self.output_buffer = []
         return uid
 
-    @classmethod
-    def create_locator(cls, resource_uri: str = "", leaf_uid: int = -1
-                       ) -> 'Locator':
-        return LinearStorage(resource_uri, leaf_uid)
+    # def create_locator(self, resource_uri: str = "", leaf_uid: int = -1
+    #                    ) -> 'Locator':
+    #     if self.name != "":
+    #         do_something()
+
+    #     return LinearStorage(resource_uri, leaf_uid)
 
     def _transform_keys(self, old_dict: Dict) -> Dict:
 

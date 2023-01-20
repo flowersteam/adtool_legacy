@@ -1,9 +1,9 @@
 from copy import deepcopy
 from typing import Dict
-from leafutils.leafstructs.stateless import StatelessService
+from leaf.leaf import Leaf
 
 
-class IdentityWrapper(StatelessService):
+class IdentityWrapper(Leaf):
     """
     Wrapper which passes the input without mutation.
     """

@@ -1,3 +1,4 @@
+from leaf.leaf import StatelessLocator
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from leafutils.leafstructs.linear import Stepper
 import os
@@ -33,6 +34,10 @@ def test___init__():
     wrapper = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"],
                           inputs_to_save=["in"])
     wrapper_def = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"])
+    assert isinstance(wrapper.locator, StatelessLocator)
+    assert isinstance(wrapper_def.locator, StatelessLocator)
+    del wrapper.locator
+    del wrapper_def.locator
     assert wrapper.__dict__ == wrapper_def.__dict__
 
 
@@ -91,12 +96,14 @@ def test_saveload_basic():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+    wrapper.resource_uri = db_url
     output = wrapper.map(input)
     wrapper.map(output)
     leaf_uid = wrapper.save_leaf(db_url)
 
     # retrieve from leaf nodes of tree
-    stepper_loaded = wrapper.load_leaf(leaf_uid, db_url)
+    new_wrapper = SaveWrapper()
+    stepper_loaded = new_wrapper.load_leaf(leaf_uid, db_url)
     buffer = stepper_loaded.buffer
 
     # unpack and check loaded Stepper
@@ -128,7 +135,8 @@ def test_saveload_advanced():
         leaf_uid = wrapper.save_leaf(db_url, leaf_uid)
 
     # retrieve from leaf nodes of tree
-    stepper_loaded = wrapper.load_leaf(leaf_uid, db_url)
+    new_wrapper = SaveWrapper()
+    stepper_loaded = new_wrapper.load_leaf(leaf_uid, db_url)
     buffer = stepper_loaded.buffer
 
     # unpack and check loaded Stepper

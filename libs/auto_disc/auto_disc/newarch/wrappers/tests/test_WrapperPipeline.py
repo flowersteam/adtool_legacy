@@ -1,10 +1,10 @@
-from leafutils.leafstructs.stateless import StatelessService
+from leaf.leaf import Leaf
 from auto_disc.newarch.wrappers.WrapperPipeline import WrapperPipeline
 from copy import deepcopy
 from typing import Dict
 
 
-class TestWrapper(StatelessService):
+class TestWrapper(Leaf):
     def __init__(self, wrapped_key: str = "in", offset: int = 1) -> None:
         super().__init__()
         self.wrapped_key = wrapped_key
