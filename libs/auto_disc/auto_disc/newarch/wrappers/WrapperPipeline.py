@@ -39,6 +39,7 @@ class WrapperPipeline(Leaf):
         for (i, el) in enumerate(wrappers):
             # do not need _set_attr_override as dicts are mutable
             self._modules[i] = el
+            el.name = str(i)
             self._bind_wrapper_to_self(el)
 
         # makes the dicts point to the same object, as dicts are mutable

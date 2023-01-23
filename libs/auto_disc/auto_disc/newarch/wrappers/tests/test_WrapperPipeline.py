@@ -27,6 +27,8 @@ def test___init__():
     assert all_wrappers.map(input) == b.map(a.map(input))
     assert all_wrappers.wrappers[0]._container_ptr == all_wrappers
     assert all_wrappers.wrappers[1]._container_ptr == all_wrappers
+    assert all_wrappers.wrappers[0].name == "0"
+    assert all_wrappers.wrappers[1].name == "1"
 
 
 def test___init__mutually_exclusive():
