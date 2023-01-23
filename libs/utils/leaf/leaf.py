@@ -37,15 +37,7 @@ class Leaf:
 
         if isinstance(value, Leaf):
 
-            # set leaf in module dict, and in subleaf instance variable
-            self._modules[name] = value
-            value.name = name
-
-            # store pointer to parent container
-            value._set_attr_override("_container_ptr", self)
-
-            # default initialization of locator resource_uri
-            value.locator = value._retrieve_parent_locator()
+            self._bind_submodule_to_self(name, value)
 
         else:
 
@@ -63,6 +55,25 @@ class Leaf:
             del self._modules[name]
         else:
             super().__delattr__(name)
+
+    def _bind_submodule_to_self(self,
+                                submodule_name: str,
+                                submodule: 'Leaf') -> None:
+        """
+        Sets pointers and default locator initialization of declared submodules
+        """
+        # set leaf in module dict, and in subleaf instance variable
+        self._modules[submodule_name] = submodule
+        submodule.name = submodule_name
+
+        # store pointer to parent container
+        submodule._set_attr_override("_container_ptr", self)
+
+        # default initialization of locator resource_uri
+        if isinstance(submodule.locator, StatelessLocator):
+            submodule.locator = submodule._retrieve_parent_locator()
+
+        return
 
     def _retrieve_parent_locator(self) -> 'Locator':
         module = self
