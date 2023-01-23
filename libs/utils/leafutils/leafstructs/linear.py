@@ -52,6 +52,9 @@ class LinearLocator(Locator):
         return codecs.decode(b64_str.encode(), encoding="base64")
 
     def __setattr__(self, name: str, value: Any) -> None:
+        """
+        Allows reloading of engine by setting new resource_uri
+        """
         if name == "resource_uri":
             super().__setattr__(name, value)
             super().__setattr__("engine",

@@ -27,6 +27,9 @@ class SaveWrapper(Leaf):
                  outputs_to_save: List[str] = []
                  ) -> None:
         super().__init__()
+
+        # resource_uri should be defined when SaveWrapper is bound to a
+        # container, or manually initialized
         self.locator = LinearLocator("")
 
         # process key wrapping
