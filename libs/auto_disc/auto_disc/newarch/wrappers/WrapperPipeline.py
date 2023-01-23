@@ -1,4 +1,4 @@
-from leaf.leaf import Leaf
+from leaf.leaf import Leaf, Locator, StatelessLocator
 from typing import List, Dict
 from copy import deepcopy
 
@@ -20,19 +20,52 @@ class WrapperPipeline(Leaf):
     """
 
     def __init__(self, wrappers: List['Leaf'] = [],
-                 inputs_to_save: List[str] = [],
-                 outputs_to_save: List[str] = []):
+                 resource_uri: str = "",
+                 locator: 'Locator' = StatelessLocator()):
         super().__init__()
+        if (resource_uri != "") and (not isinstance(locator, StatelessLocator)):
+            raise ValueError(
+                "Do not provide both `resource_uri` and `locator`.")
+        elif resource_uri != "":
+            self.locator.resource_uri = resource_uri
+        elif not isinstance(locator, StatelessLocator):
+            self.locator = locator
+        else:
+            pass
 
-        # self.inputs_to_save = inputs_to_save
-        # self.outputs_to_save = outputs_to_save
-
-        # set wrappers as submodules
+        # bind wrappers as submodules
         # NOTE: wrappers are therefore not individually
         # accessible by public methods
         for (i, el) in enumerate(wrappers):
             # do not need _set_attr_override as dicts are mutable
             self._modules[i] = el
+            self._bind_wrapper_to_self(el)
+
+        # makes the dicts point to the same object, as dicts are mutable
+        self.wrappers = self._modules
+
+    def _bind_submodule_to_self(self,
+                                submodule_name: str,
+                                submodule: 'Leaf') -> None:
+        raise Exception('''
+                        Forbidden to bind submodules to WrapperPipeline
+                        outside of initialization.
+                        ''')
+
+    def _bind_wrapper_to_self(self, wrapper: 'Leaf') -> None:
+        # store pointer to parent container
+        wrapper._set_attr_override("_container_ptr", self)
+
+        # default initialization of locator resource_uri
+        if isinstance(wrapper.locator, StatelessLocator):
+            wrapper.locator = self.locator
+        elif isinstance(wrapper.locator, Locator):
+            # if Locator of wrappers are initialized, pass only resource_uri
+            wrapper.locator.resource_uri = self.locator.resource_uri
+        else:
+            raise Exception("Locator uninitialized.")
+
+        return
 
     def map(self, input: Dict) -> Dict:
         working_input = deepcopy(input)
