@@ -31,18 +31,18 @@ def teardown_function(function):
     return
 
 
-def test_linearstorage__init__():
-    from leafutils.leafstructs.linear import LinearStorage
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__init__():
+    from leafutils.leafstructs.linear import LinearLocator
+    x = LinearLocator(DB_PATH)
     assert str(x.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
-    y = LinearStorage()
+    y = LinearLocator()
     y.resource_uri = DB_PATH
     assert str(y.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
 
 
-def test_linearstorage__get_heads():
-    from leafutils.leafstructs.linear import LinearStorage
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__get_heads():
+    from leafutils.leafstructs.linear import LinearLocator
+    x = LinearLocator(DB_PATH)
     heads = x._get_heads()
 
     assert len(heads) == 2
@@ -52,9 +52,9 @@ def test_linearstorage__get_heads():
     return
 
 
-def test_linearstorage__get_trajectory():
-    from leafutils.leafstructs.linear import LinearStorage
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__get_trajectory():
+    from leafutils.leafstructs.linear import LinearLocator
+    x = LinearLocator(DB_PATH)
     _, trajectory, depths = x._get_trajectory(5)
     assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
     _, trajectory, depths = x._get_trajectory(7)
@@ -64,9 +64,9 @@ def test_linearstorage__get_trajectory():
     return
 
 
-def test_linearstorage__insert_node():
-    from leafutils.leafstructs.linear import LinearStorage
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__insert_node():
+    from leafutils.leafstructs.linear import LinearLocator
+    x = LinearLocator(DB_PATH)
 
     def get_trajectory_table_length(locator):
         with locator.engine.connect() as conn:
@@ -91,9 +91,9 @@ def test_linearstorage__insert_node():
     assert new_row[1] == 1
 
 
-def test_linearstorage__match_backwards():
-    from leafutils.leafstructs.linear import LinearStorage
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__match_backwards():
+    from leafutils.leafstructs.linear import LinearLocator
+    x = LinearLocator(DB_PATH)
 
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(8)]
     return_ids = x._match_backwards(query_trajectory)
@@ -112,9 +112,9 @@ def test_linearstorage__match_backwards():
         return_ids = x._match_backwards(query_trajectory)
 
 
-def test_linearstorage__get_insertion_tuple():
-    from leafutils.leafstructs.linear import LinearStorage, Stepper
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator__get_insertion_tuple():
+    from leafutils.leafstructs.linear import LinearLocator, Stepper
+    x = LinearLocator(DB_PATH)
 
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     stepper = Stepper()
@@ -126,9 +126,9 @@ def test_linearstorage__get_insertion_tuple():
     assert parent_id == 6
 
 
-def test_linearstorage_store():
-    from leafutils.leafstructs.linear import LinearStorage, Stepper
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator_store():
+    from leafutils.leafstructs.linear import LinearLocator, Stepper
+    x = LinearLocator(DB_PATH)
 
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     parent_id = 6
@@ -149,9 +149,9 @@ def test_linearstorage_store():
     assert query_trajectory == new_stepper.buffer
 
 
-def test_linearstorage_store_instance_var():
-    from leafutils.leafstructs.linear import LinearStorage, Stepper
-    x = LinearStorage(DB_PATH, leaf_uid=6)
+def test_LinearLocator_store_instance_var():
+    from leafutils.leafstructs.linear import LinearLocator, Stepper
+    x = LinearLocator(DB_PATH, leaf_uid=6)
 
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     stepper = Stepper()
@@ -167,9 +167,9 @@ def test_linearstorage_store_instance_var():
     assert trajectory == [bytes(1), bytes(2), bytes(4), bin]
 
 
-def test_linearstorage_retrieve():
-    from leafutils.leafstructs.linear import LinearStorage, Stepper
-    x = LinearStorage(DB_PATH)
+def test_LinearLocator_retrieve():
+    from leafutils.leafstructs.linear import LinearLocator, Stepper
+    x = LinearLocator(DB_PATH)
 
     # mock storage of sequence
     retrieval_key = 7
