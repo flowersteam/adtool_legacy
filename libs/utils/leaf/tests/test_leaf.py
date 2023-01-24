@@ -13,6 +13,7 @@ class DummyModule(Leaf):
 
 
 class DummyLocator(Locator):
+    # TODO: Remove me
     def __init__(self, resource_uri):
         self.resource_uri = resource_uri
 

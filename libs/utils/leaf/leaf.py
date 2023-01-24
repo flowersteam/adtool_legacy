@@ -260,3 +260,20 @@ class StatelessLocator(Locator):
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
         raise Exception("This module is stateless.")
+
+
+class DictLocator(Locator):
+    """
+    Locator only for testing purposes, using a Python dict
+    """
+
+    def __init__(self, resource_uri):
+        self.resource_uri = resource_uri
+
+    def store(self, bin: bytes) -> 'LeafUID':
+        uid = self.hash(bin)
+        self.resource_uri[uid] = bin
+        return uid
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        return self.resource_uri[uid]
