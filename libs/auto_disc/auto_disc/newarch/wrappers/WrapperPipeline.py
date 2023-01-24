@@ -23,7 +23,11 @@ class WrapperPipeline(Leaf):
                  resource_uri: str = "",
                  locator: 'Locator' = StatelessLocator()):
         super().__init__()
-        if (resource_uri != "") and (not isinstance(locator, StatelessLocator)):
+
+        # ensure mutual exclusivity of resource_uri and locator kwargs
+        if \
+            (resource_uri != "") and \
+                (not isinstance(locator, StatelessLocator)):
             raise ValueError(
                 "Do not provide both `resource_uri` and `locator`.")
         elif resource_uri != "":

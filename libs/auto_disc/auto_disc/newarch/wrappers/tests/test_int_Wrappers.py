@@ -1,14 +1,14 @@
 from auto_disc.newarch.wrappers \
     import IdentityWrapper, SaveWrapper, WrapperPipeline
-from leaf.leaf import Leaf
-from typing import Dict
+from leaf.leaf import Leaf, Locator, LeafUID, StatelessLocator
+from leaf.tests.test_leaf import DummyLocator
+from typing import Dict, List
 from copy import deepcopy
-from leafutils.leafstructs.stateless import StatelessService
 import pathlib
 import tempfile
 
 
-class IncrementerWrapper(StatelessService):
+class IncrementerWrapper(Leaf):
     def __init__(self) -> None:
         super().__init__()
 
@@ -20,18 +20,45 @@ class IncrementerWrapper(StatelessService):
 
         return output
 
+    @classmethod
+    def create_locator(cls, dict: Dict = None) -> 'Locator':
+        return DictLocator(dict)
+
 
 class FakeExperimentPipeline(Leaf):
-    def __init__(self, wrappers) -> None:
+    def __init__(self,
+                 wrappers: List['Leaf'] = [],
+                 locator: 'Locator' = StatelessLocator(),
+                 save_db_url: str = "") -> None:
         super().__init__()
-        self.input_wrappers = WrapperPipeline(wrappers, inputs_to_save=["in"])
+        # pass save_db_url to wrappers
+        self.input_wrappers = WrapperPipeline(wrappers,
+                                              resource_uri=save_db_url)
+        # pass locator to WrapperPipeline
+        self.input_wrappers.locator = locator
+
+        # use locator also for saving own metadata
+        self.locator = locator
 
     def input_transformation(self, input: Dict) -> Dict:
         output = self.input_wrappers.map(input)
         return output
 
 
-def setup_db():
+class DictLocator(Locator):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    def store(self, bin: bytes) -> 'LeafUID':
+        uid = LeafUID(self.hash(bin))
+        self.table[uid] = bin
+        return uid
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        return self.table[uid]
+
+
+def setup_function(function):
     import sqlite3
     global FILE_PATH, DB_PATH
 
@@ -48,7 +75,7 @@ def setup_db():
     return
 
 
-def teardown_db():
+def teardown_function():
     import os
     global DB_PATH
     os.remove(DB_PATH)
@@ -61,8 +88,14 @@ def test___init__():
                 SaveWrapper(
                     wrapped_keys=["data"], posttransform_keys=["output"],
                     outputs_to_save=["output"])]
-    pipeline = FakeExperimentPipeline(wrappers)
+    pipeline = FakeExperimentPipeline(wrappers, save_db_url=DB_PATH)
     assert isinstance(pipeline._modules["input_wrappers"], WrapperPipeline)
+    assert pipeline.input_wrappers.locator.resource_uri == ""
+    assert pipeline.input_wrappers.wrappers[0].locator.resource_uri == DB_PATH
+    pipeline = FakeExperimentPipeline(
+        wrappers, save_db_url="test", locator=StatelessLocator(DB_PATH))
+    assert pipeline.input_wrappers.locator.resource_uri == DB_PATH
+    assert pipeline.input_wrappers.wrappers[0].locator.resource_uri == "test"
 
 
 def test_input_transformation():
@@ -78,15 +111,19 @@ def test_input_transformation():
 
 
 def test_saveload():
-    setup_db()
+    db = {}
     input = {"data": 1}
-
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
                 SaveWrapper(
                     wrapped_keys=["data"], posttransform_keys=["output"],
                     outputs_to_save=["output"])]
-    pipeline = FakeExperimentPipeline(wrappers)
+    pipeline = FakeExperimentPipeline(
+        wrappers, save_db_url=DB_PATH, locator=DummyLocator(db))
+    assert pipeline.locator.resource_uri == db
+    assert pipeline.input_wrappers.locator.resource_uri == db
+
     output = pipeline.input_transformation(input)
-    assert output == {"output": 2}
-    teardown_db()
+
+    pipeline_uid = pipeline.save_leaf()
+    assert len(db) == 2
