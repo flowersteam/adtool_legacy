@@ -49,8 +49,7 @@ def test_map():
     output = wrapper.map(input)
     assert output["out"] == 1
     assert len(output) == 1
-    assert wrapper.input_buffer == [{"in": 1}]
-    assert wrapper.output_buffer == []
+    assert wrapper.buffer == [{"in": 1}]
 
 
 def test_map_default():
@@ -59,8 +58,7 @@ def test_map_default():
     output = wrapper.map(input)
     assert output["data"] == 1
     assert len(output) == 1
-    assert wrapper.input_buffer == [{"data": 1}]
-    assert wrapper.output_buffer == []
+    assert wrapper.buffer == [{"data": 1}]
 
 
 def test_map_complex():
@@ -70,12 +68,10 @@ def test_map_complex():
     output = wrapper.map(input)
     assert output["a"] == 2
     assert output["b"] == 1
-    assert wrapper.input_buffer == [{"a": 1, "b": 2}]
-    assert wrapper.output_buffer == []
+    assert wrapper.buffer == [{"a": 1, "b": 2}]
 
     wrapper.map(output)
-    assert wrapper.input_buffer == [{"a": 1, "b": 2}, {"a": 2, "b": 1}]
-    assert wrapper.output_buffer == []
+    assert wrapper.buffer == [{"a": 1, "b": 2}, {"a": 2, "b": 1}]
 
 
 def test_serialize():
@@ -86,7 +82,7 @@ def test_serialize():
     wrapper.map(output)
     bin = wrapper.serialize()
     a = Stepper().deserialize(bin)
-    assert a.buffer == wrapper.input_buffer
+    assert a.buffer == wrapper.buffer
 
 
 def test_saveload_basic():

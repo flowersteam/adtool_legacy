@@ -18,20 +18,19 @@ class LinearLocator(Locator):
     with minimal redundancies in a SQLite db.
 
     To use, one should override `deserialize` of
-    your Leaf module class to output a serialized `Stepper`
-    object, for example:
+    your Leaf module class to output a serialized Python object `x`
+    with `x.buffer` a List type. I.e., any Leaf which uses LinearLocator
+    should define an instance variable `buffer` of List type, e.g.,
         ```
         class A(Leaf):
 
             def __init__(self, buffer = []):
                 super().__init__()
                 self.buffer = buffer
-
-            def serialize(self):
-                stepper = Stepper()
-                stepper.buffer = self.buffer
-                return stepper.serialize()
         ```
+
+    NOTE: This means that the `save_leaf` recursion will not recurse into
+        the buffer, and any Leaf types inside will serialize naively.
     """
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -94,7 +93,8 @@ class LinearLocator(Locator):
         Retrieve entire trajectory of saved data starting from the leaf node
         given by uid, traversing backwards towards the root.
         #### Returns:
-        - bin (bytes): trajectory packed as a Stepper bin
+        - bin (bytes): trajectory packed as a python object x with
+                       x.buffer being an array
         """
         _, trajectory, _ = self._get_trajectory(uid)
         stepper = Stepper()

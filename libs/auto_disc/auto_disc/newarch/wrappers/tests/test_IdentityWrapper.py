@@ -16,8 +16,8 @@ def test_map():
 
 def test_save_leaf_load_leaf():
     id = IdentityWrapper()
-    leaf_uid = id.save_leaf('')
+    leaf_uid = id.save_leaf()
 
-    id2 = id.load_leaf(leaf_uid, '')
+    id2 = id.load_leaf(leaf_uid)
 
     assert id.__dict__ == id2.__dict__

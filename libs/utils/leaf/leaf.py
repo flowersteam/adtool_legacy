@@ -179,6 +179,7 @@ class Leaf:
 
         # save this leaf
         bin = self.serialize()
+
         # override default initialization in Locator
         if resource_uri != '':
             self.locator.resource_uri = resource_uri

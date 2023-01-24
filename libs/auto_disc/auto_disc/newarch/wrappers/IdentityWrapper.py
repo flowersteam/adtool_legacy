@@ -1,19 +1,15 @@
-from copy import deepcopy
-from typing import Dict
+from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
 from leaf.leaf import Leaf
+from typing import Dict, List
 
 
-class IdentityWrapper(Leaf):
+class IdentityWrapper(TransformWrapper):
     """
     Wrapper which passes the input without mutation.
     """
 
-    def __init__(self, wrapped_key: str = None) -> None:
+    def __init__(self, wrapped_keys: List[str] = []) -> None:
         super().__init__()
-        # wrapped_key is not used
 
     def map(self, input: Dict) -> Dict:
-        # must do because dicts are mutable types
-        output = deepcopy(input)
-
-        return output
+        return super().map(input)
