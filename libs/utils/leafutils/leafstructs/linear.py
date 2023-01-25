@@ -86,6 +86,11 @@ class LinearLocator(Locator):
             parent_id = self.leaf_uid
         delta = self._convert_bytes_to_base64_str(bin)
         id = self._insert_node(delta, parent_id)
+
+        # remove SQLAlchemy Engine object after storage is finished
+        self.engine.dispose()
+        del self.engine
+
         return id
 
     def retrieve(self, uid: 'LeafUID') -> bytes:

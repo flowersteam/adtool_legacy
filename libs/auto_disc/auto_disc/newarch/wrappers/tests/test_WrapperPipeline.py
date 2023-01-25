@@ -1,9 +1,11 @@
 from leaf.leaf import Leaf, StatelessLocator
-from auto_disc.newarch.wrappers.WrapperPipeline import WrapperPipeline
+from auto_disc.newarch.wrappers import WrapperPipeline, SaveWrapper
 from leaf.tests.test_leaf import DummyLocator
 from copy import deepcopy
 from typing import Dict
 import pytest
+import pathlib
+import tempfile
 
 
 class TestWrapper(Leaf):
@@ -92,6 +94,48 @@ def test_saveload():
     loaded_wrappers = loaded_wrappers.load_leaf(uid)
 
     for i in range(2):
+        assert all_wrappers.wrappers[i].offset \
+            == loaded_wrappers.wrappers[i].offset
+        assert all_wrappers.wrappers[i].wrapped_key \
+            == loaded_wrappers.wrappers[i].wrapped_key
+
+
+def test_saveload_linear():
+    def setup_db():
+        import sqlite3
+        file_path = str(pathlib.Path(__file__).parent.resolve())
+        script_rel_path = "/mockdb.sql"
+        script_path = file_path + script_rel_path
+
+        _, db_path = tempfile.mkstemp(suffix=".sqlite", dir=file_path)
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        with open(script_path) as f:
+            query_string = f.read()
+            cur.executescript(query_string)
+
+        return db_path
+
+    lineardb_path = setup_db()
+    storage_db = {}
+    input = {"in": 1}
+    a = TestWrapper(offset=1, wrapped_key="in")
+    b = SaveWrapper()
+    wrapper_list = [a, b]
+    all_wrappers = WrapperPipeline(wrappers=wrapper_list,
+                                   resource_uri=lineardb_path)
+
+    all_wrappers.locator = DummyLocator(storage_db)
+    # in real usage, you would use LinearLocators for all wrappers
+    all_wrappers.wrappers[0].locator = DummyLocator(storage_db)
+
+    uid = all_wrappers.save_leaf()
+    assert len(storage_db) == 2
+
+    loaded_wrappers = WrapperPipeline(locator=DummyLocator(storage_db))
+    loaded_wrappers = loaded_wrappers.load_leaf(uid, lineardb_path)
+
+    for i in range(1):
         assert all_wrappers.wrappers[i].offset \
             == loaded_wrappers.wrappers[i].offset
         assert all_wrappers.wrappers[i].wrapped_key \
