@@ -1,5 +1,5 @@
 from auto_disc.newarch.wrappers \
-    import IdentityWrapper, SaveWrapper, WrapperPipeline
+    import IdentityWrapper, SaveWrapper, WrapperPipeline, TransformWrapper
 from leaf.leaf import Leaf, Locator, LeafUID, StatelessLocator
 from leaf.tests.test_leaf import DummyLocator
 from typing import Dict, List
@@ -85,9 +85,9 @@ def teardown_function():
 def test___init__():
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
-                SaveWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"],
-                    outputs_to_save=["output"])]
+                TransformWrapper(
+                    wrapped_keys=["data"], posttransform_keys=["output"]),
+                SaveWrapper()]
     pipeline = FakeExperimentPipeline(wrappers, save_db_url=DB_PATH)
     assert isinstance(pipeline._modules["input_wrappers"], WrapperPipeline)
     assert pipeline.input_wrappers.locator.resource_uri == ""
@@ -102,9 +102,9 @@ def test_input_transformation():
     input = {"data": 1}
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
-                SaveWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"],
-                    outputs_to_save=["output"])]
+                TransformWrapper(
+                    wrapped_keys=["data"], posttransform_keys=["output"]),
+                SaveWrapper()]
     pipeline = FakeExperimentPipeline(wrappers)
     output = pipeline.input_transformation(input)
     assert output == {"output": 2}
@@ -115,9 +115,9 @@ def test_saveload():
     input = {"data": 1}
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
-                SaveWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"],
-                    outputs_to_save=["output"])]
+                TransformWrapper(
+                    wrapped_keys=["data"], posttransform_keys=["output"]),
+                SaveWrapper()]
     pipeline = FakeExperimentPipeline(
         wrappers, save_db_url=DB_PATH, locator=DummyLocator(db))
     assert pipeline.locator.resource_uri == db
