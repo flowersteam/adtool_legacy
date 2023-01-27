@@ -1,4 +1,5 @@
-from leaf.leaf import Leaf, Locator, StatelessLocator
+from leaf.leaf import Leaf
+from leaf.locators import Locator, StatelessLocator
 import pickle
 from hashlib import sha1
 
@@ -44,10 +45,9 @@ def test_leaf_init():
 def test_leaf_serialize():
     bin = a.serialize()
     b = pickle.loads(bin)
-    assert isinstance(a.locator, StatelessLocator)
-    assert isinstance(b.locator, StatelessLocator)
+
+    del a._container_ptr
     del a.locator
-    del b.locator
     assert a.__dict__ == b.__dict__
 
 

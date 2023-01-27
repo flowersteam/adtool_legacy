@@ -1,18 +1,61 @@
-from typing import Union, Tuple, Dict, Any, NewType, Optional
-from hashlib import sha1
+from typing import Union, Tuple, Dict, Any, List
 import pickle
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
+from leaf.locators import Locator, StatelessLocator
+from leaf.leafuid import LeafUID
 
-LeafUID = NewType("LeafUID", str)
+
+def prune_state(state_vars: Dict[str, Any]):
+    """
+    Decorator allowing specification of what instance variables of a Leaf
+    to ignore during the serialization call.
+    """
+    def deco(serialize):
+        def inner(self, *args, **kwargs) -> bytes:
+
+            old_vars = {}
+
+            # store old variables
+            for name in state_vars.keys():
+                attr_ptr = getattr(self, name, None)
+                old_vars[name] = attr_ptr
+                # clear the namespace
+                delattr(self, name)
+
+            bin = serialize(self, *args, **kwargs)
+
+            # restore variables
+            for (name, attr_ptr) in old_vars.items():
+
+                # if variable was defined, restore it
+                if attr_ptr is not None:
+                    self._set_attr_override(name, attr_ptr)
+                # else, set the default
+                else:
+                    self._set_attr_override(name, state_vars[name])
+
+            return bin
+
+        return inner
+    return deco
 
 
 class Leaf:
 
     def __init__(self) -> None:
-        self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
-        self.name: str = ""
-        self.locator: Locator = StatelessLocator()
+        self._default_leaf_init()
+
+    def _default_leaf_init(self) -> None:
+        if getattr(self, "_modules", None) is None:
+            self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
+        if getattr(self, "name", None) is None:
+            self.name: str = ""
+        if getattr(self, "locator", None) is None:
+            self.locator: Locator = StatelessLocator()
+        if getattr(self, "_container_ptr", None) is None:
+            self._container_ptr: Any = None
+        return
 
     def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
         """ 
@@ -94,6 +137,8 @@ class Leaf:
 
         return uid
 
+    @prune_state(state_vars={"_container_ptr": None,
+                             "locator": StatelessLocator()})
     def serialize(self) -> bytes:
         """ 
         Serializes object to pickle, 
@@ -110,28 +155,10 @@ class Leaf:
 
         self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
 
-        # strip all _container_ptr references,
-        # which is necessary to prevent endless recursion
-        old_container_ptr = getattr(self, "_container_ptr", None)
-        if old_container_ptr is not None:
-            del self._container_ptr
-
-        # strip Locator object
-        # which is necessary as the meaningful data does not depend on this
-
-        # failsafe to set the default init in case something weird happens
-        old_locator = getattr(self, "locator", StatelessLocator())
-        if not isinstance(old_locator, StatelessLocator):
-            self.locator = StatelessLocator()
-
         bin = pickle.dumps(self)
 
-        # restore variables
+        # restore modules
         self._set_attr_override("_modules", old_modules)
-        if old_container_ptr is not None:
-            self._set_attr_override("_container_ptr", old_container_ptr)
-        if not isinstance(old_locator, StatelessLocator):
-            self._set_attr_override("locator", old_locator)
 
         return bin
 
@@ -157,6 +184,9 @@ class Leaf:
             submodule._set_attr_override("_container_ptr", container_leaf)
 
         container_leaf._set_attr_override("_modules", modules)
+
+        # reinitialize to default non-set variables
+        container_leaf._default_leaf_init()
 
         return container_leaf
 
@@ -215,66 +245,3 @@ class Leaf:
         loaded_obj = self.deserialize(bin, resource_uri)
 
         return loaded_obj
-
-
-class Locator:
-    """
-    Class which handles data management and the saving/loading of binary data.
-    Should have at least an instance variable called `resource_uri`, although
-    it may be an empty string.
-    """
-
-    def __init__(self, resource_uri: str = '', *args, **kwargs):
-        self.resource_uri = resource_uri
-        raise NotImplementedError
-
-    def store(self, bin: bytes) -> 'LeafUID':
-        """ 
-        Stores bin which generated it somewhere, perhaps on network,
-        and returns (redundantly) the hash for the object.
-        """
-        raise NotImplementedError
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        """ 
-        Retrieve bin identified by uid from somewhere, 
-        perhaps on network 
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def hash(bin: bytes) -> 'LeafUID':
-        """ Hashes the bin to give Leaf a uid"""
-        return LeafUID(sha1(bin).hexdigest())
-
-
-class StatelessLocator(Locator):
-    """
-    Default Locator class, for stateless modules
-    """
-
-    def __init__(self, resource_uri: str = '', *args, **kwargs):
-        self.resource_uri = resource_uri
-
-    def store(self, bin: bytes) -> 'LeafUID':
-        raise Exception("This module is stateless.")
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        raise Exception("This module is stateless.")
-
-
-class DictLocator(Locator):
-    """
-    Locator only for testing purposes, using a Python dict
-    """
-
-    def __init__(self, resource_uri):
-        self.resource_uri = resource_uri
-
-    def store(self, bin: bytes) -> 'LeafUID':
-        uid = self.hash(bin)
-        self.resource_uri[uid] = bin
-        return uid
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        return self.resource_uri[uid]
