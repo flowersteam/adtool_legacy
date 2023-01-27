@@ -2,8 +2,11 @@ from leaf.leaf import Leaf, Locator, LeafUID
 from typing import Tuple, List, Union, Any
 from sqlalchemy import create_engine, text, event
 from sqlalchemy.engine import Engine
+from hashlib import sha1
 import codecs
 import tempfile
+import pickle
+import os
 
 
 class Stepper(Leaf):
@@ -32,11 +35,57 @@ class LinearLocator(Locator):
     NOTE: This means that the `save_leaf` recursion will not recurse into
         the buffer, and any Leaf types inside will serialize naively.
     """
-    @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+
+    def __init__(self, resource_uri: str = ""):
+        self.resource_uri = resource_uri
+
+    def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
+        """
+        Stores the bin as a child node of the node given by parent_id.
+        #### Returns:
+        - leaf_uid (LeafUID): indicating the SQLite unique key corresponding
+                              to the inserted node
+        """
+        db_name, bin = self._parse_bin(bin)
+
+        db_url = self._db_name_to_db_url(db_name)
+        with EngineContext(db_url) as engine:
+            # default setting if not set at function call
+            if parent_id == -1:
+                _, parent_id = self._parse_leaf_uid(self.leaf_uid)
+
+            # insert node
+            delta = self._convert_bytes_to_base64_str(bin)
+            row_id = self._insert_node(engine, delta, parent_id)
+        uid = db_name + ":" + str(row_id)
+        return uid
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        """
+        Retrieve entire trajectory of saved data starting from the leaf node
+        given by uid, traversing backwards towards the root.
+        #### Returns:
+        - bin (bytes): trajectory packed as a python object x with
+                       x.buffer being an array
+        """
+        try:
+            db_name, row_id = uid.split(":")
+        # check in case too many strings are returned
+        except ValueError:
+            raise ValueError("leaf_uid is not properly formatted.")
+
+        db_url = self._db_name_to_db_url(db_name)
+        with EngineContext(db_url) as engine:
+            _, trajectory, _ = self._get_trajectory(engine, row_id)
+            stepper = Stepper()
+            stepper.buffer = trajectory
+            bin = stepper.serialize()
+
+        return bin
+
+    def _db_name_to_db_url(self, db_name: str) -> str:
+        db_url = os.path.join(self.resource_uri, db_name + ".lineardb")
+        return db_url
 
     @staticmethod
     def _convert_bytes_to_base64_str(bin: bytes) -> str:
@@ -50,65 +99,9 @@ class LinearLocator(Locator):
     def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
         return codecs.decode(b64_str.encode(), encoding="base64")
 
-    def __setattr__(self, name: str, value: Any) -> None:
-        """
-        Allows reloading of engine by setting new resource_uri
-        """
-        if name == "resource_uri":
-            super().__setattr__(name, value)
-            super().__setattr__("engine",
-                                create_engine(
-                                    f"sqlite+pysqlite:///{value}", echo=True)
-                                )
-        else:
-            super().__setattr__(name, value)
-
-        return
-
-    def __init__(self, resource_uri: str = "", leaf_uid: int = -1):
-        self.resource_uri = resource_uri
-        self.leaf_uid = leaf_uid
-
-        if resource_uri != "":
-            self.engine = create_engine(
-                f"sqlite+pysqlite:///{resource_uri}", echo=True
-            )
-
-    def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
-        """
-        Stores the bin as a child node of the node given by parent_id.
-        #### Returns:
-        - leaf_uid (LeafUID): indicating the SQLite unique key corresponding
-                              to the inserted node
-        """
-        #        parent_id, delta = self._get_insertion_tuple(bin)
-        if parent_id == -1:
-            parent_id = self.leaf_uid
-        delta = self._convert_bytes_to_base64_str(bin)
-        id = self._insert_node(delta, parent_id)
-
-        # remove SQLAlchemy Engine object after storage is finished
-        self.engine.dispose()
-        del self.engine
-
-        return id
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        """
-        Retrieve entire trajectory of saved data starting from the leaf node
-        given by uid, traversing backwards towards the root.
-        #### Returns:
-        - bin (bytes): trajectory packed as a python object x with
-                       x.buffer being an array
-        """
-        _, trajectory, _ = self._get_trajectory(uid)
-        stepper = Stepper()
-        stepper.buffer = trajectory
-        bin = stepper.serialize()
-        return bin
-
-    def _insert_node(self, delta: str, parent_id: int = -1) -> int:
-        with self.engine.begin() as conn:
+    @staticmethod
+    def _insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
+        with engine.begin() as conn:
             conn.execute(
                 text("INSERT INTO trajectories (content) VALUES (:z)"),
                 {"z": delta})
@@ -123,7 +116,8 @@ class LinearLocator(Locator):
                     {"y": parent_id, "z": id})
         return id
 
-    def _get_trajectory(self, id: int
+    @staticmethod
+    def _get_trajectory(engine, id: int
                         ) -> Tuple[List[int], List[bytes], List[int]]:
         """
         Retrieves trajectory which has HEAD at id
@@ -148,93 +142,53 @@ class LinearLocator(Locator):
                         ON x.id = y.id
                 ORDER BY depth DESC
             '''
-        with self.engine.connect() as conn:
+        with engine.connect() as conn:
             result = conn.execute(text(query), {"z": id})
             # persist the result into Python list
             result = result.all()
 
             ids: List[int] = [w for (w, _, _) in result]
-            trajectory = [self._convert_base64_str_to_bytes(
+            trajectory = [LinearLocator._convert_base64_str_to_bytes(
                 w) for (_, w, _) in result]
             depths: List[int] = [w for (_, _, w) in result]
 
         return ids, trajectory, depths
 
-    def _get_heads(self) -> List[int]:
-        query = \
-            '''
-            SELECT id FROM trajectories
-                WHERE id NOT IN (
-                    SELECT id FROM tree
-                )
-            '''
-        with self.engine.connect() as conn:
-            result = conn.execute(text(query))
-            heads = [x[0] for x in result]
-
-        return heads
-
-    def _match_backwards(self, buffer: list) -> List[int]:
-        """
-        Searches in the DB for the buffer sequence and returns
-        the trajectory in the DB which matches, labelled by id.
-        NOTE: The buffer sequence you provide must begin at the t=0 root.
-        """
-
-        heads = sorted(self._get_heads(), reverse=True)
-        for head in heads:
-            db_ids, db_trajectory, _ = self._get_trajectory(head)
-            result = self._list_contains(buffer, db_trajectory)
-            if result == (-1, -1):
-                continue
-            else:
-                break
+    @classmethod
+    def _parse_bin(cls, bin: bytes) -> Tuple[str, bytes]:
+        if bin[20:24] != bytes.fromhex("deadbeef"):
+            raise ValueError("Parsed bin is corrupted.")
         else:
-            raise Exception("Fatal error: trajectory not found in DB.")
+            return bin[0:20].hex(), bin[24:]
 
-        beg = result[0]
-        end = result[1]
-        return_ids = db_ids[beg:end]
-
-        return return_ids
-
-    def _get_insertion_tuple(self, bin: bytes) -> Tuple[int, str]:
-        """
-        Matches the binary-encoded sequence with the appropriate
-        DB primary key of where to insert the latest time step (the parent).
-        Returns this key and the binary delta (to insert)
-        """
-        # TODO: check corner case with len(heads) == 0, need to initialize
-
-        # copy buffer from the binary
-        tmp_stepper = Stepper()
-        stepper = tmp_stepper.deserialize(bin)
-        buffer = stepper.buffer
-
-        # truncate the last element which is to be added
-        delta = buffer[-1]
-        buffer = buffer[:-1]
-        delta = self._convert_bytes_to_base64_str(delta)
-
-        # retrieve the id where to insert
-        match_ids = self._match_backwards(buffer)
-        parent_id = match_ids[-1]
-
-        return (parent_id, delta)
+    @classmethod
+    def _parse_leaf_uid(cls, uid: LeafUID) -> Tuple[str, int]:
+        db_name, node_id = uid.split(":")
+        return db_name, int(node_id)
 
     @staticmethod
-    def _list_contains(small: list, big: list) -> Tuple[int, int]:
-        """
-        Substring match for lists.
-        Note this function never returns boolean True.
-        """
-        for i in range(len(big)-len(small)+1):
-            for j in range(len(small)):
-                if big[i+j] != small[j]:
-                    break
-            # else is triggered if for loop exits without breaking
-            else:
-                return i, i+len(small)
+    def hash(bin: bytes) -> 'LeafUID':
+        """ LinearLocator must use SHA1 hashes """
+        return LeafUID(sha1(bin).hexdigest())
 
-        # return nonsense if no match is found
-        return (-1, -1)
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+class EngineContext:
+    def __init__(self, db_url: str = ""):
+        self.db_url = db_url
+
+    def __enter__(self):
+        self.engine = create_engine(
+            f"sqlite+pysqlite:///{self.db_url}", echo=True
+        )
+        return self.engine
+
+    def __exit__(self, *args):
+        self.engine.dispose()
+        del self.engine
+        return

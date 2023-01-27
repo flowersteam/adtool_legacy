@@ -2,6 +2,10 @@ from sqlalchemy import text
 import os
 import pathlib
 import pytest
+from leafutils.leafstructs.linear import LinearLocator, EngineContext, Stepper
+from leaf.leaf import LeafUID
+import pickle
+from hashlib import sha1
 
 
 def setup_function(function):
@@ -9,7 +13,8 @@ def setup_function(function):
     global FILE_PATH, DB_PATH
 
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    DB_REL_PATH = "/tmp.sqlite"
+    db_name = '786378ae074ec7755fe3dc6f8647dfb3a9e4af0d'  # set from mock_binary
+    DB_REL_PATH = f"/{db_name}.lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
 
     DB_PATH = FILE_PATH + DB_REL_PATH
@@ -31,148 +36,109 @@ def teardown_function(function):
     return
 
 
+def generate_mock_binary() -> bytes:
+    def _pad_binary(bin: bytes) -> bytes:
+        """
+        Converts the output of Leaf.serialize() into a padded binary format
+        with 20-byte SHA1 hash of Leaf metadata, magic byte sequence, and the
+        original binary
+        """
+        stepper = pickle.loads(bin)
+        del stepper.buffer
+        sha1_hash = LinearLocator.hash(pickle.dumps(stepper))
+        output_bin = bytes.fromhex(sha1_hash) + bytes.fromhex("deadbeef") + bin
+        return output_bin
+    s = Stepper()
+    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
+    s.buffer = query_trajectory
+    bin = s.serialize()
+    padded_bin = _pad_binary(bin)
+    return padded_bin, bin
+
+
 def test_LinearLocator__init__():
-    from leafutils.leafstructs.linear import LinearLocator
-    x = LinearLocator(DB_PATH)
-    assert str(x.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
-    y = LinearLocator()
-    y.resource_uri = DB_PATH
-    assert str(y.engine.url) == f"sqlite+pysqlite:///{DB_PATH}"
-
-
-def test_LinearLocator__get_heads():
-    from leafutils.leafstructs.linear import LinearLocator
-    x = LinearLocator(DB_PATH)
-    heads = x._get_heads()
-
-    assert len(heads) == 2
-    assert 5 in heads
-    assert 7 in heads
-
-    return
-
-
-def test_LinearLocator__get_trajectory():
-    from leafutils.leafstructs.linear import LinearLocator
-    x = LinearLocator(DB_PATH)
-    _, trajectory, depths = x._get_trajectory(5)
-    assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
-    _, trajectory, depths = x._get_trajectory(7)
-    assert trajectory == [bytes(1), bytes(2), bytes(4), bytes(8)]
-    assert len(trajectory) - 1 == depths[0]
-
-    return
+    x = LinearLocator(FILE_PATH)
+    assert x.resource_uri == FILE_PATH
 
 
 def test_LinearLocator__insert_node():
-    from leafutils.leafstructs.linear import LinearLocator
-    x = LinearLocator(DB_PATH)
+    x = LinearLocator(FILE_PATH)
 
-    def get_trajectory_table_length(locator):
-        with locator.engine.connect() as conn:
+    def get_trajectory_table_length(engine):
+        with engine.connect() as conn:
             result = conn.execute(text("SELECT * from trajectories"))
             length_table = len(result.all())
         return length_table
 
-    def get_newest_insert(locator):
-        with locator.engine.connect() as conn:
+    def get_newest_insert(engine):
+        with engine.connect() as conn:
             result = conn.execute(
                 text("SELECT * FROM trajectories ORDER BY id DESC LIMIT 1"))
             new_row = result.one()
         return new_row
 
-    length_table = get_trajectory_table_length(x)
-    x._insert_node(1)
-    new_length_table = get_trajectory_table_length(x)
-    new_row = get_newest_insert(x)
+    with EngineContext(DB_PATH) as engine:
+        length_table = get_trajectory_table_length(engine)
+        x._insert_node(engine, 1)
+        new_length_table = get_trajectory_table_length(engine)
+        new_row = get_newest_insert(engine)
 
     # assert new row is inserted properly into trajectories table
     assert new_length_table == length_table + 1
     assert new_row[1] == 1
 
 
-def test_LinearLocator__match_backwards():
-    from leafutils.leafstructs.linear import LinearLocator
-    x = LinearLocator(DB_PATH)
+def test_LinearLocator__get_trajectory():
+    x = LinearLocator(FILE_PATH)
 
-    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(8)]
-    return_ids = x._match_backwards(query_trajectory)
-    assert return_ids == [1, 2, 6, 7]
-
-    query_trajectory = [bytes(1), bytes(2), bytes(4)]
-    return_ids = x._match_backwards(query_trajectory)
-    assert return_ids == [1, 2, 6]
-
-    query_trajectory = [bytes(1), bytes(2), bytes(3)]
-    return_ids = x._match_backwards(query_trajectory)
-    assert return_ids == [1, 2, 3]
-
-    query_trajectory = [bytes(1), bytes(2), bytes(5)]
-    with pytest.raises(Exception):
-        return_ids = x._match_backwards(query_trajectory)
+    with EngineContext(DB_PATH) as engine:
+        _, trajectory, depths = x._get_trajectory(engine, 5)
+        assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
+        _, trajectory, depths = x._get_trajectory(engine, 7)
+        assert trajectory == [bytes(1), bytes(2), bytes(4), bytes(8)]
+        assert len(trajectory) - 1 == depths[0]
 
 
-def test_LinearLocator__get_insertion_tuple():
-    from leafutils.leafstructs.linear import LinearLocator, Stepper
-    x = LinearLocator(DB_PATH)
+def test_LinearLocator__parse_bin():
+    bin, _ = generate_mock_binary()
+    sha1_hash, data_bin = LinearLocator._parse_bin(bin)
 
-    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
-    stepper = Stepper()
-    stepper.buffer = query_trajectory
-    bin = stepper.serialize()
+    stepper = pickle.loads(data_bin)
+    assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
 
-    parent_id, content = x._get_insertion_tuple(bin)
-    assert content == x._convert_bytes_to_base64_str(bytes(9))
-    assert parent_id == 6
+    del stepper.buffer
+    assert sha1(pickle.dumps(stepper)).hexdigest() == sha1_hash
+
+
+def test_LinearLocator__parse_leaf_uid():
+    test_str = "asdiufgapsudf:2"
+    db_name, node_id = LinearLocator._parse_leaf_uid(test_str)
+    assert db_name == "asdiufgapsudf", 2
 
 
 def test_LinearLocator_store():
-    from leafutils.leafstructs.linear import LinearLocator, Stepper
-    x = LinearLocator(DB_PATH)
+    x = LinearLocator(FILE_PATH)
 
-    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
-    parent_id = 6
-    stepper = Stepper()
-    stepper.buffer = query_trajectory
-    bin = stepper.serialize()
+    padded_bin, data_bin = generate_mock_binary()
 
-    retrieval_key = x.store(bin, 6)
+    retrieval_key = x.store(padded_bin, 6)
 
     # assert that retrieval_key is stored
     # and can successfully retrieve trajectory
-    ids, trajectory, _ = x._get_trajectory(retrieval_key)
-    assert ids == [1, 2, 6, 8]
-    assert trajectory == [bytes(1), bytes(2), bytes(4), bin]
+    db_name, row_id = LinearLocator._parse_leaf_uid(retrieval_key)
+    db_url = os.path.join(FILE_PATH, db_name + ".lineardb")
 
-    # assert unpacking of stepper object
-    new_stepper = stepper.deserialize(bin)
-    assert query_trajectory == new_stepper.buffer
-
-
-def test_LinearLocator_store_instance_var():
-    from leafutils.leafstructs.linear import LinearLocator, Stepper
-    x = LinearLocator(DB_PATH, leaf_uid=6)
-
-    query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
-    stepper = Stepper()
-    stepper.buffer = query_trajectory
-    bin = stepper.serialize()
-
-    retrieval_key = x.store(bin)
-
-    # assert that retrieval_key is stored
-    # and can successfully retrieve trajectory
-    ids, trajectory, _ = x._get_trajectory(retrieval_key)
-    assert ids == [1, 2, 6, 8]
-    assert trajectory == [bytes(1), bytes(2), bytes(4), bin]
+    with EngineContext(db_url) as engine:
+        ids, trajectory, _ = x._get_trajectory(engine, row_id)
+        assert ids == [1, 2, 6, 8]
+        assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
 
 
 def test_LinearLocator_retrieve():
-    from leafutils.leafstructs.linear import LinearLocator, Stepper
-    x = LinearLocator(DB_PATH)
+    x = LinearLocator(FILE_PATH)
 
     # mock storage of sequence
-    retrieval_key = 7
+    retrieval_key = "786378ae074ec7755fe3dc6f8647dfb3a9e4af0d:7"
 
     bin = x.retrieve(retrieval_key)
     tmp_stepper = Stepper()
