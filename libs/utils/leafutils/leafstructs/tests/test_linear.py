@@ -13,7 +13,7 @@ def setup_function(function):
     global FILE_PATH, DB_PATH
 
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    db_name = '786378ae074ec7755fe3dc6f8647dfb3a9e4af0d'  # set from mock_binary
+    db_name = 'c32a8622dd94420a572d92eadd8f0e36bb026847'  # set from mock_binary
     DB_REL_PATH = f"/{db_name}.lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
 
@@ -138,7 +138,7 @@ def test_LinearLocator_retrieve():
     x = LinearLocator(FILE_PATH)
 
     # mock storage of sequence
-    retrieval_key = "786378ae074ec7755fe3dc6f8647dfb3a9e4af0d:7"
+    retrieval_key = 'c32a8622dd94420a572d92eadd8f0e36bb026847:7'
 
     bin = x.retrieve(retrieval_key)
     tmp_stepper = Stepper()
