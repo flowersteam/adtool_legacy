@@ -49,6 +49,10 @@ class LinearLocator(Locator):
         db_name, bin = self._parse_bin(bin)
 
         db_url = self._db_name_to_db_url(db_name)
+
+        # initializes db if it does not exist
+        self._init_db(db_url)
+
         with EngineContext(db_url) as engine:
             # default setting if not set at function call
             if parent_id == -1:
@@ -86,6 +90,31 @@ class LinearLocator(Locator):
     def _db_name_to_db_url(self, db_name: str) -> str:
         db_url = os.path.join(self.resource_uri, db_name + ".lineardb")
         return db_url
+
+    @staticmethod
+    def _init_db(db_url: str) -> None:
+        create_traj_statement = \
+            '''
+        CREATE TABLE trajectories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            content BLOB NOT NULL
+            );
+            '''
+        create_tree_statement = \
+            '''
+        CREATE TABLE tree (
+            id INTEGER NOT NULL REFERENCES trajectories(id),
+            child_id INTEGER REFERENCES trajectories(id)
+            );
+            '''
+        if os.path.exists(db_url):
+            return
+        else:
+            with EngineContext(db_url) as engine:
+                with engine.begin() as con:
+                    con.execute(create_traj_statement)
+                    con.execute(create_tree_statement)
+            return
 
     @staticmethod
     def _convert_bytes_to_base64_str(bin: bytes) -> str:

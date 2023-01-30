@@ -1,10 +1,10 @@
 BEGIN;
 
-CREATE TABLE trajectories (
+CREATE TABLE IF NOT EXISTS trajectories (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     content BLOB NOT NULL
     );
-CREATE TABLE tree (
+CREATE TABLE IF NOT EXISTS tree (
     id INTEGER NOT NULL REFERENCES trajectories(id),
     child_id INTEGER REFERENCES trajectories(id)
     );

@@ -10,7 +10,7 @@ from hashlib import sha1
 
 def setup_function(function):
     import sqlite3
-    global FILE_PATH, DB_PATH
+    global FILE_PATH, DB_PATH, SCRIPT_PATH
 
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     db_name = 'c32a8622dd94420a572d92eadd8f0e36bb026847'  # set from mock_binary
@@ -20,18 +20,11 @@ def setup_function(function):
     DB_PATH = FILE_PATH + DB_REL_PATH
     SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
 
-    con = sqlite3.connect(DB_PATH)
-    cur = con.cursor()
-    with open(SCRIPT_PATH) as f:
-        query_string = f.read()
-        cur.executescript(query_string)
-
-    return
-
 
 def teardown_function(function):
     global DB_PATH
-    os.remove(DB_PATH)
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
 
     return
 
@@ -56,13 +49,30 @@ def generate_mock_binary() -> bytes:
     return padded_bin, bin
 
 
-def test_LinearLocator__init__():
+def generate_fake_data(db_url: str):
+    import sqlite3
+    con = sqlite3.connect(db_url)
+    cur = con.cursor()
+    with open(SCRIPT_PATH) as f:
+        query_string = f.read()
+        cur.executescript(query_string)
+    return
+
+
+def test_LinearLocator___init__():
     x = LinearLocator(FILE_PATH)
     assert x.resource_uri == FILE_PATH
 
 
+def test_LinearLocator__init_db():
+    x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
+    assert os.path.exists(DB_PATH)
+
+
 def test_LinearLocator__insert_node():
     x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
 
     def get_trajectory_table_length(engine):
         with engine.connect() as conn:
@@ -90,6 +100,8 @@ def test_LinearLocator__insert_node():
 
 def test_LinearLocator__get_trajectory():
     x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
+    generate_fake_data(DB_PATH)
 
     with EngineContext(DB_PATH) as engine:
         _, trajectory, depths = x._get_trajectory(engine, 5)
@@ -118,6 +130,8 @@ def test_LinearLocator__parse_leaf_uid():
 
 def test_LinearLocator_store():
     x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
+    generate_fake_data(DB_PATH)
 
     padded_bin, data_bin = generate_mock_binary()
 
@@ -136,6 +150,8 @@ def test_LinearLocator_store():
 
 def test_LinearLocator_retrieve():
     x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
+    generate_fake_data(DB_PATH)
 
     # mock storage of sequence
     retrieval_key = 'c32a8622dd94420a572d92eadd8f0e36bb026847:7'
