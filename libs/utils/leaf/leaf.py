@@ -4,6 +4,7 @@ import pickle
 from pydoc import locate
 from leaf.locators import Locator, StatelessLocator
 from leaf.leafuid import LeafUID
+from leaf.locators import DictLocator
 
 
 def prune_state(state_vars: Dict[str, Any]):
