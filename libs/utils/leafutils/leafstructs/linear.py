@@ -38,6 +38,7 @@ class LinearLocator(Locator):
 
     def __init__(self, resource_uri: str = ""):
         self.resource_uri = resource_uri
+        self.leaf_uid = ":-1"
 
     def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
         """
@@ -61,7 +62,11 @@ class LinearLocator(Locator):
             # insert node
             delta = self._convert_bytes_to_base64_str(bin)
             row_id = self._insert_node(engine, delta, parent_id)
+
         uid = db_name + ":" + str(row_id)
+
+        # update parent_uid in cache
+        self.leaf_uid = uid
         return uid
 
     def retrieve(self, uid: 'LeafUID') -> bytes:

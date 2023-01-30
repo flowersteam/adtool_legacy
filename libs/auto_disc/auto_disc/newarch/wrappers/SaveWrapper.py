@@ -60,14 +60,37 @@ class SaveWrapper(TransformWrapper):
 
         return output
 
-    def save_leaf(self, resource_uri: str, leaf_uid: int = -1) -> 'LeafUID':
-        # leaf_uid is passed for specifying the parent node,
-        # when passed to LinearLocator
-        uid = super().save_leaf(resource_uri, leaf_uid)
+    def save_leaf(self, resource_uri: str, parent_uid: int = -1) -> 'LeafUID':
+        # parent_uid is passed for specifying the parent node,
+        # when passed to LinearLocator.store() by super().save_leaf()
+        uid = super().save_leaf(resource_uri, parent_uid)
 
         # clear cache
         self.buffer = []
         return uid
+
+    def serialize(self) -> bytes:
+        """
+        Custom serialize method needed for producing appropriately padded
+        binary with metadata.
+        """
+        data_bin = super().serialize()
+
+        # store buffer
+        old_buffer = self.buffer
+        del self.buffer
+
+        metadata_bytehash = bytes.fromhex(
+            self.locator.hash(super().serialize())
+        )
+        output_bin = metadata_bytehash \
+            + bytes.fromhex("deadbeef") \
+            + data_bin
+
+        # restore buffer
+        self.buffer = old_buffer
+
+        return output_bin
 
     def _store_saved_inputs_in_buffer(self, intermed_dict: Dict) -> None:
         saved_input = {}

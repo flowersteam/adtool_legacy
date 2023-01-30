@@ -6,29 +6,6 @@ import pathlib
 import tempfile
 
 
-def setup_function(function):
-    import sqlite3
-    global FILE_PATH, DB_PATH
-
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    SCRIPT_REL_PATH = "/mockDB.sql"
-    SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
-
-    _, DB_PATH = tempfile.mkstemp(suffix=".sqlite", dir=FILE_PATH)
-    con = sqlite3.connect(DB_PATH)
-    cur = con.cursor()
-    with open(SCRIPT_PATH) as f:
-        query_string = f.read()
-        cur.executescript(query_string)
-    return
-
-
-def teardown_function(function):
-    global DB_PATH
-    os.remove(DB_PATH)
-    return
-
-
 def test___init__():
     input = {"in": 1}
     wrapper = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"],
@@ -81,7 +58,10 @@ def test_serialize():
     output = wrapper.map(input)
     wrapper.map(output)
     bin = wrapper.serialize()
-    a = Stepper().deserialize(bin)
+
+    linear = LinearLocator()
+    _, data_bin = linear._parse_bin(bin)
+    a = Stepper().deserialize(data_bin)
     assert a.buffer == wrapper.buffer
 
 
@@ -90,18 +70,19 @@ def test_saveload_basic():
     This tests saving and loading of a single save step (which saves two
     "map" steps of progress)
     """
-    db_url = DB_PATH
+    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
-    wrapper.resource_uri = db_url
+
     output = wrapper.map(input)
     wrapper.map(output)
-    leaf_uid = wrapper.save_leaf(db_url)
+
+    leaf_uid = wrapper.save_leaf(FILE_PATH)
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    stepper_loaded = new_wrapper.load_leaf(leaf_uid, db_url)
+    stepper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
     buffer = stepper_loaded.buffer
 
     # unpack and check loaded Stepper
@@ -115,12 +96,11 @@ def test_saveload_advanced():
     This tests saving and loading of multiple save steps (which saves two
     "map" steps of progress)
     """
-    db_url = DB_PATH
+    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
     output = input
-    leaf_uid = -1
 
     for i in range(2):
         output = wrapper.map(output)
@@ -130,11 +110,11 @@ def test_saveload_advanced():
         if i == 1:
             output = wrapper.map(output)
 
-        leaf_uid = wrapper.save_leaf(db_url, leaf_uid)
+        leaf_uid = wrapper.save_leaf(FILE_PATH)
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    stepper_loaded = new_wrapper.load_leaf(leaf_uid, db_url)
+    stepper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
     buffer = stepper_loaded.buffer
 
     # unpack and check loaded Stepper
