@@ -52,6 +52,10 @@ class LinearLocator(Locator):
         db_name, data_bin = self._parse_bin(bin)
         row_id = self._store_data(data_bin, parent_id, db_name)
 
+        # store leaf_uids in filesystem
+        leaf_path = os.path.join(self.resource_uri, str(row_id))
+        open(leaf_path, "a").close()  # touch empty file
+
         leaf_uid = db_name + ":" + row_id
 
         return leaf_uid

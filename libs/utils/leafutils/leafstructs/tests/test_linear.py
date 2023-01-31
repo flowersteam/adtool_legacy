@@ -6,25 +6,27 @@ from leafutils.leafstructs.linear import LinearLocator, EngineContext, Stepper
 from leaf.leaf import LeafUID
 import pickle
 from hashlib import sha1
+import shutil
 
 
 def setup_function(function):
     import sqlite3
     global FILE_PATH, DB_PATH, SCRIPT_PATH
 
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
+    SCRIPT_PATH = str(pathlib.Path(__file__).parent.resolve())
+    FILE_PATH = os.path.join(SCRIPT_PATH, "tmp")
+    os.mkdir(FILE_PATH)
     db_name = 'c32a8622dd94420a572d92eadd8f0e36bb026847'  # set from mock_binary
     DB_REL_PATH = f"/{db_name}.lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
 
     DB_PATH = FILE_PATH + DB_REL_PATH
-    SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
+    SCRIPT_PATH = SCRIPT_PATH + SCRIPT_REL_PATH
 
 
 def teardown_function(function):
-    global DB_PATH
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
+    if os.path.exists(FILE_PATH):
+        shutil.rmtree(FILE_PATH)
 
     return
 
@@ -146,6 +148,8 @@ def test_LinearLocator_store():
         ids, trajectory, _ = x._get_trajectory(engine, row_id, 0)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
+    assert len(os.listdir(FILE_PATH)) == 2
+    assert os.path.exists(os.path.join(FILE_PATH, "8"))
 
 
 def test_LinearLocator_retrieve():
