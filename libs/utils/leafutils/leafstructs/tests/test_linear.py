@@ -104,10 +104,10 @@ def test_LinearLocator__get_trajectory():
     generate_fake_data(DB_PATH)
 
     with EngineContext(DB_PATH) as engine:
-        _, trajectory, depths = x._get_trajectory(engine, 5)
+        _, trajectory, depths = x._get_trajectory(engine, 5, 0)
         assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
-        _, trajectory, depths = x._get_trajectory(engine, 7)
-        assert trajectory == [bytes(1), bytes(2), bytes(4), bytes(8)]
+        _, trajectory, depths = x._get_trajectory(engine, 7, 3)
+        assert trajectory == [bytes(2), bytes(4), bytes(8)]
         assert len(trajectory) - 1 == depths[0]
 
 
@@ -143,7 +143,7 @@ def test_LinearLocator_store():
     db_url = os.path.join(FILE_PATH, db_name + ".lineardb")
 
     with EngineContext(db_url) as engine:
-        ids, trajectory, _ = x._get_trajectory(engine, row_id)
+        ids, trajectory, _ = x._get_trajectory(engine, row_id, 0)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
 
@@ -156,7 +156,7 @@ def test_LinearLocator_retrieve():
     # mock storage of sequence
     retrieval_key = 'c32a8622dd94420a572d92eadd8f0e36bb026847:7'
 
-    bin = x.retrieve(retrieval_key)
+    bin = x.retrieve(retrieval_key, 0)
     tmp_stepper = Stepper()
     stepper = tmp_stepper.deserialize(bin)
     assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(8)]

@@ -69,13 +69,14 @@ class LinearLocator(Locator):
         self.leaf_uid = uid
         return uid
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
         """
-        Retrieve entire trajectory of saved data starting from the leaf node
-        given by uid, traversing backwards towards the root.
+        Retrieve trajectory of given length of saved data starting from 
+        the leaf node given by uid, then traversing backwards towards the root.
+        NOTE: length=0 corresponds to the entire trajectory
         #### Returns:
         - bin (bytes): trajectory packed as a python object x with
-                       x.buffer being an array
+                       x.buffer being an array of binary python objects
         """
         try:
             db_name, row_id = uid.split(":")
@@ -85,7 +86,7 @@ class LinearLocator(Locator):
 
         db_url = self._db_name_to_db_url(db_name)
         with EngineContext(db_url) as engine:
-            _, trajectory, _ = self._get_trajectory(engine, row_id)
+            _, trajectory, _ = self._get_trajectory(engine, row_id, length)
             stepper = Stepper()
             stepper.buffer = trajectory
             bin = stepper.serialize()
@@ -151,10 +152,11 @@ class LinearLocator(Locator):
         return id
 
     @staticmethod
-    def _get_trajectory(engine, id: int
+    def _get_trajectory(engine, id: int, trajectory_length: int = 1
                         ) -> Tuple[List[int], List[bytes], List[int]]:
         """
-        Retrieves trajectory which has HEAD at id
+        Retrieves trajectory which has HEAD at id and returns the last 
+        trajectory_length elements
         """
         query = \
             '''
@@ -186,7 +188,9 @@ class LinearLocator(Locator):
                 w) for (_, w, _) in result]
             depths: List[int] = [w for (_, _, w) in result]
 
-        return ids, trajectory, depths
+        return ids[-trajectory_length:], \
+            trajectory[-trajectory_length:], \
+            depths[-trajectory_length:]
 
     @classmethod
     def _parse_bin(cls, bin: bytes) -> Tuple[str, bytes]:
