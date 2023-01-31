@@ -1,5 +1,7 @@
 from leaf.leafuid import LeafUID
 from hashlib import sha1
+import pathlib
+import os
 
 
 class Locator:
@@ -42,10 +44,10 @@ class StatelessLocator(Locator):
         self.resource_uri = resource_uri
 
     def store(self, bin: bytes) -> 'LeafUID':
-        raise Exception("This module is stateless.")
+        raise Exception("This module is either stateless or uninitialized.")
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
-        raise Exception("This module is stateless.")
+        raise Exception("This module is either stateless or uninitialized.")
 
 
 class DictLocator(Locator):
@@ -63,3 +65,34 @@ class DictLocator(Locator):
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
         return self.resource_uri[str(uid)]
+
+
+class FileLocator(Locator):
+    """
+    Locator which saves modules à la Git, to the filesystem,
+    with root directory specified by resource_uri
+    """
+
+    def __init__(self, resource_uri: str = ""):
+        # set default to relative directory of the caller
+        if resource_uri == "":
+            self.resource_uri = str(os.getcwd())
+        else:
+            self.resource_uri = resource_uri
+
+    def store(self, bin: bytes) -> 'LeafUID':
+        uid = self.hash(bin)
+        save_path = os.path.join(self.resource_uri, str(uid))
+
+        with open(save_path, "wb") as f:
+            f.write(bin)
+
+        return uid
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        save_path = os.path.join(self.resource_uri, str(uid))
+
+        with open(save_path, "rb") as f:
+            bin = f.read()
+
+        return bin
