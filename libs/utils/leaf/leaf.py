@@ -192,11 +192,14 @@ class Leaf:
         """
         modules = {}
         for (submodule_str, submodule_ref) in container_leaf._modules.items():
-            # dereference submodule pointed by submodule_ref
-            submodule = self.load_leaf(submodule_ref, resource_uri)
-            modules[submodule_str] = submodule
-            # set submodule pointers to container
-            submodule._set_attr_override("_container_ptr", container_leaf)
+            if isinstance(submodule_ref, str):
+                # dereference submodule pointed by submodule_ref
+                submodule = self.load_leaf(submodule_ref, resource_uri)
+                modules[submodule_str] = submodule
+                # set submodule pointers to container
+                submodule._set_attr_override("_container_ptr", container_leaf)
+            else:
+                continue
         container_leaf._set_attr_override("_modules", modules)
 
     def _bind_submodule_to_self(self,
