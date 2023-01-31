@@ -38,40 +38,52 @@ class LinearLocator(Locator):
 
     def __init__(self, resource_uri: str = ""):
         self.resource_uri = resource_uri
-        self.leaf_uid = ":-1"
+        self.parent_id = -1
 
     def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
         """
         Stores the bin as a child node of the node given by parent_id.
         #### Returns:
-        - leaf_uid (LeafUID): indicating the SQLite unique key corresponding
+        - leaf_uid (LeafUID): formatted path indicating the DB UID and the 
+                              SQLite unique key corresponding
                               to the inserted node
         """
-        db_name, bin = self._parse_bin(bin)
+
+        db_name, data_bin = self._parse_bin(bin)
+        row_id = self._store_data(data_bin, parent_id, db_name)
+
+        leaf_uid = db_name + ":" + row_id
+
+        return leaf_uid
+
+    def _store_data(self,
+                    data_bin: bytes,
+                    parent_id: int,
+                    db_name: str) -> str:
+        """
+        Store the unpadded binary data (i.e., without tag).
+        """
 
         db_url = self._db_name_to_db_url(db_name)
-
         # initializes db if it does not exist
         self._init_db(db_url)
 
         with EngineContext(db_url) as engine:
             # default setting if not set at function call
             if parent_id == -1:
-                _, parent_id = self._parse_leaf_uid(self.leaf_uid)
+                parent_id = self.parent_id
 
             # insert node
-            delta = self._convert_bytes_to_base64_str(bin)
+            delta = self._convert_bytes_to_base64_str(data_bin)
             row_id = self._insert_node(engine, delta, parent_id)
 
-        uid = db_name + ":" + str(row_id)
-
         # update parent_uid in cache
-        self.leaf_uid = uid
-        return uid
+        self.parent_id = row_id
+        return str(row_id)
 
     def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
         """
-        Retrieve trajectory of given length of saved data starting from 
+        Retrieve trajectory of given length of saved data starting from
         the leaf node given by uid, then traversing backwards towards the root.
         NOTE: length=0 corresponds to the entire trajectory
         #### Returns:
