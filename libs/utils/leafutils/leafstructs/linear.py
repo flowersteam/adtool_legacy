@@ -50,10 +50,17 @@ class LinearLocator(Locator):
         """
 
         db_name, data_bin = self._parse_bin(bin)
+
+        # create subfolder if not exist
+        subdir = os.path.join(self.resource_uri, db_name)
+        if not os.path.exists(subdir):
+            os.mkdir(subdir)
+
+        # store data binary
         row_id = self._store_data(data_bin, parent_id, db_name)
 
         # store leaf_uids in filesystem
-        leaf_path = os.path.join(self.resource_uri, str(row_id))
+        leaf_path = os.path.join(subdir, str(row_id))
         open(leaf_path, "a").close()  # touch empty file
 
         leaf_uid = db_name + ":" + row_id
@@ -110,7 +117,7 @@ class LinearLocator(Locator):
         return bin
 
     def _db_name_to_db_url(self, db_name: str) -> str:
-        db_url = os.path.join(self.resource_uri, db_name + ".lineardb")
+        db_url = os.path.join(self.resource_uri, db_name, "lineardb")
         return db_url
 
     @staticmethod

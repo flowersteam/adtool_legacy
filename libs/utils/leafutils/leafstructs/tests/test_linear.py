@@ -11,15 +11,15 @@ import shutil
 
 def setup_function(function):
     import sqlite3
-    global FILE_PATH, DB_PATH, SCRIPT_PATH
+    global FILE_PATH, DB_PATH, SCRIPT_PATH, DB_NAME
 
     SCRIPT_PATH = str(pathlib.Path(__file__).parent.resolve())
     FILE_PATH = os.path.join(SCRIPT_PATH, "tmp")
     os.mkdir(FILE_PATH)
-    db_name = 'c32a8622dd94420a572d92eadd8f0e36bb026847'  # set from mock_binary
-    DB_REL_PATH = f"/{db_name}.lineardb"
+    DB_NAME = '4f700578d4ee31c037562ff8ae00d4863b71c163'
+    os.mkdir(os.path.join(FILE_PATH, DB_NAME))
+    DB_REL_PATH = f"/{DB_NAME}/lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
-
     DB_PATH = FILE_PATH + DB_REL_PATH
     SCRIPT_PATH = SCRIPT_PATH + SCRIPT_REL_PATH
 
@@ -142,14 +142,16 @@ def test_LinearLocator_store():
     # assert that retrieval_key is stored
     # and can successfully retrieve trajectory
     db_name, row_id = LinearLocator._parse_leaf_uid(retrieval_key)
-    db_url = os.path.join(FILE_PATH, db_name + ".lineardb")
+    subdir = os.path.join(FILE_PATH, db_name)
+    db_url = os.path.join(subdir, "lineardb")
 
     with EngineContext(db_url) as engine:
         ids, trajectory, _ = x._get_trajectory(engine, row_id, 0)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
-    assert len(os.listdir(FILE_PATH)) == 2
-    assert os.path.exists(os.path.join(FILE_PATH, "8"))
+    assert len(os.listdir(FILE_PATH)) == 1
+    assert len(os.listdir(subdir)) == 2
+    assert os.path.exists(os.path.join(subdir, "8"))
 
 
 def test_LinearLocator_retrieve():
@@ -158,7 +160,7 @@ def test_LinearLocator_retrieve():
     generate_fake_data(DB_PATH)
 
     # mock storage of sequence
-    retrieval_key = 'c32a8622dd94420a572d92eadd8f0e36bb026847:7'
+    retrieval_key = DB_NAME + ":7"
 
     bin = x.retrieve(retrieval_key, 0)
     tmp_stepper = Stepper()
