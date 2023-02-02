@@ -41,7 +41,8 @@ def test_FileLocator_store():
 
     uid = locator.store(bytestring)
 
-    save_path = os.path.join(os.getcwd(), uid)
+    save_dir = os.path.join(os.getcwd(), uid)
+    save_path = os.path.join(save_dir, "metadata")
 
     assert os.path.exists(save_path)
     os.remove(save_path)
@@ -50,12 +51,16 @@ def test_FileLocator_store():
 def test_FileLocator_retrieve():
     bytestring = b"pasudgfpausdgfpxzucbv"
     fake_uid = "abcdefg"
-    save_dir = os.getcwd()
-    save_path = os.path.join(save_dir, fake_uid)
+
+    res_dir = os.getcwd()
+    save_dir = os.path.join(os.getcwd(), fake_uid)
+    os.mkdir(save_dir)
+    save_path = os.path.join(save_dir, "metadata")
+
     with open(save_path, "wb") as f:
         f.write(bytestring)
 
-    locator = FileLocator(save_dir)
+    locator = FileLocator(res_dir)
     bin = locator.retrieve(fake_uid)
 
     assert bin == bytestring

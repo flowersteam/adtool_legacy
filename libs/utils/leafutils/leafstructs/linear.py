@@ -56,6 +56,13 @@ class LinearLocator(Locator):
         if not os.path.exists(subdir):
             os.mkdir(subdir)
 
+        # store metadata binary
+        loaded_obj = pickle.loads(data_bin)
+        del loaded_obj.buffer
+        metadata_bin = pickle.dumps(loaded_obj)
+        with open(os.path.join(subdir, "metadata"), "wb") as f:
+            f.write(metadata_bin)
+
         # store data binary
         row_id = self._store_data(data_bin, parent_id, db_name)
 
@@ -63,6 +70,7 @@ class LinearLocator(Locator):
         leaf_path = os.path.join(subdir, str(row_id))
         open(leaf_path, "a").close()  # touch empty file
 
+        # return leaf_uid
         leaf_uid = db_name + ":" + row_id
 
         return leaf_uid

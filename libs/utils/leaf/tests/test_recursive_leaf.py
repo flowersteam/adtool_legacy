@@ -1,4 +1,4 @@
-from leaf.leaf import Leaf
+from leaf.leaf import Leaf, StatelessLocator
 from leaf.locators import Locator
 from leaf.tests.test_leaf import DummyModule, DummyLocator
 import pickle
@@ -93,6 +93,9 @@ def test_pipeline_save_data():
     assert b.l1._container_ptr == b
     assert b.l2._container_ptr == b
 
+    # after loading, it cannot remember to use the same locator as parent
+    assert b.l2.locator != b.l1.locator != b.locator
+
     c = DummyPipeline(l1=[], l2=[])
     c.locator = DummyLocator(res_uri)
     c = c.load_leaf(uid_new, res_uri)
@@ -107,8 +110,8 @@ def test_pipeline_submodule_pointers():
 
 
 def test_container___init__():
-    assert a.l1.locator == a.locator
-    assert a.l2.locator == a.locator
+    assert a.l1.locator.resource_uri == a.locator.resource_uri
+    assert a.l2.locator.resource_uri == a.locator.resource_uri
 
 
 def test_container_call_inner():

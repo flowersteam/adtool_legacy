@@ -48,6 +48,7 @@ def test_leaf_serialize():
 
     del a._container_ptr
     del a.locator
+    del b.locator
     assert a.__dict__ == b.__dict__
 
 
@@ -55,7 +56,7 @@ def test_leaf_deserialize():
     bin = a.serialize()
     b = a.deserialize(bin)
     assert isinstance(a.locator, StatelessLocator)
-    assert isinstance(b.locator, StatelessLocator)
+    assert b.locator == "leaf.locators.StatelessLocator"
     del a.locator
     del b.locator
     assert a.__dict__ == b.__dict__

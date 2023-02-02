@@ -150,7 +150,7 @@ def test_LinearLocator_store():
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
     assert len(os.listdir(FILE_PATH)) == 1
-    assert len(os.listdir(subdir)) == 2
+    assert len(os.listdir(subdir)) == 3
     assert os.path.exists(os.path.join(subdir, "8"))
 
 

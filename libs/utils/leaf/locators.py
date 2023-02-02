@@ -82,16 +82,20 @@ class FileLocator(Locator):
 
     def store(self, bin: bytes) -> 'LeafUID':
         uid = self.hash(bin)
-        save_path = os.path.join(self.resource_uri, str(uid))
+        save_dir = os.path.join(self.resource_uri, str(uid))
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
 
+        save_path = os.path.join(save_dir, "metadata")
         with open(save_path, "wb") as f:
             f.write(bin)
 
         return uid
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
-        save_path = os.path.join(self.resource_uri, str(uid))
+        save_dir = os.path.join(self.resource_uri, str(uid))
 
+        save_path = os.path.join(save_dir, "metadata")
         with open(save_path, "rb") as f:
             bin = f.read()
 

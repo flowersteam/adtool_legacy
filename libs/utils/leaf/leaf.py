@@ -5,6 +5,8 @@ from pydoc import locate
 from leaf.locators import Locator, StatelessLocator
 from leaf.leafuid import LeafUID
 from leaf.locators import DictLocator, FileLocator
+from leafutils.leafstructs.registration import \
+    get_path_from_cls, get_cls_from_path
 
 
 def prune_state(state_vars: Dict[str, Any]):
@@ -100,8 +102,7 @@ class Leaf:
         else:
             super().__delattr__(name)
 
-    @prune_state(state_vars={"_container_ptr": None,
-                             "locator": StatelessLocator()})
+    @prune_state(state_vars={"_container_ptr": None})
     def serialize(self) -> bytes:
         """ 
         Serializes object to pickle, 
@@ -115,13 +116,20 @@ class Leaf:
                 modules_by_ref[k] = v
             elif isinstance(v, Leaf):
                 modules_by_ref[k] = v._get_uid_base_case()
-
         self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
+
+        # pointerize Locator object, turning into a fully qualified import path
+        cls_path = get_path_from_cls(self.locator.__class__)
+        old_locator = self.locator
+        self._set_attr_override("locator", cls_path)
 
         bin = pickle.dumps(self)
 
         # restore modules
         self._set_attr_override("_modules", old_modules)
+
+        # restore Locator
+        self._set_attr_override("locator", old_locator)
 
         return bin
 
@@ -177,6 +185,14 @@ class Leaf:
         bin = self.locator.retrieve(uid)
         loaded_obj = self.deserialize(bin)
 
+        # dereference Locator path and initialize a Locator object
+        locator_cls = get_cls_from_path(loaded_obj.locator)
+        loaded_obj._set_attr_override("locator", locator_cls(resource_uri))
+
+        # bootstrap full object from metadata if locators don't match
+        if not isinstance(loaded_obj.locator, type(self.locator)):
+            loaded_obj = loaded_obj.load_leaf(uid, resource_uri)
+
         # recursively deserialize submodules by pointer indirection
         self._load_leaf_submodules_recursively(loaded_obj, resource_uri)
 
@@ -189,6 +205,9 @@ class Leaf:
         Dereference submodule unique IDs to their respective objects. 
         Note that it is impossible to load a contained module and access 
         the data of its container, due to the direction of recursion.
+
+        TODO: This will break in theory if separate deserialization is needed
+        for different classes.
         """
         modules = {}
         for (submodule_str, submodule_ref) in container_leaf._modules.items():
@@ -218,15 +237,16 @@ class Leaf:
         # default initialization of locator resource_uri
         if isinstance(submodule.locator, StatelessLocator) \
                 and submodule.locator.resource_uri == "":
-            submodule.locator = submodule._retrieve_parent_locator()
+            parent_locator_class = submodule._retrieve_parent_locator_class()
+            submodule.locator = parent_locator_class(self.locator.resource_uri)
 
         return
 
-    def _retrieve_parent_locator(self) -> 'Locator':
+    def _retrieve_parent_locator_class(self) -> type:
         module = self
         while getattr(module, "_container_ptr", None) is not None:
             module = module._container_ptr
-        return module.locator
+        return module.locator.__class__
 
     def _get_uid_base_case(self) -> 'LeafUID':
         """
