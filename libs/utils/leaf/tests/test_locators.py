@@ -53,7 +53,7 @@ def test_FileLocator_retrieve():
     fake_uid = "abcdefg"
 
     res_dir = os.getcwd()
-    save_dir = os.path.join(os.getcwd(), fake_uid)
+    save_dir = os.path.join(res_dir, fake_uid)
     os.mkdir(save_dir)
     save_path = os.path.join(save_dir, "metadata")
 

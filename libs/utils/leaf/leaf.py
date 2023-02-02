@@ -119,9 +119,10 @@ class Leaf:
         self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
 
         # pointerize Locator object, turning into a fully qualified import path
-        cls_path = get_path_from_cls(self.locator.__class__)
         old_locator = self.locator
-        self._set_attr_override("locator", cls_path)
+        if not isinstance(self.locator, str):
+            cls_path = get_path_from_cls(self.locator.__class__)
+            self._set_attr_override("locator", cls_path)
 
         bin = pickle.dumps(self)
 

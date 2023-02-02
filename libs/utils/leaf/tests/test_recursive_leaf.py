@@ -1,7 +1,9 @@
-from leaf.leaf import Leaf, StatelessLocator
+from leaf.leaf import Leaf, StatelessLocator, FileLocator, LeafUID
 from leaf.locators import Locator
 from leaf.tests.test_leaf import DummyModule, DummyLocator
 import pickle
+import os
+import shutil
 
 
 class DummyPipeline(Leaf):
@@ -30,19 +32,79 @@ class DummyContainer(Leaf):
         self.metadata = 42
 
 
+class DummyFileLocator(Locator):
+    def __init__(self, resource_uri: str = "",
+                 data_filename: str = "data"):
+        # set default to relative directory of the caller
+        if resource_uri == "":
+            self.resource_uri = str(os.getcwd())
+        else:
+            self.resource_uri = resource_uri
+        self.data_filename = data_filename
+
+    def store(self, bin: bytes) -> 'LeafUID':
+        uid = self.hash(bin)
+        save_dir = os.path.join(self.resource_uri, str(uid))
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+
+        data_save_path = os.path.join(save_dir, self.data_filename)
+        with open(data_save_path, "wb") as f:
+            f.write(bin)
+
+        # save metadata only
+        metadata_save_path = os.path.join(save_dir, "metadata")
+        loaded_obj = DummyModule().deserialize(bin)
+        loaded_obj.internal_state = []
+        md_bin = loaded_obj.serialize()
+        with open(metadata_save_path, "wb") as f:
+            f.write(md_bin)
+
+        return uid
+
+    def retrieve(self, uid: 'LeafUID') -> bytes:
+        save_dir = os.path.join(self.resource_uri, str(uid))
+
+        # retrieve only the data saved, not the metadata
+        data_save_path = os.path.join(save_dir, self.data_filename)
+        with open(data_save_path, "rb") as f:
+            bin = f.read()
+
+        return bin
+
+
 def setup_function(function):
     global a, res_uri
-    if "pipeline" in function.__name__.split("_"):
+    func_name_arr = function.__name__.split("_")
+    if "pipeline" in func_name_arr:
         global PipelineDB
         PipelineDB = {}
         res_uri = PipelineDB
         a = DummyPipeline(resource_uri=res_uri)
-    elif "container" in function.__name__.split("_"):
+    elif "container" in func_name_arr:
         global ContainerDB
         ContainerDB = {}
         res_uri = ContainerDB
         a = DummyContainer(res_uri)
+    elif "mixed" in func_name_arr:
+        res_uri = os.path.join(os.getcwd(), "tmp")
+        os.mkdir(res_uri)
+
+        a = DummyPipeline(resource_uri=res_uri)
+
+        # override the in-memory locator for file storage
+        a.locator = FileLocator(resource_uri=res_uri)
+        a.l1.locator = DummyFileLocator(resource_uri=res_uri,
+                                        data_filename="data")
+        a.l2.locator = DummyFileLocator(resource_uri=res_uri,
+                                        data_filename="data")
     return
+
+
+def teardown_function(function):
+    func_name_arr = function.__name__.split("_")
+    if ("mixed" in func_name_arr) and (os.path.exists(res_uri)):
+        shutil.rmtree(res_uri)
 
 
 def test_pipeline___init__():
@@ -107,6 +169,47 @@ def test_pipeline_save_data():
 def test_pipeline_submodule_pointers():
     a.l3 = a.l2
     assert a.l2 == a.l3
+
+
+def test_mixed___init__():
+    assert isinstance(a.l1.locator, DummyFileLocator)
+    assert isinstance(a.l2.locator, DummyFileLocator)
+
+
+def test_mixed_save_leaf():
+    uid = a.save_leaf()
+
+    assert len(os.listdir(res_uri)) == 3
+
+    data_ctr = 0
+    metadata_ctr = 0
+    for _, _, files in os.walk(res_uri):
+        if "data" in files:
+            data_ctr += 1
+        if "metadata" in files:
+            metadata_ctr += 1
+    assert metadata_ctr == 3
+    assert data_ctr == 2
+
+    sample_save_path = os.path.join(res_uri,
+                                    "8d633c07d386681ff8e1637d38934e7a8938a2b9"
+                                    + "/metadata")
+    with open(sample_save_path, "rb") as f:
+        bin = f.read()
+    loaded_obj = pickle.loads(bin)
+    assert loaded_obj.locator.split(".")[-1] == "DummyFileLocator"
+    assert len(loaded_obj.internal_state) == 0
+
+
+def test_mixed_load_leaf():
+    uid = a.save_leaf()
+
+    b = DummyPipeline()
+    b.locator = FileLocator(resource_uri=res_uri)
+    loaded_obj = b.load_leaf(uid, resource_uri=res_uri)
+
+    assert loaded_obj.l1.internal_state == [1, 2, 3, 4]
+    assert loaded_obj.l2.internal_state == [5, 6, 7, 8]
 
 
 def test_container___init__():
