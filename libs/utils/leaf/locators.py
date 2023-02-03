@@ -93,6 +93,9 @@ class FileLocator(Locator):
         return uid
 
     def retrieve(self, uid: 'LeafUID') -> bytes:
+        # FileLocator does not parse extra info in the UID
+        uid = uid.split(":")[0]
+
         save_dir = os.path.join(self.resource_uri, str(uid))
 
         save_path = os.path.join(save_dir, "metadata")

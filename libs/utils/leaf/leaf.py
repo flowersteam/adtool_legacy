@@ -108,15 +108,11 @@ class Leaf:
         Serializes object to pickle, 
         turning all submodules into uniquely identifiable hashes 
         """
+
         # recursively pointerize all submodules
-        old_modules = self._modules
-        modules_by_ref = {}
-        for (k, v) in old_modules.items():
-            if isinstance(v, str):
-                modules_by_ref[k] = v
-            elif isinstance(v, Leaf):
-                modules_by_ref[k] = v._get_uid_base_case()
-        self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
+        # NOTE: in practice this routine should not be called outside
+        #       of testing
+        old_modules = self._pointerize_submodules()
 
         # pointerize Locator object, turning into a fully qualified import path
         old_locator = self.locator
@@ -133,6 +129,20 @@ class Leaf:
         self._set_attr_override("locator", old_locator)
 
         return bin
+
+    def _pointerize_submodules(self) -> Dict[str, LeafUID]:
+        """
+        This should not be called outside of testing
+        """
+        old_modules = self._modules
+        modules_by_ref = {}
+        for (k, v) in old_modules.items():
+            if isinstance(v, str):
+                modules_by_ref[k] = v
+            elif isinstance(v, Leaf):
+                modules_by_ref[k] = v._get_uid_base_case()
+        self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
+        return old_modules
 
     def deserialize(self, bin: bytes) -> 'Leaf':
         """ 
@@ -155,12 +165,17 @@ class Leaf:
             return LeafUID('')
 
         # recursively save contained leaves
-        for m in self._modules.values():
-            if isinstance(m, str):
+        uid_dict = {}
+        for (module_name, module_obj) in self._modules.items():
+            if isinstance(module_obj, str):
                 raise ValueError(
                     "The modules are corrupted and are not of type Leaf.")
             else:
-                m.save_leaf(resource_uri)
+                module_uid = module_obj.save_leaf(resource_uri)
+                uid_dict[module_name] = module_uid
+        old_modules = self._modules
+        for module_name in self._modules.keys():
+            self._modules = uid_dict
 
         # save this leaf
         bin = self.serialize()
@@ -170,6 +185,9 @@ class Leaf:
             self.locator.resource_uri = resource_uri
         uid = self.locator.store(bin, *args, **kwargs)
         print(f"Stored {uid}")
+
+        # restore old_modules
+        self._modules = old_modules
 
         return uid
 
@@ -192,6 +210,8 @@ class Leaf:
 
         # bootstrap full object from metadata if locators don't match
         if not isinstance(loaded_obj.locator, type(self.locator)):
+            # ensure resource_uri consistency
+            loaded_obj.locator.resource_uri = self.locator.resource_uri
             loaded_obj = loaded_obj.load_leaf(uid, resource_uri)
 
         # recursively deserialize submodules by pointer indirection

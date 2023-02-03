@@ -110,11 +110,11 @@ class SaveWrapper(TransformWrapper):
     def _transform_keys(self, old_dict: Dict) -> Dict:
         return super()._transform_keys(old_dict)
 
-    def _get_uid_base_case(self) -> 'LeafUID':
-        """
-        Override pointerization so that the proper UID is stored
-        """
-        padded_bin = self.serialize()
-        db_name, _ = self.locator._parse_bin(padded_bin)
+    # def _get_uid_base_case(self) -> 'LeafUID':
+    #     """
+    #     Override pointerization so that the proper UID is stored
+    #     """
+    #     padded_bin = self.serialize()
+    #     db_name, _ = self.locator._parse_bin(padded_bin)
 
-        return db_name
+    #     return db_name
