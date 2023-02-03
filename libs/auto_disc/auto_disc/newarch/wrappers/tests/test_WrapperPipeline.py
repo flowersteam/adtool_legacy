@@ -111,24 +111,24 @@ def test_saveload():
 def test_saveload_linear():
     try:
         file_dir = str(pathlib.Path(__file__).parent.resolve())
-        FILE_PATH = os.path.join(file_dir, "tmp")
-        os.mkdir(FILE_PATH)
+        file_path = os.path.join(file_dir, "tmp")
+        os.mkdir(file_path)
 
         input = {"in": 1}
         a = TestWrapper(offset=1, wrapped_key="in")
         b = SaveWrapper()
         wrapper_list = [a, b]
         all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                       resource_uri=FILE_PATH)
+                                       resource_uri=file_path)
 
-        all_wrappers.locator = FileLocator(FILE_PATH)
+        all_wrappers.locator = FileLocator(file_path)
         # in real usage, you would use LinearLocators for all wrappers
-        all_wrappers.wrappers[0].locator = FileLocator(FILE_PATH)
+        all_wrappers.wrappers[0].locator = FileLocator(file_path)
 
         uid = all_wrappers.save_leaf()
-        assert len(os.listdir(FILE_PATH)) == 3
+        assert len(os.listdir(file_path)) == 3
 
-        loaded_wrappers = WrapperPipeline(locator=FileLocator(FILE_PATH))
+        loaded_wrappers = WrapperPipeline(locator=FileLocator(file_path))
         loaded_wrappers = loaded_wrappers.load_leaf(uid)
 
         for i in range(1):
@@ -138,5 +138,5 @@ def test_saveload_linear():
                 == loaded_wrappers.wrappers[i].wrapped_key
 
     finally:
-        if os.path.exists(FILE_PATH):
-            shutil.rmtree(FILE_PATH)
+        if os.path.exists(file_path):
+            shutil.rmtree(file_path)

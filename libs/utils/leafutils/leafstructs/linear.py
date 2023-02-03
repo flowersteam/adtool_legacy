@@ -75,6 +75,30 @@ class LinearLocator(Locator):
 
         return leaf_uid
 
+    def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
+        """
+        Retrieve trajectory of given length of saved data starting from
+        the leaf node given by uid, then traversing backwards towards the root.
+        NOTE: length=0 corresponds to the entire trajectory
+        #### Returns:
+        - bin (bytes): trajectory packed as a python object x with
+                       x.buffer being an array of binary python objects
+        """
+        try:
+            db_name, row_id = uid.split(":")
+        # check in case too many strings are returned
+        except ValueError:
+            raise ValueError("leaf_uid is not properly formatted.")
+
+        db_url = self._db_name_to_db_url(db_name)
+        with EngineContext(db_url) as engine:
+            _, trajectory, _ = self._get_trajectory(engine, row_id, length)
+            stepper = Stepper()
+            stepper.buffer = trajectory
+            bin = stepper.serialize()
+
+        return bin
+
     def _store_data(self,
                     data_bin: bytes,
                     parent_id: int,
@@ -99,30 +123,6 @@ class LinearLocator(Locator):
         # update parent_uid in cache
         self.parent_id = row_id
         return str(row_id)
-
-    def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
-        """
-        Retrieve trajectory of given length of saved data starting from
-        the leaf node given by uid, then traversing backwards towards the root.
-        NOTE: length=0 corresponds to the entire trajectory
-        #### Returns:
-        - bin (bytes): trajectory packed as a python object x with
-                       x.buffer being an array of binary python objects
-        """
-        try:
-            db_name, row_id = uid.split(":")
-        # check in case too many strings are returned
-        except ValueError:
-            raise ValueError("leaf_uid is not properly formatted.")
-
-        db_url = self._db_name_to_db_url(db_name)
-        with EngineContext(db_url) as engine:
-            _, trajectory, _ = self._get_trajectory(engine, row_id, length)
-            stepper = Stepper()
-            stepper.buffer = trajectory
-            bin = stepper.serialize()
-
-        return bin
 
     def _db_name_to_db_url(self, db_name: str) -> str:
         db_url = os.path.join(self.resource_uri, db_name, "lineardb")
