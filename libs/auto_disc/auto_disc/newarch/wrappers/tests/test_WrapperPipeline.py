@@ -80,25 +80,32 @@ def test___init__pass_uri():
 
 
 def test_saveload():
-    storage_db = {}
-    input = {"in": 1}
-    a = TestWrapper(offset=1, wrapped_key="in")
-    b = TestWrapper(offset=2, wrapped_key="in")
-    wrapper_list = [a, b]
-    all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                   locator=DummyLocator(storage_db))
+    try:
+        storage_db = {}
+        input = {"in": 1}
+        a = TestWrapper(offset=1, wrapped_key="in")
+        b = TestWrapper(offset=2, wrapped_key="in")
+        wrapper_list = [a, b]
+        all_wrappers = WrapperPipeline(wrappers=wrapper_list,
+                                       locator=DummyLocator(storage_db))
 
-    uid = all_wrappers.save_leaf()
-    assert len(storage_db) == 3
+        uid = all_wrappers.save_leaf()
+        assert len(storage_db) == 3
 
-    loaded_wrappers = WrapperPipeline(locator=DummyLocator(storage_db))
-    loaded_wrappers = loaded_wrappers.load_leaf(uid)
+        loaded_wrappers = WrapperPipeline(locator=DummyLocator(storage_db))
+        loaded_wrappers = loaded_wrappers.load_leaf(uid)
 
-    for i in range(2):
-        assert all_wrappers.wrappers[i].offset \
-            == loaded_wrappers.wrappers[i].offset
-        assert all_wrappers.wrappers[i].wrapped_key \
-            == loaded_wrappers.wrappers[i].wrapped_key
+        for i in range(2):
+            assert all_wrappers.wrappers[i].offset \
+                == loaded_wrappers.wrappers[i].offset
+            assert all_wrappers.wrappers[i].wrapped_key \
+                == loaded_wrappers.wrappers[i].wrapped_key
+    finally:
+        file_dir = str(pathlib.Path(__file__).parent.resolve())
+        created_hash = "1921722fc520984398166966f5e4fad458c3e411"
+        file_path = os.path.join(file_dir, created_hash)
+        if os.path.exists(file_path):
+            shutil.rmtree(file_path)
 
 
 def test_saveload_linear():
