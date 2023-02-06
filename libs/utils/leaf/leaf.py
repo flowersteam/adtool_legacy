@@ -241,6 +241,7 @@ class Leaf:
             else:
                 continue
         container_leaf._set_attr_override("_modules", modules)
+        return
 
     def _bind_submodule_to_self(self,
                                 submodule_name: str,

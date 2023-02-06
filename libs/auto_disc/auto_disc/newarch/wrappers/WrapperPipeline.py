@@ -1,5 +1,5 @@
 from leaf.leaf import Leaf, Locator, StatelessLocator
-from typing import List, Dict
+from typing import List, Dict, Union, Any
 from copy import deepcopy
 
 
@@ -46,8 +46,14 @@ class WrapperPipeline(Leaf):
             el.name = str(i)
             self._bind_wrapper_to_self(el)
 
-        # makes the dicts point to the same object, as dicts are mutable
-        self.wrappers = self._modules
+        # # makes the dicts point to the same object, as dicts are mutable
+        # self.wrappers = self._modules
+
+    def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
+        if name == "wrappers":
+            return self._modules
+        else:
+            return super().__getattr__(name)
 
     def _bind_submodule_to_self(self,
                                 submodule_name: str,

@@ -1,11 +1,12 @@
 from auto_disc.newarch.wrappers \
-    import IdentityWrapper, SaveWrapper, WrapperPipeline, TransformWrapper
-from leaf.leaf import Leaf, Locator, LeafUID, StatelessLocator
-from leaf.tests.test_leaf import DummyLocator
-from typing import Dict, List
+    import SaveWrapper, WrapperPipeline, TransformWrapper
+from leaf.leaf import Leaf, Locator, LeafUID, StatelessLocator, FileLocator
+from typing import Dict, List, Union, Any
 from copy import deepcopy
 import pathlib
 import tempfile
+import os
+import shutil
 
 
 class IncrementerWrapper(Leaf):
@@ -15,14 +16,9 @@ class IncrementerWrapper(Leaf):
     def map(self, input: Dict) -> Dict:
         # must do because dicts are mutable types
         output = deepcopy(input)
-
         output["data"] = output["data"] + 1
 
         return output
-
-    @classmethod
-    def create_locator(cls, dict: Dict = None) -> 'Locator':
-        return DictLocator(dict)
 
 
 class FakeExperimentPipeline(Leaf):
@@ -36,6 +32,11 @@ class FakeExperimentPipeline(Leaf):
                                               resource_uri=save_db_url)
         # pass locator to WrapperPipeline
         self.input_wrappers.locator = locator
+
+        # pass locator to unset wrappers
+        for wrapper in self.input_wrappers.wrappers.values():
+            if isinstance(wrapper.locator, StatelessLocator):
+                wrapper.locator = locator
 
         # use locator also for saving own metadata
         self.locator = locator
@@ -59,27 +60,15 @@ class DictLocator(Locator):
 
 
 def setup_function(function):
-    import sqlite3
-    global FILE_PATH, DB_PATH
-
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
-    SCRIPT_REL_PATH = "/mockDB.sql"
-    SCRIPT_PATH = FILE_PATH + SCRIPT_REL_PATH
-
-    _, DB_PATH = tempfile.mkstemp(suffix=".sqlite", dir=FILE_PATH)
-    con = sqlite3.connect(DB_PATH)
-    cur = con.cursor()
-    with open(SCRIPT_PATH) as f:
-        query_string = f.read()
-        cur.executescript(query_string)
-    return
+    global FILE_PATH
+    file_dir = str(pathlib.Path(__file__).parent.resolve())
+    FILE_PATH = os.path.join(file_dir, "tmp")
+    os.mkdir(FILE_PATH)
 
 
 def teardown_function():
-    import os
-    global DB_PATH
-    os.remove(DB_PATH)
-    return
+    if os.path.exists(FILE_PATH):
+        shutil.rmtree(FILE_PATH)
 
 
 def test___init__():
@@ -88,13 +77,13 @@ def test___init__():
                 TransformWrapper(
                     wrapped_keys=["data"], posttransform_keys=["output"]),
                 SaveWrapper()]
-    pipeline = FakeExperimentPipeline(wrappers, save_db_url=DB_PATH)
+    pipeline = FakeExperimentPipeline(wrappers, save_db_url=FILE_PATH)
     assert isinstance(pipeline._modules["input_wrappers"], WrapperPipeline)
     assert pipeline.input_wrappers.locator.resource_uri == ""
-    assert pipeline.input_wrappers.wrappers[0].locator.resource_uri == DB_PATH
+    assert pipeline.input_wrappers.wrappers[0].locator.resource_uri == FILE_PATH
     pipeline = FakeExperimentPipeline(
-        wrappers, save_db_url="test", locator=StatelessLocator(DB_PATH))
-    assert pipeline.input_wrappers.locator.resource_uri == DB_PATH
+        wrappers, save_db_url="test", locator=StatelessLocator(FILE_PATH))
+    assert pipeline.input_wrappers.locator.resource_uri == FILE_PATH
     assert pipeline.input_wrappers.wrappers[0].locator.resource_uri == "test"
 
 
@@ -111,7 +100,6 @@ def test_input_transformation():
 
 
 def test_saveload():
-    db = {}
     input = {"data": 1}
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
@@ -119,11 +107,22 @@ def test_saveload():
                     wrapped_keys=["data"], posttransform_keys=["output"]),
                 SaveWrapper()]
     pipeline = FakeExperimentPipeline(
-        wrappers, save_db_url=DB_PATH, locator=DummyLocator(db))
-    assert pipeline.locator.resource_uri == db
-    assert pipeline.input_wrappers.locator.resource_uri == db
+        wrappers, save_db_url=FILE_PATH, locator=FileLocator(FILE_PATH))
+    assert pipeline.locator.resource_uri == FILE_PATH
+    assert pipeline.input_wrappers.locator.resource_uri == FILE_PATH
 
     output = pipeline.input_transformation(input)
 
     pipeline_uid = pipeline.save_leaf()
-    assert len(db) == 2
+    assert len(os.listdir(FILE_PATH)) == 6
+
+    new_pipeline = FakeExperimentPipeline(
+        save_db_url=FILE_PATH,
+        locator=FileLocator(FILE_PATH)
+    )
+    new_pipeline = new_pipeline.load_leaf(pipeline_uid, FILE_PATH)
+    assert new_pipeline.input_wrappers.wrappers[2].wrapped_keys == ["data"]
+    assert new_pipeline.input_wrappers.wrappers[2].posttransform_keys == [
+        "output"]
+    assert new_pipeline.input_wrappers.wrappers[0].buffer == [{"data": 1}]
+    assert new_pipeline.input_wrappers.wrappers[3].buffer == [{"output": 2}]
