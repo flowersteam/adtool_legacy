@@ -82,13 +82,13 @@ def test_saveload_basic():
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    stepper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
-    buffer = stepper_loaded.buffer
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
+    buffer = wrapper_loaded.buffer
 
     # unpack and check loaded Stepper
-    assert len(buffer) == 1
-    assert Stepper().deserialize(buffer[0]).buffer[0] == {"a": 1, "b": 2}
-    assert Stepper().deserialize(buffer[0]).buffer[1] == {"a": 2, "b": 1}
+    assert len(buffer) == 2
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
 
 
 def test_saveload_advanced():
@@ -114,15 +114,14 @@ def test_saveload_advanced():
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    stepper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
-    buffer = stepper_loaded.buffer
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
+    buffer = wrapper_loaded.buffer
 
     # unpack and check loaded Stepper
-    assert len(buffer) == 1
-    # assert Stepper().deserialize(buffer[0]).buffer[0] == {"a": 1, "b": 2}
-    # assert Stepper().deserialize(buffer[0]).buffer[1] == {"a": 2, "b": 1}
-    assert Stepper().deserialize(buffer[0]).buffer[0] == {"a": 1, "b": 2}
-    assert Stepper().deserialize(buffer[0]).buffer[1] == {"a": 2, "b": 1}
-    assert Stepper().deserialize(buffer[0]).buffer[2] == {"a": 1, "b": 2}
+    assert len(buffer) == 3
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
 
-    # TODO: add check for the tree table of the SQLite db being properly created
+    # check metadata
+    assert wrapper_loaded.inputs_to_save

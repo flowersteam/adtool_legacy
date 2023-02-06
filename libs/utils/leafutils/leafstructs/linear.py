@@ -79,10 +79,11 @@ class LinearLocator(Locator):
         """
         Retrieve trajectory of given length of saved data starting from
         the leaf node given by uid, then traversing backwards towards the root.
-        NOTE: length=0 corresponds to the entire trajectory
+        NOTE: length=0 corresponds to the entire trajectory, and it is not
+              recommended to unpack large trajectories in memory
         #### Returns:
         - bin (bytes): trajectory packed as a python object x with
-                       x.buffer being an array of binary python objects
+                       x.buffer being the array of data
         """
         try:
             db_name, row_id = uid.split(":")
@@ -93,9 +94,14 @@ class LinearLocator(Locator):
         db_url = self._db_name_to_db_url(db_name)
         with EngineContext(db_url) as engine:
             _, trajectory, _ = self._get_trajectory(engine, row_id, length)
-            stepper = Stepper()
-            stepper.buffer = trajectory
-            bin = stepper.serialize()
+
+            buffer_concat = []
+            for binary in trajectory:
+                loaded_obj = Stepper().deserialize(binary)
+                buffer_concat += loaded_obj.buffer
+            loaded_obj.buffer = buffer_concat
+            # directly call pickle to avoid unnecessary pointerization
+            bin = pickle.dumps(loaded_obj)
 
         return bin
 
