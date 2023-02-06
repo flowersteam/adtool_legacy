@@ -16,6 +16,14 @@ def test_map():
     assert input == {"a": 1, "b": 2}
 
 
+def test_map_missing():
+    input = {"data": 1}
+    tw = TransformWrapper(
+        wrapped_keys=["output"], posttransform_keys=["data"])
+    output = tw.map(input)
+    assert output == input
+
+
 def test_saveload():
     tw = TransformWrapper(
         wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])

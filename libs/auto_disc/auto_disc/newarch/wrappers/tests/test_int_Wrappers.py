@@ -101,28 +101,33 @@ def test_input_transformation():
 
 def test_saveload():
     input = {"data": 1}
-    wrappers = [SaveWrapper(),
-                IncrementerWrapper(),
-                TransformWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"]),
-                SaveWrapper()]
+    wrappers = [TransformWrapper(
+        wrapped_keys=["output"], posttransform_keys=["data"]),
+        SaveWrapper(),
+        IncrementerWrapper(),
+        TransformWrapper(
+        wrapped_keys=["data"], posttransform_keys=["output"]),
+        SaveWrapper()]
     pipeline = FakeExperimentPipeline(
         wrappers, save_db_url=FILE_PATH, locator=FileLocator(FILE_PATH))
     assert pipeline.locator.resource_uri == FILE_PATH
     assert pipeline.input_wrappers.locator.resource_uri == FILE_PATH
 
     output = pipeline.input_transformation(input)
+    pipeline.input_transformation(output)
 
     pipeline_uid = pipeline.save_leaf()
-    assert len(os.listdir(FILE_PATH)) == 6
+    assert len(os.listdir(FILE_PATH)) == 7
 
     new_pipeline = FakeExperimentPipeline(
         save_db_url=FILE_PATH,
         locator=FileLocator(FILE_PATH)
     )
     new_pipeline = new_pipeline.load_leaf(pipeline_uid, FILE_PATH)
-    assert new_pipeline.input_wrappers.wrappers[2].wrapped_keys == ["data"]
-    assert new_pipeline.input_wrappers.wrappers[2].posttransform_keys == [
+    assert new_pipeline.input_wrappers.wrappers[3].wrapped_keys == ["data"]
+    assert new_pipeline.input_wrappers.wrappers[3].posttransform_keys == [
         "output"]
-    assert new_pipeline.input_wrappers.wrappers[0].buffer == [{"data": 1}]
-    assert new_pipeline.input_wrappers.wrappers[3].buffer == [{"output": 2}]
+    assert new_pipeline.input_wrappers.wrappers[1].buffer == [
+        {"data": 1}, {"data": 2}]
+    assert new_pipeline.input_wrappers.wrappers[4].buffer == [
+        {"output": 2}, {"output": 3}]

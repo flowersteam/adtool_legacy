@@ -49,8 +49,13 @@ class TransformWrapper(Leaf):
         new_dict = {}
         for (old_key, new_key) in \
                 zip(self.wrapped_keys, self.posttransform_keys):
-            new_dict[new_key] = old_dict[old_key]
-            del old_dict[old_key]
+
+            # allows making conditional transformers that ignore input
+            # with no appropriately matching keys
+            if old_dict.get(old_key):
+                new_dict[new_key] = old_dict[old_key]
+                del old_dict[old_key]
+
         new_dict.update(old_dict)
 
         return new_dict
