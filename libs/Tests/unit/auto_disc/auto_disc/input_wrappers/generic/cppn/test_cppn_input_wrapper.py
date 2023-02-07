@@ -1,35 +1,30 @@
-from auto_disc.input_wrappers.generic import CppnInputWrapper
 from copy import deepcopy
 from copyreg import pickle
 import os
 import sys
 import pickle
+import unittest
 
+import numpy as np
 
 classToTestFolderPath = os.path.dirname(__file__)
-auto_discFolderPath = os.path.abspath(os.path.join(
-    classToTestFolderPath, "../"*8 + "/libs/auto_disc/auto_disc"))
+auto_discFolderPath = os.path.abspath(os.path.join(classToTestFolderPath, "../"*8 + "/libs/auto_disc/auto_disc"))
 sys.path.insert(0, os.path.dirname(auto_discFolderPath))
 
 
-def setup_function(function):
-    global output_space_shape_object, __location__
+sys.path.insert(0, os.path.dirname(auto_discFolderPath))
+import auto_disc
+from auto_disc.input_wrappers.generic import CppnInputWrapper
 
-    Object = lambda **kwargs: type("Object", (), kwargs)()
-    def output_space_shape_object(): return Object(shape=(256, 256))
-    __location__ = os.path.realpath(os.path.join(
-        os.getcwd(), os.path.dirname(__file__)))
-
-    return
-
+Object = lambda **kwargs: type("Object", (), kwargs)()
+output_space_shape_object = lambda : Object(shape=(256,256))
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 def test_map():
-    with open(os.path.join(__location__, "parameters.pickle"), "rb") as parametersFile:
+    with open(os.path.join(__location__, "parameters.pickle"), "rb") as parametersFile :
         parameters = pickle.load(parametersFile)
-    wrapped_key = "a"
-    cppn = CppnInputWrapper(wrapped_key)
-    cppn.output_space = {wrapped_key: output_space_shape_object()}
-    res = cppn.map(deepcopy(parameters))
-    assert "a" not in parameters
-    assert res.get("genome") is None
-    assert "a" in res
+    wrapped_output_space_key = "a"
+    cppn = CppnInputWrapper(wrapped_output_space_key)
+    cppn.output_space = {wrapped_output_space_key : output_space_shape_object()}
+    res = cppn.map(deepcopy(parameters), None)
+    assert "a" not in parameters and res["genome"] == {}
