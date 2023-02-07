@@ -4,7 +4,7 @@ import traceback
 import torch
 
 import typing
-from typing import Dict, Type, Callable, List, Any, Tuple
+from typing import Dict, Type, Callable, List, Any
 from auto_disc import systems, explorers
 from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.output_representations import BaseOutputRepresentation
@@ -14,9 +14,6 @@ from auto_disc.output_representations.generic import DummyOutputRepresentation
 from auto_disc.input_wrappers.generic import DummyInputWrapper
 from auto_disc.utils.misc import DB
 from auto_disc.utils.callbacks.interact_callbacks import Interact
-from auto_disc.systems.base_system import BaseSystem
-from auto_disc.explorers.base_explorer import BaseExplorer
-from depinj.injector import inject
 
 
 class CancellationToken:
@@ -139,8 +136,6 @@ class ExperimentPipeline():
 
         for i in reversed(range(len(self._input_wrappers))):
             # self._input_wrappers[i].set_call_run_parameters_history_update_fn(self._update_run_parameters_history)
-
-            #### #146: KEY LOGIC HERE TO REPRODUCE ####
             if i == len(self._input_wrappers) - 1:
                 self._input_wrappers[i].initialize(
                     output_space=self._system.input_space)
@@ -150,10 +145,13 @@ class ExperimentPipeline():
                     output_space=self._input_wrappers[i+1].input_space)
                 output_key = f'run_parameters_{i}'
 
-            _access_history = access_history_fn(
-                keys=['idx', input_key, output_key], new_keys=['idx', 'input', 'output'])
-            inject(self._input_wrappers[i], _access_history)
-            #### #146: KEY LOGIC CI-DESSUS A REPRODUIRE ####
+            if i == 0:
+                input_key = 'raw_run_parameters'
+            else:
+                input_key = f'run_parameters_{i-1}'
+
+            self._input_wrappers[i].set_history_access_fn(access_history_fn(keys=['idx', input_key, output_key],
+                                                                            new_keys=['idx', 'input', 'output']))
 
         ### EXPLORER ###
         self._explorer = explorer
@@ -215,7 +213,7 @@ class ExperimentPipeline():
             self._process_output(
                 output, document.doc_id, starting_index=output_representation_idx, is_output_new_discovery=False)
 
-    def _process_run_parameters(self, run_parameters: Dict[str, Any], document_id: int, starting_index: int = 0) -> Dict[str, Any]:
+    def _process_run_parameters(self, run_parameters: Dict[str, Any], document_id: int, starting_index: int = 0, is_input_new_discovery: bool = True) -> Dict[str, Any]:
         """
             Process the run_parameters and store it in the tinyDB to make it usable in different modules of the experiment
 
@@ -223,6 +221,7 @@ class ExperimentPipeline():
                 run_parameters: current run_parameters
                 document_id: current document id
                 starting_index: first index to consider in the outputs representations list
+                is_input_new_discovery: indiacte if the current input come from a new discovery
 
             Returns:
                 output: The current output after it was processed 
@@ -230,7 +229,7 @@ class ExperimentPipeline():
 
         for i, input_wrapper in enumerate(self._input_wrappers[starting_index:]):
             run_parameters = input_wrapper.map(
-                copy(run_parameters))
+                copy(run_parameters), is_input_new_discovery)
             if i == len(self._input_wrappers) - 1:
                 self.db.update({'run_parameters': copy(
                     run_parameters)}, doc_ids=[document_id])

@@ -1,34 +1,30 @@
+from auto_disc.input_wrappers import BaseInputWrapper
+from addict import Dict
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 from auto_disc.utils.config_parameters import IntegerConfigParameter
-from leaf.leaf import Leaf
-from copy import deepcopy
 import numpy as np
-from addict import Dict
-
-from leaf.tests.test_leaf import DummyLocator
-from leaf.leaf import Locator
-
 
 @IntegerConfigParameter(name="n", default=1)
-class TimesNInputWrapper(Leaf):
+class TimesNInputWrapper(BaseInputWrapper):
     CONFIG_DEFINITION = {}
-
+    
     input_space = DictSpace(
-        input_parameter=BoxSpace(low=-np.inf, high=np.inf, shape=())
+        input_parameter = BoxSpace(low=-np.inf, high=np.inf, shape=())
     )
 
-    def __init__(self, wrapped_key: str) -> None:
-        super().__init__()
-        self.input_space = deepcopy(self.input_space)
-        # self.input_space.initialize(self)
-        self._wrapped_key = wrapped_key
-        self._initial_input_space_keys = [key for key in self.input_space]
+    def __init__(self, wrapped_output_space_key: str, **kwargs) -> None:
+        super().__init__(wrapped_output_space_key, **kwargs)
+        assert len(self.input_space) == 1
+        if not isinstance(wrapped_output_space_key, str):
+            raise TypeError("wrapped_output_space_key must be a single string indicating the key of the space to wrap.")
 
-    def map(self, input: Dict) -> Dict:
-        # must do because dicts are mutable types
-        output = deepcopy(input)
+        # Change key name to avoid issues with multiple same wrappers stacked
+        new_key = 'Times{0}_{1}'.format(self.config['n'], wrapped_output_space_key)
+        self.input_space[new_key] = self.input_space[self._initial_input_space_keys[0]]
+        del self.input_space[self._initial_input_space_keys[0]]
+        self._initial_input_space_keys = [new_key]
 
-        output[self._wrapped_key] = \
-            output[self._wrapped_key] * self.config["n"]
-
-        return output
+    def map(self, input: Dict, is_input_new_discovery, **kwargs) -> Dict:
+        input[self._wrapped_output_space_key] = input[self._initial_input_space_keys[0]] * self.config['n']
+        del input[self._initial_input_space_keys[0]]
+        return input

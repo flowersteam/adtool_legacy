@@ -61,8 +61,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
     for _input_wrapper in parameters['input_wrappers']:
         input_wrapper_class = REGISTRATION['input_wrappers'][_input_wrapper['name']]
         input_wrappers.append(
-            input_wrapper_class(
-                logger=logger, output_space=system.input_space, **_input_wrapper['config'])
+            input_wrapper_class(logger=logger, **_input_wrapper['config'])
         )
 
     # Get output representations
