@@ -1,7 +1,6 @@
 FROM python:3.7.14-slim
 
-RUN apt-get update -y
-RUN apt-get install -y gcc
+RUN apt-get update -y && apt-get install -y gcc
 
 # AutoDiscServer dependency resolution
 # NOTE: can only run in the build context provided in docker-compose.yml
