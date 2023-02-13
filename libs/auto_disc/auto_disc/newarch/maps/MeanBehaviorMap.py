@@ -1,0 +1,42 @@
+import torch
+from leaf.leaf import Leaf
+from leaf.locators import FileLocator
+from typing import Dict
+from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
+from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
+from copy import deepcopy
+
+
+class MeanBehaviorMap(Leaf):
+    """
+    A simple `BehaviorMap` which merely extracts the mean.
+    """
+
+    def __init__(self, wrapped_key: str = "output") -> None:
+        super().__init__()
+        self.locator = FileLocator()
+        self.wrapped_key = wrapped_key
+        self.history_saver = SaveWrapper()
+        self.projector = BoxProjector(wrapped_key=wrapped_key)
+
+    def map(self, input: Dict) -> Dict:
+        intermed_dict = deepcopy(input)
+
+        tensor = intermed_dict[self.wrapped_key].detach().clone()
+        mean = torch.mean(tensor)
+        intermed_dict[self.wrapped_key] = mean
+
+        projected_dict = self.projector.map(intermed_dict)
+        behavior_dict = self.history_saver.map(projected_dict)
+
+        return behavior_dict
+
+    def sample(self):
+        return self.projector.sample()
+
+    def get_tensor_history(self):
+        tensor_history = self.history_saver.buffer[0][self.wrapped_key]
+        for dict in self.history_saver.buffer:
+            tensor_history = torch.cat(
+                (tensor_history, dict[self.wrapped_key]), dim=-1)
+        return tensor_history
