@@ -36,6 +36,10 @@ def test_map():
                                     tensor_high=torch.tensor([2., 2., 2.]))
     output_dict = param_map.map(input_dict)
     assert output_dict["params"].size()[0] == 3
+    assert torch.all(torch.greater(output_dict["params"],
+                                   param_map.projector.low))
+    assert torch.all(torch.less(output_dict["params"],
+                                param_map.projector.high))
     assert len(param_map.history_saver.buffer) == 1
     assert param_map.history_saver.buffer[0]["metadata"] \
         == output_dict["metadata"]
