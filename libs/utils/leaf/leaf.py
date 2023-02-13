@@ -191,7 +191,11 @@ class Leaf:
 
         return uid
 
-    def load_leaf(self, uid: 'LeafUID', resource_uri: str = '') -> 'Leaf':
+    def load_leaf(self,
+                  uid: 'LeafUID',
+                  resource_uri: str = '',
+                  *args,
+                  **kwargs) -> 'Leaf':
         """ Load entire structure of object, not mutating self """
         # check stateless
         if isinstance(self.locator, StatelessLocator):
@@ -201,7 +205,7 @@ class Leaf:
         if resource_uri != '':
             self.locator.resource_uri = resource_uri
 
-        bin = self.locator.retrieve(uid)
+        bin = self.locator.retrieve(uid, *args, **kwargs)
         loaded_obj = self.deserialize(bin)
 
         # dereference Locator path and initialize a Locator object
