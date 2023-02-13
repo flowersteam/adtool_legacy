@@ -33,9 +33,18 @@ class BoxProjector(Leaf):
 
         self._update_low_high(output["output"])
 
-        output["sampler"] = self._generate_sampler()
+#        output["sampler"] = self._generate_sampler()
 
         return output
+
+    def sample(self) -> torch.Tensor:
+        dim = self.low.size()
+        rand_nums = torch.rand(dim)
+
+        dim_lengths = self.high - self.low
+        sample = rand_nums * dim_lengths + self.low
+
+        return sample
 
     def _update_low_high(self, data: torch.Tensor) -> None:
         """
