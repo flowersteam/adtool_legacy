@@ -15,20 +15,25 @@ class BoxProjector(Leaf):
     """
 
     def __init__(self,
-                 bound_upper: float = float('inf'),
-                 bound_lower: float = -float('inf'),
+                 wrapped_key: str,
+                 bound_upper: torch.Tensor = torch.tensor([float('inf')]),
+                 bound_lower: torch.Tensor = torch.tensor([-float('inf')]),
                  init_low: torch.Tensor = None,
                  init_high: torch.Tensor = None,
                  tensor_shape: Tuple = None) -> None:
         super().__init__()
+        self.wrapped_key = wrapped_key
         self.bound_upper = bound_upper
         self.bound_lower = bound_lower
 
-        self.low = init_low
-        self.high = init_low
-
         # initialize data_shape if known
-        self.tensor_shape = tensor_shape
+        if init_low is not None:
+            self.tensor_shape = init_low.size()
+        else:
+            self.tensor_shape = tensor_shape
+
+        self.low = init_low
+        self.high = init_high
 
     def map(self, input: Dict) -> Dict:
         """
@@ -37,15 +42,14 @@ class BoxProjector(Leaf):
         """
         output = deepcopy(input)
 
-        tensor_data = output["output"]
+        tensor_data = output[self.wrapped_key]
 
         # set tensor_shape dynamically
         if self.tensor_shape is None:
             self.tensor_shape = tensor_data.size()
 
+        tensor_data = self._clamp_and_truncate(tensor_data)
         self._update_low_high(tensor_data)
-
-#        output["sampler"] = self._generate_sampler()
 
         return output
 
@@ -58,8 +62,11 @@ class BoxProjector(Leaf):
 
         return sample
 
-    def _clamp(self, data: torch.Tensor) -> torch.Tensor:
-        return torch.clamp(data, min=self.bound_lower, max=self.bound_upper)
+    def _clamp_and_truncate(self, data: torch.Tensor) -> torch.Tensor:
+        clamped_data = torch.min(
+            torch.max(data, self.bound_lower), self.bound_upper)
+        # TODO: truncate dimensions
+        return clamped_data
 
     def _update_low_high(self, data: torch.Tensor) -> None:
         """
