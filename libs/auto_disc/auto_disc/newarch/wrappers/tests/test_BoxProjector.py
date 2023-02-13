@@ -27,7 +27,17 @@ def test__update_low_high():
     assert not torch.allclose(box.low[lower_mask], new_input[lower_mask])
 
 
-def test__generate_sampler():
+def test__clamp():
+    dim = 10
+    input = torch.rand(dim) + 10
+
+    box = BoxProjector(bound_upper=5)
+    clamped_output = box._clamp(input)
+
+    assert torch.all(torch.isclose(clamped_output, torch.tensor([5.])))
+
+
+def test_sample():
     """
     NOTE: this test is non-deterministic
     """
@@ -38,14 +48,11 @@ def test__generate_sampler():
     box = BoxProjector()
     box.low = rand_nums_low.clone()
     box.high = rand_nums_high.clone()
-
-    f = box._generate_sampler()
-    # test if the callable f is still usable
-    del box
+    box.tensor_shape = rand_nums_low.size()
 
     for _ in range(100):
-        old_sample = f()
-        sample = f()
+        old_sample = box.sample()
+        sample = box.sample()
 
         # samples differ
         assert not torch.all(torch.isclose(sample, old_sample))
@@ -67,7 +74,7 @@ def test_map():
     assert torch.allclose(output_dict["output"], input_dict["output"])
     assert torch.allclose(box.low, torch.zeros_like(input))
     assert torch.allclose(box.high, input)
-    assert output_dict["sampler"]
+    # assert output_dict["sampler"]
     assert output_dict["metadata"] == 1
 
     old_low = box.low.clone()
@@ -81,3 +88,6 @@ def test_map():
 
     assert torch.allclose(box.low[lower_mask], new_input[lower_mask])
     assert torch.allclose(box.high[upper_mask], new_input[upper_mask])
+
+    assert torch.all(torch.greater(box.sample(), box.low))
+    assert torch.all(torch.less(box.sample(), box.high))

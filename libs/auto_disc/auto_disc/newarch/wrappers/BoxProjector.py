@@ -1,5 +1,5 @@
 from leaf.leaf import Leaf
-from typing import Dict, Callable
+from typing import Dict, Callable, Tuple
 import torch
 from copy import deepcopy
 
@@ -16,13 +16,19 @@ class BoxProjector(Leaf):
 
     def __init__(self,
                  bound_upper: float = float('inf'),
-                 bound_lower: float = -float('inf')) -> None:
+                 bound_lower: float = -float('inf'),
+                 init_low: torch.Tensor = None,
+                 init_high: torch.Tensor = None,
+                 tensor_shape: Tuple = None) -> None:
         super().__init__()
         self.bound_upper = bound_upper
         self.bound_lower = bound_lower
 
-        self.low = None
-        self.high = None
+        self.low = init_low
+        self.high = init_low
+
+        # initialize data_shape if known
+        self.tensor_shape = tensor_shape
 
     def map(self, input: Dict) -> Dict:
         """
@@ -31,20 +37,29 @@ class BoxProjector(Leaf):
         """
         output = deepcopy(input)
 
-        self._update_low_high(output["output"])
+        tensor_data = output["output"]
+
+        # set tensor_shape dynamically
+        if self.tensor_shape is None:
+            self.tensor_shape = tensor_data.size()
+
+        self._update_low_high(tensor_data)
 
 #        output["sampler"] = self._generate_sampler()
 
         return output
 
     def sample(self) -> torch.Tensor:
-        dim = self.low.size()
+        dim = self.tensor_shape
         rand_nums = torch.rand(dim)
 
         dim_lengths = self.high - self.low
         sample = rand_nums * dim_lengths + self.low
 
         return sample
+
+    def _clamp(self, data: torch.Tensor) -> torch.Tensor:
+        return torch.clamp(data, min=self.bound_lower, max=self.bound_upper)
 
     def _update_low_high(self, data: torch.Tensor) -> None:
         """
@@ -64,14 +79,3 @@ class BoxProjector(Leaf):
         self.high[high_mask] = data[high_mask]
 
         return
-
-    def _generate_sampler(self) -> Callable[[], torch.Tensor]:
-        def func():
-            dim = self.low.size()
-            rand_nums = torch.rand(dim)
-
-            dim_lengths = self.high - self.low
-            sample = rand_nums * dim_lengths + self.low
-
-            return sample
-        return func
