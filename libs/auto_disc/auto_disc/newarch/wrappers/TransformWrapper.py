@@ -52,7 +52,7 @@ class TransformWrapper(Leaf):
 
             # allows making conditional transformers that ignore input
             # with no appropriately matching keys
-            if old_dict.get(old_key):
+            if old_dict.get(old_key, None) is not None:
                 new_dict[new_key] = old_dict[old_key]
                 del old_dict[old_key]
 
