@@ -22,8 +22,8 @@ def teardown_function(function):
 
 def test_sample():
     param_map = UniformParameterMap(wrapped_key="params",
-                                    tensor_low=torch.tensor([0, 0, 0]),
-                                    tensor_high=torch.tensor([2, 2, 2]))
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]))
     sample_tensor = param_map.sample(param_map.tensor_shape)
     assert torch.all(torch.greater(sample_tensor, torch.tensor([0.])))
     assert torch.all(torch.less(sample_tensor, torch.tensor([2.])))
