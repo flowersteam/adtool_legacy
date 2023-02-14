@@ -20,10 +20,12 @@ class MeanBehaviorMap(Leaf):
         self.projector = BoxProjector(wrapped_key=wrapped_key)
 
     def map(self, input: Dict) -> Dict:
+        # TODO: does not handle batches
         intermed_dict = deepcopy(input)
 
         tensor = intermed_dict[self.wrapped_key].detach().clone()
-        mean = torch.mean(tensor)
+        # unsqueeze to ensure tensor rank is not 0
+        mean = torch.mean(tensor, dim=0).unsqueeze(-1)
         intermed_dict[self.wrapped_key] = mean
 
         projected_dict = self.projector.map(intermed_dict)
@@ -35,8 +37,10 @@ class MeanBehaviorMap(Leaf):
         return self.projector.sample()
 
     def get_tensor_history(self):
-        tensor_history = self.history_saver.buffer[0][self.wrapped_key]
-        for dict in self.history_saver.buffer:
+        tensor_history = \
+            self.history_saver.buffer[0][self.wrapped_key].unsqueeze(0)
+        for dict in self.history_saver.buffer[1:]:
             tensor_history = torch.cat(
-                (tensor_history, dict[self.wrapped_key]), dim=-1)
+                (tensor_history, dict[self.wrapped_key].unsqueeze(0)),
+                dim=0)
         return tensor_history
