@@ -55,7 +55,7 @@ def test_get_tensor_history():
     def generate_input():
         return {"metadata": 1, "output": torch.rand(10)}
     input_dict = generate_input()
-    param_map = MeanBehaviorMap(wrapped_key="params")
+    param_map = MeanBehaviorMap(wrapped_key="output")
     for _ in range(10):
         param_map.map(input_dict)
 
