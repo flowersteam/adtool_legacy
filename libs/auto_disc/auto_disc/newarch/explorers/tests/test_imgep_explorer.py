@@ -104,6 +104,18 @@ def test_suggest_trial_equilibriation():
 
 
 def test_suggest_trial_behavioral_diffusion():
+    def add_gaussian_noise_test(input_tensor: torch.Tensor,
+                                mean: torch.Tensor = torch.tensor([10000.]),
+                                std: torch.Tensor = torch.tensor([1.]),
+                                ) -> torch.Tensor:
+        if not isinstance(mean, torch.Tensor):
+            mean = torch.tensor(mean, dtype=float)
+        if not isinstance(std, torch.Tensor):
+            std = torch.tensor(std, dtype=float)
+        noise_unit = torch.randn(input_tensor.size())
+        noise = noise_unit*std + mean
+        return input_tensor + noise
+
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -139,7 +151,10 @@ def test_suggest_trial_behavioral_diffusion():
     explorer.behavior_map.projector.high = torch.tensor([5.])
     explorer.behavior_map.projector.tensor_shape = torch.Size([1])
     explorer.timestep = 2
+    explorer.mutator = add_gaussian_noise_test
 
     # actual test
+    # NOTE: not deterministic
     params_trial = explorer.suggest_trial(torch.Size([3]))
     assert params_trial.size() == torch.Size([3])
+    assert torch.mean(params_trial) > 100
