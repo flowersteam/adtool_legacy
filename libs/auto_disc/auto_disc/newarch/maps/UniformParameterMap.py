@@ -14,17 +14,17 @@ class UniformParameterMap(Leaf):
     """
 
     def __init__(self,
-                 wrapped_key: str = "params",
+                 premap_key: str = "params",
                  tensor_low: torch.Tensor = torch.tensor([0.]),
                  tensor_high: torch.Tensor = torch.tensor([0.])) -> None:
         super().__init__()
         self.locator = FileLocator()
-        self.wrapped_key = wrapped_key
+        self.premap_key = premap_key
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
         self.tensor_shape = tensor_low.size()
         self.history_saver = SaveWrapper()
-        self.projector = BoxProjector(wrapped_key=wrapped_key,
+        self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
                                       init_low=tensor_low)
 
@@ -35,10 +35,10 @@ class UniformParameterMap(Leaf):
         """
         intermed_dict = deepcopy(input)
 
-        params = intermed_dict.get(self.wrapped_key, None)
+        params = intermed_dict.get(self.premap_key, None)
 
         if params is None:
-            intermed_dict[self.wrapped_key] = self.sample(self.tensor_shape)
+            intermed_dict[self.premap_key] = self.sample(self.tensor_shape)
 
         intermed_dict = self.projector.map(intermed_dict)
         params_dict = self.history_saver.map(intermed_dict)
@@ -52,8 +52,8 @@ class UniformParameterMap(Leaf):
 
     def get_tensor_history(self) -> torch.Tensor:
         tensor_history = \
-            self.history_saver.buffer[0][self.wrapped_key].unsqueeze(0)
+            self.history_saver.buffer[0][self.premap_key].unsqueeze(0)
         for dict in self.history_saver.buffer[1:]:
             tensor_history = torch.cat(
-                (tensor_history, dict[self.wrapped_key].unsqueeze(0)), dim=0)
+                (tensor_history, dict[self.premap_key].unsqueeze(0)), dim=0)
         return tensor_history

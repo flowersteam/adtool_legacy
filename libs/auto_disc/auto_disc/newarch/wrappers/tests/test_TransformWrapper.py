@@ -10,7 +10,7 @@ def test__init__():
 def test_map():
     input = {"a": 1, "b": 2}
     tw = TransformWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = tw.map(input)
     assert output == {"a": 2, "b": 1}
     assert input == {"a": 1, "b": 2}
@@ -19,14 +19,14 @@ def test_map():
 def test_map_missing():
     input = {"data": 1}
     tw = TransformWrapper(
-        wrapped_keys=["output"], posttransform_keys=["data"])
+        premap_keys=["output"], postmap_keys=["data"])
     output = tw.map(input)
     assert output == input
 
 
 def test_saveload():
     tw = TransformWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
 
     db = {}
     tw.locator = DictLocator(db)

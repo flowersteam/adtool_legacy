@@ -8,7 +8,7 @@ class IdentityWrapper(TransformWrapper):
     Wrapper which passes the input without mutation.
     """
 
-    def __init__(self, wrapped_keys: List[str] = []) -> None:
+    def __init__(self, premap_keys: List[str] = []) -> None:
         super().__init__()
 
     def map(self, input: Dict) -> Dict:

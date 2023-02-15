@@ -6,7 +6,7 @@ def test__update_low_high():
     dim = 10
     input = torch.rand(dim)
 
-    box = BoxProjector(wrapped_key="output")
+    box = BoxProjector(premap_key="output")
     box._update_low_high(input)
 
     assert torch.allclose(box.low, torch.zeros_like(input))
@@ -31,7 +31,7 @@ def test__clamp_and_truncate():
     dim = 10
     input = torch.rand(dim) + 10
 
-    box = BoxProjector(wrapped_key="output", bound_upper=torch.tensor([5.]))
+    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([5.]))
     clamped_output = box._clamp_and_truncate(input)
 
     assert torch.all(torch.isclose(clamped_output, torch.tensor([5.])))
@@ -45,7 +45,7 @@ def test_sample():
     rand_nums_low = torch.rand(dim) * 2 - 4
     rand_nums_high = torch.rand(dim) * 2 + 4
 
-    box = BoxProjector(wrapped_key="output")
+    box = BoxProjector(premap_key="output")
     box.low = rand_nums_low.clone()
     box.high = rand_nums_high.clone()
     box.tensor_shape = rand_nums_low.size()
@@ -67,7 +67,7 @@ def test_map():
     input = torch.rand(dim)
     input_dict = {"output": input, "metadata": 1}
 
-    box = BoxProjector(wrapped_key="output")
+    box = BoxProjector(premap_key="output")
     output_dict = box.map(input_dict)
 
     assert output_dict != input

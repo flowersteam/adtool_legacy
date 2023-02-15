@@ -23,7 +23,7 @@ def teardown_function(function):
 
 def test_map():
     input_dict = {"metadata": 1, "output": torch.rand(10)}
-    mean_map = MeanBehaviorMap(wrapped_key="output")
+    mean_map = MeanBehaviorMap(premap_key="output")
     output_dict = mean_map.map(input_dict)
     assert output_dict["output"].size() == torch.Size([1])
     assert len(mean_map.history_saver.buffer) == 1
@@ -38,7 +38,7 @@ def test_sample():
 
 def test_save():
     input_dict = {"metadata": 1, "output": torch.tensor([2., 2., 2., 2., 2.])}
-    mean_map = MeanBehaviorMap(wrapped_key="output")
+    mean_map = MeanBehaviorMap(premap_key="output")
     output_dict = mean_map.map(input_dict)
     uid = mean_map.save_leaf(resource_uri=RESOURCE_URI)
 
@@ -55,7 +55,7 @@ def test_get_tensor_history():
     def generate_input():
         return {"metadata": 1, "output": torch.rand(10)}
     input_dict = generate_input()
-    param_map = MeanBehaviorMap(wrapped_key="output")
+    param_map = MeanBehaviorMap(premap_key="output")
     for _ in range(10):
         param_map.map(input_dict)
 

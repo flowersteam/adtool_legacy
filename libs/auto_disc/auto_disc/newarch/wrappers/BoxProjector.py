@@ -16,7 +16,7 @@ class BoxProjector(Leaf):
     """
 
     def __init__(self,
-                 wrapped_key: str,
+                 premap_key: str,
                  bound_upper: torch.Tensor = torch.tensor([float('inf')]),
                  bound_lower: torch.Tensor = torch.tensor([-float('inf')]),
                  init_low: torch.Tensor = None,
@@ -24,7 +24,7 @@ class BoxProjector(Leaf):
                  tensor_shape: Tuple = None) -> None:
         super().__init__()
         self.locator = FileLocator()
-        self.wrapped_key = wrapped_key
+        self.premap_key = premap_key
         self.bound_upper = bound_upper
         self.bound_lower = bound_lower
 
@@ -44,7 +44,7 @@ class BoxProjector(Leaf):
         """
         output = deepcopy(input)
 
-        tensor_data = output[self.wrapped_key]
+        tensor_data = output[self.premap_key]
 
         # set tensor_shape dynamically
         if self.tensor_shape is None:

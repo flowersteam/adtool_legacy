@@ -21,7 +21,7 @@ def teardown_function(function):
 
 
 def test_sample():
-    param_map = UniformParameterMap(wrapped_key="params",
+    param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
                                     tensor_high=torch.tensor([2., 2., 2.]))
     sample_tensor = param_map.sample(param_map.tensor_shape)
@@ -31,7 +31,7 @@ def test_sample():
 
 def test_map():
     input_dict = {"metadata": 1}
-    param_map = UniformParameterMap(wrapped_key="params",
+    param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
                                     tensor_high=torch.tensor([2., 2., 2.]))
     output_dict = param_map.map(input_dict)
@@ -49,7 +49,7 @@ def test_map():
 
 def test_save():
     input_dict = {"metadata": 1}
-    param_map = UniformParameterMap(wrapped_key="params",
+    param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
                                     tensor_high=torch.tensor([2., 2., 2.]))
     output_dict = param_map.map(input_dict)
@@ -66,7 +66,7 @@ def test_save():
 
 def test_get_tensor_history():
     input_dict = {"metadata": 1}
-    param_map = UniformParameterMap(wrapped_key="params",
+    param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
                                     tensor_high=torch.tensor([2., 2., 2.]))
     for _ in range(10):

@@ -8,9 +8,9 @@ import tempfile
 
 def test___init__():
     input = {"in": 1}
-    wrapper = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"],
+    wrapper = SaveWrapper(premap_keys=["in"], postmap_keys=["out"],
                           inputs_to_save=["in"])
-    wrapper_def = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"])
+    wrapper_def = SaveWrapper(premap_keys=["in"], postmap_keys=["out"])
     assert isinstance(wrapper.locator, LinearLocator)
     assert isinstance(wrapper_def.locator, LinearLocator)
     assert wrapper.locator.resource_uri == ""
@@ -22,7 +22,7 @@ def test___init__():
 
 def test_map():
     input = {"in": 1}
-    wrapper = SaveWrapper(wrapped_keys=["in"], posttransform_keys=["out"])
+    wrapper = SaveWrapper(premap_keys=["in"], postmap_keys=["out"])
     output = wrapper.map(input)
     assert output["out"] == 1
     assert len(output) == 1
@@ -40,7 +40,7 @@ def test_map_default():
 
 def test_map_minimal():
     input = {"data": 1, "metadata": 0}
-    wrapper = SaveWrapper(wrapped_keys=["data"], posttransform_keys=["data"])
+    wrapper = SaveWrapper(premap_keys=["data"], postmap_keys=["data"])
     output = wrapper.map(input)
     assert output["data"] == 1
     assert len(output) == 2
@@ -50,7 +50,7 @@ def test_map_minimal():
 def test_map_complex():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = wrapper.map(input)
     assert output["a"] == 2
     assert output["b"] == 1
@@ -63,7 +63,7 @@ def test_map_complex():
 def test_serialize():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = wrapper.map(input)
     wrapper.map(output)
     bin = wrapper.serialize()
@@ -82,7 +82,7 @@ def test_saveload_basic():
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
 
     output = wrapper.map(input)
     wrapper.map(output)
@@ -108,7 +108,7 @@ def test_saveload_advanced():
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = input
 
     for i in range(2):
@@ -140,7 +140,7 @@ def test_saveload_whole_history():
     FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        wrapped_keys=["a", "b"], posttransform_keys=["b", "a"])
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = input
 
     for i in range(2):
