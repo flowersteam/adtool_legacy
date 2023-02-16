@@ -21,7 +21,7 @@ export class AutoDiscServerService {
   private autodiscServerUrl
 
   constructor(private http: HttpClient) {
-    this.autodiscServerUrl = "http://127.0.0.1:4201/autodisc-server";
+    this.autodiscServerUrl = "http://" + environment.GATEWAY_HOST + ":" + environment.GATEWAY_PORT + "/autodisc-server";
     console.log("autodiscServerUrl:" + this.autodiscServerUrl);
   }
 
