@@ -157,12 +157,16 @@ def test_LinearLocator_store():
 def test_LinearLocator_retrieve():
     x = LinearLocator(FILE_PATH)
     x._init_db(DB_PATH)
-    generate_fake_data(DB_PATH)
+    padded_bin, data_bin = generate_mock_binary()
+    retrieval_key = x.store(padded_bin, -1)
+    retrieval_key = x.store(padded_bin, 1)
 
     # mock storage of sequence
-    retrieval_key = DB_NAME + ":7"
+    mock_retrieval_key = DB_NAME + ":2"
+    assert retrieval_key == mock_retrieval_key  # SQLite indexed starting at 1
 
     bin = x.retrieve(retrieval_key, 0)
-    tmp_stepper = Stepper()
-    stepper = tmp_stepper.deserialize(bin)
-    assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(8)]
+    loaded_obj = Stepper().deserialize(bin)
+
+    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
+                                 bytes(1), bytes(2), bytes(4), bytes(9)]
