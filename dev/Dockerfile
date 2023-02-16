@@ -15,4 +15,8 @@ RUN pip install -r /tmp/src/services/flask_app/requirements.txt
 COPY services/ExpeDB/API/flask_app/requirements.txt /tmp/src/expeDB/requirements.txt
 RUN pip install -r /tmp/src/expeDB/requirements.txt
 
+# developer stuff
+RUN pip install pdoc pytest autopep8 flake8 mypy
+RUN pip install sqlalchemy
+
 CMD bash
