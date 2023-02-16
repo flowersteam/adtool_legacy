@@ -16,23 +16,13 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 
-upstream app-db-api {
-    server ${APP_DB_API_HOST}:${APP_DB_API_PORT};
-}
-upstream expe-db-api {
-    server ${EXPE_DB_API_HOST}:${EXPE_DB_API_PORT};
-}
-upstream autodisc-server {
-    server ${AUTODISC_SERVER_HOST}:${AUTODISC_SERVER_PORT};
-}
-upstream jupyter {
-    server ${JUPYTER_HOST}:${JUPYTER_PORT};
-}
-upstream app {
-    server ${APP_HOST}:${APP_PORT};
-}
-
 server { 
+    # IP for the Docker networking internal DNS
+    # this combined with variables let's nginx start and avoid race condition
+    # if other Docker hosts do not exist yet
+    # https://stackoverflow.com/questions/32845674/setup-nginx-not-to-crash-if-host-in-upstream-is-not-found
+    resolver 127.0.0.11 valid=30s;
+
     listen 4201;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header Host $host;
@@ -47,29 +37,22 @@ server {
     proxy_buffering off;
 
     location / {
-        proxy_pass  http://app/;
-#            proxy_set_header Upgrade $http_upgrade;
-#            proxy_set_header Connection "upgrade";
-#            proxy_set_header Host $host;
+        set $jupyter http://${JUPYTER_HOST}:${JUPYTER_PORT}/;
+        proxy_pass  $jupyter;
     }
 
     location /autodisc-server/ {
-#            proxy_set_header Host 127.0.0.1:5002;
-#            proxy_set_header X-Forwarded-Host 127.0.0.1:5002;
-#            add_header Access-Control-Allow-Origin * always;
-#            proxy_set_header Access-Control-Allow-Origin *;
-        proxy_pass  http://autodisc-server/;
+        set $autodisc_server http://${AUTODISC_SERVER_HOST}:${AUTODISC_SERVER_PORT}/;
+        proxy_pass  $autodisc_server;
     }
 
-    location /app-db-api/ {
-        proxy_pass  http://app-db-api/;
+    location /app_db_api/ {
+        set $app_db_api http://${APP_DB_API_HOST}:${APP_DB_API_PORT}/;
+        proxy_pass  $app_db_api;
     }
 
     location /expe-db-api/ {
-        proxy_pass  http://expe-db-api/;
-    }
-
-    location /jupyter/ {
-        proxy_pass  http://jupyter/;
+        set $expe_db_api http://${EXPE_DB_API_HOST}:${EXPE_DB_API_PORT}/;
+        proxy_pass  $expe_db_api;
     }
 }

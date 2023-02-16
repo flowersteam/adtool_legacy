@@ -32,9 +32,8 @@ export class JupyterService {
   };
 
   constructor(private http: HttpClient, private appDBService: AppDbService) {
-    this.jupyterHost = "127.0.0.1:8887";
+    this.jupyterHost = environment.GATEWAY_HOST + ":" + environment.GATEWAY_PORT + "/";
     this.jupyterUrl = "http://" + this.jupyterHost;
-    //    this.jupyterUrl = "http://" + environment.JUPYTER_HOST + ":" + environment.JUPYTER_PORT;
   }
 
   createKernel(): Observable<any> {

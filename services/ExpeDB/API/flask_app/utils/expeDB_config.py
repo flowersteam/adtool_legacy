@@ -13,7 +13,7 @@ class ExpeDBConfigError(Exception):
 
 class ExpeDBConfig():
     FLASK_HOST: str = '0.0.0.0'
-    FLASK_PORT: int = 8000
+    FLASK_PORT: int = 5001
     MONGODB_HOST: str = "localhost"
     MONGODB_PORT: str = "27017"
     MONGODB_USERNAME: str = "autodisc"

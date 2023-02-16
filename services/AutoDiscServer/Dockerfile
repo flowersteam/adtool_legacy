@@ -29,5 +29,5 @@ COPY services/AutoDiscServer/flask_app/ /usr/src/services/flask_app/
 # start daemons
 VOLUME ["/usr/src/services", "/usr/src/libs"]
 WORKDIR /usr/src/services/flask_app
-#CMD gunicorn -w 1 -b 0.0.0.0:8000 app:app --daemon ; nginx -g "daemon off;"
-CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
+#CMD gunicorn -w 1 -b 0.0.0.0:5201 app:app --daemon ; nginx -g "daemon off;"
+CMD gunicorn -w 4 -b 0.0.0.0:5201 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
