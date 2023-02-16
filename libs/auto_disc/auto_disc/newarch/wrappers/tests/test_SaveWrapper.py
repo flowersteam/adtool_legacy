@@ -4,6 +4,19 @@ from leafutils.leafstructs.linear import Stepper, LinearLocator
 import os
 import pathlib
 import tempfile
+import shutil
+
+
+def setup_function(function):
+    global RESOURCE_URI
+    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
+    RESOURCE_URI = os.path.join(FILE_PATH, "tmp")
+    os.mkdir(RESOURCE_URI)
+
+
+def teardown_function(function):
+    if os.path.exists(RESOURCE_URI):
+        shutil.rmtree(RESOURCE_URI)
 
 
 def test___init__():
@@ -79,7 +92,6 @@ def test_saveload_basic():
     This tests saving and loading of a single save step (which saves two
     "map" steps of progress)
     """
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
@@ -87,11 +99,11 @@ def test_saveload_basic():
     output = wrapper.map(input)
     wrapper.map(output)
 
-    leaf_uid = wrapper.save_leaf(FILE_PATH)
+    leaf_uid = wrapper.save_leaf(RESOURCE_URI)
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI)
     buffer = wrapper_loaded.buffer
 
     # unpack and check loaded Stepper
@@ -105,7 +117,6 @@ def test_saveload_advanced():
     This tests saving and loading of multiple save steps (which saves two
     "map" steps of progress)
     """
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
@@ -119,11 +130,11 @@ def test_saveload_advanced():
         if i == 1:
             output = wrapper.map(output)
 
-        leaf_uid = wrapper.save_leaf(FILE_PATH)
+        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH)
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI)
     buffer = wrapper_loaded.buffer
 
     # unpack and check loaded Stepper
@@ -137,7 +148,6 @@ def test_saveload_advanced():
 
 
 def test_saveload_whole_history():
-    FILE_PATH = str(pathlib.Path(__file__).parent.resolve())
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
@@ -151,11 +161,11 @@ def test_saveload_whole_history():
         if i == 1:
             output = wrapper.map(output)
 
-        leaf_uid = wrapper.save_leaf(FILE_PATH)
+        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
 
     # try retrieval of entire sequence
     new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH, 0)
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI, 0)
     buffer = wrapper_loaded.buffer
 
     assert len(buffer) == 5
@@ -167,7 +177,7 @@ def test_saveload_whole_history():
 
     # try retrieval of entire sequence with explicit length
     new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, FILE_PATH, length=2)
+    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI, length=2)
     buffer = wrapper_loaded.buffer
 
     assert len(buffer) == 5
