@@ -46,7 +46,7 @@ server {
         proxy_pass  $autodisc_server;
     }
 
-    location /app_db_api/ {
+    location /app-db-api/ {
         set $app_db_api http://${APP_DB_API_HOST}:${APP_DB_API_PORT}/;
         proxy_pass  $app_db_api;
     }
