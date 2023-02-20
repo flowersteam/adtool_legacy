@@ -1,5 +1,6 @@
 from leaf.leaf import Leaf
 from leaf.locators import FileLocator
+from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from copy import deepcopy
 from typing import Dict, Tuple
 import torch
@@ -7,6 +8,8 @@ import matplotlib.pyplot as plt
 import io
 
 
+@DecimalConfigParameter(name="sequence_max", default=100.)
+@IntegerConfigParameter(name="sequence_density", default=100)
 class ExponentialMixture(Leaf):
     def __init__(self):
         super().__init__()
@@ -16,10 +19,11 @@ class ExponentialMixture(Leaf):
     def map(self, input: Dict) -> Dict:
         intermed_dict = deepcopy(input)
 
-        param_tensor, sequence_max, sequence_density = self._process_dict(
-            input)
+        sequence_max = self.config["sequence_max"]
+        sequence_density = self.config["sequence_density"]
+        param_tensor = self._process_dict(input)
 
-        x_tensor, y_tensor = \
+        _, y_tensor = \
             self._tensor_map(param_tensor, sequence_max, sequence_density)
 
         del intermed_dict["params"]
@@ -31,8 +35,9 @@ class ExponentialMixture(Leaf):
         """
         Renders an image given a dict with the `output` key and relevant config
         """
-        sequence_max, sequence_density = \
-            self._extract_config_metadata(input_dict)
+        sequence_max = self.config["sequence_max"]
+        sequence_density = self.config["sequence_density"]
+
         x_tensor = \
             torch.linspace(start=0., end=sequence_max, steps=sequence_density)
         y_tensor = input_dict["output"]
@@ -43,27 +48,13 @@ class ExponentialMixture(Leaf):
 
         return output_binary.getvalue()
 
-    def _extract_config_metadata(self, input_dict: Dict) -> Tuple[float, int]:
-        # requires specifically structured input
-        metadata_dict = input_dict["config"]
-        assert metadata_dict["sequence_max"] > 1
-        assert metadata_dict["sequence_density"] > 1
-        sequence_max = metadata_dict["sequence_max"]
-        sequence_density = metadata_dict["sequence_density"]
-
-        return sequence_max, sequence_density
-
     def _process_dict(self,
-                      input_dict: Dict) -> Tuple[torch.Tensor, float, int]:
-
-        sequence_max, sequence_density = self._extract_config_metadata(
-            input_dict)
-
+                      input_dict: Dict) -> torch.Tensor:
         # extract param tensor
         param_tensor = input_dict["params"]
         assert len(param_tensor.size()) == 1
 
-        return param_tensor, sequence_max, sequence_density
+        return param_tensor
 
     def _tensor_map(self, param_tensor: torch.Tensor,
                     sequence_max: float,
