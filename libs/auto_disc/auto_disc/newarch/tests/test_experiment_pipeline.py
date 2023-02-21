@@ -25,6 +25,22 @@ def teardown_function(function):
     return
 
 
+def generate_dummy_callback(callback_name: str):
+    def callback(__pipeline, **__kwargs):
+        print(f"Callback {callback_name} was called on pipeline {__pipeline} with "
+              f"kwargs {__kwargs}")
+        return
+    return callback
+
+
+def test_dummy_callback(capsys):
+    callback = generate_dummy_callback("on_save")
+    dummy_pipeline = IdentityWrapper()
+    callback(dummy_pipeline, config=1, metadata=2)
+    captured = capsys.readouterr()
+    assert captured.out != ""
+
+
 def test___init__():
     experiment_id = 1
     seed = 1
@@ -53,10 +69,47 @@ def test___init__():
     x = ExperimentPipeline()
     new_pipeline = x.load_leaf(uid, resource_uri=RESOURCE_URI)
 
+    # check explorer state
     assert new_pipeline._explorer.premap_key == system_output_key
     assert new_pipeline._explorer.postmap_key == system_input_key
     assert torch.allclose(
         new_pipeline._explorer.parameter_map.projector.low, torch.tensor([0., 0., 0.]))
     assert torch.allclose(
         new_pipeline._explorer.parameter_map.projector.high, torch.tensor([3., 3., 3.]))
+    # check system type
+    assert isinstance(new_pipeline._system, ExponentialMixture)
+
     # TODO: finish the checks of state, but i'm lazy
+
+
+def test_run():
+    experiment_id = 1
+    seed = 1
+    system_input_key = "params"
+    system_output_key = "output"
+
+    system = ExponentialMixture()
+    mean_map = MeanBehaviorMap(premap_key=system_output_key)
+    param_map = UniformParameterMap(premap_key=system_input_key,
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([3., 3., 3.]))
+    explorer = IMGEPExplorer(premap_key=system_output_key,
+                             postmap_key=system_input_key,
+                             parameter_map=param_map, behavior_map=mean_map,
+                             equil_time=2)
+    input_pipeline = IdentityWrapper()
+    output_pipeline = IdentityWrapper()
+
+    # callbacks
+    on_save = generate_dummy_callback("on_save")
+
+    pipeline = ExperimentPipeline(experiment_id=experiment_id,
+                                  seed=seed,
+                                  system=system,
+                                  explorer=explorer,
+                                  input_pipeline=input_pipeline,
+                                  output_pipeline=output_pipeline,
+                                  on_save_callbacks=[on_save]
+                                  )
+
+    pipeline.run(1)

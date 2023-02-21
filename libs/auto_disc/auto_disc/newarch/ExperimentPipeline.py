@@ -67,8 +67,8 @@ class ExperimentPipeline(Leaf):
                  on_finished_callbacks: List[Callable] = [],
                  on_cancelled_callbacks: List[Callable] = [],
                  on_save_callbacks: List[Callable] = [],
-                 on_error_callbacks: List[Callable] = [],
-                 interact_callbacks: List[Callable] = []) -> None:
+                 on_error_callbacks: List[Callable] = []
+                 ) -> None:
         """
             Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.
 
@@ -114,7 +114,6 @@ class ExperimentPipeline(Leaf):
         self._on_cancelled_callbacks = on_cancelled_callbacks
         self._on_error_callbacks = on_error_callbacks
         self._on_save_callbacks = on_save_callbacks
-        self.interact_callbacks = interact_callbacks
         self.cancellation_token = CancellationToken()
 
     def _raise_callbacks(self, callbacks: List[Callable], **kwargs) -> None:
@@ -142,8 +141,6 @@ class ExperimentPipeline(Leaf):
         #### Args:
         - **n_exploration_runs**: number of explorations
         '''
-        Interact.init_seed(self.interact_callbacks, {
-                           "experiment_id": self.experiment_id, "seed": self.seed, "idx": 0})
         try:
             while self.run_idx < n_exploration_runs:
                 # check for termination
@@ -154,8 +151,9 @@ class ExperimentPipeline(Leaf):
                 data_dict = {}
 
                 # sample trial set of parameters
-                params_trial = self._explorer.suggest_trial()
-                data_dict[self._explorer.premap_key] = params_trial
+                param_dim = self._explorer.parameter_map.output_shape
+                params_trial = self._explorer.suggest_trial(param_dim)
+                data_dict[self._explorer.postmap_key] = params_trial
 
                 # pass through system
                 data_dict = self._system.map(data_dict)
@@ -178,10 +176,10 @@ class ExperimentPipeline(Leaf):
                     experiment_id=self.experiment_id
                 )
 
-                self._system.logger.info(
-                    "[DISCOVERY] - New discovery from experiment {} with seed {}"
-                    .format(self.experiment_id, self.seed)
-                )
+                # self._system.logger.info(
+                #     "[DISCOVERY] - New discovery from experiment {} with seed {}"
+                #     .format(self.experiment_id, self.seed)
+                # )
 
                 self.run_idx += 1
 
@@ -190,7 +188,7 @@ class ExperimentPipeline(Leaf):
                 self.experiment_id, self.run_idx, self.seed, traceback.format_exc())
             if len(message) > 8000:  # Cut message to match varchar length of AppDB
                 message = message[:7997] + '...'
-            self._system.logger.error("[ERROR] - " + message)
+            # self._system.logger.error("[ERROR] - " + message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=self.run_idx,
@@ -215,10 +213,10 @@ class ExperimentPipeline(Leaf):
                 experiment_id=self.experiment_id
             )
         else:
-            self._system.logger.info(
-                "[FINISHED] - experiment {} with seed {} finished"
-                .format(self.experiment_id, self.seed)
-            )
+            # self._system.logger.info(
+            #     "[FINISHED] - experiment {} with seed {} finished"
+            #     .format(self.experiment_id, self.seed)
+            # )
 
             self._raise_callbacks(
                 self._on_finished_callbacks,
@@ -248,7 +246,7 @@ class ExperimentPipeline(Leaf):
                 seed=self.seed,
                 experiment_id=self.experiment_id
             )
-            self._system.logger.info(
-                "[SAVED] - experiment {} with seed {} saved"
-                .format(self.experiment_id, self.seed)
-            )
+            # self._system.logger.info(
+            #     "[SAVED] - experiment {} with seed {} saved"
+            #     .format(self.experiment_id, self.seed)
+            # )
