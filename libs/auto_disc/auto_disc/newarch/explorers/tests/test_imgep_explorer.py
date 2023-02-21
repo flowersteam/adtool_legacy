@@ -1,4 +1,4 @@
-from auto_disc.newarch.explorers.imgep_explorer import IMGEPExplorer
+from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
 import torch
