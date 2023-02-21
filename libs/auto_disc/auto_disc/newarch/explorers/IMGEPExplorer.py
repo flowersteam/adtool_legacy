@@ -16,8 +16,8 @@ class IMGEPExplorer(Leaf):
                  equil_time: int = 0) -> None:
         super().__init__()
         self.locator = FileLocator()
-        self.premap_keys = premap_key
-        self.postmap_keys = postmap_key
+        self.premap_key = premap_key
+        self.postmap_key = postmap_key
         self.parameter_map = parameter_map
         self.behavior_map = behavior_map
         self.equil_time = equil_time
@@ -39,8 +39,8 @@ class IMGEPExplorer(Leaf):
         params_trial = self.suggest_trial(data_shape)
 
         new_trial_data = deepcopy(orig_data)
-        del new_trial_data[self.premap_keys]
-        new_trial_data[self.postmap_keys] = params_trial
+        del new_trial_data[self.premap_key]
+        new_trial_data[self.postmap_key] = params_trial
 
         self.timestep += 1
 
@@ -74,7 +74,7 @@ class IMGEPExplorer(Leaf):
         output_dict = self.behavior_map.map(system_output)
 
         # for convenience, return a pointer to the feature tensor and
-        behavior_tensor = output_dict[self.premap_keys]
+        behavior_tensor = output_dict[self.premap_key]
 
         return behavior_tensor, output_dict
 
