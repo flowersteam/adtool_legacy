@@ -36,13 +36,12 @@ class IMGEPExplorer(Leaf):
 
         data_shape = behavior_tensor.size()
 
+        # note that suggest_trial() increments the timestep
         params_trial = self.suggest_trial(data_shape)
 
         new_trial_data = deepcopy(orig_data)
         del new_trial_data[self.premap_key]
         new_trial_data[self.postmap_key] = params_trial
-
-        self.timestep += 1
 
         return new_trial_data
 
@@ -62,6 +61,8 @@ class IMGEPExplorer(Leaf):
             source_policy = param_history[source_policy_idx]
 
             params_trial = self.mutator(source_policy)
+
+        self.timestep += 1
 
         return params_trial
 

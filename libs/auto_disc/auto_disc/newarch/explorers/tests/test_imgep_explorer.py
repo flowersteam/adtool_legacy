@@ -102,6 +102,8 @@ def test_suggest_trial_equilibriation():
         params_trial = explorer.suggest_trial(torch.Size([3]))
         assert params_trial.size() == torch.Size([3])
 
+    assert explorer.timestep == 2
+
 
 def test_suggest_trial_behavioral_diffusion():
     def add_gaussian_noise_test(input_tensor: torch.Tensor,
@@ -158,3 +160,4 @@ def test_suggest_trial_behavioral_diffusion():
     params_trial = explorer.suggest_trial(torch.Size([3]))
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100
+    assert explorer.timestep == 3
