@@ -1,0 +1,62 @@
+from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
+from auto_disc.newarch.systems.ExponentialMixture import ExponentialMixture
+from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer
+from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
+import torch
+import pathlib
+import os
+import shutil
+
+
+def setup_function(function):
+    global RESOURCE_URI
+    file_path = str(pathlib.Path(__file__).parent.resolve())
+    RESOURCE_URI = os.path.join(file_path, "tmp")
+    os.mkdir(RESOURCE_URI)
+    return
+
+
+def teardown_function(function):
+    global RESOURCE_URI
+    if os.path.exists(RESOURCE_URI):
+        shutil.rmtree(RESOURCE_URI)
+    return
+
+
+def test___init__():
+    experiment_id = 1
+    seed = 1
+    system_input_key = "params"
+    system_output_key = "output"
+
+    system = ExponentialMixture()
+    mean_map = MeanBehaviorMap(premap_key=system_output_key)
+    param_map = UniformParameterMap(premap_key=system_input_key,
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([3., 3., 3.]))
+    explorer = IMGEPExplorer(premap_key=system_output_key,
+                             postmap_key=system_input_key,
+                             parameter_map=param_map, behavior_map=mean_map,
+                             equil_time=2)
+    input_pipeline = IdentityWrapper()
+    output_pipeline = IdentityWrapper()
+
+    pipeline = ExperimentPipeline(experiment_id=experiment_id,
+                                  seed=seed,
+                                  system=system,
+                                  explorer=explorer,
+                                  input_pipeline=input_pipeline,
+                                  output_pipeline=output_pipeline)
+    uid = pipeline.save_leaf(resource_uri=RESOURCE_URI)
+    x = ExperimentPipeline()
+    new_pipeline = x.load_leaf(uid, resource_uri=RESOURCE_URI)
+
+    assert new_pipeline._explorer.premap_key == system_output_key
+    assert new_pipeline._explorer.postmap_key == system_input_key
+    assert torch.allclose(
+        new_pipeline._explorer.parameter_map.projector.low, torch.tensor([0., 0., 0.]))
+    assert torch.allclose(
+        new_pipeline._explorer.parameter_map.projector.high, torch.tensor([3., 3., 3.]))
+    # TODO: finish the checks of state, but i'm lazy
