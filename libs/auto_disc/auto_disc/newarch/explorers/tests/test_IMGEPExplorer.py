@@ -82,7 +82,7 @@ def test_map():
     system_output = {"metadata": 1, "output": torch.tensor([1., 2., 3.])}
 
     new_params = explorer.map(system_output)
-    assert new_params["params"]
+    assert new_params["params"].size() == torch.Size([3])
     assert new_params.get("output", None) is None
     system_output["metadata"] = 2
     assert new_params["metadata"] == 1

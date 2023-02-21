@@ -1,7 +1,7 @@
 import torch
 from leaf.leaf import Leaf
 from leaf.locators import FileLocator
-from typing import Dict
+from typing import Dict, Tuple
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
 from copy import deepcopy
@@ -12,10 +12,13 @@ class MeanBehaviorMap(Leaf):
     A simple `BehaviorMap` which merely extracts the mean.
     """
 
-    def __init__(self, premap_key: str = "output") -> None:
+    def __init__(self,
+                 premap_key: str = "output",
+                 input_shape: Tuple[int] = (1)) -> None:
         super().__init__()
         self.locator = FileLocator()
         self.premap_key = premap_key
+        self.input_shape = input_shape  # unused by the module itself here
         self.history_saver = SaveWrapper()
         self.projector = BoxProjector(premap_key=premap_key)
 
@@ -24,6 +27,7 @@ class MeanBehaviorMap(Leaf):
         intermed_dict = deepcopy(input)
 
         tensor = intermed_dict[self.premap_key].detach().clone()
+
         # unsqueeze to ensure tensor rank is not 0
         mean = torch.mean(tensor, dim=0).unsqueeze(-1)
         intermed_dict[self.premap_key] = mean

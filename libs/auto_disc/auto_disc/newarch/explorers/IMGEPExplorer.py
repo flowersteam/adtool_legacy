@@ -34,10 +34,10 @@ class IMGEPExplorer(Leaf):
         behavior_tensor, orig_data = self.observe_results(
             system_output)
 
-        data_shape = behavior_tensor.size()
+        param_shape = self.parameter_map.output_shape
 
         # note that suggest_trial() increments the timestep
-        params_trial = self.suggest_trial(data_shape)
+        params_trial = self.suggest_trial(param_shape)
 
         new_trial_data = deepcopy(orig_data)
         del new_trial_data[self.premap_key]
