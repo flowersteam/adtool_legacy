@@ -63,15 +63,18 @@ def test_observe_results():
                              parameter_map=param_map, behavior_map=mean_map,
                              equil_time=2)
 
-    system_output = {"metadata": 1, "output": torch.tensor([1., 1., 1.])}
-    behavior, output_dict = explorer.observe_results(system_output)
+    output_tensor = torch.tensor([1., 1., 1.])
+    system_output = {"metadata": 1, "output": output_tensor}
+    system_output = explorer.observe_results(system_output)
 
-    assert behavior == output_dict["output"]
-    behavior += 1
-    assert torch.allclose(output_dict["output"], torch.tensor([2., 2., 2.]))
+    assert torch.allclose(output_tensor, system_output["output"])
+    # check mutability
+    output_tensor += 1
+    assert not torch.allclose(output_tensor, system_output["output"])
 
 
 def test_map():
+    # TODO: mock the behavior and parameter maps
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -84,25 +87,11 @@ def test_map():
     new_params = explorer.map(system_output)
     assert new_params["params"].size() == torch.Size([3])
     assert new_params.get("output", None) is None
-    system_output["metadata"] = 2
-    assert new_params["metadata"] == 1
     assert explorer.timestep == 1
 
-
-def test_suggest_trial_equilibriation():
-    mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
-
-    for _ in range(2):
-        params_trial = explorer.suggest_trial(torch.Size([3]))
-        assert params_trial.size() == torch.Size([3])
-
-    assert explorer.timestep == 2
+    # check mutability
+    system_output["metadata"] = 2
+    assert new_params["metadata"] == 1
 
 
 def test_suggest_trial_behavioral_diffusion():
@@ -157,7 +146,9 @@ def test_suggest_trial_behavioral_diffusion():
 
     # actual test
     # NOTE: not deterministic
-    params_trial = explorer.suggest_trial(torch.Size([3]))
+    params_trial = explorer.suggest_trial()
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100
-    assert explorer.timestep == 3
+
+    # suggest_trial does not increment timestep
+    assert explorer.timestep == 2

@@ -31,53 +31,49 @@ class IMGEPExplorer(Leaf):
         feature vector in behavior space and maps it to a (randomly chosen)
         subsequent parameter configuration to try.
         """
-        behavior_tensor, orig_data = self.observe_results(
-            system_output)
+        system_output = self.observe_results(system_output)
 
-        param_shape = self.parameter_map.output_shape
-
-        # note that suggest_trial() increments the timestep
-        params_trial = self.suggest_trial(param_shape)
-
-        new_trial_data = deepcopy(orig_data)
+        new_trial_data = deepcopy(system_output)
         del new_trial_data[self.premap_key]
-        new_trial_data[self.postmap_key] = params_trial
 
-        return new_trial_data
-
-    def suggest_trial(self, data_shape: Tuple) -> torch.Tensor:
-        """
-        Samples according to the policy a new trial of parameters for the
-        system, generating sample according to the data_shape
-        """
+        # TODO: check gradients here
         if self.timestep < self.equil_time:
-            params_trial = self.parameter_map.sample(data_shape)
+            new_trial_data = self.parameter_map.map(new_trial_data)
         else:
-            goal_history = self.behavior_map.get_tensor_history()
-            param_history = self.parameter_map.get_tensor_history()
-
-            goal = self.behavior_map.sample()
-            source_policy_idx = self._find_closest(goal, goal_history)
-            source_policy = param_history[source_policy_idx]
-
-            params_trial = self.mutator(source_policy)
+            params_trial = self.suggest_trial()
+            new_trial_data[self.postmap_key] = params_trial
 
         self.timestep += 1
 
+        return new_trial_data
+
+    def suggest_trial(self) -> torch.Tensor:
+        """
+        Samples according to the policy a new trial of parameters for the
+        system
+        """
+        goal_history = self.behavior_map.get_tensor_history()
+        param_history = self.parameter_map.get_tensor_history()
+
+        goal = self.behavior_map.sample()
+        source_policy_idx = self._find_closest(goal, goal_history)
+        source_policy = param_history[source_policy_idx]
+
+        params_trial = self.mutator(source_policy)
+
         return params_trial
 
-    def observe_results(self, system_output: Dict) -> Tuple[
-        torch.Tensor, Callable[[], torch.Tensor], Dict
-    ]:
+    def observe_results(self, system_output: Dict) -> Dict:
         """
         Reads the behavior discovered and processes it.
         """
-        output_dict = self.behavior_map.map(system_output)
+        # check we are not in the initialization case
+        if system_output.get(self.premap_key, None) is not None:
+            system_output = self.behavior_map.map(system_output)
+        else:
+            pass
 
-        # for convenience, return a pointer to the feature tensor and
-        behavior_tensor = output_dict[self.premap_key]
-
-        return behavior_tensor, output_dict
+        return system_output
 
     def optimize():
         """
