@@ -112,4 +112,5 @@ def test_run():
                                   on_save_callbacks=[on_save]
                                   )
 
-    pipeline.run(1)
+    pipeline.run(3)
+    assert 1
