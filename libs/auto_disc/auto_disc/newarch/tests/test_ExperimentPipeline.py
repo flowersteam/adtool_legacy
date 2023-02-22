@@ -25,16 +25,13 @@ def teardown_function(function):
     return
 
 
-def generate_dummy_callback(callback_name: str):
-    def callback(__pipeline, **__kwargs):
-        print(f"Callback {callback_name} was called on pipeline {__pipeline} with "
-              f"kwargs {__kwargs}")
-        return
-    return callback
+def callback(__pipeline, **__kwargs):
+    print(f"Callback was called on pipeline {__pipeline} with "
+          f"kwargs {__kwargs}")
+    return
 
 
 def test_dummy_callback(capsys):
-    callback = generate_dummy_callback("on_save")
     dummy_pipeline = IdentityWrapper()
     callback(dummy_pipeline, config=1, metadata=2)
     captured = capsys.readouterr()
@@ -88,20 +85,19 @@ def test_run():
     system_input_key = "params"
     system_output_key = "output"
 
-    system = ExponentialMixture()
+    system = ExponentialMixture(sequence_density=10)
     mean_map = MeanBehaviorMap(premap_key=system_output_key)
     param_map = UniformParameterMap(premap_key=system_input_key,
                                     tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([3., 3., 3.]))
+                                    tensor_high=torch.tensor([1., 1., 1.]))
     explorer = IMGEPExplorer(premap_key=system_output_key,
                              postmap_key=system_input_key,
                              parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+                             equil_time=5)
     input_pipeline = IdentityWrapper()
     output_pipeline = IdentityWrapper()
 
     # callbacks
-    on_save = generate_dummy_callback("on_save")
 
     pipeline = ExperimentPipeline(experiment_id=experiment_id,
                                   seed=seed,
@@ -109,8 +105,32 @@ def test_run():
                                   explorer=explorer,
                                   input_pipeline=input_pipeline,
                                   output_pipeline=output_pipeline,
-                                  on_save_callbacks=[on_save]
+                                  on_save_callbacks=[callback]
                                   )
 
-    pipeline.run(3)
-    assert 1
+    pipeline.run(20)
+
+    uid = pipeline.save_leaf(resource_uri=RESOURCE_URI)
+    assert uid
+
+    new_pipeline = ExperimentPipeline().load_leaf(
+        uid=uid, resource_uri=RESOURCE_URI)
+    history_buffer = new_pipeline._explorer._history_saver.buffer
+
+    # check equilibriation phase
+    seen_params = set()
+    for i in range(5):
+        assert history_buffer[i]["equil"] == 1
+        seen_params.add(history_buffer[i][system_input_key])
+
+    # check exploration phase
+    for i in range(15):
+        i += 5
+        assert history_buffer[i]["equil"] == 0
+
+        # for IMGEP without mutator, it is stuck in an orbit
+        match_count = 0
+        for p in seen_params:
+            match_count += int(torch.allclose(
+                history_buffer[i][system_input_key], p))
+        assert match_count == 1

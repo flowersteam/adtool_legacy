@@ -36,6 +36,45 @@ def test___init__():
     assert explorer.timestep == 0
 
 
+def test__extract_tensor_history():
+    history_buffer = \
+        [
+            {
+                'params': torch.tensor([0.9623, 0.8531, 0.2911]),
+                'equil': 1,
+                'output': torch.tensor([0.6001]),
+            },
+            {
+                'params': torch.tensor([0.9673, 0.7330, 0.8939]),
+                'equil': 1,
+                'output': torch.tensor([0.6000]),
+            },
+            {
+                'params': torch.tensor([0.0185, 0.4275, 0.6428]),
+                'equil': 1,
+                'output': torch.tensor([0.8872]),
+            }
+        ]
+    mean_map = MeanBehaviorMap(premap_key="output")
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
+                             parameter_map=param_map, behavior_map=mean_map,
+                             equil_time=2)
+    param_tensor = explorer._extract_tensor_history(history_buffer, "params")
+    param_history = torch.tensor(
+        [[0.9623, 0.8531, 0.2911],
+         [0.9673, 0.7330, 0.8939],
+         [0.0185, 0.4275, 0.6428]])
+    assert torch.allclose(param_tensor, param_history)
+    output_tensor = explorer._extract_tensor_history(history_buffer, "output")
+    output_history = torch.tensor(
+        [[0.6001], [0.6000], [0.8872]]
+    )
+    assert torch.allclose(output_tensor, output_history)
+
+
 def test__find_closest():
     goal_history = torch.tensor(
         [[1, 2, 3], [4, 5, 6], [-1, -1, -1]], dtype=float)
@@ -73,6 +112,19 @@ def test_observe_results():
     assert not torch.allclose(output_tensor, system_output["output"])
 
 
+def test_bootstrap():
+    mean_map = MeanBehaviorMap(premap_key="output")
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([6., 6., 6.]))
+    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
+                             parameter_map=param_map, behavior_map=mean_map,
+                             equil_time=2)
+    init_dict = explorer.bootstrap()
+    assert init_dict.get("params", None) is not None
+    assert init_dict["equil"] == 1
+
+
 def test_map():
     # TODO: mock the behavior and parameter maps
     mean_map = MeanBehaviorMap(premap_key="output")
@@ -82,16 +134,22 @@ def test_map():
     explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
                              parameter_map=param_map, behavior_map=mean_map,
                              equil_time=2)
-    system_output = {"metadata": 1, "output": torch.tensor([1., 2., 3.])}
+    system_output = {"metadata": 1, "params": torch.tensor(
+        [2., 2., 2.]), "output": torch.tensor([1., 2., 3.])}
 
     new_params = explorer.map(system_output)
     assert new_params["params"].size() == torch.Size([3])
-    assert new_params.get("output", None) is None
+    assert torch.allclose(new_params["raw_output"], torch.tensor([1., 2., 3.]))
+    assert torch.allclose(new_params["output"], torch.tensor([2.]))
     assert explorer.timestep == 1
 
     # check mutability
     system_output["metadata"] = 2
     assert new_params["metadata"] == 1
+
+
+def test_read_last_discovery():
+    pass
 
 
 def test_suggest_trial_behavioral_diffusion():
@@ -116,28 +174,20 @@ def test_suggest_trial_behavioral_diffusion():
                              equil_time=2)
 
     # mock history
-    mock_system_output_history = \
+    mock_discovery_history = \
         [{"metadata": 1,
-          "output": torch.tensor([1., 2., 3.])},
-         {"metadata": 1,
-          "output": torch.tensor([4., 5., 6.])},
-         {"metadata": 1,
-          "output": torch.tensor([0., 0., 0.])}]
-    mock_param_input_history = \
-        [{"metadata": 1,
-          "params": torch.tensor([0., 1., 2.])},
-         {"metadata": 1,
-          "params": torch.tensor([3., 4., 5.])},
-         {"metadata": 1,
-          "params": torch.tensor([-1., -1., -1.])}]
-    explorer.behavior_map.history_saver.buffer = \
-        [{"metadata": 1,
+          "params": torch.tensor([0., 1., 2.]),
+          "raw_output": torch.tensor([1., 2., 3.]),
           "output": torch.tensor([2.])},
          {"metadata": 1,
+          "params": torch.tensor([3., 4., 5.]),
+          "raw_output": torch.tensor([4., 5., 6.]),
           "output": torch.tensor([5.])},
          {"metadata": 1,
+          "params": torch.tensor([-1., -1., -1]),
+          "raw_output": torch.tensor([0., 0., 0.]),
           "output": torch.tensor([0.])}]
-    explorer.parameter_map.history_saver.buffer = mock_param_input_history
+    explorer._history_saver.buffer = mock_discovery_history
     explorer.behavior_map.projector.low = torch.tensor([0.])
     explorer.behavior_map.projector.high = torch.tensor([5.])
     explorer.behavior_map.projector.tensor_shape = torch.Size([1])
@@ -145,7 +195,7 @@ def test_suggest_trial_behavioral_diffusion():
     explorer.mutator = add_gaussian_noise_test
 
     # actual test
-    # NOTE: not deterministic
+    # NOTE: not deterministic because of noise
     params_trial = explorer.suggest_trial()
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100

@@ -19,7 +19,7 @@ class MeanBehaviorMap(Leaf):
         self.locator = FileLocator()
         self.premap_key = premap_key
         self.input_shape = input_shape  # unused by the module itself here
-        self.history_saver = SaveWrapper()
+        # self.history_saver = SaveWrapper()
         self.projector = BoxProjector(premap_key=premap_key)
 
     def map(self, input: Dict) -> Dict:
@@ -35,19 +35,19 @@ class MeanBehaviorMap(Leaf):
         mean = torch.mean(tensor, dim=0).unsqueeze(-1)
         intermed_dict[self.premap_key] = mean
 
-        projected_dict = self.projector.map(intermed_dict)
-        behavior_dict = self.history_saver.map(projected_dict)
+        behavior_dict = self.projector.map(intermed_dict)
+        # behavior_dict = self.history_saver.map(projected_dict)
 
         return behavior_dict
 
     def sample(self):
         return self.projector.sample()
 
-    def get_tensor_history(self):
-        tensor_history = \
-            self.history_saver.buffer[0][self.premap_key].unsqueeze(0)
-        for dict in self.history_saver.buffer[1:]:
-            tensor_history = torch.cat(
-                (tensor_history, dict[self.premap_key].unsqueeze(0)),
-                dim=0)
-        return tensor_history
+    # def get_tensor_history(self):
+    #     tensor_history = \
+    #         self.history_saver.buffer[0][self.premap_key].unsqueeze(0)
+    #     for dict in self.history_saver.buffer[1:]:
+    #         tensor_history = torch.cat(
+    #             (tensor_history, dict[self.premap_key].unsqueeze(0)),
+    #             dim=0)
+    #     return tensor_history

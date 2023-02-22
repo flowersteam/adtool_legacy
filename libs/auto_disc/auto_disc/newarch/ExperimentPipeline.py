@@ -142,36 +142,31 @@ class ExperimentPipeline(Leaf):
         - **n_exploration_runs**: number of explorations
         '''
         try:
+            data_dict = self._explorer.bootstrap()
+
             while self.run_idx < n_exploration_runs:
                 # check for termination
                 if self.cancellation_token.get():
                     break
 
-                # dict for storing processed data
-                data_dict = {}
-
-                # sample trial set of parameters
-                param_dim = self._explorer.parameter_map.output_shape
-                params_trial = self._explorer.suggest_trial(param_dim)
-                data_dict[self._explorer.postmap_key] = params_trial
-
-                # pass through system
+                # pass trial parameters through system
                 data_dict = self._system.map(data_dict)
 
                 # render system output
                 rendered_output = self._system.render(data_dict)
 
-                # pass results of system pipeline to explorer
-                # we discard the outputs, as they are saved already in the state of
-                # self._explorer's submodules
-                self._explorer.observe_results(data_dict)
+                # exploration phase : emits new trial parameters for next loop
+                data_dict = self._explorer.map(data_dict)
+
+                discovery = self._explorer.read_last_discovery()
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
                     run_idx=self.run_idx,
                     seed=self.seed,
-                    run_parameters=params_trial,
-                    output=data_dict,
+                    run_parameters=discovery[self._explorer.postmap_key],
+                    output=discovery[self._explorer.premap_key],
+                    raw_output=discovery["raw_" + self._explorer.premap_key],
                     rendered_output=rendered_output,
                     experiment_id=self.experiment_id
                 )

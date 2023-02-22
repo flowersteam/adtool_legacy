@@ -1,7 +1,8 @@
 from leaf.leaf import Leaf
 from leaf.locators import FileLocator
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
-from typing import Dict, Tuple, Callable
+from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
+from typing import Dict, Tuple, Callable, List
 import torch
 from copy import deepcopy
 
@@ -25,35 +26,70 @@ class IMGEPExplorer(Leaf):
 
         self.mutator = mutator
 
+        self._history_saver = SaveWrapper()
+
+    def bootstrap(self) -> Dict:
+        """
+        need special initialization logic for the t=0 run of IMGEP
+        """
+        data_dict = {}
+        # initialize sample
+        data_shape = self.parameter_map.output_shape
+        params_init = self.parameter_map.sample(data_shape)
+        data_dict[self.postmap_key] = params_init
+
+        # first timestep recorded
+        # NOTE: therefore, regardless of self.equil_time, 1 equil step
+        # will always happen
+        data_dict["equil"] = 1
+        self.timestep += 1
+
+        return data_dict
+
     def map(self, system_output: Dict) -> Dict:
         """
         The "map" when the `Explorer` is viewed as a function, which takes the
         feature vector in behavior space and maps it to a (randomly chosen)
         subsequent parameter configuration to try.
         """
-        system_output = self.observe_results(system_output)
+        # either do nothing, or update dict by changing "output" -> "raw_output"
+        # and adding new "output" key which is the result of the behavior map
+        new_trial_data = self.observe_results(system_output)
 
-        new_trial_data = deepcopy(system_output)
-        del new_trial_data[self.premap_key]
+        # save results
+        trial_data_reset = self._history_saver.map(new_trial_data)
 
         # TODO: check gradients here
         if self.timestep < self.equil_time:
-            new_trial_data = self.parameter_map.map(new_trial_data)
+            # sets "params" key
+            trial_data_reset = self.parameter_map.map(trial_data_reset)
+
+            # label which trials were from random initialization
+            trial_data_reset["equil"] = 1
         else:
+            # suggest_trial reads history
             params_trial = self.suggest_trial()
-            new_trial_data[self.postmap_key] = params_trial
+
+            # assemble dict and update parameter_map state
+            trial_data_reset[self.postmap_key] = params_trial
+
+            # label that trials are now from the usual IMGEP procedure
+            trial_data_reset["equil"] = 0
 
         self.timestep += 1
 
-        return new_trial_data
+        return trial_data_reset
 
     def suggest_trial(self) -> torch.Tensor:
         """
         Samples according to the policy a new trial of parameters for the
         system
         """
-        goal_history = self.behavior_map.get_tensor_history()
-        param_history = self.parameter_map.get_tensor_history()
+        history_buffer = self._history_saver.buffer
+        goal_history = self._extract_tensor_history(history_buffer,
+                                                    self.premap_key)
+        param_history = self._extract_tensor_history(history_buffer,
+                                                     self.postmap_key)
 
         goal = self.behavior_map.sample()
         source_policy_idx = self._find_closest(goal, goal_history)
@@ -69,17 +105,38 @@ class IMGEPExplorer(Leaf):
         """
         # check we are not in the initialization case
         if system_output.get(self.premap_key, None) is not None:
+            # recall that behavior_maps will remove the dict entry of
+            # self.premap_key
             system_output = self.behavior_map.map(system_output)
         else:
             pass
 
         return system_output
 
+    def read_last_discovery(self) -> Dict:
+        return self._history_saver.buffer[-1]
+
     def optimize():
         """
         Optimization step for online learning of the `Explorer` policy.
         """
         pass
+
+    def _extract_tensor_history(self,
+                                dict_history: List[Dict],
+                                key: str) -> torch.Tensor:
+        """
+        Extracts tensor history from an array of dicts with labelled data,
+        with the tensor being labelled by key 
+        """
+        # append history of tensors along a new dimension at index 0
+        tensor_history = \
+            dict_history[0][key].unsqueeze(0)
+        for dict in dict_history[1:]:
+            tensor_history = torch.cat(
+                (tensor_history, dict[key].unsqueeze(0)), dim=0)
+
+        return tensor_history
 
     def _find_closest(self, goal: torch.Tensor, goal_history: torch.Tensor):
         # TODO: simple L2 distance right now

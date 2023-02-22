@@ -23,7 +23,7 @@ class UniformParameterMap(Leaf):
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
         self.output_shape = tensor_low.size()
-        self.history_saver = SaveWrapper()
+        # self.history_saver = SaveWrapper()
         self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
                                       init_low=tensor_low)
@@ -41,17 +41,17 @@ class UniformParameterMap(Leaf):
 
         # params_dict = self.history_saver.map(intermed_dict)
 
-        return params_dict
+        return param_dict
 
     def sample(self, data_shape: Tuple) -> torch.Tensor:
         dimensions_to_keep = data_shape[0]
         sample = self.projector.sample()
         return sample[:dimensions_to_keep]
 
-    def get_tensor_history(self) -> torch.Tensor:
-        tensor_history = \
-            self.history_saver.buffer[0][self.premap_key].unsqueeze(0)
-        for dict in self.history_saver.buffer[1:]:
-            tensor_history = torch.cat(
-                (tensor_history, dict[self.premap_key].unsqueeze(0)), dim=0)
-        return tensor_history
+    # def get_tensor_history(self) -> torch.Tensor:
+    #     tensor_history = \
+    #         self.history_saver.buffer[0][self.premap_key].unsqueeze(0)
+    #     for dict in self.history_saver.buffer[1:]:
+    #         tensor_history = torch.cat(
+    #             (tensor_history, dict[self.premap_key].unsqueeze(0)), dim=0)
+    #     return tensor_history
