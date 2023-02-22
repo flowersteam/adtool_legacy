@@ -35,13 +35,11 @@ class UniformParameterMap(Leaf):
         """
         intermed_dict = deepcopy(input)
 
-        params = intermed_dict.get(self.premap_key, None)
+        # always overrides "params" with new sample
+        intermed_dict[self.premap_key] = self.sample(self.output_shape)
+        param_dict = self.projector.map(intermed_dict)
 
-        if params is None:
-            intermed_dict[self.premap_key] = self.sample(self.output_shape)
-
-        intermed_dict = self.projector.map(intermed_dict)
-        params_dict = self.history_saver.map(intermed_dict)
+        # params_dict = self.history_saver.map(intermed_dict)
 
         return params_dict
 

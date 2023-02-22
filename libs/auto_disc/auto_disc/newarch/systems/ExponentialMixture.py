@@ -26,7 +26,6 @@ class ExponentialMixture(Leaf):
         _, y_tensor = \
             self._tensor_map(param_tensor, sequence_max, sequence_density)
 
-        del intermed_dict["params"]
         intermed_dict["output"] = y_tensor
 
         return intermed_dict

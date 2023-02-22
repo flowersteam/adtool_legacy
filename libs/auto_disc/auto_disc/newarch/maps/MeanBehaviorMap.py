@@ -26,7 +26,10 @@ class MeanBehaviorMap(Leaf):
         # TODO: does not handle batches
         intermed_dict = deepcopy(input)
 
+        # store raw output
         tensor = intermed_dict[self.premap_key].detach().clone()
+        raw_output_key = "raw_" + self.premap_key
+        intermed_dict[raw_output_key] = tensor
 
         # unsqueeze to ensure tensor rank is not 0
         mean = torch.mean(tensor, dim=0).unsqueeze(-1)
