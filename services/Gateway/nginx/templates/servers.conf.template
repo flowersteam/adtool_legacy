@@ -37,27 +37,25 @@ server {
     proxy_buffering off;
 
     location / {
-        # set $jupyter http://${JUPYTER_HOST}:${JUPYTER_PORT}/;
-        # proxy_pass  $jupyter;
-        proxy_pass http://${JUPYTER_HOST}:${JUPYTER_PORT}/;
-
+        set $jupyter http://${JUPYTER_HOST}:${JUPYTER_PORT};
+        proxy_pass $jupyter;
     }
 
     location /autodisc-server/ {
-        # set $autodisc_server http://${AUTODISC_SERVER_HOST}:${AUTODISC_SERVER_PORT}/;
-        # proxy_pass  $autodisc_server;
-        proxy_pass http://${AUTODISC_SERVER_HOST}:${AUTODISC_SERVER_PORT}/;
+        set $autodisc_server http://${AUTODISC_SERVER_HOST}:${AUTODISC_SERVER_PORT};
+        rewrite /autodisc-server/(.*) /$1 break;
+        proxy_pass $autodisc_server;
     }
 
     location /app-db-api/ {
-        # set $app_db_api http://${APP_DB_API_HOST}:${APP_DB_API_PORT}/;
-        # proxy_pass  $app_db_api;
-        proxy_pass http://${APP_DB_API_HOST}:${APP_DB_API_PORT}/;
+        set $app_db_api  http://${APP_DB_API_HOST}:${APP_DB_API_PORT};
+        rewrite /app-db-api/(.*) /$1 break;
+        proxy_pass $app_db_api;
     }
 
     location /expe-db-api/ {
-        # set $expe_db_api http://${EXPE_DB_API_HOST}:${EXPE_DB_API_PORT}/;
-        # proxy_pass  $expe_db_api;
-        proxy_pass http://${EXPE_DB_API_HOST}:${EXPE_DB_API_PORT}/;
+        set $expe_db_api http://${EXPE_DB_API_HOST}:${EXPE_DB_API_PORT};
+        rewrite /expe-db-api/(.*) /$1 break;
+        proxy_pass $expe_db_api;
     }
 }
