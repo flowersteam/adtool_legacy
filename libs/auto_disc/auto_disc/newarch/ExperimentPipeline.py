@@ -173,19 +173,22 @@ class ExperimentPipeline(Leaf):
                     experiment_id=self.experiment_id
                 )
 
-                # self._system.logger.info(
-                #     "[DISCOVERY] - New discovery from experiment {} with seed {}"
-                #     .format(self.experiment_id, self.seed)
-                # )
+                self.logger.info(
+                    "[DISCOVERY] - New discovery from experiment {} with seed {}"
+                    .format(self.experiment_id, self.seed)
+                )
 
                 self.run_idx += 1
 
         except Exception as _:
             message = "error in experiment {} self.run_idx {} seed {} = {}".format(
                 self.experiment_id, self.run_idx, self.seed, traceback.format_exc())
+
+            # TODO: do this in appdb side
             if len(message) > 8000:  # Cut message to match varchar length of AppDB
                 message = message[:7997] + '...'
-            # self._system.logger.error("[ERROR] - " + message)
+
+            self.logger.error("[ERROR] - " + message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=self.run_idx,
@@ -198,7 +201,7 @@ class ExperimentPipeline(Leaf):
 
         # log termination of experiment
         if self.cancellation_token.get():
-            self._system.logger.info(
+            self.logger.info(
                 "[CANCELLED] - experiment {} with seed {} cancelled"
                 .format(self.experiment_id, self.seed)
             )
@@ -210,10 +213,10 @@ class ExperimentPipeline(Leaf):
                 experiment_id=self.experiment_id
             )
         else:
-            # self._system.logger.info(
-            #     "[FINISHED] - experiment {} with seed {} finished"
-            #     .format(self.experiment_id, self.seed)
-            # )
+            self.logger.info(
+                "[FINISHED] - experiment {} with seed {} finished"
+                .format(self.experiment_id, self.seed)
+            )
 
             self._raise_callbacks(
                 self._on_finished_callbacks,
@@ -243,7 +246,7 @@ class ExperimentPipeline(Leaf):
                 seed=self.seed,
                 experiment_id=self.experiment_id
             )
-            # self._system.logger.info(
-            #     "[SAVED] - experiment {} with seed {} saved"
-            #     .format(self.experiment_id, self.seed)
-            # )
+            self.logger.info(
+                "[SAVED] - experiment {} with seed {} saved"
+                .format(self.experiment_id, self.seed)
+            )

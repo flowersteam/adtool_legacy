@@ -85,6 +85,7 @@ def test_run():
     seed = 1
     system_input_key = "params"
     system_output_key = "output"
+    logger = AutoDiscLogger(experiment_id, seed, [])
 
     system = ExponentialMixture(sequence_density=10)
     mean_map = MeanBehaviorMap(premap_key=system_output_key)
@@ -106,7 +107,8 @@ def test_run():
                                   explorer=explorer,
                                   input_pipeline=input_pipeline,
                                   output_pipeline=output_pipeline,
-                                  on_save_callbacks=[callback]
+                                  on_save_callbacks=[callback],
+                                  logger=logger
                                   )
 
     pipeline.run(20)

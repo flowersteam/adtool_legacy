@@ -105,7 +105,7 @@ class Leaf:
         else:
             super().__delattr__(name)
 
-    @prune_state(state_vars={"_container_ptr": None})
+    @prune_state(state_vars={"_container_ptr": None, "logger": None})
     def serialize(self) -> bytes:
         """ 
         Serializes object to pickle, 
