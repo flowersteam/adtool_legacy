@@ -26,8 +26,8 @@ def teardown_function(function):
     return
 
 
-def callback(__pipeline, **__kwargs):
-    print(f"Callback was called on pipeline {__pipeline} with "
+def callback(pipeline, **__kwargs):
+    print(f"Callback was called on pipeline {pipeline} with "
           f"kwargs {__kwargs}")
     return
 
@@ -107,7 +107,7 @@ def test_run():
                                   explorer=explorer,
                                   input_pipeline=input_pipeline,
                                   output_pipeline=output_pipeline,
-                                  on_save_callbacks=[callback],
+                                  on_discovery_callbacks=[callback],
                                   logger=logger
                                   )
 
