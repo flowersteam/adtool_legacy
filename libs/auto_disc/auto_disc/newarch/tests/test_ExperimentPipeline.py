@@ -2,8 +2,9 @@ from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
 from auto_disc.newarch.systems.ExponentialMixture import ExponentialMixture
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer
+from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc.utils.logger import AutoDiscLogger
 import torch
 import pathlib
 import os
@@ -134,3 +135,31 @@ def test_run():
             match_count += int(torch.allclose(
                 history_buffer[i][system_input_key], p))
         assert match_count == 1
+
+
+def test_logger(capsys):
+    experiment_id = 1
+    seed = 1
+    logger = AutoDiscLogger(experiment_id, seed, [])
+    system = ExponentialMixture(sequence_density=10)
+    explorer_factory = IMGEPFactory(equil_time=5,
+                                    param_dim=3,
+                                    param_init_low=0.,
+                                    param_init_high=1.)
+    explorer = explorer_factory.create_explorer()
+    input_pipeline = IdentityWrapper()
+    output_pipeline = IdentityWrapper()
+    pipeline = ExperimentPipeline(
+        experiment_id=experiment_id,
+        seed=seed,
+        system=system,
+        explorer=explorer,
+        input_pipeline=input_pipeline,
+        output_pipeline=output_pipeline,
+        on_save_callbacks=[callback],
+        logger=logger
+    )
+    pipeline.logger.info("testing")
+    expected_str = "ad_tool_logger - INFO - SEED 1 - LOG_ID 1_1_1 - testing\n"
+    captured = capsys.readouterr()
+    assert captured.err == expected_str

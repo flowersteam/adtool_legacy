@@ -95,6 +95,7 @@ class ExperimentPipeline(Leaf):
         self.experiment_id = experiment_id
         self.seed = seed
         self.save_frequency = save_frequency
+        self.logger = logger
 
         ### SYSTEM ###
         self._system = system
