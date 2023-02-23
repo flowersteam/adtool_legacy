@@ -27,7 +27,7 @@ class IMGEPFactory:
     def __init__(self, *args, **kwargs):
         pass
 
-    def create_explorer(self):
+    def __call__(self):
         # turn config parameters into correct args
         param_size = torch.Size([self.config["param_dim"]])
         init_low = self.config["param_init_low"]

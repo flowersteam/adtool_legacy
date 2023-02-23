@@ -211,7 +211,7 @@ def test_IMGEPFactory___init__():
     assert factory.config
 
 
-def test_IMGEPFactory_create_explorer():
+def test_IMGEPFactory___call__():
     factory = IMGEPFactory(equil_time=5)
-    explorer = factory.create_explorer()
+    explorer = factory()
     assert explorer.equil_time == 5

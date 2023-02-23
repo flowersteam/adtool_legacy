@@ -148,7 +148,7 @@ def test_logger(capsys):
                                     param_dim=3,
                                     param_init_low=0.,
                                     param_init_high=1.)
-    explorer = explorer_factory.create_explorer()
+    explorer = explorer_factory()
     input_pipeline = IdentityWrapper()
     output_pipeline = IdentityWrapper()
     pipeline = ExperimentPipeline(
