@@ -187,8 +187,11 @@ class ExperimentPipeline(Leaf):
 
                 self.run_idx += 1
 
-                if (self.run_idx % (self.save_frequency - 1) == 0
-                        or self.run_idx == n_exploration_runs):
+                # avoids divide by zero
+                run_idx_start_from_one = self.run_idx + 1
+
+                if (run_idx_start_from_one % self.save_frequency == 0
+                        or run_idx_start_from_one == n_exploration_runs):
                     uid = self.save(resource_uri=self.resource_uri)
 
         except Exception as _:
