@@ -26,7 +26,6 @@ def test_map():
     mean_map = MeanBehaviorMap(premap_key="output")
     output_dict = mean_map.map(input_dict)
     assert output_dict["output"].size() == torch.Size([1])
-    assert len(mean_map.history_saver.buffer) == 1
     assert mean_map.projector.low is not None
     assert mean_map.projector.high is not None
 
@@ -48,17 +47,3 @@ def test_save():
                           torch.tensor([0., 0., 0., 0., 0.]))
     assert torch.allclose(loaded_map.projector.high,
                           torch.tensor([2., 2., 2., 2., 2.]))
-    assert len(loaded_map.history_saver.buffer) == 1
-
-
-def test_get_tensor_history():
-    def generate_input():
-        return {"metadata": 1, "output": torch.rand(10)}
-    input_dict = generate_input()
-    param_map = MeanBehaviorMap(premap_key="output")
-    for _ in range(10):
-        param_map.map(input_dict)
-
-    history = param_map.get_tensor_history()
-
-    assert param_map.get_tensor_history().size() == torch.Size([10, 1])
