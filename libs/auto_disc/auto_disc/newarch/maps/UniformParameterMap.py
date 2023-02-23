@@ -31,8 +31,11 @@ class UniformParameterMap(Leaf):
         self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
                                       init_low=tensor_low,
-                                      bound_lower=float_bound_low,
-                                      bound_upper=float_bound_high)
+                                      bound_lower=torch.tensor(
+                                          [float_bound_low]),
+                                      bound_upper=torch.tensor(
+                                          [float_bound_high])
+                                      )
 
     def map(self, input: Dict) -> Dict:
         """

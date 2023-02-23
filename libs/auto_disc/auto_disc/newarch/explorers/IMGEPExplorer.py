@@ -14,8 +14,8 @@ from copy import deepcopy
 @IntegerConfigParameter("param_dim", default=1, min=1)
 @DecimalConfigParameter("param_init_low", default=0.)
 @DecimalConfigParameter("param_init_high", default=0.)
-@DecimalConfigParameter("param_bound_low", default=0.)
-@DecimalConfigParameter("param_bound_high", default=1.)
+@DecimalConfigParameter("param_bound_low", default=float('-inf'))
+@DecimalConfigParameter("param_bound_high", default=float('inf'))
 @IntegerConfigParameter("system_output_dim", default=1, min=1)
 class IMGEPFactory:
     """
