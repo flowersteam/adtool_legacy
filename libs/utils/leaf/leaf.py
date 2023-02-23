@@ -24,7 +24,8 @@ def prune_state(state_vars: Dict[str, Any]):
                 attr_ptr = getattr(self, name, None)
                 old_vars[name] = attr_ptr
                 # clear the namespace
-                delattr(self, name)
+                if attr_ptr is not None:
+                    delattr(self, name)
 
             bin = serialize(self, *args, **kwargs)
 
