@@ -2,9 +2,55 @@ from leaf.leaf import Leaf
 from leaf.locators import FileLocator
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
+from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from typing import Dict, Tuple, Callable, List
 import torch
 from copy import deepcopy
+
+
+@IntegerConfigParameter("equil_time", default=1, min=1)
+@IntegerConfigParameter("param_dim", default=1, min=1)
+@DecimalConfigParameter("param_init_low", default=0.)
+@DecimalConfigParameter("param_init_high", default=0.)
+@DecimalConfigParameter("param_bound_low", default=0.)
+@DecimalConfigParameter("param_bound_high", default=1.)
+@IntegerConfigParameter("system_output_dim", default=1, min=1)
+class IMGEPFactory:
+    """
+    Factory class providing interface with config parameters and therefore the
+    frontend
+    """
+    CONFIG_DEFINITION = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def create_explorer(self):
+        # turn config parameters into correct args
+        param_size = torch.Size([self.config["param_dim"]])
+        init_low = self.config["param_init_low"]
+        init_high = self.config["param_init_high"]
+        tensor_low = torch.full(size=param_size, fill_value=init_low)
+        tensor_high = torch.full(size=param_size, fill_value=init_high)
+        float_bound_low = self.config["param_bound_low"]
+        float_bound_high = self.config["param_bound_high"]
+
+        equil_time = self.config["equil_time"]
+
+        # initialize
+        behavior_map = MeanBehaviorMap()
+        param_map = UniformParameterMap(
+            tensor_low=tensor_low,
+            tensor_high=tensor_high,
+            float_bound_low=float_bound_low,
+            float_bound_high=float_bound_high
+        )
+        explorer = IMGEPExplorer(parameter_map=param_map,
+                                 behavior_map=behavior_map,
+                                 equil_time=equil_time)
+        return explorer
 
 
 class IMGEPExplorer(Leaf):

@@ -1,4 +1,5 @@
 from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer
+from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPFactory
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
 import torch
@@ -22,7 +23,7 @@ def teardown_function(function):
     return
 
 
-def test___init__():
+def test_IMGEPExplorer___init__():
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -36,7 +37,7 @@ def test___init__():
     assert explorer.timestep == 0
 
 
-def test__extract_tensor_history():
+def test_IMGEPExplorer__extract_tensor_history():
     history_buffer = \
         [
             {
@@ -75,7 +76,7 @@ def test__extract_tensor_history():
     assert torch.allclose(output_tensor, output_history)
 
 
-def test__find_closest():
+def test_IMGEPExplorer__find_closest():
     goal_history = torch.tensor(
         [[1, 2, 3], [4, 5, 6], [-1, -1, -1]], dtype=float)
     goal = torch.tensor([-0.99, -0.99, -0.99])
@@ -93,7 +94,7 @@ def test__find_closest():
     assert torch.allclose(goal_history[idx], torch.tensor([-1., -1., -1.]))
 
 
-def test_observe_results():
+def test_IMGEPExplorer_observe_results():
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -112,7 +113,7 @@ def test_observe_results():
     assert not torch.allclose(output_tensor, system_output["output"])
 
 
-def test_bootstrap():
+def test_IMGEPExplorer_bootstrap():
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -125,7 +126,7 @@ def test_bootstrap():
     assert init_dict["equil"] == 1
 
 
-def test_map():
+def test_IMGEPExplorer_map():
     # TODO: mock the behavior and parameter maps
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
@@ -148,11 +149,11 @@ def test_map():
     assert new_params["metadata"] == 1
 
 
-def test_read_last_discovery():
+def test_IMGEPExplorer_read_last_discovery():
     pass
 
 
-def test_suggest_trial_behavioral_diffusion():
+def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
     def add_gaussian_noise_test(input_tensor: torch.Tensor,
                                 mean: torch.Tensor = torch.tensor([10000.]),
                                 std: torch.Tensor = torch.tensor([1.]),
@@ -202,3 +203,15 @@ def test_suggest_trial_behavioral_diffusion():
 
     # suggest_trial does not increment timestep
     assert explorer.timestep == 2
+
+
+def test_IMGEPFactory___init__():
+    factory = IMGEPFactory()
+    # test config params set
+    assert factory.config
+
+
+def test_IMGEPFactory_create_explorer():
+    factory = IMGEPFactory(equil_time=5)
+    explorer = factory.create_explorer()
+    assert explorer.equil_time == 5
