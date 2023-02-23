@@ -68,7 +68,8 @@ class ExperimentPipeline(Leaf):
                  on_cancelled_callbacks: List[Callable] = [],
                  on_save_callbacks: List[Callable] = [],
                  on_error_callbacks: List[Callable] = [],
-                 logger=None
+                 logger=None,
+                 resource_uri: str = ""
                  ) -> None:
         """
             Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.
@@ -96,6 +97,7 @@ class ExperimentPipeline(Leaf):
         self.seed = seed
         self.save_frequency = save_frequency
         self.logger = logger
+        self.resource_uri = resource_uri
 
         ### SYSTEM ###
         self._system = system
@@ -132,7 +134,7 @@ class ExperimentPipeline(Leaf):
                 **kwargs
             )
 
-    def run(self, n_exploration_runs: int) -> None:
+    def run(self, n_exploration_runs: int) -> str:
         '''
         Launches the experiment for `n_exploration_runs` number of explorations.
 
@@ -142,7 +144,12 @@ class ExperimentPipeline(Leaf):
 
         #### Args:
         - **n_exploration_runs**: number of explorations
+
+        #### Returns:
+        - **LeafUID**: returns the UID associated to the experiment
         '''
+        # initialize in case exception is thrown
+        uid = ""
         try:
             data_dict = self._explorer.bootstrap()
 
@@ -179,6 +186,10 @@ class ExperimentPipeline(Leaf):
                 )
 
                 self.run_idx += 1
+
+                if (self.run_idx % (self.save_frequency - 1) == 0
+                        or self.run_idx == n_exploration_runs):
+                    uid = self.save(resource_uri=self.resource_uri)
 
         except Exception as _:
             message = "error in experiment {} self.run_idx {} seed {} = {}".format(
@@ -224,29 +235,24 @@ class ExperimentPipeline(Leaf):
                 seed=self.seed,
                 experiment_id=self.experiment_id
             )
+        return uid
 
-    def save(self, n_exploration_runs):
-        # TODO: fix me
-
-        if (self.run_idx + 1) % self.save_frequency == 0 or self.run_idx + 1 == n_exploration_runs:
-            self._raise_callbacks(
-                self._on_save_callbacks,
-                run_idx=self.run_idx,
-                seed=self.seed,
-                experiment_id=self.experiment_id,
-                system=self._system,
-                explorer=self._explorer,
-                input_wrappers=self._input_wrappers,
-                output_representations=self._output_representations,
-                in_memory_db=self.db
-            )
-            self._raise_callbacks(
-                self._on_save_finished_callbacks,
-                run_idx=self.run_idx,
-                seed=self.seed,
-                experiment_id=self.experiment_id
-            )
-            self.logger.info(
-                "[SAVED] - experiment {} with seed {} saved"
-                .format(self.experiment_id, self.seed)
-            )
+    def save(self, resource_uri: str) -> str:
+        self._raise_callbacks(
+            self._on_save_callbacks,
+            run_idx=self.run_idx,
+            seed=self.seed,
+            experiment_id=self.experiment_id,
+            system=self._system,
+            explorer=self._explorer,
+        )
+        uid = self.save_leaf(resource_uri=resource_uri)
+        self._raise_callbacks(
+            self._on_save_finished_callbacks,
+            uid=uid
+        )
+        self.logger.info(
+            "[SAVED] - experiment {} with seed {} saved"
+            .format(self.experiment_id, self.seed)
+        )
+        return uid

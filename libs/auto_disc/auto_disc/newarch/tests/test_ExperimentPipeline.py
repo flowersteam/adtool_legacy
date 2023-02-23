@@ -108,12 +108,12 @@ def test_run():
                                   input_pipeline=input_pipeline,
                                   output_pipeline=output_pipeline,
                                   on_discovery_callbacks=[callback],
-                                  logger=logger
+                                  logger=logger,
+                                  save_frequency=100,
+                                  resource_uri=RESOURCE_URI
                                   )
 
-    pipeline.run(20)
-
-    uid = pipeline.save_leaf(resource_uri=RESOURCE_URI)
+    uid = pipeline.run(20)
     assert uid
 
     new_pipeline = ExperimentPipeline().load_leaf(
