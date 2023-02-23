@@ -67,7 +67,8 @@ class ExperimentPipeline(Leaf):
                  on_finished_callbacks: List[Callable] = [],
                  on_cancelled_callbacks: List[Callable] = [],
                  on_save_callbacks: List[Callable] = [],
-                 on_error_callbacks: List[Callable] = []
+                 on_error_callbacks: List[Callable] = [],
+                 logger=None
                  ) -> None:
         """
             Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.

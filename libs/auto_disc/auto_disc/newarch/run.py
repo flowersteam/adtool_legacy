@@ -54,12 +54,11 @@ def create(parameters: Dict, experiment_id: int, seed: int,
 
     # Get explorer
     explorer_class = get_cls_from_path(parameters['explorer']['name'])
-    explorer = explorer_class(
-        logger=logger, **parameters['explorer']['config'])
+    explorer = explorer_class(**parameters['explorer']['config'])
 
     # Get system
     system_class = get_cls_from_path(parameters['system']['name'])
-    system = system_class(logger=logger, **parameters['system']['config'])
+    system = system_class(**parameters['system']['config'])
 
     # Get input wrappers
     input_wrappers = []
@@ -67,7 +66,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         input_wrapper_class = get_cls_from_path(_input_wrapper['name'])
         input_wrappers.append(
             input_wrapper_class(
-                logger=logger, output_space=system.input_space, **_input_wrapper['config'])
+                output_space=system.input_space, **_input_wrapper['config'])
         )
 
     # Get output representations
@@ -76,8 +75,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         output_representation_class = get_cls_from_path(
             _output_representation['name'])
         output_representations.append(
-            output_representation_class(
-                logger=logger, **_output_representation['config'])
+            output_representation_class(**_output_representation['config'])
         )
 
     # Get callbacks
@@ -126,7 +124,8 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
-        interact_callbacks=callbacks['interact']
+        interact_callbacks=callbacks['interact'],
+        logger=logger
     )
 
     return experiment
