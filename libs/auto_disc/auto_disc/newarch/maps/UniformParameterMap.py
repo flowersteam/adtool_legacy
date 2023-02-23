@@ -16,7 +16,11 @@ class UniformParameterMap(Leaf):
     def __init__(self,
                  premap_key: str = "params",
                  tensor_low: torch.Tensor = torch.tensor([0.]),
-                 tensor_high: torch.Tensor = torch.tensor([0.])) -> None:
+                 tensor_high: torch.Tensor = torch.tensor([0.]),
+                 float_bound_low: float = 0.,
+                 float_bound_high: float = 1.) -> None:
+
+        # TODO: put indication that tensor_low and high must be set
         super().__init__()
         self.locator = FileLocator()
         self.premap_key = premap_key
@@ -26,7 +30,9 @@ class UniformParameterMap(Leaf):
         # self.history_saver = SaveWrapper()
         self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
-                                      init_low=tensor_low)
+                                      init_low=tensor_low,
+                                      bound_lower=float_bound_low,
+                                      bound_upper=float_bound_high)
 
     def map(self, input: Dict) -> Dict:
         """
