@@ -7,7 +7,7 @@ import torch
 import random
 import numpy as np
 from auto_disc.utils.logger import AutoDiscLogger
-from auto_disc import ExperimentPipeline
+from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
 from auto_disc.newarch.registration import get_cls_from_path
 import sys
 import argparse
@@ -38,7 +38,7 @@ def create(parameters: Dict, experiment_id: int, seed: int,
     """
 
     _set_seed(seed)
-    save_frequency = parameters['experiment']['save_frequency']
+    save_frequency = parameters['experiment']['config']['save_frequency']
 
     # Get logger
     handlers = []
@@ -52,31 +52,15 @@ def create(parameters: Dict, experiment_id: int, seed: int,
 
     logger = AutoDiscLogger(experiment_id, seed, handlers)
 
-    # Get explorer
-    explorer_class = get_cls_from_path(parameters['explorer']['name'])
-    explorer = explorer_class(**parameters['explorer']['config'])
+    # Get explorer factory and generate explorer
+    explorer_factory_class = get_cls_from_path(parameters['explorer']['name'])
+    explorer_factory = explorer_factory_class(
+        **parameters['explorer']['config'])
+    explorer = explorer_factory()
 
     # Get system
     system_class = get_cls_from_path(parameters['system']['name'])
     system = system_class(**parameters['system']['config'])
-
-    # Get input wrappers
-    input_wrappers = []
-    for _input_wrapper in parameters['input_wrappers']:
-        input_wrapper_class = get_cls_from_path(_input_wrapper['name'])
-        input_wrappers.append(
-            input_wrapper_class(
-                output_space=system.input_space, **_input_wrapper['config'])
-        )
-
-    # Get output representations
-    output_representations = []
-    for _output_representation in parameters['output_representations']:
-        output_representation_class = get_cls_from_path(
-            _output_representation['name'])
-        output_representations.append(
-            output_representation_class(**_output_representation['config'])
-        )
 
     # Get callbacks
     callbacks = {
@@ -97,16 +81,17 @@ def create(parameters: Dict, experiment_id: int, seed: int,
             else:
                 callbacks[callback_key].update(
                     additional_callbacks[callback_key])
-        for _callback in parameters['callbacks'][callback_key]:
+        for _callback in parameters['callbacks'].get(callback_key, []):
             callback_class = get_cls_from_path(_callback['name'])
+            # initialize callbacks with appropriate logger and config
             if callback_key == "interact":
                 callbacks[callback_key].update(
                     {_callback['name']: callback_class(
-                        logger=logger, interactMethod=interactMethod, **_callback['config'])}
+                        interactMethod=interactMethod, **_callback['config'])}
                 )
             else:
                 callbacks[callback_key].append(
-                    callback_class(logger=logger, **_callback['config'])
+                    callback_class(**_callback['config'])
                 )
 
     # Create experiment pipeline
@@ -116,8 +101,6 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         save_frequency=save_frequency,
         system=system,
         explorer=explorer,
-        input_wrappers=input_wrappers,
-        output_representations=output_representations,
         on_discovery_callbacks=callbacks['on_discovery'],
         on_save_finished_callbacks=callbacks['on_save_finished'],
         on_finished_callbacks=callbacks['on_finished'],
@@ -125,7 +108,8 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
         interact_callbacks=callbacks['interact'],
-        logger=logger
+        logger=logger,
+        resource_uri=parameters['experiment']['config']['save_location']
     )
 
     return experiment

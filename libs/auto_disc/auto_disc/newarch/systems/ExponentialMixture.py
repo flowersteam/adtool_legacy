@@ -44,6 +44,7 @@ class ExponentialMixture(Leaf):
         output_binary = io.BytesIO()
         plt.plot(x_tensor, y_tensor)
         plt.savefig(output_binary)
+        plt.clf()
 
         return output_binary.getvalue()
 

@@ -68,6 +68,7 @@ class ExperimentPipeline(Leaf):
                  on_cancelled_callbacks: List[Callable] = [],
                  on_save_callbacks: List[Callable] = [],
                  on_error_callbacks: List[Callable] = [],
+                 interact_callbacks: List[Callable] = [],
                  logger=None,
                  resource_uri: str = ""
                  ) -> None:
@@ -130,7 +131,6 @@ class ExperimentPipeline(Leaf):
         """
         for callback in callbacks:
             callback(
-                pipeline=self,
                 **kwargs
             )
 
@@ -171,13 +171,14 @@ class ExperimentPipeline(Leaf):
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
+                    resource_uri=self.resource_uri,
                     run_idx=self.run_idx,
+                    experiment_id=self.experiment_id,
                     seed=self.seed,
                     run_parameters=discovery[self._explorer.postmap_key],
                     output=discovery[self._explorer.premap_key],
                     raw_output=discovery["raw_" + self._explorer.premap_key],
-                    rendered_output=rendered_output,
-                    experiment_id=self.experiment_id
+                    binaries={"rendered_output": rendered_output}
                 )
 
                 self.logger.info(
@@ -249,10 +250,15 @@ class ExperimentPipeline(Leaf):
             system=self._system,
             explorer=self._explorer,
         )
+
         uid = self.save_leaf(resource_uri=resource_uri)
+
         self._raise_callbacks(
             self._on_save_finished_callbacks,
-            uid=uid
+            uid=uid,
+            report_dir=resource_uri,
+            experiment_id=self.experiment_id,
+            seed=self.seed,
         )
         self.logger.info(
             "[SAVED] - experiment {} with seed {} saved"
