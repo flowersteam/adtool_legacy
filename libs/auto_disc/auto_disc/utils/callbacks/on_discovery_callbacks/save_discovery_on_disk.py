@@ -29,7 +29,7 @@ class SaveDiscoveryOnDisk:
         if not os.path.exists(disc_path):
             os.mkdir(disc_path)
         dir_str = f"{date_str}_exp_{experiment_id}_idx_{run_idx}"
-        dir_path = os.path.join(resource_uri, dir_str)
+        dir_path = os.path.join(disc_path, dir_str)
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
 
