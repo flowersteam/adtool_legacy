@@ -4,10 +4,12 @@ from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.newarch.wrappers.mutators import add_gaussian_noise
 from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from typing import Dict, Tuple, Callable, List
 import torch
 from copy import deepcopy
+from functools import partial
 
 
 @IntegerConfigParameter("equil_time", default=1, min=1)
@@ -17,6 +19,7 @@ from copy import deepcopy
 @DecimalConfigParameter("param_bound_low", default=float('-inf'))
 @DecimalConfigParameter("param_bound_high", default=float('inf'))
 @IntegerConfigParameter("system_output_dim", default=1, min=1)
+@DecimalConfigParameter("mutation_noise_std", default=0., min=0.)
 class IMGEPFactory:
     """
     Factory class providing interface with config parameters and therefore the
@@ -36,6 +39,7 @@ class IMGEPFactory:
         tensor_high = torch.full(size=param_size, fill_value=init_high)
         float_bound_low = self.config["param_bound_low"]
         float_bound_high = self.config["param_bound_high"]
+        mutation_noise_std = self.config["mutation_noise_std"]
 
         equil_time = self.config["equil_time"]
 
@@ -47,9 +51,12 @@ class IMGEPFactory:
             float_bound_low=float_bound_low,
             float_bound_high=float_bound_high
         )
+        mutator = partial(add_gaussian_noise,
+                          std=torch.tensor([mutation_noise_std]))
         explorer = IMGEPExplorer(parameter_map=param_map,
                                  behavior_map=behavior_map,
-                                 equil_time=equil_time)
+                                 equil_time=equil_time,
+                                 mutator=mutator)
         return explorer
 
 

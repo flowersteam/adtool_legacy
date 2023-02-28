@@ -26,15 +26,14 @@ def teardown_function(function):
     return
 
 
-def callback(pipeline, **__kwargs):
-    print(f"Callback was called on pipeline {pipeline} with "
+def callback(**__kwargs):
+    print(f"Callback was called on pipeline with"
           f"kwargs {__kwargs}")
     return
 
 
 def test_dummy_callback(capsys):
-    dummy_pipeline = IdentityWrapper()
-    callback(dummy_pipeline, config=1, metadata=2)
+    callback(config=1, metadata=2)
     captured = capsys.readouterr()
     assert captured.out != ""
 
@@ -87,15 +86,11 @@ def test_run():
     system_output_key = "output"
     logger = AutoDiscLogger(experiment_id, seed, [])
 
+    factory = IMGEPFactory(equil_time=5, param_dim=2,
+                           param_init_low=0., param_init_high=1.,
+                           mutation_noise_std=0.)
+    explorer = factory()
     system = ExponentialMixture(sequence_density=10)
-    mean_map = MeanBehaviorMap(premap_key=system_output_key)
-    param_map = UniformParameterMap(premap_key=system_input_key,
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([1., 1., 1.]))
-    explorer = IMGEPExplorer(premap_key=system_output_key,
-                             postmap_key=system_input_key,
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=5)
     input_pipeline = IdentityWrapper()
     output_pipeline = IdentityWrapper()
 
