@@ -186,14 +186,14 @@ class ExperimentPipeline(Leaf):
                     .format(self.experiment_id, self.seed)
                 )
 
-                self.run_idx += 1
-
                 # avoids divide by zero
                 run_idx_start_from_one = self.run_idx + 1
 
                 if (run_idx_start_from_one % self.save_frequency == 0
                         or run_idx_start_from_one == n_exploration_runs):
                     uid = self.save(resource_uri=self.resource_uri)
+
+                self.run_idx += 1
 
         except Exception as _:
             message = "error in experiment {} self.run_idx {} seed {} = {}".format(

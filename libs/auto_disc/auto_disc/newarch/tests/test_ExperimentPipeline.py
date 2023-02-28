@@ -122,8 +122,7 @@ def test_run():
         seen_params.add(history_buffer[i][system_input_key])
 
     # check exploration phase
-    for i in range(15):
-        i += 5
+    for i in range(5, 20):
         assert history_buffer[i]["equil"] == 0
 
         # for IMGEP without mutator, it is stuck in an orbit
