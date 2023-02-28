@@ -111,7 +111,7 @@ class Leaf:
 
         # recursively pointerize all submodules
         # NOTE: in practice this routine should not be called outside
-        #       of testing
+        #       of testing, as it is already done in .save_leaf()
         old_modules = self._pointerize_submodules()
 
         # pointerize Locator object, turning into a fully qualified import path
@@ -173,18 +173,18 @@ class Leaf:
             else:
                 module_uid = module_obj.save_leaf(resource_uri)
                 uid_dict[module_name] = module_uid
+
+        # replace list of submodules with pointerized list
         old_modules = self._modules
-        for module_name in self._modules.keys():
-            self._modules = uid_dict
+        self._modules = uid_dict
 
         # save this leaf
         bin = self.serialize()
 
-        # override default initialization in Locator if necessary
+        # override default initialization in Locator with arg if necessary
         if resource_uri != '':
             self.locator.resource_uri = resource_uri
         uid = self.locator.store(bin, *args, **kwargs)
-        print(f"Stored {uid}")
 
         # restore old_modules
         self._modules = old_modules
