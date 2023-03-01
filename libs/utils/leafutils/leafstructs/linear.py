@@ -87,6 +87,8 @@ class LinearLocator(Locator):
         """
         try:
             db_name, row_id = uid.split(":")
+            # set parent_id from retrieval
+            self.parent_id = int(row_id)
         # check in case too many strings are returned
         except ValueError:
             raise ValueError("leaf_uid is not properly formatted.")
