@@ -259,6 +259,7 @@ class ExperimentPipeline(Leaf):
             report_dir=resource_uri,
             experiment_id=self.experiment_id,
             seed=self.seed,
+            run_idx=self.run_idx
         )
         self.logger.info(
             "[SAVED] - experiment {} with seed {} saved"

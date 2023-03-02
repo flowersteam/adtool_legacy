@@ -133,3 +133,92 @@ def test_save_SaveDiscoveryOnDisk():
         each_discovery = os.listdir(os.path.join(RESOURCE_URI, dir))
         assert "rendered_output" in each_discovery
         assert "discovery.json" in each_discovery
+
+
+def test_save_resume():
+    config_json["callbacks"] = {
+        "on_save_finished": [{"name":
+                              "utils.callbacks."
+                              "on_save_finished_callbacks."
+                              "generate_report_callback."
+                              "GenerateReport",
+                              "config": {}
+                              }],
+        "on_discovery": [{"name":
+                          "utils.callbacks."
+                          "on_discovery_callbacks."
+                          "save_discovery_on_disk."
+                          "SaveDiscoveryOnDisk",
+                          "config": {}
+                          }]
+    }
+    config_json["explorer"]["config"]["equil_time"] = 3
+    experiment_id = 1
+    seed = 1
+    pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
+    run.start(pipeline, 3)
+
+    files = os.listdir(RESOURCE_URI)
+    reports = []
+
+    for f in files:
+        tf = f.split("_")
+        if (len(tf) > 1) and (tf[-3] == "idx"):
+            reports.append(tf)
+        else:
+            pass
+    # get 2nd experiment
+    for r in reports:
+        if r[4] == "1":
+            uid = r[-1].split(".")[0]
+        elif r[4] == "2":
+            old_root_uid = r[-1].split(".")[0]
+        else:
+            pass
+
+    # resume experiment
+    config_json["experiment"]["config"]["resume_from_uid"] = uid
+    experiment_id = 1
+    seed = 1
+    pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
+    assert pipeline._explorer._history_saver.locator.parent_id == 2
+    assert pipeline.run_idx == 1
+    assert len(pipeline._explorer._history_saver.buffer) == 1
+
+    run.start(pipeline, 3)
+    files = os.listdir(RESOURCE_URI)
+    reports = []
+
+    for f in files:
+        tf = f.split("_")
+        if (len(tf) > 1) and (tf[-3] == "idx"):
+            reports.append(tf)
+        else:
+            pass
+
+    # check both run_idx 2
+    singled = []
+    doubled_1 = []
+    doubled_2 = []
+    for r in reports:
+        if r[4] == "0":
+            singled.append(r[-1].split(".")[0])
+        if r[4] == "1":
+            doubled_1.append(r[-1].split(".")[0])
+        if r[4] == "2":
+            doubled_2.append(r[-1].split(".")[0])
+        else:
+            pass
+    # verifies branches have been created
+    assert len(doubled_1) == 2
+    assert len(doubled_2) == 2
+    assert len(singled) == 1
+
+    # TODO: i manually did this with SQLite 3 but should
+    # also use SQLAlchemy and write a test here for
+    # checking that the tree table is properly updated to
+    #   sqlite> select * from tree;
+    #   1|2
+    #   2|3
+    #   2|4
+    #   4|5

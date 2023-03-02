@@ -213,7 +213,10 @@ class Leaf:
 
         # dereference Locator path and initialize a Locator object
         locator_cls = get_cls_from_path(loaded_obj.locator)
-        loaded_obj._set_attr_override("locator", locator_cls(resource_uri))
+        loaded_obj._set_attr_override("locator", locator_cls())
+        # ensure instance vars are passed
+        # TODO: this could be dangerous hack
+        loaded_obj.locator.__dict__.update(self.locator.__dict__)
 
         # bootstrap full object from metadata if locators don't match
         if not isinstance(loaded_obj.locator, type(self.locator)):

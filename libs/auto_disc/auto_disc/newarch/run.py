@@ -52,6 +52,20 @@ def create(parameters: Dict, experiment_id: int, seed: int,
 
     logger = AutoDiscLogger(experiment_id, seed, handlers)
 
+    # short circuit if "resume_from_uid" is set
+    resume_ckpt = parameters["experiment"]["config"].get("resume_from_uid",
+                                                         None)
+    if (resume_ckpt is not None):
+        resource_uri = parameters['experiment']['config']['save_location']
+        experiment = \
+            ExperimentPipeline().\
+            load_leaf(uid=resume_ckpt,
+                      resource_uri=resource_uri)
+        experiment.logger = logger
+        return experiment
+    else:
+        pass
+
     # Get explorer factory and generate explorer
     explorer_factory_class = get_cls_from_path(parameters['explorer']['name'])
     explorer_factory = explorer_factory_class(

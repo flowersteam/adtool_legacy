@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 import json
 import torch
+from uuid import uuid1
 
 
 class _TorchTensorJSONEncoder(json.JSONEncoder):
@@ -28,7 +29,7 @@ class SaveDiscoveryOnDisk:
         disc_path = os.path.join(resource_uri, "discoveries")
         if not os.path.exists(disc_path):
             os.mkdir(disc_path)
-        dir_str = f"{date_str}_exp_{experiment_id}_idx_{run_idx}"
+        dir_str = f"{date_str}_exp_{experiment_id}_idx_{run_idx}_{str(uuid1())}"
         dir_path = os.path.join(disc_path, dir_str)
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)

@@ -20,16 +20,18 @@ class GenerateReport:
                  uid: LeafUID = LeafUID(""),
                  experiment_id: int = 0,
                  seed: int = 0,
+                 run_idx: int = 0,
                  **kwargs) -> None:
 
         # construct filename
         dt = datetime.now()
         date_str = dt.isoformat(timespec='minutes')
-        filename = f"{date_str}_exp_{experiment_id}_{uid}"
+        filename = f"{date_str}_exp_{experiment_id}_idx_{run_idx}_{uid}"
         file_path = os.path.join(report_dir, f"{filename}.json")
         report = {"uid": uid,
                   "experiment_id": experiment_id,
                   "seed": seed,
+                  "run_idx": run_idx,
                   "metadata": kwargs.get("metadata", None)
                   }
 
