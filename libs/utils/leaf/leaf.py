@@ -1,30 +1,66 @@
-from typing import Union, Tuple, Dict, Any, NewType
-from hashlib import sha1
+from typing import Union, Tuple, Dict, Any, List
 import pickle
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
+from leaf.locators import Locator, StatelessLocator
+from leaf.leafuid import LeafUID
+from leaf.locators import DictLocator, FileLocator
+from leafutils.leafstructs.registration import \
+    get_path_from_cls, get_cls_from_path
 
 
-def get_qualified_class_path(inst):
-    qualified_class_name = inst.__class__.__qualname__
-    module_name = inst.__class__.__module__
-    class_path = module_name + "." + qualified_class_name
-    return class_path
+def prune_state(state_vars: Dict[str, Any]):
+    """
+    Decorator allowing specification of what instance variables of a Leaf
+    to ignore during the serialization call.
+    """
+    def deco(serialize):
+        def inner(self, *args, **kwargs) -> bytes:
 
+            old_vars = {}
 
-LeafUID = NewType("LeafUID", str)
+            # store old variables
+            for name in state_vars.keys():
+                attr_ptr = getattr(self, name, None)
+                old_vars[name] = attr_ptr
+                # clear the namespace
+                delattr(self, name)
+
+            bin = serialize(self, *args, **kwargs)
+
+            # restore variables
+            for (name, attr_ptr) in old_vars.items():
+
+                # if variable was defined, restore it
+                if attr_ptr is not None:
+                    self._set_attr_override(name, attr_ptr)
+                # else, set the default
+                else:
+                    self._set_attr_override(name, state_vars[name])
+
+            return bin
+
+        return inner
+    return deco
 
 
 class Leaf:
 
-    @classmethod
-    def create_locator(cls, resource_uri: str = "", *args, **kwargs) -> 'Locator':
-        raise NotImplementedError()
-
     def __init__(self) -> None:
-        self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
+        self._default_leaf_init()
 
-    def __getattr__(self, name: str) -> Union[object, 'Leaf']:
+    def _default_leaf_init(self) -> None:
+        if getattr(self, "_modules", None) is None:
+            self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
+        if getattr(self, "name", None) is None:
+            self.name: str = ""
+        if getattr(self, "locator", None) is None:
+            self.locator: Locator = StatelessLocator()
+        if getattr(self, "_container_ptr", None) is None:
+            self._container_ptr: Any = None
+        return
+
+    def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
         """ 
         __getattr__ is called as a fallback in case regular 
         attribute name resolution fails, which will happen with modules 
@@ -43,15 +79,11 @@ class Leaf:
         # fallback
         raise AttributeError("Could not get attribute.")
 
-    def __setattr__(self, name: str, value: Union[object, 'Leaf']) -> None:
+    def __setattr__(self, name: str, value: Union[Any, 'Leaf']) -> None:
 
         if isinstance(value, Leaf):
 
-            # set leaf in module dict
-            self._modules[name] = value
-
-            # store pointer to parent container
-            value._set_attr_override("_container_ptr", self)
+            self._bind_submodule_to_self(name, value)
 
         else:
 
@@ -70,6 +102,174 @@ class Leaf:
         else:
             super().__delattr__(name)
 
+    @prune_state(state_vars={"_container_ptr": None})
+    def serialize(self) -> bytes:
+        """ 
+        Serializes object to pickle, 
+        turning all submodules into uniquely identifiable hashes 
+        """
+
+        # recursively pointerize all submodules
+        # NOTE: in practice this routine should not be called outside
+        #       of testing, as it is already done in .save_leaf()
+        old_modules = self._pointerize_submodules()
+
+        # pointerize Locator object, turning into a fully qualified import path
+        old_locator = self.locator
+        if not isinstance(self.locator, str):
+            cls_path = get_path_from_cls(self.locator.__class__)
+            self._set_attr_override("locator", cls_path)
+
+        bin = pickle.dumps(self)
+
+        # restore modules
+        self._set_attr_override("_modules", old_modules)
+
+        # restore Locator
+        self._set_attr_override("locator", old_locator)
+
+        return bin
+
+    def _pointerize_submodules(self) -> Dict[str, LeafUID]:
+        """
+        This should not be called outside of testing
+        """
+        old_modules = self._modules
+        modules_by_ref = {}
+        for (k, v) in old_modules.items():
+            if isinstance(v, str):
+                modules_by_ref[k] = v
+            elif isinstance(v, Leaf):
+                modules_by_ref[k] = v._get_uid_base_case()
+        self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
+        return old_modules
+
+    def deserialize(self, bin: bytes) -> 'Leaf':
+        """ 
+        Restores object from pickle, without recursively deserializing
+        any submodules.
+        """
+        container_leaf = pickle.loads(bin)
+        # reinitialize to default non-set variables
+        container_leaf._default_leaf_init()
+
+        return container_leaf
+
+    def save_leaf(self, resource_uri: str = "", *args, **kwargs) -> 'LeafUID':
+        """
+        Save entire structure of object. The suggested way to customize 
+        behavior is overloading serialize() and create_locator() 
+        """
+        # check stateless
+        if isinstance(self.locator, StatelessLocator):
+            return LeafUID('')
+
+        # recursively save contained leaves
+        uid_dict = {}
+        for (module_name, module_obj) in self._modules.items():
+            if isinstance(module_obj, str):
+                raise ValueError(
+                    "The modules are corrupted and are not of type Leaf.")
+            else:
+                module_uid = module_obj.save_leaf(resource_uri)
+                uid_dict[module_name] = module_uid
+
+        # replace list of submodules with pointerized list
+        old_modules = self._modules
+        self._modules = uid_dict
+
+        # save this leaf
+        bin = self.serialize()
+
+        # override default initialization in Locator with arg if necessary
+        if resource_uri != '':
+            self.locator.resource_uri = resource_uri
+        uid = self.locator.store(bin, *args, **kwargs)
+
+        # restore old_modules
+        self._modules = old_modules
+
+        return uid
+
+    def load_leaf(self, uid: 'LeafUID', resource_uri: str = '') -> 'Leaf':
+        """ Load entire structure of object, not mutating self """
+        # check stateless
+        if isinstance(self.locator, StatelessLocator):
+            return self
+
+        # override default initialization in Locator
+        if resource_uri != '':
+            self.locator.resource_uri = resource_uri
+
+        bin = self.locator.retrieve(uid)
+        loaded_obj = self.deserialize(bin)
+
+        # dereference Locator path and initialize a Locator object
+        locator_cls = get_cls_from_path(loaded_obj.locator)
+        loaded_obj._set_attr_override("locator", locator_cls(resource_uri))
+
+        # bootstrap full object from metadata if locators don't match
+        if not isinstance(loaded_obj.locator, type(self.locator)):
+            # ensure resource_uri consistency
+            loaded_obj.locator.resource_uri = self.locator.resource_uri
+            loaded_obj = loaded_obj.load_leaf(uid, resource_uri)
+
+        # recursively deserialize submodules by pointer indirection
+        self._load_leaf_submodules_recursively(loaded_obj, resource_uri)
+
+        return loaded_obj
+
+    def _load_leaf_submodules_recursively(self,
+                                          container_leaf: 'Leaf',
+                                          resource_uri: str):
+        """
+        Dereference submodule unique IDs to their respective objects. 
+        Note that it is impossible to load a contained module and access 
+        the data of its container, due to the direction of recursion.
+
+        TODO: This will break in theory if separate deserialization is needed
+        for different classes.
+        """
+        modules = {}
+        for (submodule_str, submodule_ref) in container_leaf._modules.items():
+            if isinstance(submodule_ref, str):
+                # dereference submodule pointed by submodule_ref
+                submodule = self.load_leaf(submodule_ref, resource_uri)
+                modules[submodule_str] = submodule
+                # set submodule pointers to container
+                submodule._set_attr_override("_container_ptr", container_leaf)
+            else:
+                continue
+        container_leaf._set_attr_override("_modules", modules)
+        return
+
+    def _bind_submodule_to_self(self,
+                                submodule_name: str,
+                                submodule: 'Leaf') -> None:
+        """
+        Sets pointers and default locator initialization of declared submodules
+        """
+        # set leaf in module dict, and in subleaf instance variable
+        self._modules[submodule_name] = submodule
+        submodule.name = submodule_name
+
+        # store pointer to parent container
+        submodule._set_attr_override("_container_ptr", self)
+
+        # default initialization of locator resource_uri
+        if isinstance(submodule.locator, StatelessLocator) \
+                and submodule.locator.resource_uri == "":
+            parent_locator_class = submodule._retrieve_parent_locator_class()
+            submodule.locator = parent_locator_class(self.locator.resource_uri)
+
+        return
+
+    def _retrieve_parent_locator_class(self) -> type:
+        module = self
+        while getattr(module, "_container_ptr", None) is not None:
+            module = module._container_ptr
+        return module.locator.__class__
+
     def _get_uid_base_case(self) -> 'LeafUID':
         """
         Retrieves the UID of the Leaf, which depends on the Locator,
@@ -78,127 +278,6 @@ class Leaf:
 
         # NOTE: This function is non-recursive, as .serialize() is recursive
         bin = self.serialize()
-        loc = self.create_locator()
-        uid = loc.hash(bin)
+        uid = self.locator.hash(bin)
 
         return uid
-
-    def serialize(self) -> bytes:
-        """ Serializes object to pickle, turning all submodules into uniquely identifiable hashes """
-        # recursively pointerize all submodules
-        old_modules = self._modules
-        modules_by_ref = {}
-        for (k, v) in old_modules.items():
-            if isinstance(v, str):
-                modules_by_ref[k] = v
-            elif isinstance(v, Leaf):
-                modules_by_ref[k] = v._get_uid_base_case()
-
-        self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
-
-        # strip all _container_ptr references,
-        # which is necessary to prevent endless recursion
-        old_container_ptr = getattr(self, "_container_ptr", None)
-        if old_container_ptr is not None:
-            del self._container_ptr
-
-        bin = pickle.dumps(self)
-
-        # restore submodules and _container_ptr
-        self._set_attr_override("_modules", old_modules)
-        if old_container_ptr is not None:
-            self._set_attr_override("_container_ptr", old_container_ptr)
-        return bin
-
-    def deserialize(self, bin: bytes, resource_uri: str = "") -> 'Leaf':
-        """ 
-        Restores object from pickle, 
-        dereferencing module unique IDs to their 
-        respective objects. Note that it is impossible to
-        load a contained module and access the data of its
-        container.
-        """
-        container_leaf = pickle.loads(bin)
-
-        # recursively deserialize submodules by pointer indirection
-        modules = {}
-        for (submodule_str, submodule_ref) in container_leaf._modules.items():
-
-            # dereference submodule pointed by submodule_ref
-            submodule = self.load_leaf(submodule_ref, resource_uri)
-            modules[submodule_str] = submodule
-
-            # set submodule pointers to container
-            submodule._set_attr_override("_container_ptr", container_leaf)
-
-        container_leaf._set_attr_override("_modules", modules)
-
-        return container_leaf
-
-    def save_leaf(self, resource_uri: str, *args, **kwargs) -> 'LeafUID':
-        """ Save entire structure of object. The suggested way to customize behavior is overloading serialize() and create_locator() """
-        # recursively save contained leaves
-        for m in self._modules.values():
-            if isinstance(m, str):
-                raise ValueError(
-                    "The modules are corrupted and are not of type Leaf.")
-            else:
-                m.save_leaf(resource_uri)
-
-        # save this leaf
-        bin = self.serialize(*args, **kwargs)
-        loc = self.create_locator(resource_uri, *args, **kwargs)
-        uid = loc.store(bin)
-
-        return uid
-
-    def load_leaf(self, uid: 'LeafUID', resource_uri: str = "") -> 'Leaf':
-        """ Load entire structure of object, not mutating self """
-
-        # TODO: this doesn't work(?) if we dynamically overload
-        # the locator related methods in a leaf
-        # or if necessary metadata is in the instance variables
-        # instead of the class variables
-
-        # TODO: perhaps think about the asymmetry of the
-        # recursive save/load between this pair and
-        # the serialize/deserialize pair
-
-        locator = self.create_locator(resource_uri)
-
-        # TODO: load locator dependencies along with the leaf dependencies.
-        # ATTENTION: This should happen automatically if they are within the
-        # same module namespace but perhaps needs to do more work otherwise.
-
-        bin = locator.retrieve(uid)
-        loaded_obj = self.deserialize(bin, resource_uri)
-
-        return loaded_obj
-
-
-class Locator:
-    def __init__(self,  *args, **kwargs):
-        """ 
-        Store all stateful information, given in the bin argument, 
-        needed to locate the resource in instance variables
-        """
-        raise NotImplementedError
-
-    def store(self, bin: bytes) -> 'LeafUID':
-        """ 
-        Stores bin which generated it somewhere, perhaps on network,
-        and returns (redundantly) the hash for the object.
-        """
-        raise NotImplementedError
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        """ 
-        Retrieve bin identified by uid from somewhere, 
-        perhaps on network 
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def hash(bin: bytes) -> 'LeafUID':
-        """ Hashes the bin to give Leaf a uid"""
-        return LeafUID(sha1(bin).hexdigest())

@@ -1,4 +1,5 @@
 from leaf.leaf import *
+from leaf.locators import *
 from hashlib import sha1
 import os
 from shutil import rmtree
