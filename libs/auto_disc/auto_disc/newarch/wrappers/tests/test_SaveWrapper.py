@@ -82,7 +82,7 @@ def test_serialize():
     bin = wrapper.serialize()
 
     linear = LinearLocator()
-    _, data_bin = linear._parse_bin(bin)
+    _, data_bin = LinearLocator.parse_bin(bin)
     a = Stepper().deserialize(data_bin)
     assert a.buffer == wrapper.buffer
 
@@ -162,6 +162,8 @@ def test_saveload_whole_history():
             output = wrapper.map(output)
 
         leaf_uid = wrapper.save_leaf(RESOURCE_URI)
+    # this creates two checkpoints, one with len(buf) == 2 and one with
+    # len(buf) == 3
 
     # try retrieval of entire sequence
     new_wrapper = SaveWrapper()

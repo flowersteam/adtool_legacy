@@ -9,6 +9,142 @@ import pickle
 import os
 
 
+def store_metadata(subdir: str, data_bin: bytes) -> None:
+    loaded_obj = pickle.loads(data_bin)
+    del loaded_obj.buffer
+    metadata_bin = pickle.dumps(loaded_obj)
+    with open(os.path.join(subdir, "metadata"), "wb") as f:
+        f.write(metadata_bin)
+    return
+
+
+def store_data(subdir: str,
+               data_bin: bytes,
+               parent_id: int
+               ) -> str:
+    """
+    Store the unpadded binary data (i.e., without tag).
+    """
+    db_url = os.path.join(subdir, "lineardb")
+    # initializes db if it does not exist
+    init_db(db_url)
+
+    with EngineContext(db_url) as engine:
+        # insert node
+        delta = convert_bytes_to_base64_str(data_bin)
+        row_id = insert_node(engine, delta, parent_id)
+
+    return row_id
+
+
+def init_db(db_url: str) -> None:
+    create_traj_statement = \
+        '''
+    CREATE TABLE trajectories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        content BLOB NOT NULL
+        );
+        '''
+    create_tree_statement = \
+        '''
+    CREATE TABLE tree (
+        id INTEGER NOT NULL REFERENCES trajectories(id),
+        child_id INTEGER REFERENCES trajectories(id)
+        );
+        '''
+    if os.path.exists(db_url):
+        return
+    else:
+        with EngineContext(db_url) as engine:
+            with engine.begin() as con:
+                con.execute(text(create_traj_statement))
+                con.execute(text(create_tree_statement))
+        return
+
+
+def convert_bytes_to_base64_str(bin: bytes) -> str:
+    tmp = codecs.encode(bin, encoding="base64").decode()
+    # prune newline
+    if tmp[-1] == '\n':
+        out_str = tmp[:-1]
+    return out_str
+
+
+def convert_base64_str_to_bytes(b64_str: str) -> bytes:
+    return codecs.decode(b64_str.encode(), encoding="base64")
+
+
+def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
+    with engine.begin() as conn:
+        conn.execute(
+            text("INSERT INTO trajectories (content) VALUES (:z)"),
+            {"z": delta})
+
+        # SQLite exclusive function call to get ID of just inserted row
+        res = conn.execute(text("SELECT last_insert_rowid()"))
+        id = res.all()[0][0]
+
+        if parent_id != -1:
+            conn.execute(
+                text("INSERT INTO tree (id, child_id) VALUES (:y, :z)"),
+                {"y": parent_id, "z": id})
+    return id
+
+
+def retrieve_trajectory(db_url: str, length: int = 1, row_id: int = 1):
+    with EngineContext(db_url) as engine:
+        _, trajectory, _ = _get_trajectory_raw(engine, row_id, length)
+
+        buffer_concat = []
+        for binary in trajectory:
+            loaded_obj = Stepper().deserialize(binary)
+            buffer_concat += loaded_obj.buffer
+        loaded_obj.buffer = buffer_concat
+        bin = pickle.dumps(loaded_obj)
+    return bin
+
+
+def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
+                        ) -> Tuple[List[int], List[bytes], List[int]]:
+    """
+    Retrieves trajectory which has HEAD at id and returns the last 
+    trajectory_length elements
+    """
+    query = \
+        '''
+        WITH tree_inheritance AS (
+            WITH RECURSIVE cte (id, child_id, depth) AS (
+                SELECT :z, NULL, 0
+                UNION ALL
+                SELECT id, child_id, 1
+                    FROM tree WHERE tree.child_id = :z
+                UNION
+                SELECT y.id, y.child_id, depth + 1
+                    FROM cte AS x INNER JOIN tree AS y ON y.child_id = x.id
+                )
+            SELECT * from cte
+        )
+        SELECT x.id, y.content, x.depth
+            FROM
+                tree_inheritance AS x INNER JOIN trajectories AS y
+                    ON x.id = y.id
+            ORDER BY depth DESC
+        '''
+    with engine.connect() as conn:
+        result = conn.execute(text(query), {"z": id})
+        # persist the result into Python list
+        result = result.all()
+
+        ids: List[int] = [w for (w, _, _) in result]
+        trajectory = [convert_base64_str_to_bytes(
+            w) for (_, w, _) in result]
+        depths: List[int] = [w for (_, _, w) in result]
+
+    return ids[-trajectory_length:], \
+        trajectory[-trajectory_length:], \
+        depths[-trajectory_length:]
+
+
 class Stepper(Leaf):
     def __init__(self):
         super().__init__()
@@ -48,8 +184,11 @@ class LinearLocator(Locator):
                               SQLite unique key corresponding
                               to the inserted node
         """
+        # default setting if not set at function call
+        if (self.parent_id != -1) and (parent_id == -1):
+            parent_id = self.parent_id
 
-        db_name, data_bin = self._parse_bin(bin)
+        db_name, data_bin = self.parse_bin(bin)
 
         # create subfolder if not exist
         subdir = os.path.join(self.resource_uri, db_name)
@@ -57,21 +196,23 @@ class LinearLocator(Locator):
             os.mkdir(subdir)
 
         # store metadata binary
-        loaded_obj = pickle.loads(data_bin)
-        del loaded_obj.buffer
-        metadata_bin = pickle.dumps(loaded_obj)
-        with open(os.path.join(subdir, "metadata"), "wb") as f:
-            f.write(metadata_bin)
+        # TODO: this is redundant if the subfolder already exists,
+        #       as db_name uniquely corresponds to this part of the data
+        store_metadata(subdir=subdir, data_bin=data_bin)
 
         # store data binary
-        row_id = self._store_data(data_bin, parent_id, db_name)
+        row_id = store_data(subdir=subdir,
+                            data_bin=data_bin,
+                            parent_id=parent_id)
+        # update parent_uid in instance
+        self.parent_id = int(row_id)
 
         # store leaf_uids in filesystem
         leaf_path = os.path.join(subdir, str(row_id))
         open(leaf_path, "a").close()  # touch empty file
 
         # return leaf_uid
-        leaf_uid = db_name + ":" + row_id
+        leaf_uid = db_name + ":" + str(row_id)
 
         return leaf_uid
 
@@ -94,152 +235,23 @@ class LinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        with EngineContext(db_url) as engine:
-            _, trajectory, _ = self._get_trajectory(engine, row_id, length)
-
-            buffer_concat = []
-            for binary in trajectory:
-                loaded_obj = Stepper().deserialize(binary)
-                buffer_concat += loaded_obj.buffer
-            loaded_obj.buffer = buffer_concat
-            # directly call pickle to avoid unnecessary pointerization
-            bin = pickle.dumps(loaded_obj)
+        bin = retrieve_trajectory(db_url=db_url, length=length, row_id=row_id)
 
         return bin
-
-    def _store_data(self,
-                    data_bin: bytes,
-                    parent_id: int,
-                    db_name: str) -> str:
-        """
-        Store the unpadded binary data (i.e., without tag).
-        """
-
-        db_url = self._db_name_to_db_url(db_name)
-        # initializes db if it does not exist
-        self._init_db(db_url)
-
-        with EngineContext(db_url) as engine:
-            # default setting if not set at function call
-            if parent_id == -1:
-                parent_id = self.parent_id
-
-            # insert node
-            delta = self._convert_bytes_to_base64_str(data_bin)
-            row_id = self._insert_node(engine, delta, parent_id)
-
-        # update parent_uid in cache
-        self.parent_id = row_id
-        return str(row_id)
 
     def _db_name_to_db_url(self, db_name: str) -> str:
         db_url = os.path.join(self.resource_uri, db_name, "lineardb")
         return db_url
 
-    @staticmethod
-    def _init_db(db_url: str) -> None:
-        create_traj_statement = \
-            '''
-        CREATE TABLE trajectories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            content BLOB NOT NULL
-            );
-            '''
-        create_tree_statement = \
-            '''
-        CREATE TABLE tree (
-            id INTEGER NOT NULL REFERENCES trajectories(id),
-            child_id INTEGER REFERENCES trajectories(id)
-            );
-            '''
-        if os.path.exists(db_url):
-            return
-        else:
-            with EngineContext(db_url) as engine:
-                with engine.begin() as con:
-                    con.execute(text(create_traj_statement))
-                    con.execute(text(create_tree_statement))
-            return
-
-    @staticmethod
-    def _convert_bytes_to_base64_str(bin: bytes) -> str:
-        tmp = codecs.encode(bin, encoding="base64").decode()
-        # prune newline
-        if tmp[-1] == '\n':
-            out_str = tmp[:-1]
-        return out_str
-
-    @staticmethod
-    def _convert_base64_str_to_bytes(b64_str: str) -> bytes:
-        return codecs.decode(b64_str.encode(), encoding="base64")
-
-    @staticmethod
-    def _insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
-        with engine.begin() as conn:
-            conn.execute(
-                text("INSERT INTO trajectories (content) VALUES (:z)"),
-                {"z": delta})
-
-            # SQLite exclusive function call to get ID of just inserted row
-            res = conn.execute(text("SELECT last_insert_rowid()"))
-            id = res.all()[0][0]
-
-            if parent_id != -1:
-                conn.execute(
-                    text("INSERT INTO tree (id, child_id) VALUES (:y, :z)"),
-                    {"y": parent_id, "z": id})
-        return id
-
-    @staticmethod
-    def _get_trajectory(engine, id: int, trajectory_length: int = 1
-                        ) -> Tuple[List[int], List[bytes], List[int]]:
-        """
-        Retrieves trajectory which has HEAD at id and returns the last 
-        trajectory_length elements
-        """
-        query = \
-            '''
-            WITH tree_inheritance AS (
-                WITH RECURSIVE cte (id, child_id, depth) AS (
-                    SELECT :z, NULL, 0
-                    UNION ALL
-                    SELECT id, child_id, 1
-                        FROM tree WHERE tree.child_id = :z
-                    UNION
-                    SELECT y.id, y.child_id, depth + 1
-                        FROM cte AS x INNER JOIN tree AS y ON y.child_id = x.id
-                    )
-                SELECT * from cte
-            )
-            SELECT x.id, y.content, x.depth
-                FROM
-                    tree_inheritance AS x INNER JOIN trajectories AS y
-                        ON x.id = y.id
-                ORDER BY depth DESC
-            '''
-        with engine.connect() as conn:
-            result = conn.execute(text(query), {"z": id})
-            # persist the result into Python list
-            result = result.all()
-
-            ids: List[int] = [w for (w, _, _) in result]
-            trajectory = [LinearLocator._convert_base64_str_to_bytes(
-                w) for (_, w, _) in result]
-            depths: List[int] = [w for (_, _, w) in result]
-
-        return ids[-trajectory_length:], \
-            trajectory[-trajectory_length:], \
-            depths[-trajectory_length:]
-
     @classmethod
-    def _parse_bin(cls, bin: bytes) -> Tuple[str, bytes]:
+    def parse_bin(cls, bin: bytes) -> Tuple[str, bytes]:
         if bin[20:24] != bytes.fromhex("deadbeef"):
             raise ValueError("Parsed bin is corrupted.")
         else:
             return bin[0:20].hex(), bin[24:]
 
     @classmethod
-    def _parse_leaf_uid(cls, uid: LeafUID) -> Tuple[str, int]:
+    def parse_leaf_uid(cls, uid: LeafUID) -> Tuple[str, int]:
         db_name, node_id = uid.split(":")
         return db_name, int(node_id)
 
