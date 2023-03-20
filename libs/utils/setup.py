@@ -9,6 +9,7 @@ setup(
     name='flowers-utils',
     py_modules=['leaf', 'depinj', 'leafutils'],
     version="1.0",
+    install_requires=["sqlalchemy==2.0.3"],
     description="utils for flowers",
     author="Flowers Team Inria",
 )
