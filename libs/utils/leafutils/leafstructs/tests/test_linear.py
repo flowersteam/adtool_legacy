@@ -16,7 +16,7 @@ def setup_function(function):
     SCRIPT_PATH = str(pathlib.Path(__file__).parent.resolve())
     FILE_PATH = os.path.join(SCRIPT_PATH, "tmp")
     os.mkdir(FILE_PATH)
-    DB_NAME = '4f700578d4ee31c037562ff8ae00d4863b71c163'
+    DB_NAME = '883da42e65e51a5cc8aa037908d4238c604ebc3a'
     os.mkdir(os.path.join(FILE_PATH, DB_NAME))
     DB_REL_PATH = f"/{DB_NAME}/lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
@@ -157,12 +157,57 @@ def test_LinearLocator_store():
 def test_LinearLocator_retrieve():
     x = LinearLocator(FILE_PATH)
     x._init_db(DB_PATH)
-    generate_fake_data(DB_PATH)
+    padded_bin, data_bin = generate_mock_binary()
+    retrieval_key = x.store(padded_bin, -1)
+    retrieval_key = x.store(padded_bin, 1)
+    assert x.parent_id == 2
 
     # mock storage of sequence
-    retrieval_key = DB_NAME + ":7"
+    mock_retrieval_key = DB_NAME + ":2"
+    assert retrieval_key == mock_retrieval_key  # SQLite indexed starting at 1
+
+    x = LinearLocator(FILE_PATH)
+    assert x.parent_id == -1
 
     bin = x.retrieve(retrieval_key, 0)
-    tmp_stepper = Stepper()
-    stepper = tmp_stepper.deserialize(bin)
-    assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(8)]
+    assert x.parent_id == 2
+    loaded_obj = Stepper().deserialize(bin)
+
+    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
+                                 bytes(1), bytes(2), bytes(4), bytes(9)]
+
+
+def test_LinearLocator_branching():
+    x = LinearLocator(FILE_PATH)
+    x._init_db(DB_PATH)
+    padded_bin, data_bin = generate_mock_binary()
+    retrieval_key = x.store(padded_bin, -1)
+    init_retrieval_key = retrieval_key
+    retrieval_key = x.store(padded_bin, 1)
+    origin_retrieval_key = retrieval_key
+
+    mock_retrieval_key = DB_NAME + ":1"
+    assert init_retrieval_key == mock_retrieval_key  # SQLite indexed starting at 1
+
+    # retrieve original
+    x = LinearLocator(FILE_PATH)
+    bin = x.retrieve(mock_retrieval_key, 0)
+    loaded_obj = Stepper().deserialize(bin)
+    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
+
+    # branch
+    new_retrieval_key = x.store(padded_bin)
+    assert int(new_retrieval_key.split(":")[-1]) == 3
+    assert new_retrieval_key != origin_retrieval_key
+
+    x = LinearLocator(FILE_PATH)
+    bin = x.retrieve(new_retrieval_key, 0)
+    loaded_obj = Stepper().deserialize(bin)
+    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
+                                 bytes(1), bytes(2), bytes(4), bytes(9)]
+
+    x = LinearLocator(FILE_PATH)
+    bin = x.retrieve(origin_retrieval_key, 0)
+    loaded_obj = Stepper().deserialize(bin)
+    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
+                                 bytes(1), bytes(2), bytes(4), bytes(9)]
