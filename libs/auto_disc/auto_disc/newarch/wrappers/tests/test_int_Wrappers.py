@@ -75,7 +75,7 @@ def test___init__():
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
                 TransformWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"]),
+                    premap_keys=["data"], postmap_keys=["output"]),
                 SaveWrapper()]
     pipeline = FakeExperimentPipeline(wrappers, save_db_url=FILE_PATH)
     assert isinstance(pipeline._modules["input_wrappers"], WrapperPipeline)
@@ -92,7 +92,7 @@ def test_input_transformation():
     wrappers = [SaveWrapper(),
                 IncrementerWrapper(),
                 TransformWrapper(
-                    wrapped_keys=["data"], posttransform_keys=["output"]),
+                    premap_keys=["data"], postmap_keys=["output"]),
                 SaveWrapper()]
     pipeline = FakeExperimentPipeline(wrappers)
     output = pipeline.input_transformation(input)
@@ -102,11 +102,11 @@ def test_input_transformation():
 def test_saveload():
     input = {"data": 1}
     wrappers = [TransformWrapper(
-        wrapped_keys=["output"], posttransform_keys=["data"]),
+        premap_keys=["output"], postmap_keys=["data"]),
         SaveWrapper(),
         IncrementerWrapper(),
         TransformWrapper(
-        wrapped_keys=["data"], posttransform_keys=["output"]),
+        premap_keys=["data"], postmap_keys=["output"]),
         SaveWrapper()]
     pipeline = FakeExperimentPipeline(
         wrappers, save_db_url=FILE_PATH, locator=FileLocator(FILE_PATH))
@@ -124,8 +124,8 @@ def test_saveload():
         locator=FileLocator(FILE_PATH)
     )
     new_pipeline = new_pipeline.load_leaf(pipeline_uid, FILE_PATH)
-    assert new_pipeline.input_wrappers.wrappers[3].wrapped_keys == ["data"]
-    assert new_pipeline.input_wrappers.wrappers[3].posttransform_keys == [
+    assert new_pipeline.input_wrappers.wrappers[3].premap_keys == ["data"]
+    assert new_pipeline.input_wrappers.wrappers[3].postmap_keys == [
         "output"]
     assert new_pipeline.input_wrappers.wrappers[1].buffer == [
         {"data": 1}, {"data": 2}]

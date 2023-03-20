@@ -24,7 +24,8 @@ def prune_state(state_vars: Dict[str, Any]):
                 attr_ptr = getattr(self, name, None)
                 old_vars[name] = attr_ptr
                 # clear the namespace
-                delattr(self, name)
+                if attr_ptr is not None:
+                    delattr(self, name)
 
             bin = serialize(self, *args, **kwargs)
 
@@ -45,6 +46,8 @@ def prune_state(state_vars: Dict[str, Any]):
 
 
 class Leaf:
+
+    CONFIG_DEFINITION = {}
 
     def __init__(self) -> None:
         self._default_leaf_init()
@@ -102,7 +105,7 @@ class Leaf:
         else:
             super().__delattr__(name)
 
-    @prune_state(state_vars={"_container_ptr": None})
+    @prune_state(state_vars={"_container_ptr": None, "logger": None})
     def serialize(self) -> bytes:
         """ 
         Serializes object to pickle, 
@@ -191,7 +194,11 @@ class Leaf:
 
         return uid
 
-    def load_leaf(self, uid: 'LeafUID', resource_uri: str = '') -> 'Leaf':
+    def load_leaf(self,
+                  uid: 'LeafUID',
+                  resource_uri: str = '',
+                  *args,
+                  **kwargs) -> 'Leaf':
         """ Load entire structure of object, not mutating self """
         # check stateless
         if isinstance(self.locator, StatelessLocator):
@@ -201,12 +208,15 @@ class Leaf:
         if resource_uri != '':
             self.locator.resource_uri = resource_uri
 
-        bin = self.locator.retrieve(uid)
+        bin = self.locator.retrieve(uid, *args, **kwargs)
         loaded_obj = self.deserialize(bin)
 
         # dereference Locator path and initialize a Locator object
         locator_cls = get_cls_from_path(loaded_obj.locator)
-        loaded_obj._set_attr_override("locator", locator_cls(resource_uri))
+        loaded_obj._set_attr_override("locator", locator_cls())
+        # ensure instance vars are passed
+        # TODO: this could be dangerous hack
+        loaded_obj.locator.__dict__.update(self.locator.__dict__)
 
         # bootstrap full object from metadata if locators don't match
         if not isinstance(loaded_obj.locator, type(self.locator)):

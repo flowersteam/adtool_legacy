@@ -10,21 +10,21 @@ import shutil
 
 
 class TestWrapper(Leaf):
-    def __init__(self, wrapped_key: str = "in", offset: int = 1) -> None:
+    def __init__(self, premap_key: str = "in", offset: int = 1) -> None:
         super().__init__()
-        self.wrapped_key = wrapped_key
+        self.premap_key = premap_key
         self.offset = offset
 
     def map(self, input: Dict) -> Dict:
         output = deepcopy(input)
-        output[self.wrapped_key] += self.offset
+        output[self.premap_key] += self.offset
         return output
 
 
 def test___init__():
     input = {"in": 1}
-    a = TestWrapper(offset=1, wrapped_key="in")
-    b = TestWrapper(offset=2, wrapped_key="in")
+    a = TestWrapper(offset=1, premap_key="in")
+    b = TestWrapper(offset=2, premap_key="in")
     wrapper_list = [a, b]
     all_wrappers = WrapperPipeline(wrappers=wrapper_list)
     assert all_wrappers.map(input) == b.map(a.map(input))
@@ -37,8 +37,8 @@ def test___init__():
 def test___init__mutually_exclusive():
     storage_db = {}
     input = {"in": 1}
-    a = TestWrapper(offset=1, wrapped_key="in")
-    b = TestWrapper(offset=2, wrapped_key="in")
+    a = TestWrapper(offset=1, premap_key="in")
+    b = TestWrapper(offset=2, premap_key="in")
     wrapper_list = [a, b]
     with pytest.raises(ValueError):
         all_wrappers = WrapperPipeline(wrappers=wrapper_list,
@@ -49,8 +49,8 @@ def test___init__mutually_exclusive():
 def test___init__pass_locator():
     storage_db = {}
     input = {"in": 1}
-    a = TestWrapper(offset=1, wrapped_key="in")
-    b = TestWrapper(offset=2, wrapped_key="in")
+    a = TestWrapper(offset=1, premap_key="in")
+    b = TestWrapper(offset=2, premap_key="in")
     wrapper_list = [a, b]
     all_wrappers = WrapperPipeline(wrappers=wrapper_list,
                                    locator=DummyLocator(storage_db))
@@ -64,8 +64,8 @@ def test___init__pass_locator():
 
 def test___init__pass_uri():
     input = {"in": 1}
-    a = TestWrapper(offset=1, wrapped_key="in")
-    b = TestWrapper(offset=2, wrapped_key="in")
+    a = TestWrapper(offset=1, premap_key="in")
+    b = TestWrapper(offset=2, premap_key="in")
     a.locator = DummyLocator("")
     b.locator = DummyLocator("")
     wrapper_list = [a, b]
@@ -83,8 +83,8 @@ def test_saveload():
     try:
         storage_db = {}
         input = {"in": 1}
-        a = TestWrapper(offset=1, wrapped_key="in")
-        b = TestWrapper(offset=2, wrapped_key="in")
+        a = TestWrapper(offset=1, premap_key="in")
+        b = TestWrapper(offset=2, premap_key="in")
         wrapper_list = [a, b]
         all_wrappers = WrapperPipeline(wrappers=wrapper_list,
                                        locator=DummyLocator(storage_db))
@@ -98,8 +98,8 @@ def test_saveload():
         for i in range(2):
             assert all_wrappers.wrappers[i].offset \
                 == loaded_wrappers.wrappers[i].offset
-            assert all_wrappers.wrappers[i].wrapped_key \
-                == loaded_wrappers.wrappers[i].wrapped_key
+            assert all_wrappers.wrappers[i].premap_key \
+                == loaded_wrappers.wrappers[i].premap_key
     finally:
         file_dir = str(pathlib.Path(__file__).parent.resolve())
         created_hash = "1921722fc520984398166966f5e4fad458c3e411"
@@ -115,7 +115,7 @@ def test_saveload_linear():
         os.mkdir(file_path)
 
         input = {"in": 1}
-        a = TestWrapper(offset=1, wrapped_key="in")
+        a = TestWrapper(offset=1, premap_key="in")
         b = SaveWrapper()
         wrapper_list = [a, b]
         all_wrappers = WrapperPipeline(wrappers=wrapper_list,
@@ -134,8 +134,8 @@ def test_saveload_linear():
         for i in range(1):
             assert all_wrappers.wrappers[i].offset \
                 == loaded_wrappers.wrappers[i].offset
-            assert all_wrappers.wrappers[i].wrapped_key \
-                == loaded_wrappers.wrappers[i].wrapped_key
+            assert all_wrappers.wrappers[i].premap_key \
+                == loaded_wrappers.wrappers[i].premap_key
 
     finally:
         if os.path.exists(file_path):

@@ -12,21 +12,21 @@ class SaveWrapper(TransformWrapper):
     Usage example:
         ```
             input = {"in" : 1}
-            # default setting saves all specified `wrapped_keys`
-            wrapper = SaveWrapper(wrapped_keys = ["in"], 
-                                  posttransform_keys = ["out"])
+            # default setting saves all specified `premap_keys`
+            wrapper = SaveWrapper(premap_keys = ["in"], 
+                                  postmap_keys = ["out"])
             output = wrapper.map(input)
             assert output["out"] == 1
         ```
     """
 
     def __init__(self,
-                 wrapped_keys: List[str] = [],
-                 posttransform_keys: List[str] = [],
+                 premap_keys: List[str] = [],
+                 postmap_keys: List[str] = [],
                  inputs_to_save: List[str] = [],
                  ) -> None:
-        super().__init__(wrapped_keys=wrapped_keys,
-                         posttransform_keys=posttransform_keys)
+        super().__init__(premap_keys=premap_keys,
+                         postmap_keys=postmap_keys)
 
         # resource_uri should be defined when SaveWrapper is bound to a
         # container, or manually initialized
@@ -37,7 +37,7 @@ class SaveWrapper(TransformWrapper):
 
         # save all inputs by default
         if len(inputs_to_save) == 0:
-            self.inputs_to_save = wrapped_keys
+            self.inputs_to_save = premap_keys
         else:
             self.inputs_to_save = inputs_to_save
 

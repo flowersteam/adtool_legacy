@@ -10,28 +10,28 @@ class TransformWrapper(Leaf):
     Usage example:
         ```
             input = {"in" : 1}
-            wrapper = TransformWrapper(wrapped_keys = ["in"], 
-                                  posttransform_keys = ["out"])
+            wrapper = TransformWrapper(premap_keys = ["in"], 
+                                  postmap_keys = ["out"])
             output = wrapper.map(input)
             assert output["out"] == 1
         ```
     """
 
     def __init__(self,
-                 wrapped_keys: List[str] = [],
-                 posttransform_keys: List[str] = [],
+                 premap_keys: List[str] = [],
+                 postmap_keys: List[str] = [],
                  ) -> None:
         super().__init__()
 
         # process key wrapping
-        if len(wrapped_keys) != len(posttransform_keys):
+        if len(premap_keys) != len(postmap_keys):
             raise ValueError(
-                "wrapped_keys and transformed_keys must be same length.")
+                "premap_keys and transformed_keys must be same length.")
         else:
             pass
 
-        self.wrapped_keys = wrapped_keys
-        self.posttransform_keys = posttransform_keys
+        self.premap_keys = premap_keys
+        self.postmap_keys = postmap_keys
 
     def map(self, input: Dict) -> Dict:
         """
@@ -48,11 +48,11 @@ class TransformWrapper(Leaf):
         # initialize empty dict so that key-values will not overwrite
         new_dict = {}
         for (old_key, new_key) in \
-                zip(self.wrapped_keys, self.posttransform_keys):
+                zip(self.premap_keys, self.postmap_keys):
 
             # allows making conditional transformers that ignore input
             # with no appropriately matching keys
-            if old_dict.get(old_key):
+            if old_dict.get(old_key, None) is not None:
                 new_dict[new_key] = old_dict[old_key]
                 del old_dict[old_key]
 
