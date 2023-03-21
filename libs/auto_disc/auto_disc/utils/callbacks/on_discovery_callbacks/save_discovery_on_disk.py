@@ -21,8 +21,8 @@ class SaveDiscoveryOnDisk:
                  experiment_id: int,
                  seed: int,
                  run_idx: int,
-                 binaries: dict,
-                 **dict_data) -> None:
+                 discovery: dict
+                 ) -> None:
         # construct save_path
         dt = datetime.now()
         date_str = dt.isoformat(timespec='minutes')
@@ -34,13 +34,21 @@ class SaveDiscoveryOnDisk:
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
 
+        # extract binaries to separate dictionary
+        binaries = {}
+        for (k, v) in discovery.items():
+            if isinstance(v, bytes):
+                binaries[k] = v
+        for k in binaries.keys():
+            del discovery[k]
+
         # dump binaries to disk
-        for (name, binary) in binaries.items():
+        for (name, data) in binaries.items():
             file_path = os.path.join(dir_path, name)
             with open(file_path, "wb") as f:
-                f.write(binary)
+                f.write(data)
 
         # save dict_data to disk as JSON object
         file_path = os.path.join(dir_path, "discovery.json")
         with open(file_path, "w") as f:
-            json.dump(dict_data, f, cls=_TorchTensorJSONEncoder)
+            json.dump(discovery, f, cls=_TorchTensorJSONEncoder)
