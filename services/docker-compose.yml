@@ -99,7 +99,7 @@ services:
     ports:
       - "$EXPOSED_APP_PORT:80"
     volumes:
-      - "./FrontEndApp/angular_app:/usr/src/angular_app"
+      - "./FrontEndApp/angular_app/src:/usr/src/angular_app/src"
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
     links:
       - gateway
