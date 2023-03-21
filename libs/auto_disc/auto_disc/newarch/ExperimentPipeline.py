@@ -13,6 +13,8 @@ from auto_disc.explorers.base_explorer import BaseExplorer
 
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 
+from copy import deepcopy
+
 
 class CancellationToken:
     """
@@ -169,16 +171,21 @@ class ExperimentPipeline(Leaf):
 
                 discovery = self._explorer.read_last_discovery()
 
+                # pass new dict to prevent in-place mutation by callback
+                discovery_to_save = deepcopy(discovery)
+                # TODO: pass the rendered output more easily
+                discovery_to_save["rendered_output"] = rendered_output
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
                     resource_uri=self.resource_uri,
                     run_idx=self.run_idx,
                     experiment_id=self.experiment_id,
                     seed=self.seed,
-                    run_parameters=discovery[self._explorer.postmap_key],
-                    output=discovery[self._explorer.premap_key],
-                    raw_output=discovery["raw_" + self._explorer.premap_key],
-                    binaries={"rendered_output": rendered_output}
+                    discovery=discovery_to_save
+                    # run_parameters=discovery[self._explorer.postmap_key],
+                    # output=discovery[self._explorer.premap_key],
+                    # raw_output=discovery["raw_" + self._explorer.premap_key],
+                    # binaries={"rendered_output": rendered_output}
                 )
 
                 self.logger.info(
