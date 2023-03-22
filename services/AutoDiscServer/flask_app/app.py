@@ -82,12 +82,17 @@ def list_input_wrappers():
     200)
 
 # On discovery callback
-@app.route('/discovery-saving-keys', methods=['GET'])
-def list_keys_to_save_on_discovery():
-    info = [member.value for member in list(SavableOutputs)]
-    return make_response(
-        jsonify(info), 
-    200)
+@app.route('/discovery-saving-keys/<explorer_name>', methods=['GET'])
+def list_keys_to_save_on_discovery(explorer_name: str):
+    explorer_class = REGISTRATION["explorers"].get(explorer_name, None)
+    try:
+        info = explorer_class.discovery_spec
+        return make_response(jsonify(info), 200)
+    except Exception as ex:
+        error_message = "Error querying discovery"
+        f"spec for system {explorer_name}: {ex}"
+        print(error_message)
+        return make_response(error_message, 403)
 
 # Callbacks
 @app.route('/callbacks', methods=['GET'])
