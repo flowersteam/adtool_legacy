@@ -10,7 +10,7 @@ import { ToasterService } from '../../services/toaster.service';
 export class SetDiscoverySavingKeyComponent implements OnInit {
 
   objectKeys = Object.keys;
-  
+
   @Input() inputValueCheckBox?: any;
   @Output() inputValueCheckBoxChange = new EventEmitter();
 
@@ -24,7 +24,7 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   @Input() actual_config_elt?: any;
 
-  
+
   discovery_saving_keys: string[] = []
   discovery_saving_keys_use: { [name: string]: boolean } = {};
 
@@ -34,40 +34,40 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
     this.getDiscoverySavingKeys();
   }
 
-  ngOnChanges(): void{
+  ngOnChanges(): void {
     for (let key of this.discovery_saving_keys) {
-      this.discovery_saving_keys_use[key.toString()] = false;   
+      this.discovery_saving_keys_use[key.toString()] = false;
     }
-    for(let elt of this.inputValueCheckBox){
+    for (let elt of this.inputValueCheckBox) {
       this.discovery_saving_keys_use[elt] = true;
     }
   }
 
   getDiscoverySavingKeys(): void {
     this.AutoDiscServerService.getDiscoverySavingKeys()
-    .subscribe(response => {
-      if(response.success) {
-        let discovery_saving_keys = response.data ?? [];
-        this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-        this.initDiscoverySavingKeysUse(),
-        this.getDiscoverySavingKeysUse()
-      }
-      else{
-        this.toasterService.showError(response.message ?? '', "Error getting discovery saving keys", {timeOut: 0, extendedTimeOut: 0});
-      }
-    });
+      .subscribe(response => {
+        if (response.success) {
+          let discovery_saving_keys = response.data ?? [];
+          this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
+          this.initDiscoverySavingKeysUse(),
+            this.getDiscoverySavingKeysUse()
+        }
+        else {
+          this.toasterService.showError(response.message ?? '', "Error getting discovery saving keys", { timeOut: 0, extendedTimeOut: 0 });
+        }
+      });
   }
 
-  initDiscoverySavingKeysUse():void{
+  initDiscoverySavingKeysUse(): void {
     for (let key of this.discovery_saving_keys) {
-      this.discovery_saving_keys_use[key.toString()] = true;   
+      this.discovery_saving_keys_use[key.toString()] = true;
     }
   }
 
-  getDiscoverySavingKeysUse(){
+  getDiscoverySavingKeysUse() {
     this.inputValueCheckBox = []
     for (let key in this.discovery_saving_keys_use) {
-      if (this.discovery_saving_keys_use[key]){
+      if (this.discovery_saving_keys_use[key]) {
         this.inputValueCheckBox.push(key)
       }
     }
@@ -76,12 +76,12 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   onCheckboxChange(key: string) {
     this.discovery_saving_keys_use[key] = !this.discovery_saving_keys_use[key]
-    this.getDiscoverySavingKeysUse()  
+    // this.getDiscoverySavingKeysUse()  
   }
 
-  
 
-  returnToParent(){
+
+  returnToParent() {
     this.inputValueCheckBoxChange.emit(this.inputValueCheckBox);
   }
 
