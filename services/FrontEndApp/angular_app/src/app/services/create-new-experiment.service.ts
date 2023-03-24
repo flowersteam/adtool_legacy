@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash'
 import { AutoDiscServerService } from '../services/REST-services/auto-disc.service';
 import { ExperimentSettings } from '../entities/experiment_settings';
 import { ToasterService } from '../services/toaster.service';
-import { Config } from '../entities/config';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +15,11 @@ export class CreateNewExperimentService {
   customConfig: any = []; /* some cutsom module config use for input_wrapper and output_representation. 
                           We need it because config of input_wrapper an output_representation depends on current context*/
   currentSytemName: string | undefined;
-  newExperiment = <ExperimentSettings>{};
+  newExperiment = {} as ExperimentSettings; // TODO: to deprecate for below
+  stagedExperiment: BehaviorSubject<ExperimentSettings>
+    = new BehaviorSubject({} as ExperimentSettings)
+
   constructor(private AutoDiscServerService: AutoDiscServerService, private toasterService: ToasterService) { }
-
-
 
   // ##################   get api data ####################
   setAllConfigs() {
@@ -129,6 +130,9 @@ export class CreateNewExperimentService {
     this.newExperiment.logger_handlers = []
 
     this.currentSytemName = this.newExperiment.system.name;
+
+    // update observers
+    this.stagedExperiment.next(this.newExperiment)
   }
 
   // ##################       utils           ####################
@@ -166,17 +170,20 @@ export class CreateNewExperimentService {
       this.newExperiment.experiment.name = this.newExperiment.experiment.name?.replace(notAlphanumericRegex, "");
       this.newExperiment.experiment.name = this.newExperiment.experiment.name?.replace(/^_+|_+$/g, ''); // equal to trim("_") in other language
       this.toasterService.showWarning("the name of the experiment has been changed to match alphanumeric characters", "Experiment name");
+
+      // update observers
+      this.stagedExperiment.next(this.newExperiment)
     }
   }
 
-  setModuleUse(currentModule : any, moduleName: string, modules : any){
+  setModuleUse(currentModule: any, moduleName: string, modules: any) {
+    // Must modify nested content of object due to pass-by-ref norms
     currentModule.config = {};
-    currentModule.name = moduleName; 
+    currentModule.name = moduleName;
     let temp_module_config = CreateNewExperimentService.getModuleByName(modules, moduleName).config;
-    for (let item in temp_module_config){
+    for (let item in temp_module_config) {
       currentModule.config[item] = temp_module_config[item].default
     }
-
     this.moduleChange()
   }
 
@@ -198,6 +205,8 @@ export class CreateNewExperimentService {
       this.customConfig.output_representations = [];
       this.currentSytemName = this.newExperiment.system.name;
     }
+    // update observers
+    this.stagedExperiment.next(this.newExperiment)
   }
 
   makeDisplayableInputSpace(module: any, currentModule: any) {

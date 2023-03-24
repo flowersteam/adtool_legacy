@@ -125,14 +125,12 @@
                     aria-labelledby="headingWhatDoYouWantToSave">
                     <div class="accordion-body">
                         <app-set-discovery-saving-key
-                            [(inputValueCheckBox)]="this.createNewExperimentService.newExperiment.experiment.config.discovery_saving_keys"
                             [system_name]="this.createNewExperimentService.newExperiment.system.name"
                             [system_settings]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name) : undefined"
                             [input_wrappers]="this.createNewExperimentService.newExperiment.input_wrappers"
                             [input_wrappers_settings]="this.createNewExperimentService.newExperiment.input_wrappers.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.input_wrappers, this.createNewExperimentService.newExperiment.input_wrappers[0].name) : undefined"
                             [output_representations]="this.createNewExperimentService.newExperiment.output_representations"
                             [output_representations_settings]="this.createNewExperimentService.newExperiment.output_representations.length > 0 ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.output_representations, this.createNewExperimentService.newExperiment.output_representations[this.createNewExperimentService.newExperiment.output_representations.length -1].name) : undefined">
-                            [explorer]="this.createNewExperimentService.newExperiment.explorer"
                         </app-set-discovery-saving-key>
                     </div>
                 </div>

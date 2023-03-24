@@ -2,6 +2,8 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 import { AutoDiscServerService } from '../../services/REST-services/auto-disc.service';
 import { ToasterService } from '../../services/toaster.service';
+import { CreateNewExperimentService } from 'src/app/services/create-new-experiment.service';
+import { ExperimentSettings } from 'src/app/entities/experiment_settings';
 @Component({
   selector: 'app-set-discovery-saving-key',
   templateUrl: './set-discovery-saving-key.component.html',
@@ -11,8 +13,8 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   objectKeys = Object.keys;
 
-  @Input() inputValueCheckBox?: any;
-  @Output() inputValueCheckBoxChange = new EventEmitter();
+  @Input() saveCheckBox?: any;
+  @Output() saveCheckBoxEventEmitter = new EventEmitter();
 
   @Input() system_name?: any;
   @Input() system_settings?: any;
@@ -21,68 +23,61 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
   @Input() output_representations?: any;
   @Input() output_representations_settings?: any;
 
+  @Input() explorer_name: string | undefined = '';
 
   @Input() actual_config_elt?: any;
 
+  discovery_saveflags: Map<string, boolean> = new Map();
 
-  discovery_saving_keys: string[] = []
-  discovery_saving_keys_use: { [name: string]: boolean } = {};
-
-  constructor(private AutoDiscServerService: AutoDiscServerService, private toasterService: ToasterService) { }
+  constructor(private AutoDiscServerService: AutoDiscServerService,
+    private toasterService: ToasterService,
+    private CreateNewExperimentService: CreateNewExperimentService) { }
 
   ngOnInit(): void {
-    this.getDiscoverySavingKeys();
-  }
-
-  ngOnChanges(): void {
-    for (let key of this.discovery_saving_keys) {
-      this.discovery_saving_keys_use[key.toString()] = false;
-    }
-    for (let elt of this.inputValueCheckBox) {
-      this.discovery_saving_keys_use[elt] = true;
-    }
-  }
-
-  getDiscoverySavingKeys(): void {
-    this.AutoDiscServerService.getDiscoverySavingKeys()
-      .subscribe(response => {
-        if (response.success) {
-          let discovery_saving_keys = response.data ?? [];
-          this.discovery_saving_keys = discovery_saving_keys.map(discovery_saving_key => discovery_saving_key.toString())
-          this.initDiscoverySavingKeysUse(),
-            this.getDiscoverySavingKeysUse()
-        }
-        else {
-          this.toasterService.showError(response.message ?? '', "Error getting discovery saving keys", { timeOut: 0, extendedTimeOut: 0 });
-        }
+    this.CreateNewExperimentService.stagedExperiment
+      .subscribe((newSetting: ExperimentSettings) => {
+        this.explorer_name = newSetting.explorer.name;
+        this.updateDiscoverySpec();
       });
   }
 
-  initDiscoverySavingKeysUse(): void {
-    for (let key of this.discovery_saving_keys) {
-      this.discovery_saving_keys_use[key.toString()] = true;
-    }
+  updateDiscoverySpec(): void {
+    // reinitialize discovery_saveflags
+    this.initDiscoveryToSave();
   }
 
-  getDiscoverySavingKeysUse() {
-    this.inputValueCheckBox = []
-    for (let key in this.discovery_saving_keys_use) {
-      if (this.discovery_saving_keys_use[key]) {
-        this.inputValueCheckBox.push(key)
-      }
+  initDiscoveryToSave(): void {
+    // null guard
+    if (this.explorer_name) {
+      let discovery_spec: string[] = [];
+      this.AutoDiscServerService
+        .getDiscoverySavingKeys(this.explorer_name as string)
+        .subscribe(response => {
+
+          if (response.success) {
+            // reinitialize labels for checkbox
+            discovery_spec = response.data ?? [];
+            this.discovery_saveflags = new Map(discovery_spec.map(x => [x, true]));
+            this.updateParentComponent();
+          }
+
+          else {
+            this.toasterService.showError(response.message ?? '',
+              "Error querying discovery specification",
+              { timeOut: 0, extendedTimeOut: 0 });
+          }
+
+        });
     }
-    this.returnToParent()
   }
 
   onCheckboxChange(key: string) {
-    this.discovery_saving_keys_use[key] = !this.discovery_saving_keys_use[key]
-    // this.getDiscoverySavingKeysUse()  
+    let flag = this.discovery_saveflags.get(key);
+    this.discovery_saveflags.set(key, !flag);
   }
 
-
-
-  returnToParent() {
-    this.inputValueCheckBoxChange.emit(this.inputValueCheckBox);
+  updateParentComponent() {
+    this.saveCheckBoxEventEmitter.emit(this.saveCheckBox);
   }
 
 }
