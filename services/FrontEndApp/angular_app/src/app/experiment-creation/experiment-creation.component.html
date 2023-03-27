@@ -39,7 +39,7 @@
                     <div class="accordion-body">
                         <app-set-module [currentModule]="this.createNewExperimentService.newExperiment.system"
                             [modules]="this.createNewExperimentService.allConfig.systems"
-                            [displayInputOutputSpace]="true">
+                            [displayInputOutputSpace]="false">
                         </app-set-module>
                     </div>
                 </div>
@@ -64,7 +64,7 @@
             </div>
 
             <!-- input-wrapper accordion -->
-            <div class="accordion-item">
+            <!-- <div class="accordion-item">
                 <h2 class="accordion-header" id="headingInputWrapper">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseInputWrapper" aria-expanded="true"
@@ -75,7 +75,6 @@
                 <div id="collapseInputWrapper" class="accordion-collapse collapse"
                     aria-labelledby="headingInputWrapper">
                     <div class="accordion-body">
-                        <!-- general information accordion -->
                         <app-set-module-list key="wrapped_output_space_key"
                             [spaceItDependsOn]="this.createNewExperimentService.newExperiment.system.name != undefined ? this.createNewExperimentService.getModuleByName(this.createNewExperimentService.allConfig.systems, this.createNewExperimentService.newExperiment.system.name).input_space : undefined"
                             [currentModuleList]="this.createNewExperimentService.newExperiment.input_wrappers"
@@ -86,10 +85,10 @@
                         </app-set-module-list>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- output-representation accordion -->
-            <div class="accordion-item">
+            <!-- <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOutputRepresentation">
                     <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseOutputRepresentation" aria-expanded="true"
@@ -110,7 +109,7 @@
                         </app-set-module-list>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- WhatDoYouWantToSave accordion -->
             <div class="accordion-item mb-5">
