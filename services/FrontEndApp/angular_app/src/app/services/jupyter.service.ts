@@ -32,7 +32,7 @@ export class JupyterService {
   };
 
   constructor(private http: HttpClient, private appDBService: AppDbService) {
-    this.jupyterHost = environment.GATEWAY_HOST + ":" + environment.GATEWAY_PORT + "/";
+    this.jupyterHost = environment.GATEWAY_HOST + ":" + environment.GATEWAY_PORT;
     this.jupyterUrl = "http://" + this.jupyterHost;
   }
 
