@@ -109,6 +109,7 @@ export class CreateNewExperimentService {
         nb_seeds: 1,
         save_frequency: 1,
         host: undefined,
+        save_location: "http://expe-db-api:80"
       }
     }
 
