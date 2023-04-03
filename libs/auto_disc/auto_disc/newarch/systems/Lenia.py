@@ -1,5 +1,5 @@
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf
+from leaf.locators.Locator import FileLocator
 from typing import Dict, Any, Callable, Optional, List
 from copy import deepcopy
 

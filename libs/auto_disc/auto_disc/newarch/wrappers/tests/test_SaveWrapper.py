@@ -1,6 +1,7 @@
-from leaf.leaf import StatelessLocator
+from leaf.Leaf import StatelessLocator
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
-from leafutils.leafstructs.linear import Stepper, LinearLocator
+from leaf.locators.LinearBase import Stepper
+from leaf.locators.locators import LinearLocator
 import os
 import pathlib
 import tempfile

@@ -62,7 +62,7 @@ def _add_files_to_document(collection, document, files):
     # Add files in GridFS
     updates_to_do = {'$set': {}}
     for file_name in files:
-        file_id = fs.put(files[file_name], filename=files[file_name].filename)
+        file_id = fs.put(files[file_name], filename=file_name)
         updates_to_do['$set'][file_name] = str(file_id)
     # Add GridFS ids and filenames to document
     collection.update_one({"_id": document["_id"]}, updates_to_do)

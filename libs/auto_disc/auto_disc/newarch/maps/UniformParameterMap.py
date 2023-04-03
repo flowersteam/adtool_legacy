@@ -1,6 +1,6 @@
 import torch
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 from typing import Dict, Tuple
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
@@ -22,7 +22,7 @@ class UniformParameterMap(Leaf):
 
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.premap_key = premap_key
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
@@ -32,9 +32,9 @@ class UniformParameterMap(Leaf):
                                       init_high=tensor_high,
                                       init_low=tensor_low,
                                       bound_lower=torch.tensor(
-                                          [float_bound_low]),
+                                          [float(float_bound_low)]),
                                       bound_upper=torch.tensor(
-                                          [float_bound_high])
+                                          [float(float_bound_high)])
                                       )
 
     def map(self, input: Dict) -> Dict:

@@ -1,7 +1,6 @@
 from leafutils.leafintegrations.expedb_locators import ExpeDBLocator, ExpeDBLinearLocator, _format_filter_from_dict, _initialize_checkpoint
 import leafutils.leafintegrations.expedb_locators as expedb_locators
-from leafutils.leafstructs.tests.test_linear import Stepper
-from leafutils.leafstructs.linear import LinearLocator
+from leaf.locators.LinearBase import Stepper, FileLinearLocator
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 import requests
 import codecs
@@ -94,12 +93,12 @@ def test_ExpeDBLinearLocator__retrieve_tree_and_store_metadata():
     # test initialize path
     expedb_locators._query_uid = no_response
     loc = ExpeDBLinearLocator(resource_uri=RESOURCE_URI)
-    loc.cache_dir = loc._init_cache_dir()
+    cache_dir = loc._init_cache_dir()
     stepper = Stepper()
     stepper.buffer = [bytes(1), bytes(2)]
     data_bin = stepper.serialize()
 
-    loc._retrieve_tree_and_store_metadata("fake_dbuid", data_bin)
+    loc._retrieve_tree_and_store_metadata(cache_dir, "fake_dbuid", data_bin)
 
     # todo test regular path
 
@@ -108,7 +107,7 @@ def test_ExpeDBLinearLocator_store():
     saver = SaveWrapper()
     saver.buffer = [bytes(1), bytes(2)]
     bin = saver.serialize()
-    dbname, _ = LinearLocator.parse_bin(bin)
+    dbname, _ = FileLinearLocator.parse_bin(bin)
 
     # delete doc if exists
     response_arr = expedb_locators._query_uid(RESOURCE_URI, dbname)

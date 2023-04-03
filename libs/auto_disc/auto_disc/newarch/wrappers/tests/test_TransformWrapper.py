@@ -1,5 +1,5 @@
 from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
-from leaf.leaf import DictLocator
+from leaf.tests.test_leaf import DummyLocator
 
 
 def test__init__():
@@ -29,7 +29,7 @@ def test_saveload():
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
 
     db = {}
-    tw.locator = DictLocator(db)
+    tw.locator = DummyLocator(db)
     leaf_uid = tw.save_leaf()
 
     tw2 = tw.load_leaf(leaf_uid)

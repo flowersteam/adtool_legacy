@@ -6,6 +6,7 @@ import torch
 import pathlib
 import os
 import shutil
+import pytest
 
 
 def setup_function(function):
@@ -207,11 +208,46 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
 
 def test_IMGEPFactory___init__():
     factory = IMGEPFactory()
-    # test config params set
+    # test config params set non None
     assert factory.config
 
 
 def test_IMGEPFactory___call__():
+    # tests that the factory settings are passed to the explorer
     factory = IMGEPFactory(equil_time=5)
     explorer = factory()
     assert explorer.equil_time == 5
+
+
+def test_IMGEPFactory_make_parameter_map():
+    # test default initialization
+    factory = IMGEPFactory()
+    param_map = factory.make_parameter_map()
+    assert isinstance(param_map, UniformParameterMap)
+
+    # test exception if parameter map not found
+    with pytest.raises(Exception):
+        factory = IMGEPFactory(parameter_map="test")
+
+
+def test_IMGEPFactory_make_behavior_map():
+    # test default initialization
+    factory = IMGEPFactory()
+    behavior_map = factory.make_behavior_map()
+    assert isinstance(behavior_map, MeanBehaviorMap)
+
+    # test custom initialization
+    factory = IMGEPFactory(behavior_map_config={"premap_key": "test"})
+    behavior_map = factory.make_behavior_map()
+    assert isinstance(behavior_map, MeanBehaviorMap)
+    assert behavior_map.premap_key == "test"
+
+    # test exception if behavior map not found
+    with pytest.raises(Exception):
+        factory = IMGEPFactory(behavior_map="test")
+
+
+def test_IMGEPFactory_make_mutator():
+    factory = IMGEPFactory()
+    mutator = factory.make_mutator()
+    assert callable(mutator)

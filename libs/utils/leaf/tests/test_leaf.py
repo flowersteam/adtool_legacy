@@ -1,5 +1,5 @@
-from leaf.leaf import Leaf
-from leaf.locators import Locator, StatelessLocator
+from leaf.Leaf import Leaf
+from leaf.locators.Locator import Locator, StatelessLocator
 import pickle
 from hashlib import sha1
 
@@ -14,8 +14,7 @@ class DummyModule(Leaf):
 
 
 class DummyLocator(Locator):
-    # TODO: Remove me
-    def __init__(self, resource_uri):
+    def __init__(self, resource_uri: dict = {}):
         self.resource_uri = resource_uri
 
     def store(self, bin):
@@ -46,7 +45,6 @@ def test_leaf_serialize():
     bin = a.serialize()
     b = pickle.loads(bin)
 
-    del a._container_ptr
     del a.locator
     del b.locator
     assert a.__dict__ == b.__dict__
@@ -56,7 +54,7 @@ def test_leaf_deserialize():
     bin = a.serialize()
     b = a.deserialize(bin)
     assert isinstance(a.locator, StatelessLocator)
-    assert b.locator == "leaf.locators.StatelessLocator"
+    assert b.locator == "leaf.locators.Locator.StatelessLocator"
     del a.locator
     del b.locator
     assert a.__dict__ == b.__dict__
@@ -83,7 +81,8 @@ def test_leaf_save_load():
 
     b = DummyModule()
     b.locator = DummyLocator(res_uri)
-    b = b.load_leaf(uid)  # this loading overrides b.locator
+    # this loading overrides b.locator
+    b = b.load_leaf(uid)
     assert b.internal_state == [1, 2, 3, 4]
     a.internal_state.append(5)
     a.internal_state = a.forward(1)

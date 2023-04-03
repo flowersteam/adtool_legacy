@@ -1,7 +1,6 @@
 from copy import deepcopy
 from typing import Dict, List
-from leaf.leaf import Leaf, Locator, LeafUID
-from leafutils.leafstructs.linear import LinearLocator, Stepper
+from leaf.Leaf import Leaf, Locator, LeafUID
 
 
 class TransformWrapper(Leaf):

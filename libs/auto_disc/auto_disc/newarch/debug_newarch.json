@@ -1,0 +1,37 @@
+{
+    "experiment": {
+        "name": "testing",
+        "config": {
+            "nb_iterations": 2,
+            "nb_seeds": 1,
+            "save_frequency": 1,
+            "host": "local",
+            "discovery_saving_keys": [],
+            "save_location": "http://127.0.0.1:5001"
+        }
+    },
+    "system": {
+        "name": "ExponentialMixture",
+        "config": {
+            "sequence_density": 100,
+            "sequence_max": 100
+        }
+    },
+    "explorer": {
+        "name": "IMGEPExplorer",
+        "config": {
+            "equil_time": 1,
+            "mutation_noise_std": 0,
+            "param_bound_high": "inf",
+            "param_bound_low": "-inf",
+            "param_dim": 1,
+            "param_init_high": 0,
+            "param_init_low": 0,
+            "system_output_dim": 1
+        }
+    },
+    "input_wrappers": [],
+    "output_representations": [],
+    "callbacks": [],
+    "logger_handlers": []
+}

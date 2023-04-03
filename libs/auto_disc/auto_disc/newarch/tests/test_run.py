@@ -137,6 +137,13 @@ def test_save_SaveDiscoveryOnDisk():
 
 def test_save_resume():
     config_json["callbacks"] = {
+        "on_saved": [{"name":
+                     "utils.callbacks."
+                      "on_save_callbacks."
+                      "save_leaf_callback."
+                      "SaveLeaf",
+                      "config": {}
+                      }],
         "on_save_finished": [{"name":
                               "utils.callbacks."
                               "on_save_finished_callbacks."
@@ -181,9 +188,14 @@ def test_save_resume():
     experiment_id = 1
     seed = 1
     pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
+    # assert root in the tree is the same
     assert pipeline._explorer._history_saver.locator.parent_id == 2
+    # assert run_idx is as saved
     assert pipeline.run_idx == 1
+    # assert temporary buffer is restored
     assert len(pipeline._explorer._history_saver.buffer) == 1
+    # check callbacks are restored
+    assert len(pipeline._on_discovery_callbacks) > 0
 
     run.start(pipeline, 3)
     files = os.listdir(RESOURCE_URI)
@@ -214,11 +226,20 @@ def test_save_resume():
     assert len(doubled_2) == 2
     assert len(singled) == 1
 
-    # TODO: i manually did this with SQLite 3 but should
-    # also use SQLAlchemy and write a test here for
-    # checking that the tree table is properly updated to
-    #   sqlite> select * from tree;
-    #   1|2
-    #   2|3
-    #   2|4
-    #   4|5
+    # inspect for lineardb filepath
+    for root, _, files in os.walk(RESOURCE_URI):
+        for f in files:
+            if f == "lineardb":
+                db_path = os.path.join(root, f)
+                break
+
+    # check that the tree is properly updated
+    import sqlalchemy
+    engine = sqlalchemy.create_engine(
+        "sqlite+pysqlite:///" +
+        db_path
+    )
+    with engine.connect() as conn:
+        output = conn.execute(sqlalchemy.text("SELECT * FROM tree"))
+
+    assert output.fetchall() == [(1, 2), (2, 3), (2, 4), (4, 5)]

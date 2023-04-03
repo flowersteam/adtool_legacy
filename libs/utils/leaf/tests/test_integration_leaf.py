@@ -1,5 +1,5 @@
-from leaf.leaf import *
-from leaf.locators import *
+from leaf.Leaf import *
+from leaf.locators.Locator import *
 from hashlib import sha1
 import os
 from shutil import rmtree
@@ -29,7 +29,7 @@ class DiskLocator(Locator):
     def __init__(self, bin):
         self.uid = sha1(bin).hexdigest()
 
-    def store(self, bin: bytes) -> None:
+    def store(self, bin: bytes, *args, **kwargs) -> None:
         with open(f"/tmp/ResDir/{self.uid}", "wb") as f:
             f.write(bin)
         return

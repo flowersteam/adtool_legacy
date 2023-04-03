@@ -1,11 +1,13 @@
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+import io
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from copy import deepcopy
 from typing import Dict, Tuple
 import torch
+import matplotlib
 import matplotlib.pyplot as plt
-import io
+matplotlib.use('Agg')
 
 
 @DecimalConfigParameter(name="sequence_max", default=100.)
@@ -14,7 +16,7 @@ class ExponentialMixture(Leaf):
     def __init__(self):
         super().__init__()
         # this module is stateless
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
 
     def map(self, input: Dict) -> Dict:
         intermed_dict = deepcopy(input)
