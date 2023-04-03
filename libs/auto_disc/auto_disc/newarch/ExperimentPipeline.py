@@ -3,8 +3,8 @@ import traceback
 import torch
 from typing import Dict, Callable, List, Any, Tuple
 
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf, prune_state
+from leaf.locators.locators import BlobLocator
 from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.output_representations import BaseOutputRepresentation
 from auto_disc.utils.callbacks.interact_callbacks import Interact
@@ -94,7 +94,7 @@ class ExperimentPipeline(Leaf):
             - **on_error_callbacks**: Callbacks raised when an error is raised
         """
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.run_idx = 0
         self.experiment_id = experiment_id
         self.seed = seed
@@ -136,7 +136,7 @@ class ExperimentPipeline(Leaf):
                 **kwargs
             )
 
-    def run(self, n_exploration_runs: int) -> str:
+    def run(self, n_exploration_runs: int):
         '''
         Launches the experiment for `n_exploration_runs` number of explorations.
 
@@ -150,8 +150,6 @@ class ExperimentPipeline(Leaf):
         #### Returns:
         - **LeafUID**: returns the UID associated to the experiment
         '''
-        # initialize in case exception is thrown
-        uid = ""
         try:
             data_dict = self._explorer.bootstrap()
 
@@ -198,7 +196,7 @@ class ExperimentPipeline(Leaf):
 
                 if (run_idx_start_from_one % self.save_frequency == 0
                         or run_idx_start_from_one == n_exploration_runs):
-                    uid = self.save(resource_uri=self.resource_uri)
+                    self.save(resource_uri=self.resource_uri)
 
                 self.run_idx += 1
 
@@ -246,30 +244,47 @@ class ExperimentPipeline(Leaf):
                 seed=self.seed,
                 experiment_id=self.experiment_id
             )
-        return uid
+        return
 
-    def save(self, resource_uri: str) -> str:
+    def save(self, resource_uri: str):
         self._raise_callbacks(
             self._on_save_callbacks,
-            run_idx=self.run_idx,
-            seed=self.seed,
-            experiment_id=self.experiment_id,
-            system=self._system,
-            explorer=self._explorer,
-        )
-
-        uid = self.save_leaf(resource_uri=resource_uri)
-
-        self._raise_callbacks(
-            self._on_save_finished_callbacks,
-            uid=uid,
-            report_dir=resource_uri,
             experiment_id=self.experiment_id,
             seed=self.seed,
-            run_idx=self.run_idx
+            module_to_save=self,
+            resource_uri=resource_uri
         )
+
+        # only run on_save_finished callbacks if on_save_callbacks
+        # provide a uid for the save
+        if self.__dict__.get("uid", None) is not None:
+            self._raise_callbacks(
+                self._on_save_finished_callbacks,
+                uid=self.uid,
+                report_dir=resource_uri,
+                experiment_id=self.experiment_id,
+                seed=self.seed,
+                run_idx=self.run_idx
+            )
+
+            # uid is passed by modifying the parent object, to enable
+            # communication between the before and after callbacks
+            # so restore its original state after all the callbacks
+            del self.uid
+
         self.logger.info(
             "[SAVED] - experiment {} with seed {} saved"
             .format(self.experiment_id, self.seed)
         )
-        return uid
+        return
+
+    @prune_state({
+        "_on_discovery_callbacks": [],
+        "_on_save_finished_callbacks": [],
+        "_on_finished_callbacks": [],
+        "_on_cancelled_callbacks": [],
+        "_on_error_callbacks": [],
+        "_on_save_callbacks": []
+    })
+    def serialize(self) -> bytes:
+        return super().serialize()

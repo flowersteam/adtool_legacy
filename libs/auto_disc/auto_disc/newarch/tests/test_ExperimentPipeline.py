@@ -5,6 +5,8 @@ from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
 from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.utils.logger import AutoDiscLogger
+from auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import SaveLeaf
+
 import torch
 import pathlib
 import os
@@ -94,7 +96,15 @@ def test_run():
     input_pipeline = IdentityWrapper()
     output_pipeline = IdentityWrapper()
 
+    uid_capture = []
+
     # callbacks
+    def retrieve_uid_callback():
+        def callback(**kwargs):
+            uid = kwargs["uid"]
+            uid_capture.append(uid)
+            return
+        return callback
 
     pipeline = ExperimentPipeline(experiment_id=experiment_id,
                                   seed=seed,
@@ -103,16 +113,20 @@ def test_run():
                                   input_pipeline=input_pipeline,
                                   output_pipeline=output_pipeline,
                                   on_discovery_callbacks=[callback],
+                                  on_save_callbacks=[SaveLeaf()],
+                                  on_save_finished_callbacks=[
+                                      retrieve_uid_callback()],
                                   logger=logger,
                                   save_frequency=100,
                                   resource_uri=RESOURCE_URI
                                   )
 
-    uid = pipeline.run(20)
-    assert uid
+    pipeline.run(20)
+
+    assert len(uid_capture) == 1  # only one save within 20 steps
 
     new_pipeline = ExperimentPipeline().load_leaf(
-        uid=uid, resource_uri=RESOURCE_URI)
+        uid=uid_capture[0], resource_uri=RESOURCE_URI)
     history_buffer = new_pipeline._explorer._history_saver.buffer
 
     # check equilibriation phase

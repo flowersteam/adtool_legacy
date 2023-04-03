@@ -2,9 +2,8 @@ from sqlalchemy import text
 import os
 import pathlib
 import pytest
-from leafutils.leafstructs.linear import LinearLocator, EngineContext, Stepper
-import leafutils.leafstructs.linear as linear
-from leaf.leaf import LeafUID
+from leaf.locators.LinearBase import FileLinearLocator, _EngineContext, Stepper
+import leaf.locators.LinearBase as LinearBase
 import pickle
 from hashlib import sha1
 import shutil
@@ -17,7 +16,7 @@ def setup_function(function):
     SCRIPT_PATH = str(pathlib.Path(__file__).parent.resolve())
     FILE_PATH = os.path.join(SCRIPT_PATH, "tmp")
     os.mkdir(FILE_PATH)
-    DB_NAME = '883da42e65e51a5cc8aa037908d4238c604ebc3a'
+    DB_NAME = get_db_name()
     os.mkdir(os.path.join(FILE_PATH, DB_NAME))
     DB_REL_PATH = f"/{DB_NAME}/lineardb"
     SCRIPT_REL_PATH = "/mockDB.sql"
@@ -41,7 +40,7 @@ def generate_mock_binary() -> bytes:
         """
         stepper = pickle.loads(bin)
         del stepper.buffer
-        sha1_hash = LinearLocator.hash(pickle.dumps(stepper))
+        sha1_hash = FileLinearLocator.hash(pickle.dumps(stepper))
         output_bin = bytes.fromhex(sha1_hash) + bytes.fromhex("deadbeef") + bin
         return output_bin
     s = Stepper()
@@ -62,20 +61,26 @@ def generate_fake_data(db_url: str):
     return
 
 
-def test_LinearLocator___init__():
-    x = LinearLocator(FILE_PATH)
+def get_db_name() -> str:
+    padded_bin, _ = generate_mock_binary()
+    db_name, _ = FileLinearLocator.parse_bin(padded_bin)
+    return db_name
+
+
+def test_FileLinearLocator___init__():
+    x = FileLinearLocator(FILE_PATH)
     assert x.resource_uri == FILE_PATH
 
 
-def test_LinearLocator__init_db():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator__init_db():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
     assert os.path.exists(DB_PATH)
 
 
-def test_LinearLocator__insert_node():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator__insert_node():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
 
     def get_trajectory_table_length(engine):
         with engine.connect() as conn:
@@ -90,9 +95,9 @@ def test_LinearLocator__insert_node():
             new_row = result.one()
         return new_row
 
-    with EngineContext(DB_PATH) as engine:
+    with _EngineContext(DB_PATH) as engine:
         length_table = get_trajectory_table_length(engine)
-        linear.insert_node(engine, 1)
+        LinearBase.insert_node(engine, 1)
         new_length_table = get_trajectory_table_length(engine)
         new_row = get_newest_insert(engine)
 
@@ -101,22 +106,22 @@ def test_LinearLocator__insert_node():
     assert new_row[1] == 1
 
 
-def test_LinearLocator__get_trajectory():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator__get_trajectory():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
     generate_fake_data(DB_PATH)
 
-    with EngineContext(DB_PATH) as engine:
-        _, trajectory, depths = linear._get_trajectory_raw(engine, 5, 0)
+    with _EngineContext(DB_PATH) as engine:
+        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, 0)
         assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
-        _, trajectory, depths = linear._get_trajectory_raw(engine, 7, 3)
+        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 7, 3)
         assert trajectory == [bytes(2), bytes(4), bytes(8)]
         assert len(trajectory) - 1 == depths[0]
 
 
-def test_LinearLocator__parse_bin():
+def test_FileLinearLocator__parse_bin():
     bin, _ = generate_mock_binary()
-    sha1_hash, data_bin = LinearLocator.parse_bin(bin)
+    sha1_hash, data_bin = FileLinearLocator.parse_bin(bin)
 
     stepper = pickle.loads(data_bin)
     assert stepper.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
@@ -125,15 +130,15 @@ def test_LinearLocator__parse_bin():
     assert sha1(pickle.dumps(stepper)).hexdigest() == sha1_hash
 
 
-def test_LinearLocator__parse_leaf_uid():
+def test_FileLinearLocator__parse_leaf_uid():
     test_str = "asdiufgapsudf:2"
-    db_name, node_id = LinearLocator.parse_leaf_uid(test_str)
+    db_name, node_id = FileLinearLocator.parse_leaf_uid(test_str)
     assert db_name == "asdiufgapsudf", 2
 
 
-def test_LinearLocator_store():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator_store():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
     generate_fake_data(DB_PATH)
 
     padded_bin, data_bin = generate_mock_binary()
@@ -142,12 +147,12 @@ def test_LinearLocator_store():
 
     # assert that retrieval_key is stored
     # and can successfully retrieve trajectory
-    db_name, row_id = LinearLocator.parse_leaf_uid(retrieval_key)
+    db_name, row_id = FileLinearLocator.parse_leaf_uid(retrieval_key)
     subdir = os.path.join(FILE_PATH, db_name)
     db_url = os.path.join(subdir, "lineardb")
 
-    with EngineContext(db_url) as engine:
-        ids, trajectory, _ = linear._get_trajectory_raw(engine, row_id, 0)
+    with _EngineContext(db_url) as engine:
+        ids, trajectory, _ = LinearBase._get_trajectory_raw(engine, row_id, 0)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
     assert len(os.listdir(FILE_PATH)) == 1
@@ -155,9 +160,9 @@ def test_LinearLocator_store():
     assert os.path.exists(os.path.join(subdir, "8"))
 
 
-def test_LinearLocator_retrieve():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator_retrieve():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
     padded_bin, data_bin = generate_mock_binary()
     retrieval_key = x.store(padded_bin, -1)
     retrieval_key = x.store(padded_bin, 1)
@@ -167,10 +172,10 @@ def test_LinearLocator_retrieve():
     mock_retrieval_key = DB_NAME + ":2"
     assert retrieval_key == mock_retrieval_key  # SQLite indexed starting at 1
 
-    x = LinearLocator(FILE_PATH)
+    x = FileLinearLocator(FILE_PATH)
     assert x.parent_id == -1
 
-    bin = x.retrieve(retrieval_key, 0)
+    bin = x.retrieve(retrieval_key, length=0)
     assert x.parent_id == 2
     loaded_obj = Stepper().deserialize(bin)
 
@@ -178,9 +183,9 @@ def test_LinearLocator_retrieve():
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
 
 
-def test_LinearLocator_branching():
-    x = LinearLocator(FILE_PATH)
-    linear.init_db(DB_PATH)
+def test_FileLinearLocator_branching():
+    x = FileLinearLocator(FILE_PATH)
+    LinearBase.init_db(DB_PATH)
     padded_bin, data_bin = generate_mock_binary()
     # store root node
     retrieval_key = x.store(padded_bin, parent_id=-1)
@@ -194,7 +199,7 @@ def test_LinearLocator_branching():
     assert root_retrieval_key == mock_retrieval_key  # SQLite indexed starting at 1
 
     # retrieve original
-    x = LinearLocator(FILE_PATH)
+    x = FileLinearLocator(FILE_PATH)
     bin = x.retrieve(root_retrieval_key, 0)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
@@ -204,13 +209,13 @@ def test_LinearLocator_branching():
     assert int(third_retrieval_key.split(":")[-1]) == 3
     assert third_retrieval_key != second_retrieval_key
 
-    x = LinearLocator(FILE_PATH)
+    x = FileLinearLocator(FILE_PATH)
     bin = x.retrieve(third_retrieval_key, 0)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
 
-    x = LinearLocator(FILE_PATH)
+    x = FileLinearLocator(FILE_PATH)
     bin = x.retrieve(second_retrieval_key, 0)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),

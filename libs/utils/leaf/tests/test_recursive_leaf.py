@@ -1,5 +1,5 @@
-from leaf.leaf import Leaf, StatelessLocator, FileLocator, LeafUID
-from leaf.locators import Locator
+from leaf.Leaf import Leaf, LeafUID
+from leaf.locators.Locator import Locator, FileLocator
 from leaf.tests.test_leaf import DummyModule, DummyLocator
 import pickle
 import os
@@ -42,7 +42,7 @@ class DummyFileLocator(Locator):
             self.resource_uri = resource_uri
         self.data_filename = data_filename
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         uid = self.hash(bin)
         save_dir = os.path.join(self.resource_uri, str(uid))
         if not os.path.exists(save_dir):
@@ -62,7 +62,7 @@ class DummyFileLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         save_dir = os.path.join(self.resource_uri, str(uid))
 
         # retrieve only the data saved, not the metadata

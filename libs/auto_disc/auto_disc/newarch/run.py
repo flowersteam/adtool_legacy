@@ -52,30 +52,6 @@ def create(parameters: Dict, experiment_id: int, seed: int,
 
     logger = AutoDiscLogger(experiment_id, seed, handlers)
 
-    # short circuit if "resume_from_uid" is set
-    resume_ckpt = parameters["experiment"]["config"].get("resume_from_uid",
-                                                         None)
-    if (resume_ckpt is not None):
-        resource_uri = parameters['experiment']['config']['save_location']
-        experiment = \
-            ExperimentPipeline().\
-            load_leaf(uid=resume_ckpt,
-                      resource_uri=resource_uri)
-        experiment.logger = logger
-        return experiment
-    else:
-        pass
-
-    # Get explorer factory and generate explorer
-    explorer_factory_class = get_cls_from_path(parameters['explorer']['name'])
-    explorer_factory = explorer_factory_class(
-        **parameters['explorer']['config'])
-    explorer = explorer_factory()
-
-    # Get system
-    system_class = get_cls_from_path(parameters['system']['name'])
-    system = system_class(**parameters['system']['config'])
-
     # Get callbacks
     callbacks = {
         'on_discovery': [],
@@ -107,6 +83,40 @@ def create(parameters: Dict, experiment_id: int, seed: int,
                 callbacks[callback_key].append(
                     callback_class(**_callback['config'])
                 )
+
+    # short circuit if "resume_from_uid" is set
+    resume_ckpt = parameters["experiment"]["config"].get("resume_from_uid",
+                                                         None)
+    if (resume_ckpt is not None):
+        resource_uri = parameters['experiment']['config']['save_location']
+        experiment = \
+            ExperimentPipeline().\
+            load_leaf(uid=resume_ckpt,
+                      resource_uri=resource_uri)
+
+        # set attributes pruned by save_leaf
+        experiment.logger = logger
+        experiment._on_discovery_callbacks = callbacks['on_discovery']
+        experiment._on_save_finished_callbacks = callbacks['on_save_finished']
+        experiment._on_finished_callbacks = callbacks['on_finished']
+        experiment._on_cancelled_callbacks = callbacks['on_cancelled']
+        experiment._on_save_callbacks = callbacks['on_saved']
+        experiment._on_error_callbacks = callbacks['on_error']
+        experiment._interact_callbacks = callbacks['interact']
+
+        return experiment
+    else:
+        pass
+
+    # Get explorer factory and generate explorer
+    explorer_factory_class = get_cls_from_path(parameters['explorer']['name'])
+    explorer_factory = explorer_factory_class(
+        **parameters['explorer']['config'])
+    explorer = explorer_factory()
+
+    # Get system
+    system_class = get_cls_from_path(parameters['system']['name'])
+    system = system_class(**parameters['system']['config'])
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(

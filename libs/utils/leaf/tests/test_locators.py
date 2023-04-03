@@ -1,33 +1,6 @@
-from leaf.leaf import DictLocator, FileLocator
+from leaf.locators.Locator import FileLocator
 import os
 import pathlib
-
-
-def test_DictLocator___init__():
-    db = {}
-    locator = DictLocator(db)
-    assert db == locator.resource_uri
-
-
-def test_DictLocator_store():
-    db = {}
-    locator = DictLocator(db)
-    bytestring = b"pasudgfpausdgfpxzucbv"
-
-    uid = locator.store(bytestring)
-    assert len(db) == 1
-
-
-def test_DictLocator_retrieve():
-    db = {}
-    locator = DictLocator(db)
-    bytestring = b"pasudgfpausdgfpxzucbv"
-    fake_uid = "abcdefg"
-    db[fake_uid] = bytestring
-
-    retrieved_bin = locator.retrieve(fake_uid)
-
-    assert retrieved_bin == bytestring
 
 
 def test_FileLocator___init__():

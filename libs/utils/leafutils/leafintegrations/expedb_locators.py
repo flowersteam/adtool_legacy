@@ -2,10 +2,10 @@ from typing import Dict, Tuple, List
 import requests
 import json
 import codecs
-from leaf.leaf import LeafUID
-from leaf.locators import Locator
-from leafutils.leafstructs.linear import LinearLocator
-import leafutils.leafstructs.linear as linear
+from leaf.Leaf import LeafUID
+from leaf.locators.Locator import Locator
+from leaf.locators.LinearBase import FileLinearLocator
+import leaf.locators.LinearBase as LinearBase
 import tempfile
 import os
 import pickle
@@ -71,7 +71,7 @@ class ExpeDBLocator(Locator):
             resource_uri = resource_uri[:-1]
         self.resource_uri = resource_uri
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         uid = self.hash(bin)
         # encode in base64 so MongoDB doesn't escape anything
         bin = codecs.encode(bin, encoding="base64")
@@ -91,7 +91,7 @@ class ExpeDBLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         # extra info past : is for other locators
         uid = uid.split(":")[0]
 
@@ -135,7 +135,7 @@ class ExpeDBLinearLocator(Locator):
         cache_dir = self._init_cache_dir()
 
         # parse formatted binary
-        lineardb_name, data_bin = LinearLocator.parse_bin(bin)
+        lineardb_name, data_bin = FileLinearLocator.parse_bin(bin)
 
         # store metadata binary
         mongo_id = self._retrieve_tree_and_store_metadata(cache_dir,
@@ -143,7 +143,7 @@ class ExpeDBLinearLocator(Locator):
                                                           data_bin)
 
         # store data binary
-        row_id = linear.store_data(cache_dir, data_bin, parent_id)
+        row_id = LinearBase.store_data(cache_dir, data_bin, parent_id)
         # update parent_id in instance
         self.parent_id = int(row_id)
 
@@ -182,7 +182,7 @@ class ExpeDBLinearLocator(Locator):
 
         db_url = os.path.join(cache_dir, "lineardb")
 
-        bin = linear.retrieve_trajectory(
+        bin = LinearBase.retrieve_trajectory(
             db_url=db_url, length=length, row_id=row_id)
 
         return bin
@@ -196,7 +196,7 @@ class ExpeDBLinearLocator(Locator):
                                           data_bin: bytes) -> str:
         """
         Retrieves existing LinearDB from resource_uri, or creating if doesn't
-        exist, and gives the filepath of where it is temporarily cached locally.
+        exist.
         Also stores metadata when creating the LinearDB is required.
 
         Returns the ObjectID from ExpeDB.
@@ -233,7 +233,7 @@ class ExpeDBLinearLocator(Locator):
         Create SQLite cache.
         """
         db_path = os.path.join(cache_dir, "lineardb")
-        linear.init_db(db_path)
+        LinearBase.init_db(db_path)
         return
 
     def _load_tree_into_cache_dir(self, cache_dir: str, mongo_id: str) -> None:

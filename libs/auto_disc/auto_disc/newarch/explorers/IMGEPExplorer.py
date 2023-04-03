@@ -1,11 +1,16 @@
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator, LinearLocator
 from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
 from auto_disc.newarch.wrappers.mutators import add_gaussian_noise
-from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
+from auto_disc.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+    DictConfigParameter
+)
 from typing import Dict, Tuple, Callable, List
 import torch
 from copy import deepcopy
@@ -20,6 +25,13 @@ from functools import partial
 @DecimalConfigParameter("param_bound_high", default=float('inf'))
 @IntegerConfigParameter("system_output_dim", default=1, min=1)
 @DecimalConfigParameter("mutation_noise_std", default=0., min=0.)
+@StringConfigParameter("behavior_map",
+                       possible_values=["mean"],
+                       default="mean")
+@DictConfigParameter("behavior_map_config", default={})
+@StringConfigParameter("parameter_map",
+                       possible_values=["uniform"],
+                       default="uniform")
 class IMGEPFactory:
     """
     Factory class providing interface with config parameters and therefore the
@@ -31,33 +43,59 @@ class IMGEPFactory:
         pass
 
     def __call__(self):
-        # turn config parameters into correct args
-        param_size = torch.Size([self.config["param_dim"]])
-        init_low = self.config["param_init_low"]
-        init_high = self.config["param_init_high"]
-        tensor_low = torch.full(size=param_size, fill_value=init_low)
-        tensor_high = torch.full(size=param_size, fill_value=init_high)
-        float_bound_low = self.config["param_bound_low"]
-        float_bound_high = self.config["param_bound_high"]
-        mutation_noise_std = self.config["mutation_noise_std"]
-
+        behavior_map = self.make_behavior_map()
+        param_map = self.make_parameter_map()
+        mutator = self.make_mutator()
         equil_time = self.config["equil_time"]
-
-        # initialize
-        behavior_map = MeanBehaviorMap()
-        param_map = UniformParameterMap(
-            tensor_low=tensor_low,
-            tensor_high=tensor_high,
-            float_bound_low=float_bound_low,
-            float_bound_high=float_bound_high
-        )
-        mutator = partial(add_gaussian_noise,
-                          std=torch.tensor([mutation_noise_std]))
         explorer = IMGEPExplorer(parameter_map=param_map,
                                  behavior_map=behavior_map,
                                  equil_time=equil_time,
                                  mutator=mutator)
+
         return explorer
+
+    def make_behavior_map(self):
+        if self.config["behavior_map"] == "mean":
+            kwargs = self.config["behavior_map_config"]
+            behavior_map = MeanBehaviorMap(**kwargs)
+        else:
+            # this branch should be unreachable,
+            # because the ConfigParameter decorator checks
+            raise Exception("unreachable")
+
+        return behavior_map
+
+    def make_parameter_map(self):
+        if self.config["parameter_map"] == "uniform":
+            param_size = torch.Size([self.config["param_dim"]])
+            init_low = self.config["param_init_low"]
+            init_high = self.config["param_init_high"]
+            tensor_low = torch.full(size=param_size, fill_value=init_low)
+            tensor_high = torch.full(size=param_size, fill_value=init_high)
+            float_bound_low = self.config["param_bound_low"]
+            float_bound_high = self.config["param_bound_high"]
+
+            param_map = UniformParameterMap(
+                tensor_low=tensor_low,
+                tensor_high=tensor_high,
+                float_bound_low=float_bound_low,
+                float_bound_high=float_bound_high
+            )
+        else:
+            # this branch should be unreachable,
+            # because the ConfigParameter decorator checks
+            raise Exception("unreachable")
+
+        return param_map
+
+    def make_mutator(self):
+        if self.config["mutation_noise_std"] > 0:
+            mutator = partial(add_gaussian_noise,
+                              std=self.config["mutation_noise_std"])
+        else:
+            mutator = torch.nn.Identity()
+
+        return mutator
 
 
 class IMGEPExplorer(Leaf):
@@ -69,7 +107,7 @@ class IMGEPExplorer(Leaf):
                  mutator: Leaf = torch.nn.Identity(),
                  equil_time: int = 0) -> None:
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.premap_key = premap_key
         self.postmap_key = postmap_key
         self.parameter_map = parameter_map

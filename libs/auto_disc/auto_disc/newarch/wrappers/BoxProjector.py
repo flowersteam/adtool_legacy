@@ -1,5 +1,5 @@
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 from typing import Dict, Callable, Tuple
 import torch
 from copy import deepcopy
@@ -23,7 +23,7 @@ class BoxProjector(Leaf):
                  init_high: torch.Tensor = None,
                  tensor_shape: Tuple = None) -> None:
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.premap_key = premap_key
         self.bound_upper = bound_upper
         self.bound_lower = bound_lower

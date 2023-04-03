@@ -1,6 +1,6 @@
 import torch
-from leaf.leaf import Leaf
-from leaf.locators import FileLocator
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 from typing import Dict, Tuple
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
@@ -16,7 +16,7 @@ class MeanBehaviorMap(Leaf):
                  premap_key: str = "output",
                  input_shape: Tuple[int] = (1)) -> None:
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.premap_key = premap_key
         self.input_shape = input_shape  # unused by the module itself here
         # self.history_saver = SaveWrapper()

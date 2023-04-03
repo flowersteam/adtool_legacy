@@ -1,7 +1,9 @@
 from auto_disc.newarch.wrappers \
     import SaveWrapper, WrapperPipeline, TransformWrapper
-from leaf.leaf import Leaf, Locator, LeafUID, StatelessLocator, FileLocator
-from typing import Dict, List, Union, Any
+from leaf.Leaf import Leaf
+from leaf.locators.Locator import Locator, StatelessLocator, FileLocator
+from leaf.LeafUID import LeafUID
+from typing import Dict, List
 from copy import deepcopy
 import pathlib
 import tempfile
@@ -50,12 +52,12 @@ class DictLocator(Locator):
     def __init__(self, filepath):
         self.filepath = filepath
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         uid = LeafUID(self.hash(bin))
         self.table[uid] = bin
         return uid
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         return self.table[uid]
 
 

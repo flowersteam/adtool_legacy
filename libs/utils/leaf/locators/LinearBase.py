@@ -1,10 +1,9 @@
-from leaf.leaf import Leaf, Locator, LeafUID
-from typing import Tuple, List, Union, Any
+from leaf.Leaf import Leaf, Locator, LeafUID
+from typing import Tuple, List
 from sqlalchemy import create_engine, text, event
 from sqlalchemy.engine import Engine
 from hashlib import sha1
 import codecs
-import tempfile
 import pickle
 import os
 
@@ -29,7 +28,7 @@ def store_data(subdir: str,
     # initializes db if it does not exist
     init_db(db_url)
 
-    with EngineContext(db_url) as engine:
+    with _EngineContext(db_url) as engine:
         # insert node
         delta = convert_bytes_to_base64_str(data_bin)
         row_id = insert_node(engine, delta, parent_id)
@@ -55,7 +54,7 @@ def init_db(db_url: str) -> None:
     if os.path.exists(db_url):
         return
     else:
-        with EngineContext(db_url) as engine:
+        with _EngineContext(db_url) as engine:
             with engine.begin() as con:
                 con.execute(text(create_traj_statement))
                 con.execute(text(create_tree_statement))
@@ -92,7 +91,7 @@ def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
 
 
 def retrieve_trajectory(db_url: str, length: int = 1, row_id: int = 1):
-    with EngineContext(db_url) as engine:
+    with _EngineContext(db_url) as engine:
         _, trajectory, _ = _get_trajectory_raw(engine, row_id, length)
 
         buffer_concat = []
@@ -151,7 +150,7 @@ class Stepper(Leaf):
         self.buffer = []
 
 
-class LinearLocator(Locator):
+class FileLinearLocator(Locator):
     """
     Locator which stores branching, linear data
     with minimal redundancies in a SQLite db.
@@ -212,7 +211,7 @@ class LinearLocator(Locator):
         open(leaf_path, "a").close()  # touch empty file
 
         # return leaf_uid
-        leaf_uid = db_name + ":" + str(row_id)
+        leaf_uid = LeafUID(db_name + ":" + str(row_id))
 
         return leaf_uid
 
@@ -235,7 +234,8 @@ class LinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        bin = retrieve_trajectory(db_url=db_url, length=length, row_id=row_id)
+        bin = retrieve_trajectory(db_url=db_url, length=length, 
+                                  row_id=self.parent_id)
 
         return bin
 
@@ -267,7 +267,7 @@ class LinearLocator(Locator):
         cursor.close()
 
 
-class EngineContext:
+class _EngineContext:
     def __init__(self, db_url: str = ""):
         self.db_url = db_url
 

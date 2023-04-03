@@ -2,9 +2,8 @@ from typing import Union, Tuple, Dict, Any, List
 import pickle
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
-from leaf.locators import Locator, StatelessLocator
-from leaf.leafuid import LeafUID
-from leaf.locators import DictLocator, FileLocator
+from leaf.LeafUID import LeafUID
+from leaf.locators.Locator import Locator, StatelessLocator
 from leafutils.leafstructs.registration import \
     get_path_from_cls, get_cls_from_path
 
@@ -23,9 +22,15 @@ def prune_state(state_vars: Dict[str, Any]):
             for name in state_vars.keys():
                 attr_ptr = getattr(self, name, None)
                 old_vars[name] = attr_ptr
-                # clear the namespace
+
+                # if variable was defined, delete it
                 if attr_ptr is not None:
-                    delattr(self, name)
+                    # delete the variable if default is None
+                    if state_vars[name] is None:
+                        delattr(self, name)
+                    # else, set the default if it is defined
+                    elif state_vars[name] is not None:
+                        self._set_attr_override(name, state_vars[name])
 
             bin = serialize(self, *args, **kwargs)
 
@@ -35,8 +40,10 @@ def prune_state(state_vars: Dict[str, Any]):
                 # if variable was defined, restore it
                 if attr_ptr is not None:
                     self._set_attr_override(name, attr_ptr)
-                # else, set the default
-                else:
+                # else, set the default if it is defined
+                # this means defaults are not set for modules which never
+                # defined them in their instance
+                elif state_vars[name] is not None:
                     self._set_attr_override(name, state_vars[name])
 
             return bin
@@ -161,7 +168,7 @@ class Leaf:
     def save_leaf(self, resource_uri: str = "", *args, **kwargs) -> 'LeafUID':
         """
         Save entire structure of object. The suggested way to customize 
-        behavior is overloading serialize() and create_locator() 
+        behavior is overloading serialize() and the Locator
         """
         # check stateless
         if isinstance(self.locator, StatelessLocator):
@@ -174,7 +181,9 @@ class Leaf:
                 raise ValueError(
                     "The modules are corrupted and are not of type Leaf.")
             else:
-                module_uid = module_obj.save_leaf(resource_uri)
+                module_uid = module_obj.save_leaf(
+                    resource_uri, *args, **kwargs
+                )
                 uid_dict[module_name] = module_uid
 
         # replace list of submodules with pointerized list

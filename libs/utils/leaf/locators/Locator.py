@@ -1,6 +1,5 @@
-from leaf.leafuid import LeafUID
+from leaf.LeafUID import LeafUID
 from hashlib import sha1
-import pathlib
 import os
 
 
@@ -15,14 +14,14 @@ class Locator:
         self.resource_uri = resource_uri
         raise NotImplementedError
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         """ 
         Stores bin which generated it somewhere, perhaps on network,
         and returns (redundantly) the hash for the object.
         """
         raise NotImplementedError
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         """ 
         Retrieve bin identified by uid from somewhere, 
         perhaps on network 
@@ -43,28 +42,11 @@ class StatelessLocator(Locator):
     def __init__(self, resource_uri: str = '', *args, **kwargs):
         self.resource_uri = resource_uri
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         raise Exception("This module is either stateless or uninitialized.")
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         raise Exception("This module is either stateless or uninitialized.")
-
-
-class DictLocator(Locator):
-    """
-    Locator only for testing purposes, using a Python dict
-    """
-
-    def __init__(self, resource_uri):
-        self.resource_uri = resource_uri
-
-    def store(self, bin: bytes) -> 'LeafUID':
-        uid = self.hash(bin)
-        self.resource_uri[str(uid)] = bin
-        return uid
-
-    def retrieve(self, uid: 'LeafUID') -> bytes:
-        return self.resource_uri[str(uid)]
 
 
 class FileLocator(Locator):
@@ -80,7 +62,7 @@ class FileLocator(Locator):
         else:
             self.resource_uri = resource_uri
 
-    def store(self, bin: bytes) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         uid = self.hash(bin)
         save_dir = os.path.join(self.resource_uri, str(uid))
         if not os.path.exists(save_dir):
@@ -92,7 +74,7 @@ class FileLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID') -> bytes:
+    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
         # FileLocator does not parse extra info in the UID
         uid = uid.split(":")[0]
 

@@ -1,5 +1,5 @@
 from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
-from leaf.leaf import Leaf
+from leaf.Leaf import Leaf
 from typing import Dict, List
 
 

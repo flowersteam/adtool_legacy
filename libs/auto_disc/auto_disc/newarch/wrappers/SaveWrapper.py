@@ -1,7 +1,8 @@
 from copy import deepcopy
 from typing import Dict, List
-from leaf.leaf import Leaf, Locator, LeafUID
-from leafutils.leafstructs.linear import LinearLocator, Stepper
+from leaf.Leaf import Leaf, Locator, LeafUID
+from leaf.locators.LinearBase import Stepper
+from leaf.locators.locators import LinearLocator
 from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
 
 

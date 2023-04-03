@@ -1,5 +1,5 @@
 from leaf.tests.test_leaf import DummyLocator, DummyModule
-from leaf.leaf import Leaf
+from leaf.Leaf import Leaf
 from leafutils.leafstructs.service import provide_leaf_as_service
 
 
