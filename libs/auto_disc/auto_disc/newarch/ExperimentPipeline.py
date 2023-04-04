@@ -72,7 +72,8 @@ class ExperimentPipeline(Leaf):
                  on_error_callbacks: List[Callable] = [],
                  interact_callbacks: List[Callable] = [],
                  logger=None,
-                 resource_uri: str = ""
+                 resource_uri: str = "",
+                 discovery_saving_keys: List[str] = []
                  ) -> None:
         """
             Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.
@@ -101,6 +102,7 @@ class ExperimentPipeline(Leaf):
         self.save_frequency = save_frequency
         self.logger = logger
         self.resource_uri = resource_uri
+        self.discovery_saving_keys = discovery_saving_keys
 
         ### SYSTEM ###
         self._system = system
@@ -171,6 +173,13 @@ class ExperimentPipeline(Leaf):
 
                 # pass new dict to prevent in-place mutation by callback
                 discovery_to_save = deepcopy(discovery)
+
+                # use discovery_saving_keys as a mask for what to save
+                if len(self.discovery_saving_keys) > 0:
+                    for key in list(discovery_to_save.keys()):
+                        if key not in self.discovery_saving_keys:
+                            del discovery_to_save[key]
+
                 # TODO: pass the rendered output more easily
                 discovery_to_save["rendered_output"] = rendered_output
                 self._raise_callbacks(

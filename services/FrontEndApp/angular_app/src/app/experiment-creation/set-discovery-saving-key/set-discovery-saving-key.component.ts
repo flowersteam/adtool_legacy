@@ -74,6 +74,13 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
   onCheckboxChange(key: string) {
     let flag = this.discovery_saveflags.get(key);
     this.discovery_saveflags.set(key, !flag);
+
+    // get all keys that are true and save them to the experiment config
+    let keys_to_save = Array.from(this.discovery_saveflags.entries())
+      .filter(([key, value]) => value)
+    this.CreateNewExperimentService.newExperiment.experiment.config
+      .discovery_saving_keys = keys_to_save.map(([key, value]) => key);
+
   }
 
   updateParentComponent() {
