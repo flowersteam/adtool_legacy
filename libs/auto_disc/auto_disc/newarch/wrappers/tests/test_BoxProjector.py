@@ -27,6 +27,19 @@ def test__update_low_high():
     assert not torch.allclose(box.low[lower_mask], new_input[lower_mask])
 
 
+def test__update_low_high_type_conversion():
+    dim = 3
+    input = torch.rand(dim)
+
+    box = BoxProjector(premap_key="output",
+                       init_low=torch.tensor([0, 0, 0]),
+                       init_high=torch.tensor([0, 0, 0]))
+    box._update_low_high(input)
+
+    assert torch.allclose(box.low, torch.zeros_like(input))
+    assert torch.allclose(box.high, input)
+
+
 def test__clamp_and_truncate():
     dim = 10
     input = torch.rand(dim) + 10

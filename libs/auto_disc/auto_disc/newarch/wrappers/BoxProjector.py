@@ -1,6 +1,6 @@
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from typing import Dict, Callable, Tuple
+from typing import Dict, Callable, Tuple, Optional
 import torch
 from copy import deepcopy
 
@@ -19,9 +19,9 @@ class BoxProjector(Leaf):
                  premap_key: str,
                  bound_upper: torch.Tensor = torch.tensor([float('inf')]),
                  bound_lower: torch.Tensor = torch.tensor([-float('inf')]),
-                 init_low: torch.Tensor = None,
-                 init_high: torch.Tensor = None,
-                 tensor_shape: Tuple = None) -> None:
+                 init_low: Optional[torch.Tensor] = None,
+                 init_high: Optional[torch.Tensor] = None,
+                 tensor_shape: Optional[Tuple] = None) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
@@ -82,6 +82,10 @@ class BoxProjector(Leaf):
 
         low_mask = torch.less(data, self.low)
         high_mask = torch.greater(data, self.high)
+
+        # convert types to match data
+        self.low = self.low.type(data.dtype)
+        self.high = self.high.type(data.dtype)
 
         # views are not used here, so it is deep-copied
         self.low[low_mask] = data[low_mask]
