@@ -29,13 +29,16 @@ def test__update_low_high():
 
 def test__update_low_high_type_conversion():
     dim = 3
+    # input is a float tensor
     input = torch.rand(dim)
 
+    # default init_low and init_high are int tensors
     box = BoxProjector(premap_key="output",
                        init_low=torch.tensor([0, 0, 0]),
                        init_high=torch.tensor([0, 0, 0]))
     box._update_low_high(input)
 
+    # low and high should be converted to float for asserts to pass
     assert torch.allclose(box.low, torch.zeros_like(input))
     assert torch.allclose(box.high, input)
 
