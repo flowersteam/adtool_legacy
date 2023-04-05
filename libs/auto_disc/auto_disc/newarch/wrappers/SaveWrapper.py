@@ -96,6 +96,29 @@ class SaveWrapper(TransformWrapper):
 
         return output_bin
 
+    def retrieve_buffer(self, buffer_src_uri: str, length: int) -> List[Dict]:
+        """
+        Temporarily query SQLite db to retrieve buffer.
+        Does not store buffer as attribute of the SaveWrapper instance.
+        `length = 0` corresponds as usual to retrieving the entire history.
+        """
+        temporary_locator = LinearLocator(resource_uri=buffer_src_uri)
+
+        # run part of the save routine to ge the db name
+        # TODO: can tighten this up with direct calls
+        tmp_bin = self.serialize()
+        db_name, _ = temporary_locator.parse_bin(tmp_bin)
+
+        # get parent_id of last insert to create uid needed for retrieval
+        parent_id = self.locator.parent_id
+        generated_uid = db_name + ":" + str(parent_id)
+
+        # run usual Locator retrieve routine
+        bin = temporary_locator.retrieve(uid=generated_uid, length=length)
+        stepper = Stepper().deserialize(bin)
+
+        return stepper.buffer
+
     def _store_saved_inputs_in_buffer(self, intermed_dict: Dict) -> None:
         saved_input = {}
         for key in self.inputs_to_save:

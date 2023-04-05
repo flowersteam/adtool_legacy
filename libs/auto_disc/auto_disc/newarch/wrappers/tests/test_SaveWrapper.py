@@ -166,10 +166,15 @@ def test_saveload_whole_history():
     # this creates two checkpoints, one with len(buf) == 2 and one with
     # len(buf) == 3
 
+    def retrieve_func(length):
+        new_wrapper = SaveWrapper()
+        wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI,
+                                               length=length)
+        buffer = wrapper_loaded.buffer
+        return buffer
+
     # try retrieval of entire sequence
-    new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI, 0)
-    buffer = wrapper_loaded.buffer
+    buffer = retrieve_func(length=0)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}
@@ -179,9 +184,9 @@ def test_saveload_whole_history():
     assert buffer[4] == {"a": 1, "b": 2}
 
     # try retrieval of entire sequence with explicit length
-    new_wrapper = SaveWrapper()
-    wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI, length=2)
-    buffer = wrapper_loaded.buffer
+    # note that the length argument does not correspond
+    # to the length of the buffer, because of save frequency
+    buffer = retrieve_func(length=2)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}
@@ -189,3 +194,60 @@ def test_saveload_whole_history():
     assert buffer[2] == {"a": 1, "b": 2}
     assert buffer[3] == {"a": 2, "b": 1}
     assert buffer[4] == {"a": 1, "b": 2}
+
+    buffer = retrieve_func(length=1)
+
+    assert len(buffer) == 3
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+
+
+def test_retrieve_buffer():
+    input = {"a": 1, "b": 2}
+    wrapper = SaveWrapper(
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    output = input
+    for i in range(2):
+        output = wrapper.map(output)
+        output = wrapper.map(output)
+        # vary save buffer length
+        if i == 1:
+            output = wrapper.map(output)
+        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
+    # this creates two checkpoints, one with len(buf) == 2 and one with
+    # len(buf) == 3
+
+    # remember old parent_id to check it will not change
+    old_parent_id = wrapper.locator.parent_id
+    # load something in the buffer that will be unchanged
+    test_input = {"a": 100, "b": 200}
+    wrapper.map(test_input)
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of entire sequence
+    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=0)
+
+    assert len(buffer) == 5
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+    assert buffer[3] == {"a": 2, "b": 1}
+    assert buffer[4] == {"a": 1, "b": 2}
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of entire sequence with explicit length
+    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=2)
+
+    assert len(buffer) == 5
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+    assert buffer[3] == {"a": 2, "b": 1}
+    assert buffer[4] == {"a": 1, "b": 2}
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id

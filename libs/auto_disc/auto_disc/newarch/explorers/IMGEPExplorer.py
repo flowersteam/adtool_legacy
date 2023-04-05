@@ -118,6 +118,7 @@ class IMGEPExplorer(Leaf):
         self.mutator = mutator
 
         self._history_saver = SaveWrapper()
+        self.buffer_src_uri = ""
 
     def bootstrap(self) -> Dict:
         """
@@ -171,12 +172,28 @@ class IMGEPExplorer(Leaf):
 
         return trial_data_reset
 
-    def suggest_trial(self) -> torch.Tensor:
+    def suggest_trial(self, lookback_length: int = 1) -> torch.Tensor:
         """
         Samples according to the policy a new trial of parameters for the
-        system
+        system.
+        The `lookback_length` parameter is the number of previous trials to
+        consider when choosing the next trial, i.e., it is a batch size
+        based on the save frequency. 
+        Note that `lookback_length = 0` will retrieve the entire history.
         """
-        history_buffer = self._history_saver.buffer
+        if lookback_length == 0:
+            # this corresponds to retrieving the entire history
+            history_buffer = self._retrieve_history_buffer(lookback_length)
+        elif lookback_length == 1:
+            history_buffer = self._history_saver.buffer
+        elif lookback_length > 1:
+            lookback_length -= 1
+            history_buffer = self._retrieve_history_buffer(lookback_length)
+        else:
+            # this branch should be unreachable,
+            # unless user does something weird
+            raise ValueError("lookback_length must be >= 0")
+
         goal_history = self._extract_tensor_history(history_buffer,
                                                     self.premap_key)
         param_history = self._extract_tensor_history(history_buffer,
@@ -212,6 +229,12 @@ class IMGEPExplorer(Leaf):
         Optimization step for online learning of the `Explorer` policy.
         """
         pass
+
+    def _retrieve_history_buffer(self, length: int) -> List[Dict]:
+        """
+        Returns the last `length` entries of the history buffer.
+        """
+        return self._history_saver.retrieve_buffer(self.buffer_src_uri, length)
 
     def _extract_tensor_history(self,
                                 dict_history: List[Dict],

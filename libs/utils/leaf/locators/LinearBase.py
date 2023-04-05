@@ -96,6 +96,9 @@ def retrieve_trajectory(db_url: str, length: int = 1, row_id: int = 1):
 
         buffer_concat = []
         for binary in trajectory:
+            # this is the same as just Leaf.deserialize(binary)
+            # but just in case we want to modify Stepper.deserialize
+            # which is the proper interface
             loaded_obj = Stepper().deserialize(binary)
             buffer_concat += loaded_obj.buffer
         loaded_obj.buffer = buffer_concat
@@ -234,7 +237,7 @@ class FileLinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        bin = retrieve_trajectory(db_url=db_url, length=length, 
+        bin = retrieve_trajectory(db_url=db_url, length=length,
                                   row_id=self.parent_id)
 
         return bin
