@@ -196,6 +196,8 @@ def test_save_resume():
     assert len(pipeline._explorer._history_saver.buffer) == 1
     # check callbacks are restored
     assert len(pipeline._on_discovery_callbacks) > 0
+    # check resource_uri is restored
+    assert pipeline.locator.resource_uri == RESOURCE_URI
 
     run.start(pipeline, 3)
     files = os.listdir(RESOURCE_URI)

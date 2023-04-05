@@ -95,12 +95,12 @@ class ExperimentPipeline(Leaf):
         """
         super().__init__()
         self.locator = BlobLocator()
+        self.locator.resource_uri = resource_uri
         self.run_idx = 0
         self.experiment_id = experiment_id
         self.seed = seed
         self.save_frequency = save_frequency
         self.logger = logger
-        self.resource_uri = resource_uri
 
         ### SYSTEM ###
         self._system = system
@@ -175,7 +175,7 @@ class ExperimentPipeline(Leaf):
                 discovery_to_save["rendered_output"] = rendered_output
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
-                    resource_uri=self.resource_uri,
+                    resource_uri=self.locator.resource_uri,
                     run_idx=self.run_idx,
                     experiment_id=self.experiment_id,
                     seed=self.seed,
@@ -196,7 +196,7 @@ class ExperimentPipeline(Leaf):
 
                 if (run_idx_start_from_one % self.save_frequency == 0
                         or run_idx_start_from_one == n_exploration_runs):
-                    self.save(resource_uri=self.resource_uri)
+                    self.save(resource_uri=self.locator.resource_uri)
 
                 self.run_idx += 1
 
