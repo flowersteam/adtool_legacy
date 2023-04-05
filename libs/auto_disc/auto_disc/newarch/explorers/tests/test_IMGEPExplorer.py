@@ -250,7 +250,10 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion_arbitrary_buf():
 
     # actual test
     # NOTE: not deterministic because of noise
-    explorer.buffer_src_uri = RESOURCE_URI
+    # in real use, the resource_uri would be set when
+    # the explorer is bound as a submodule of a parent module
+    explorer.locator.resource_uri = RESOURCE_URI
+
     params_trial = explorer.suggest_trial(lookback_length=0)
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100

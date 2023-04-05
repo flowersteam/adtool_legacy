@@ -118,7 +118,6 @@ class IMGEPExplorer(Leaf):
         self.mutator = mutator
 
         self._history_saver = SaveWrapper()
-        self.buffer_src_uri = ""
 
     def bootstrap(self) -> Dict:
         """
@@ -234,7 +233,8 @@ class IMGEPExplorer(Leaf):
         """
         Returns the last `length` entries of the history buffer.
         """
-        return self._history_saver.retrieve_buffer(self.buffer_src_uri, length)
+        return self._history_saver.retrieve_buffer(self.locator.resource_uri,
+                                                   length)
 
     def _extract_tensor_history(self,
                                 dict_history: List[Dict],
