@@ -209,10 +209,6 @@ class FileLinearLocator(Locator):
         # update parent_uid in instance
         self.parent_id = int(row_id)
 
-        # store leaf_uids in filesystem
-        leaf_path = os.path.join(subdir, str(row_id))
-        open(leaf_path, "a").close()  # touch empty file
-
         # return leaf_uid
         leaf_uid = LeafUID(db_name + ":" + str(row_id))
 
