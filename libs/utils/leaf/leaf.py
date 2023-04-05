@@ -277,10 +277,10 @@ class Leaf:
         submodule._set_attr_override("_container_ptr", self)
 
         # default initialization of locator resource_uri
-        if isinstance(submodule.locator, StatelessLocator) \
-                and submodule.locator.resource_uri == "":
-            parent_locator_class = submodule._retrieve_parent_locator_class()
-            submodule.locator = parent_locator_class(self.locator.resource_uri)
+        # TODO: fix this so it's usable given new locator defaults
+        if (submodule.locator.resource_uri == "" and
+                not isinstance(submodule.locator, StatelessLocator)):
+            submodule.locator.resource_uri == self.locator.resource_uri
 
         return
 

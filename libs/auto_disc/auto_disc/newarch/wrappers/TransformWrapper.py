@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Dict, List
-from leaf.Leaf import Leaf, Locator, LeafUID
+from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 
 
 class TransformWrapper(Leaf):
@@ -21,6 +22,7 @@ class TransformWrapper(Leaf):
                  postmap_keys: List[str] = [],
                  ) -> None:
         super().__init__()
+        self.locator = BlobLocator()
 
         # process key wrapping
         if len(premap_keys) != len(postmap_keys):

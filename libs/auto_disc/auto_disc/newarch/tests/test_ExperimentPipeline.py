@@ -77,6 +77,8 @@ def test___init__():
         new_pipeline._explorer.parameter_map.projector.high, torch.tensor([3., 3., 3.]))
     # check system type
     assert isinstance(new_pipeline._system, ExponentialMixture)
+    # check container pointers
+    assert new_pipeline._explorer._container_ptr == new_pipeline
 
     # TODO: finish the checks of state, but i'm lazy
 

@@ -24,6 +24,19 @@ def teardown_function(function):
     return
 
 
+def add_gaussian_noise_test(input_tensor: torch.Tensor,
+                            mean: torch.Tensor = torch.tensor([10000.]),
+                            std: torch.Tensor = torch.tensor([1.]),
+                            ) -> torch.Tensor:
+    if not isinstance(mean, torch.Tensor):
+        mean = torch.tensor(mean, dtype=float)
+    if not isinstance(std, torch.Tensor):
+        std = torch.tensor(std, dtype=float)
+    noise_unit = torch.randn(input_tensor.size())
+    noise = noise_unit*std + mean
+    return input_tensor + noise
+
+
 def test_IMGEPExplorer___init__():
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
@@ -155,18 +168,6 @@ def test_IMGEPExplorer_read_last_discovery():
 
 
 def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
-    def add_gaussian_noise_test(input_tensor: torch.Tensor,
-                                mean: torch.Tensor = torch.tensor([10000.]),
-                                std: torch.Tensor = torch.tensor([1.]),
-                                ) -> torch.Tensor:
-        if not isinstance(mean, torch.Tensor):
-            mean = torch.tensor(mean, dtype=float)
-        if not isinstance(std, torch.Tensor):
-            std = torch.tensor(std, dtype=float)
-        noise_unit = torch.randn(input_tensor.size())
-        noise = noise_unit*std + mean
-        return input_tensor + noise
-
     mean_map = MeanBehaviorMap(premap_key="output")
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
@@ -199,6 +200,61 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
     # actual test
     # NOTE: not deterministic because of noise
     params_trial = explorer.suggest_trial()
+    assert params_trial.size() == torch.Size([3])
+    assert torch.mean(params_trial) > 100
+
+    # suggest_trial does not increment timestep
+    assert explorer.timestep == 2
+
+
+def test_IMGEPExplorer_suggest_trial_behavioral_diffusion_arbitrary_buf():
+    """
+    This test is the same as the above, but we do a save step
+    to make sure that the test will pass when retrieving buffers
+    from storage.
+    """
+
+    mean_map = MeanBehaviorMap(premap_key="output")
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([6., 6., 6.]))
+    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
+                             parameter_map=param_map, behavior_map=mean_map,
+                             equil_time=2)
+
+    # mock history
+    mock_discovery_history = \
+        [{"metadata": 1,
+          "params": torch.tensor([0., 1., 2.]),
+          "raw_output": torch.tensor([1., 2., 3.]),
+          "output": torch.tensor([2.])},
+         {"metadata": 1,
+          "params": torch.tensor([3., 4., 5.]),
+          "raw_output": torch.tensor([4., 5., 6.]),
+          "output": torch.tensor([5.])},
+         {"metadata": 1,
+          "params": torch.tensor([-1., -1., -1]),
+          "raw_output": torch.tensor([0., 0., 0.]),
+          "output": torch.tensor([0.])}]
+    explorer._history_saver.buffer = mock_discovery_history
+    explorer.behavior_map.projector.low = torch.tensor([0.])
+    explorer.behavior_map.projector.high = torch.tensor([5.])
+    explorer.behavior_map.projector.tensor_shape = torch.Size([1])
+    explorer.timestep = 2
+    explorer.mutator = add_gaussian_noise_test
+
+    # save to storage
+    explorer.save_leaf(RESOURCE_URI)
+    assert len(explorer._history_saver.buffer) == 0
+    assert len(os.listdir(RESOURCE_URI)) != 0
+
+    # actual test
+    # NOTE: not deterministic because of noise
+    # in real use, the resource_uri would be set when
+    # the explorer is bound as a submodule of a parent module
+    explorer.locator.resource_uri = RESOURCE_URI
+
+    params_trial = explorer.suggest_trial(lookback_length=0)
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100
 
