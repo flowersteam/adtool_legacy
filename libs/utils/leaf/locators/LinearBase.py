@@ -110,21 +110,66 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                         ) -> Tuple[List[int], List[bytes], List[int]]:
     """
     Retrieves trajectory which has HEAD at id and returns the last 
-    trajectory_length elements
+    trajectory_length elements.
     """
-    query = \
+
+    # some ugly casework because I don't know SQLAlchemy
+    # but also it's more efficient to do it DB-side and not ORM-side
+    query_depth_limited = \
         '''
         WITH tree_inheritance AS (
-            WITH RECURSIVE cte (id, child_id, depth) AS (
-                SELECT :z, NULL, 0
-                UNION ALL
-                SELECT id, child_id, 1
-                    FROM tree WHERE tree.child_id = :z
-                UNION
-                SELECT y.id, y.child_id, depth + 1
-                    FROM cte AS x INNER JOIN tree AS y ON y.child_id = x.id
-                )
-            SELECT * from cte
+                WITH RECURSIVE cte (id, child_id, depth) AS (
+                    SELECT :z, NULL, 0
+                    UNION ALL
+                    SELECT id, child_id, 1
+                        FROM tree WHERE tree.child_id = :z
+                    UNION
+                    SELECT y.id, y.child_id, depth + 1
+                        FROM cte AS x INNER JOIN tree AS y ON y.child_id = x.id
+                        -- subquery to limit depth of recursion
+                        WHERE (
+                            WITH const AS (SELECT :trajectory_length AS MaxDepth)
+                                SELECT 1 FROM const
+                                    WHERE x.depth < const.MaxDepth - 1
+                            )
+                    )
+                SELECT * from cte
+        )
+        SELECT x.id, y.content, x.depth
+            FROM
+                tree_inheritance AS x INNER JOIN trajectories AS y
+                    ON x.id = y.id
+            ORDER BY depth DESC
+        '''
+    # same as above, but remove the subquery which limits depth
+    query_unlimited = \
+        '''
+        WITH tree_inheritance AS (
+                WITH RECURSIVE cte (id, child_id, depth) AS (
+                    SELECT :z, NULL, 0
+                    UNION ALL
+                    SELECT id, child_id, 1
+                        FROM tree WHERE tree.child_id = :z
+                    UNION
+                    SELECT y.id, y.child_id, depth + 1
+                        FROM cte AS x INNER JOIN tree AS y ON y.child_id = x.id
+                    )
+                SELECT * from cte
+        )
+        SELECT x.id, y.content, x.depth
+            FROM
+                tree_inheritance AS x INNER JOIN trajectories AS y
+                    ON x.id = y.id
+            ORDER BY depth DESC
+        '''
+    # same as above, but don't do the inductive step
+    query_singleton = \
+        '''
+        WITH tree_inheritance AS (
+                WITH cte (id, child_id, depth) AS (
+                    SELECT :z, NULL, 0
+                    )
+                SELECT * from cte
         )
         SELECT x.id, y.content, x.depth
             FROM
@@ -133,18 +178,24 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
             ORDER BY depth DESC
         '''
     with engine.connect() as conn:
-        result = conn.execute(text(query), {"z": id})
+        if trajectory_length == 1:
+            query = query_singleton
+        elif trajectory_length == -1:
+            query = query_unlimited
+        else:
+            query = query_depth_limited
+        result = conn.execute(
+            text(query), {"z": id, "trajectory_length": trajectory_length}
+        )
+
         # persist the result into Python list
         result = result.all()
-
         ids: List[int] = [w for (w, _, _) in result]
         trajectory = [convert_base64_str_to_bytes(
             w) for (_, w, _) in result]
         depths: List[int] = [w for (_, _, w) in result]
 
-    return ids[-trajectory_length:], \
-        trajectory[-trajectory_length:], \
-        depths[-trajectory_length:]
+    return ids, trajectory, depths
 
 
 class Stepper(Leaf):
@@ -233,8 +284,8 @@ class FileLinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        bin = retrieve_trajectory(db_url=db_url, 
-                                  row_id=self.parent_id, 
+        bin = retrieve_trajectory(db_url=db_url,
+                                  row_id=self.parent_id,
                                   length=length)
 
         return bin
