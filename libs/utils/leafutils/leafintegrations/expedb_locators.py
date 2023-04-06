@@ -183,7 +183,7 @@ class ExpeDBLinearLocator(Locator):
         db_url = os.path.join(cache_dir, "lineardb")
 
         bin = LinearBase.retrieve_trajectory(
-            db_url=db_url, length=length, row_id=row_id)
+            db_url=db_url, row_id=row_id, length=length)
 
         return bin
 

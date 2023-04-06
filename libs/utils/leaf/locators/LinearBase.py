@@ -90,7 +90,7 @@ def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
     return id
 
 
-def retrieve_trajectory(db_url: str, length: int = 1, row_id: int = 1):
+def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1):
     with _EngineContext(db_url) as engine:
         _, trajectory, _ = _get_trajectory_raw(engine, row_id, length)
 
@@ -233,8 +233,9 @@ class FileLinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        bin = retrieve_trajectory(db_url=db_url, length=length,
-                                  row_id=self.parent_id)
+        bin = retrieve_trajectory(db_url=db_url, 
+                                  row_id=self.parent_id, 
+                                  length=length)
 
         return bin
 
