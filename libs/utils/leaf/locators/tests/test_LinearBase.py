@@ -188,7 +188,7 @@ def test_FileLinearLocator_retrieve():
     x = FileLinearLocator(FILE_PATH)
     assert x.parent_id == -1
 
-    bin = x.retrieve(retrieval_key, length=0)
+    bin = x.retrieve(retrieval_key, length=-1)
     assert x.parent_id == 2
     loaded_obj = Stepper().deserialize(bin)
 
@@ -213,7 +213,7 @@ def test_FileLinearLocator_branching():
 
     # retrieve original
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(root_retrieval_key, 0)
+    bin = x.retrieve(root_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
 
@@ -223,13 +223,13 @@ def test_FileLinearLocator_branching():
     assert third_retrieval_key != second_retrieval_key
 
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(third_retrieval_key, 0)
+    bin = x.retrieve(third_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
 
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(second_retrieval_key, 0)
+    bin = x.retrieve(second_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
