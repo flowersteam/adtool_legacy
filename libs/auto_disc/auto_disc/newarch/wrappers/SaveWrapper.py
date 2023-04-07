@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Iterable
 from leaf.Leaf import Leaf, Locator, LeafUID
 from leaf.locators.LinearBase import (Stepper,
                                       retrieve_packed_trajectory,
@@ -101,9 +101,13 @@ class SaveWrapper(TransformWrapper):
 
     def retrieve_buffer(self, buffer_src_uri: str, length: int) -> List[Dict]:
         """
-        Temporarily query SQLite db to retrieve buffer.
-        Does not store buffer as attribute of the SaveWrapper instance.
-        `length = 0` corresponds as usual to retrieving the entire history.
+        Temporarily query SQLite db to retrieve buffer, taking the top-level
+        resource_uri and the length of the buffer to retrieve.
+
+        Does not store buffer as attribute of the SaveWrapper instance,
+        but does load everything into memory.
+
+        `length = -1` corresponds as usual to retrieving the entire history.
         """
         temporary_locator = LinearLocator(resource_uri=buffer_src_uri)
 
@@ -156,8 +160,8 @@ class BufferStreamer:
 
     def __init__(self, wrapper: SaveWrapper,
                  resource_uri: str,
-                 batch_size: int = 1) -> None:
-        self.batch_size = batch_size
+                 cachebuf_size: int = 1) -> None:
+        self.cachebuf_size = cachebuf_size
 
         # variable for tracking where we are in the DB
         # starting at the id of the last insert
@@ -178,9 +182,9 @@ class BufferStreamer:
 
     def __next__(self):
         # simply pop things from buffer
-        # if buffer is empty, retrieve next batch
+        # if buffer is empty, retrieve next cachebuf
         if len(self.buffer) == 0:
-            self.buffer = self._next_batch()
+            self.buffer = self._next_cachebuf()
         return self.buffer.pop(-1)
 
     def _get_db_name(self) -> str:
@@ -192,46 +196,37 @@ class BufferStreamer:
 
         return db_name
 
-    def _next_batch(self) -> List[Dict]:
+    def _next_cachebuf(self) -> List[Dict]:
         """
-        Retrieves next batch. This is where StopIteration is raised.
+        Retrieves next cachebuf. This is where StopIteration is raised.
         """
-        # TODO: do some proper branch analysis and fix this
         # note: based on SQLite convention that first row has id = 1
         if self._i < 1:
             raise StopIteration
 
-        # retrieve next batch and one extra to set _i
+        # retrieve next cachebuf and one extra to set _i
         ids, packed_trajectory, _ = retrieve_packed_trajectory(
-            self.db_url, self._i, self.batch_size + 1)
+            self.db_url, self._i, self.cachebuf_size + 1)
 
-        # update where we are in the tree
-        if len(ids) > 0:
-            # set to the next id to be retrieved
-            self._i = ids[0]
+        # set to the next id to be retrieved
+        self._i = ids[0]
 
-            # check for the final batch, which may have a misalignment
-            if len(ids) < self.batch_size + 1:
-                # set to 0 to signal that entire tree has been crawled
-                # as in SQLite convention the first row has id = 1
-                self._i = 0
-                traj_to_concat = packed_trajectory
-            else:
-                # if not at the final batch,
-                # remove first packed binary which contains the elements
-                # from the start of the next batch
-                traj_to_concat = packed_trajectory[1:]
-
-            # unpack binaries in the trajectory
-            buffer_concat = []
-            for binary in traj_to_concat:
-                loaded_obj = Stepper().deserialize(binary)
-                buffer_concat += loaded_obj.buffer
-
-            return buffer_concat
-
-        else:
+        # check for the final cachebuf, which may have a misalignment
+        if len(ids) < self.cachebuf_size + 1:
             # set to 0 to signal that entire tree has been crawled
-            # as in SQLite convention the first row has id = 1
+            # for next time the method is called
             self._i = 0
-            raise StopIteration
+            traj_to_concat = packed_trajectory
+        else:
+            # if not at the final cachebuf,
+            # remove first packed binary which contains the elements
+            # from the start of the next cachebuf
+            traj_to_concat = packed_trajectory[1:]
+
+        # unpack binaries in the trajectory
+        buffer_concat = []
+        for binary in traj_to_concat:
+            loaded_obj = Stepper().deserialize(binary)
+            buffer_concat += loaded_obj.buffer
+
+        return buffer_concat

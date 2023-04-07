@@ -221,7 +221,7 @@ def test_SaveWrapper__retrieve_buffer():
     assert wrapper.locator.parent_id == old_parent_id
 
     # try retrieval of entire sequence
-    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=0)
+    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=-1)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}
@@ -249,15 +249,17 @@ def test_SaveWrapper__retrieve_buffer():
 
 def test_BufferStreamer___init__():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
-    assert streamer.batch_size == 2
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    assert streamer.cachebuf_size == 2
     assert streamer.db_url
     assert streamer._i == 10
 
 
 def test_BufferStreamer__get_db_name():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
 
     # saving done in generate_data_alot will create a single folder to check
     file_list = os.listdir(RESOURCE_URI)
@@ -266,38 +268,40 @@ def test_BufferStreamer__get_db_name():
     assert streamer._get_db_name() == retrieved_uri
 
 
-def test_BufferStreamer__next_batch():
+def test_BufferStreamer__next_cachebuf():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
 
-    # check that the first batch is correct
-    batch = streamer._next_batch()
-    assert len(batch) == 4
-    assert batch == [{"a": 1, "b": 2, "step": 9},
-                     {"a": 2, "b": 1, "step": 9},
-                     {"a": 1, "b": 2, "step": 10},
-                     {"a": 2, "b": 1, "step": 10}]
+    # check that the first cachebuf is correct
+    cachebuf = streamer._next_cachebuf()
+    assert len(cachebuf) == 4
+    assert cachebuf == [{"a": 1, "b": 2, "step": 9},
+                        {"a": 2, "b": 1, "step": 9},
+                        {"a": 1, "b": 2, "step": 10},
+                        {"a": 2, "b": 1, "step": 10}]
     assert streamer._i == 8
 
-    # check that the second batch is correct
-    batch = streamer._next_batch()
-    assert len(batch) == 4
-    assert batch == [{"a": 1, "b": 2, "step": 7},
-                     {"a": 2, "b": 1, "step": 7},
-                     {"a": 1, "b": 2, "step": 8},
-                     {"a": 2, "b": 1, "step": 8}]
+    # check that the second cachebuf is correct
+    cachebuf = streamer._next_cachebuf()
+    assert len(cachebuf) == 4
+    assert cachebuf == [{"a": 1, "b": 2, "step": 7},
+                        {"a": 2, "b": 1, "step": 7},
+                        {"a": 1, "b": 2, "step": 8},
+                        {"a": 2, "b": 1, "step": 8}]
     assert streamer._i == 6
 
     # catch the guard
     with pytest.raises(Exception) as excinfo:
         streamer._i = 0
-        streamer._next_batch()
+        streamer._next_cachebuf()
         assert excinfo.value == "This should be unreachable."
 
 
 def test_BufferStreamer___next__():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
     assert streamer.__next__() == {"a": 2, "b": 1, "step": 10}
     assert streamer.__next__() == {"a": 1, "b": 2, "step": 10}
     assert streamer.__next__() == {"a": 2, "b": 1, "step": 9}
@@ -306,7 +310,21 @@ def test_BufferStreamer___next__():
 
 def test_BufferStreamer_iterating():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    step_array = []
+    for output_dict in streamer:
+        step_array.append(output_dict["step"])
+
+    assert step_array == [10, 10, 9, 9, 8, 8, 7,
+                          7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
+
+
+def test_BufferStreamer_iterating_misaligned():
+    leaf_uid, wrapper = generate_data_alot()
+    # cachebuf size is not a divisor of the total tree depth
+    streamer = BufferStreamer(
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=3)
     step_array = []
     for output_dict in streamer:
         step_array.append(output_dict["step"])
