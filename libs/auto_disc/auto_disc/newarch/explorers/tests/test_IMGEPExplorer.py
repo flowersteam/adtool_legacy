@@ -123,6 +123,7 @@ def test_IMGEPExplorer_observe_results():
 
     assert torch.allclose(output_tensor, system_output["output"])
     # check mutability
+    assert system_output["output"] is not output_tensor
     output_tensor += 1
     assert not torch.allclose(output_tensor, system_output["output"])
 
@@ -159,6 +160,7 @@ def test_IMGEPExplorer_map():
     assert explorer.timestep == 1
 
     # check mutability
+    assert new_params is not system_output
     system_output["metadata"] = 2
     assert new_params["metadata"] == 1
 
