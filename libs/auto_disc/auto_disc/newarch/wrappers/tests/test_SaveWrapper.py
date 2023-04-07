@@ -5,6 +5,7 @@ import os
 import pathlib
 import shutil
 import pytest
+import pytest_mock
 
 
 def setup_function(function):
@@ -245,6 +246,47 @@ def test_SaveWrapper__retrieve_buffer():
 
     assert wrapper.buffer == [{"a": 100, "b": 200}]
     assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of entire sequence with short length
+    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=1)
+
+    assert len(buffer) == 3
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+
+def test_SaveWrapper_generate_dataloader(mocker):
+    leaf_uid, wrapper = generate_data_alot()
+    # remember old parent_id to check it will not change
+    old_parent_id = wrapper.locator.parent_id
+    # load something in the buffer that will be unchanged
+    test_input = {"a": 100, "b": 200, "step": -1}
+    wrapper.map(test_input)
+    assert wrapper.buffer == [{"a": 100, "b": 200, "step": -1}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # use pytest to spy on the _next_cachebuf method
+    spy = mocker.spy(BufferStreamer, "_next_cachebuf")
+
+    # try retrieval of entire sequence
+    dataloader = wrapper.generate_dataloader(RESOURCE_URI, cachebuf_size=2)
+    full_history = []
+    for (i, el) in enumerate(dataloader):
+        full_history.append(el)
+    assert len(full_history) == 20
+    assert full_history[0]["step"] == 10
+    assert full_history[1]["step"] == 10
+    assert full_history[-2]["step"] == 1
+    assert full_history[-1]["step"] == 1
+
+    assert wrapper.buffer == [{"a": 100, "b": 200, "step": -1}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    assert spy.call_count == 5
 
 
 def test_BufferStreamer___init__():

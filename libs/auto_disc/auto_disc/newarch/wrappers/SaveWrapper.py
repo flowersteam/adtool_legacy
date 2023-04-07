@@ -128,6 +128,14 @@ class SaveWrapper(TransformWrapper):
 
         return stepper.buffer
 
+    def generate_dataloader(self, buffer_src_uri: str, cachebuf_size: int = 1
+                            ) -> Iterable[Dict]:
+        """
+        Query SQLite DB to retrieve an iterable which lazy loads the DB tree.
+        """
+        return BufferStreamer(wrapper=self, resource_uri=buffer_src_uri,
+                              cachebuf_size=cachebuf_size)
+
     def _store_saved_inputs_in_buffer(self, intermed_dict: Dict) -> None:
         saved_input = {}
         for key in self.inputs_to_save:
@@ -184,7 +192,12 @@ class BufferStreamer:
         # simply pop things from buffer
         # if buffer is empty, retrieve next cachebuf
         if len(self.buffer) == 0:
-            self.buffer = self._next_cachebuf()
+            # check if we are at the end of the DB
+            # based on SQLite convention that first row is 1
+            if self._i < 1:
+                raise StopIteration
+            else:
+                self.buffer = self._next_cachebuf()
         return self.buffer.pop(-1)
 
     def _get_db_name(self) -> str:
@@ -200,10 +213,6 @@ class BufferStreamer:
         """
         Retrieves next cachebuf. This is where StopIteration is raised.
         """
-        # note: based on SQLite convention that first row has id = 1
-        if self._i < 1:
-            raise StopIteration
-
         # retrieve next cachebuf and one extra to set _i
         ids, packed_trajectory, _ = retrieve_packed_trajectory(
             self.db_url, self._i, self.cachebuf_size + 1)
