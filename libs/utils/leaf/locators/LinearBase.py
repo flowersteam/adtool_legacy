@@ -90,7 +90,7 @@ def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
     return id
 
 
-def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1):
+def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1) -> bytes:
     with _EngineContext(db_url) as engine:
         _, trajectory, _ = _get_trajectory_raw(engine, row_id, length)
 
@@ -106,11 +106,22 @@ def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1):
     return bin
 
 
+def retrieve_packed_trajectory(
+        db_url: str, row_id: int = 1, length: int = 1
+        ) -> Tuple[List[int], List[bytes], List[int]]:
+    """
+    Simple wrapper which retrieves the raw packed trajectory data
+    from db_url.
+    """
+    with _EngineContext(db_url) as engine:
+        ids, packed_traj, depths = _get_trajectory_raw(engine, row_id, length)
+    return ids, packed_traj, depths
+
 def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                         ) -> Tuple[List[int], List[bytes], List[int]]:
     """
-    Retrieves trajectory which has HEAD at id and returns the last 
-    trajectory_length elements.
+    Retrieves trajectory of packed binaries along with DB metadata
+    which has HEAD at id and returns the last trajectory_length elements.
     """
 
     # some ugly casework because I don't know SQLAlchemy

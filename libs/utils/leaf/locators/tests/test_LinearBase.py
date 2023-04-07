@@ -126,7 +126,8 @@ def test_FileLinearLocator__get_trajectory():
         assert len(trajectory) - 1 == depths[0]
         # test retrieving longer trajectory than exists
         # should limit to what is available
-        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, 100)
+        _, trajectory, depths = LinearBase._get_trajectory_raw(
+            engine, 5, 100)
         assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
         assert len(trajectory) - 1 == depths[0]
 
@@ -164,7 +165,8 @@ def test_FileLinearLocator_store():
     db_url = os.path.join(subdir, "lineardb")
 
     with _EngineContext(db_url) as engine:
-        ids, trajectory, _ = LinearBase._get_trajectory_raw(engine, row_id, -1)
+        ids, trajectory, _ = LinearBase._get_trajectory_raw(
+            engine, row_id, -1)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
     assert len(os.listdir(FILE_PATH)) == 1

@@ -1,9 +1,12 @@
 from copy import deepcopy
 from typing import Dict, List
 from leaf.Leaf import Leaf, Locator, LeafUID
-from leaf.locators.LinearBase import Stepper
+from leaf.locators.LinearBase import (Stepper,
+                                      retrieve_packed_trajectory,
+                                      retrieve_trajectory)
 from leaf.locators.locators import LinearLocator
 from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
+import os
 
 
 class SaveWrapper(TransformWrapper):
@@ -109,12 +112,14 @@ class SaveWrapper(TransformWrapper):
         tmp_bin = self.serialize()
         db_name, _ = temporary_locator.parse_bin(tmp_bin)
 
-        # get parent_id of last insert to create uid needed for retrieval
+        # get parent_id of last insert for retrieval
         parent_id = self.locator.parent_id
-        generated_uid = db_name + ":" + str(parent_id)
 
+        # assemble db_url
+        db_url = os.path.join(buffer_src_uri, db_name, "lineardb")
+
+        bin = retrieve_trajectory(db_url, parent_id, length)
         # run usual Locator retrieve routine
-        bin = temporary_locator.retrieve(uid=generated_uid, length=length)
         stepper = Stepper().deserialize(bin)
 
         return stepper.buffer
@@ -142,3 +147,91 @@ class SaveWrapper(TransformWrapper):
     #     db_name, _ = self.locator._parse_bin(padded_bin)
 
     #     return db_name
+
+
+class BufferStreamer:
+    """
+    Class for streaming buffers of arbitrary length from SQLite db
+    """
+
+    def __init__(self, wrapper: SaveWrapper,
+                 resource_uri: str,
+                 batch_size: int = 1) -> None:
+        self.batch_size = batch_size
+
+        # variable for tracking where we are in the DB
+        # starting at the id of the last insert
+        self._i = wrapper.locator.parent_id
+
+        # store working buffer
+        self.buffer = []
+
+        # assemble db_url
+        self.wrapper = wrapper
+        self.resource_uri = resource_uri
+        db_name = self._get_db_name()
+        self.db_url = os.path.join(self.resource_uri, db_name, "lineardb")
+
+    def __iter__(self):
+        # return itself to obey iterator interface
+        return self
+
+    def __next__(self):
+        # simply pop things from buffer
+        # if buffer is empty, retrieve next batch
+        if len(self.buffer) == 0:
+            self.buffer = self._next_batch()
+        return self.buffer.pop(-1)
+
+    def _get_db_name(self) -> str:
+        """
+        Get db name (i.e., hash of metadata) from SaveWrapper
+        """
+        padded_bin = self.wrapper.serialize()
+        db_name, _ = self.wrapper.locator.parse_bin(padded_bin)
+
+        return db_name
+
+    def _next_batch(self) -> List[Dict]:
+        """
+        Retrieves next batch. This is where StopIteration is raised.
+        """
+        # TODO: do some proper branch analysis and fix this
+        # note: based on SQLite convention that first row has id = 1
+        if self._i < 1:
+            raise StopIteration
+
+        # retrieve next batch and one extra to set _i
+        ids, packed_trajectory, _ = retrieve_packed_trajectory(
+            self.db_url, self._i, self.batch_size + 1)
+
+        # update where we are in the tree
+        if len(ids) > 0:
+            # set to the next id to be retrieved
+            self._i = ids[0]
+
+            # check for the final batch, which may have a misalignment
+            if len(ids) < self.batch_size + 1:
+                # set to 0 to signal that entire tree has been crawled
+                # as in SQLite convention the first row has id = 1
+                self._i = 0
+                traj_to_concat = packed_trajectory
+            else:
+                # if not at the final batch,
+                # remove first packed binary which contains the elements
+                # from the start of the next batch
+                traj_to_concat = packed_trajectory[1:]
+
+            # unpack binaries in the trajectory
+            buffer_concat = []
+            for binary in traj_to_concat:
+                loaded_obj = Stepper().deserialize(binary)
+                buffer_concat += loaded_obj.buffer
+
+            return buffer_concat
+
+        else:
+            # set to 0 to signal that entire tree has been crawled
+            # as in SQLite convention the first row has id = 1
+            self._i = 0
+            raise StopIteration

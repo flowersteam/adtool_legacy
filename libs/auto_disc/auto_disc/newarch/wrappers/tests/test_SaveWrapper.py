@@ -1,11 +1,10 @@
-from leaf.Leaf import StatelessLocator
-from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
+from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper, BufferStreamer
 from leaf.locators.LinearBase import Stepper
 from leaf.locators.locators import LinearLocator
 import os
 import pathlib
-import tempfile
 import shutil
+import pytest
 
 
 def setup_function(function):
@@ -20,7 +19,43 @@ def teardown_function(function):
         shutil.rmtree(RESOURCE_URI)
 
 
-def test___init__():
+def generate_data():
+    # creates two checkpoints, the first with a buffer of length 2,
+    # the second with a buffer of length 3
+    input = {"a": 1, "b": 2}
+    wrapper = SaveWrapper(
+        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    output = input
+
+    for i in range(2):
+        output = wrapper.map(output)
+        output = wrapper.map(output)
+
+        # vary save buffer length
+        if i == 1:
+            output = wrapper.map(output)
+
+        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
+    return leaf_uid, wrapper
+
+
+def generate_data_alot():
+    input = {"a": 1, "b": 2}
+    wrapper = SaveWrapper(
+        premap_keys=["a", "b", "step"], postmap_keys=["b", "a", "step"])
+    output = input
+    output["step"] = 0
+
+    for _ in range(10):
+        output["step"] += 1
+        output = wrapper.map(output)
+        output = wrapper.map(output)
+
+        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
+    return leaf_uid, wrapper
+
+
+def test_SaveWrapper____init__():
     input = {"in": 1}
     wrapper = SaveWrapper(premap_keys=["in"], postmap_keys=["out"],
                           inputs_to_save=["in"])
@@ -34,7 +69,7 @@ def test___init__():
     assert wrapper.__dict__ == wrapper_def.__dict__
 
 
-def test_map():
+def test_SaveWrapper__map():
     input = {"in": 1}
     wrapper = SaveWrapper(premap_keys=["in"], postmap_keys=["out"])
     output = wrapper.map(input)
@@ -43,7 +78,7 @@ def test_map():
     assert wrapper.buffer == [{"in": 1}]
 
 
-def test_map_default():
+def test_SaveWrapper__map_default():
     input = {"data": 1}
     wrapper = SaveWrapper()
     output = wrapper.map(input)
@@ -52,7 +87,7 @@ def test_map_default():
     assert wrapper.buffer == [{"data": 1}]
 
 
-def test_map_minimal():
+def test_SaveWrapper__map_minimal():
     input = {"data": 1, "metadata": 0}
     wrapper = SaveWrapper(premap_keys=["data"], postmap_keys=["data"])
     output = wrapper.map(input)
@@ -61,7 +96,7 @@ def test_map_minimal():
     assert wrapper.buffer == [{"data": 1}]
 
 
-def test_map_complex():
+def test_SaveWrapper__map_complex():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
@@ -74,7 +109,7 @@ def test_map_complex():
     assert wrapper.buffer == [{"a": 1, "b": 2}, {"a": 2, "b": 1}]
 
 
-def test_serialize():
+def test_SaveWrapper__serialize():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
         premap_keys=["a", "b"], postmap_keys=["b", "a"])
@@ -88,7 +123,7 @@ def test_serialize():
     assert a.buffer == wrapper.buffer
 
 
-def test_saveload_basic():
+def test_SaveWrapper__saveload_basic():
     """
     This tests saving and loading of a single save step (which saves two
     "map" steps of progress)
@@ -113,25 +148,12 @@ def test_saveload_basic():
     assert buffer[1] == {"a": 2, "b": 1}
 
 
-def test_saveload_advanced():
+def test_SaveWrapper__saveload_advanced():
     """
     This tests saving and loading of multiple save steps (which saves two
     "map" steps of progress)
     """
-    input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
-    output = input
-
-    for i in range(2):
-        output = wrapper.map(output)
-        output = wrapper.map(output)
-
-        # vary save buffer length
-        if i == 1:
-            output = wrapper.map(output)
-
-        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
+    leaf_uid, _ = generate_data()
 
     # retrieve from leaf nodes of tree
     new_wrapper = SaveWrapper()
@@ -148,23 +170,8 @@ def test_saveload_advanced():
     assert wrapper_loaded.inputs_to_save == ["a", "b"]
 
 
-def test_saveload_whole_history():
-    input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
-    output = input
-
-    for i in range(2):
-        output = wrapper.map(output)
-        output = wrapper.map(output)
-
-        # vary save buffer length
-        if i == 1:
-            output = wrapper.map(output)
-
-        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
-    # this creates two checkpoints, one with len(buf) == 2 and one with
-    # len(buf) == 3
+def test_SaveWrapper__saveload_whole_history():
+    leaf_uid, _ = generate_data()
 
     def retrieve_func(length):
         new_wrapper = SaveWrapper()
@@ -203,21 +210,8 @@ def test_saveload_whole_history():
     assert buffer[2] == {"a": 1, "b": 2}
 
 
-def test_retrieve_buffer():
-    input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
-    output = input
-    for i in range(2):
-        output = wrapper.map(output)
-        output = wrapper.map(output)
-        # vary save buffer length
-        if i == 1:
-            output = wrapper.map(output)
-        leaf_uid = wrapper.save_leaf(RESOURCE_URI)
-    # this creates two checkpoints, one with len(buf) == 2 and one with
-    # len(buf) == 3
-
+def test_SaveWrapper__retrieve_buffer():
+    leaf_uid, wrapper = generate_data()
     # remember old parent_id to check it will not change
     old_parent_id = wrapper.locator.parent_id
     # load something in the buffer that will be unchanged
@@ -251,3 +245,71 @@ def test_retrieve_buffer():
 
     assert wrapper.buffer == [{"a": 100, "b": 200}]
     assert wrapper.locator.parent_id == old_parent_id
+
+
+def test_BufferStreamer___init__():
+    leaf_uid, wrapper = generate_data_alot()
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    assert streamer.batch_size == 2
+    assert streamer.db_url
+    assert streamer._i == 10
+
+
+def test_BufferStreamer__get_db_name():
+    leaf_uid, wrapper = generate_data_alot()
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+
+    # saving done in generate_data_alot will create a single folder to check
+    file_list = os.listdir(RESOURCE_URI)
+    retrieved_uri = file_list[0]
+
+    assert streamer._get_db_name() == retrieved_uri
+
+
+def test_BufferStreamer__next_batch():
+    leaf_uid, wrapper = generate_data_alot()
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+
+    # check that the first batch is correct
+    batch = streamer._next_batch()
+    assert len(batch) == 4
+    assert batch == [{"a": 1, "b": 2, "step": 9},
+                     {"a": 2, "b": 1, "step": 9},
+                     {"a": 1, "b": 2, "step": 10},
+                     {"a": 2, "b": 1, "step": 10}]
+    assert streamer._i == 8
+
+    # check that the second batch is correct
+    batch = streamer._next_batch()
+    assert len(batch) == 4
+    assert batch == [{"a": 1, "b": 2, "step": 7},
+                     {"a": 2, "b": 1, "step": 7},
+                     {"a": 1, "b": 2, "step": 8},
+                     {"a": 2, "b": 1, "step": 8}]
+    assert streamer._i == 6
+
+    # catch the guard
+    with pytest.raises(Exception) as excinfo:
+        streamer._i = 0
+        streamer._next_batch()
+        assert excinfo.value == "This should be unreachable."
+
+
+def test_BufferStreamer___next__():
+    leaf_uid, wrapper = generate_data_alot()
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    assert streamer.__next__() == {"a": 2, "b": 1, "step": 10}
+    assert streamer.__next__() == {"a": 1, "b": 2, "step": 10}
+    assert streamer.__next__() == {"a": 2, "b": 1, "step": 9}
+    assert streamer.__next__() == {"a": 1, "b": 2, "step": 9}
+
+
+def test_BufferStreamer_iterating():
+    leaf_uid, wrapper = generate_data_alot()
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, batch_size=2)
+    step_array = []
+    for output_dict in streamer:
+        step_array.append(output_dict["step"])
+
+    assert step_array == [10, 10, 9, 9, 8, 8, 7,
+                          7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
