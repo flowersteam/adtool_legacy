@@ -254,7 +254,7 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion_arbitrary_buf():
     # the explorer is bound as a submodule of a parent module
     explorer.locator.resource_uri = RESOURCE_URI
 
-    params_trial = explorer.suggest_trial(lookback_length=0)
+    params_trial = explorer.suggest_trial()
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100
 

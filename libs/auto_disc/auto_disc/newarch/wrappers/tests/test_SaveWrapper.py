@@ -182,7 +182,7 @@ def test_SaveWrapper__saveload_whole_history():
         return buffer
 
     # try retrieval of entire sequence
-    buffer = retrieve_func(length=0)
+    buffer = retrieve_func(length=-1)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}

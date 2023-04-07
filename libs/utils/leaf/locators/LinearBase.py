@@ -93,7 +93,8 @@ def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
 def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1) -> bytes:
     with _EngineContext(db_url) as engine:
         _, trajectory, _ = _get_trajectory_raw(engine, row_id, length)
-
+        if len(trajectory) == 0:
+            raise ValueError("Trajectory has length 0.")
         buffer_concat = []
         for binary in trajectory:
             # this is the same as just Leaf.deserialize(binary)
@@ -189,7 +190,9 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
             ORDER BY depth DESC
         '''
     with engine.connect() as conn:
-        if trajectory_length == 1:
+        if trajectory_length == 0:
+            return [], [], []
+        elif trajectory_length == 1:
             query = query_singleton
         elif trajectory_length == -1:
             query = query_unlimited
