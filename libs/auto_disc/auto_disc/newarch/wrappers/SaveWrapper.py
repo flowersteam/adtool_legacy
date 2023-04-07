@@ -163,13 +163,20 @@ class SaveWrapper(TransformWrapper):
 
 class BufferStreamer:
     """
-    Class for streaming buffers of arbitrary length from SQLite db
+    Class for streaming buffers of arbitrary length from SQLite db.
+
+    `mode` is set to one of "serial" or "batched" which specifies whether
+    the cachebuf is returned as a single item or as a list of items.
+
     """
 
     def __init__(self, wrapper: SaveWrapper,
                  resource_uri: str,
-                 cachebuf_size: int = 1) -> None:
+                 cachebuf_size: int = 1,
+                 mode: str = "serial") -> None:
+
         self.cachebuf_size = cachebuf_size
+        self.mode = mode
 
         # variable for tracking where we are in the DB
         # starting at the id of the last insert
@@ -185,10 +192,17 @@ class BufferStreamer:
         self.db_url = os.path.join(self.resource_uri, db_name, "lineardb")
 
     def __iter__(self):
-        # return itself to obey iterator interface
+        # returns self with __next__ method dynamically set by mode
+        # TODO: currently only supports serial mode
         return self
 
     def __next__(self):
+        # return next item in buffer
+        # dynamically overridden by mode specification, but
+        # will call _next_serial() by default (for testing)
+        return self._next_serial()
+
+    def _next_serial(self) -> Dict:
         # simply pop things from buffer
         # if buffer is empty, retrieve next cachebuf
         if len(self.buffer) == 0:
@@ -199,6 +213,16 @@ class BufferStreamer:
             else:
                 self.buffer = self._next_cachebuf()
         return self.buffer.pop(-1)
+
+    def _next_batched(self) -> List[Dict]:
+        # return the entire cachebuf at a time
+        # i.e., as batches
+        # check if we are at the end of the DB
+        # based on SQLite convention that first row is 1
+        if self._i < 1:
+            raise StopIteration
+        else:
+            return self._next_cachebuf()
 
     def _get_db_name(self) -> str:
         """
