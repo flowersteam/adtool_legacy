@@ -201,6 +201,11 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
 
     # actual test
     # NOTE: not deterministic because of noise
+    # in real use, the resource_uri would be set when
+    # the explorer is bound as a submodule of a parent module
+    explorer.locator.resource_uri = RESOURCE_URI
+    explorer._history_saver.locator.resource_uri = RESOURCE_URI
+
     params_trial = explorer.suggest_trial()
     assert params_trial.size() == torch.Size([3])
     assert torch.mean(params_trial) > 100
@@ -246,15 +251,15 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion_arbitrary_buf():
     explorer.mutator = add_gaussian_noise_test
 
     # save to storage
+    # NOTE: as usual, calling save_leaf binds the module to a resource_uri
+    # (importantly, the explorer._history_saver.locator.resource_uri is set to
+    # the same when explorer._history_saver.save_leaf is recursively called)
     explorer.save_leaf(RESOURCE_URI)
     assert len(explorer._history_saver.buffer) == 0
     assert len(os.listdir(RESOURCE_URI)) != 0
 
     # actual test
     # NOTE: not deterministic because of noise
-    # in real use, the resource_uri would be set when
-    # the explorer is bound as a submodule of a parent module
-    explorer.locator.resource_uri = RESOURCE_URI
 
     params_trial = explorer.suggest_trial()
     assert params_trial.size() == torch.Size([3])

@@ -116,8 +116,23 @@ class SaveWrapper(TransformWrapper):
                 # it will only be -1 here or 0
                 retrieval_length = lookback_length
 
-            retrieved_buffer = self._retrieve_buffer(self.locator.resource_uri,
-                                                     retrieval_length)
+            try:
+                retrieved_buffer = self\
+                    ._retrieve_buffer(self.locator.resource_uri,
+                                      retrieval_length)
+            except Exception as e:
+                if ("unable to open database file" in str(e) and
+                        self.locator.resource_uri != ""):
+                    # in this branch we assume that if the resource_uri is
+                    # set and the db is not found, then the db has not been
+                    # created yet, and the entire history is in memory,
+                    # so we return an empty buffer here
+                    retrieved_buffer = []
+                else:
+                    # otherwise, we raise an exception suggesting that
+                    # the resource_uri is not set
+                    raise e
+
             # attach to working buffer in memory
             copy_buffer = deepcopy(self.buffer)
             retrieved_buffer.extend(copy_buffer)

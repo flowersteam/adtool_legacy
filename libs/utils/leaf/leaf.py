@@ -276,11 +276,21 @@ class Leaf:
         # store pointer to parent container
         submodule._set_attr_override("_container_ptr", self)
 
-        # default initialization of locator resource_uri
+        # default initialization of locator resource_uri for all
+        # children modules in the entire hierarchy
         # TODO: fix this so it's usable given new locator defaults
-        if (submodule.locator.resource_uri == "" and
-                not isinstance(submodule.locator, StatelessLocator)):
-            submodule.locator.resource_uri == self.locator.resource_uri
+        def _set_submodule_resource_uri(module, resource_uri):
+            """ Function to recursively set resource_uri for submodule"""
+            for submodule in module._modules.values():
+                if isinstance(submodule, Leaf):
+                    _set_submodule_resource_uri(submodule, resource_uri)
+                else:
+                    raise ValueError("Submodule is not of type Leaf.")
+            if (module.locator.resource_uri == "" and
+                    not isinstance(module.locator, StatelessLocator)):
+                module.locator.resource_uri = resource_uri
+
+        _set_submodule_resource_uri(submodule, self.locator.resource_uri)
 
         return
 
