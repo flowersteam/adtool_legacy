@@ -211,6 +211,59 @@ def test_SaveWrapper__saveload_whole_history():
     assert buffer[2] == {"a": 1, "b": 2}
 
 
+def test_SaveWrapper_get_history():
+    leaf_uid, wrapper = generate_data()
+    # remember old parent_id to check it will not change
+    old_parent_id = wrapper.locator.parent_id
+    # load something in the buffer that will be unchanged
+    test_input = {"a": 100, "b": 200}
+    wrapper.map(test_input)
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of entire sequence
+    buffer = wrapper.get_history(lookback_length=-1)
+
+    assert len(buffer) == 6
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+    assert buffer[3] == {"a": 2, "b": 1}
+    assert buffer[4] == {"a": 1, "b": 2}
+    assert buffer[5] == {"a": 100, "b": 200}
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of partial sequence
+    buffer = wrapper.get_history(lookback_length=2)
+
+    assert len(buffer) == 4
+    assert buffer[0] == {"a": 1, "b": 2}
+    assert buffer[1] == {"a": 2, "b": 1}
+    assert buffer[2] == {"a": 1, "b": 2}
+    assert buffer[3] == {"a": 100, "b": 200}
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # try retrieval of singleton
+    buffer = wrapper.get_history()
+
+    assert len(buffer) == 1
+    assert buffer[0] == {"a": 100, "b": 200}
+    # check that the buffer is not the same object in memory,
+    # i.e., it was deepcopied
+    assert buffer is not wrapper.buffer
+
+    assert wrapper.buffer == [{"a": 100, "b": 200}]
+    assert wrapper.locator.parent_id == old_parent_id
+
+    # check trivial case
+    with pytest.raises(ValueError):
+        buffer = wrapper.get_history(lookback_length=0)
+
+
 def test_SaveWrapper__retrieve_buffer():
     leaf_uid, wrapper = generate_data()
     # remember old parent_id to check it will not change
@@ -222,7 +275,7 @@ def test_SaveWrapper__retrieve_buffer():
     assert wrapper.locator.parent_id == old_parent_id
 
     # try retrieval of entire sequence
-    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=-1)
+    buffer = wrapper._retrieve_buffer(RESOURCE_URI, length=-1)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}
@@ -235,7 +288,7 @@ def test_SaveWrapper__retrieve_buffer():
     assert wrapper.locator.parent_id == old_parent_id
 
     # try retrieval of entire sequence with explicit length
-    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=2)
+    buffer = wrapper._retrieve_buffer(RESOURCE_URI, length=2)
 
     assert len(buffer) == 5
     assert buffer[0] == {"a": 1, "b": 2}
@@ -248,7 +301,7 @@ def test_SaveWrapper__retrieve_buffer():
     assert wrapper.locator.parent_id == old_parent_id
 
     # try retrieval of entire sequence with short length
-    buffer = wrapper.retrieve_buffer(RESOURCE_URI, length=1)
+    buffer = wrapper._retrieve_buffer(RESOURCE_URI, length=1)
 
     assert len(buffer) == 3
     assert buffer[0] == {"a": 1, "b": 2}

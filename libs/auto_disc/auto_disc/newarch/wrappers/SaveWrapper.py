@@ -99,7 +99,34 @@ class SaveWrapper(TransformWrapper):
 
         return output_bin
 
-    def retrieve_buffer(self, buffer_src_uri: str, length: int) -> List[Dict]:
+    def get_history(self, lookback_length: int = 1) -> List[Dict]:
+        """
+        Retrieve the history of inputs to the wrapper.
+        `lookback_length = -1` corresponds to retrieving the entire history,
+        which may be very large as it will query the on-disk SQLite db.
+        """
+        if lookback_length == 1:
+            history_buffer = deepcopy(self.buffer)
+        else:
+            # retrieve buffers from SQLite db
+            # this check does not affect the lookback_length = -1 case
+            if lookback_length > 1:
+                retrieval_length = lookback_length - 1
+            else:
+                # it will only be -1 here or 0
+                retrieval_length = lookback_length
+
+            retrieved_buffer = self._retrieve_buffer(self.locator.resource_uri,
+                                                     retrieval_length)
+            # attach to working buffer in memory
+            copy_buffer = deepcopy(self.buffer)
+            retrieved_buffer.extend(copy_buffer)
+
+            history_buffer = retrieved_buffer
+
+        return history_buffer
+
+    def _retrieve_buffer(self, buffer_src_uri: str, length: int) -> List[Dict]:
         """
         Temporarily query SQLite db to retrieve buffer, taking the top-level
         resource_uri and the length of the buffer to retrieve.
