@@ -185,7 +185,7 @@ class IMGEPExplorer(Leaf):
         """
         goal = self.behavior_map.sample()
 
-        source_policy = self._vector_search_for_goal(lookback_length, goal)
+        source_policy = self._vector_search_for_goal(goal, lookback_length)
 
         params_trial = self.mutator(source_policy)
 
