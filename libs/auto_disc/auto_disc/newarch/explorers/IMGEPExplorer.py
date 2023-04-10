@@ -183,16 +183,9 @@ class IMGEPExplorer(Leaf):
         Note that the default `lookback_length = -1` will retrieve the entire 
         history.
         """
-        history_buffer = self._history_saver.get_history(
-            lookback_length=lookback_length)
-        goal_history = self._extract_tensor_history(history_buffer,
-                                                    self.premap_key)
-        param_history = self._extract_tensor_history(history_buffer,
-                                                     self.postmap_key)
-
         goal = self.behavior_map.sample()
-        source_policy_idx = self._find_closest(goal, goal_history)
-        source_policy = param_history[source_policy_idx]
+
+        source_policy = self._vector_search_for_goal(lookback_length, goal)
 
         params_trial = self.mutator(source_policy)
 
@@ -240,3 +233,16 @@ class IMGEPExplorer(Leaf):
     def _find_closest(self, goal: torch.Tensor, goal_history: torch.Tensor):
         # TODO: simple L2 distance right now
         return torch.argmin((goal_history-goal).pow(2).sum(-1))
+
+    def _vector_search_for_goal(self, goal: torch.Tensor,
+                                lookback_length: int) -> torch.Tensor:
+        history_buffer = self._history_saver.get_history(
+            lookback_length=lookback_length)
+        goal_history = self._extract_tensor_history(history_buffer,
+                                                    self.premap_key)
+        param_history = self._extract_tensor_history(history_buffer,
+                                                     self.postmap_key)
+        source_policy_idx = self._find_closest(goal, goal_history)
+        source_policy = param_history[source_policy_idx]
+
+        return source_policy
