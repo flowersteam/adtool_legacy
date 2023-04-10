@@ -39,6 +39,10 @@ class IMGEPFactory:
     """
     CONFIG_DEFINITION = {}
 
+    # create specification for discovery attributes
+    # TODO: kind of hard-coded for now, based on constructor defaults
+    discovery_spec = ["params", "output", "raw_output", "rendered_output"]
+
     def __init__(self, *args, **kwargs):
         pass
 

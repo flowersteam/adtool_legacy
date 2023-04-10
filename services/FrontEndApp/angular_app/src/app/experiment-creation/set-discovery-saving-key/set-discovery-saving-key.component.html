@@ -1,48 +1,10 @@
-<div *ngFor="let discovery_saving_key_use of this.discovery_saving_keys_use | keyvalue" class="card my-3">
+<div *ngFor="let d of this.discovery_saveflags | keyvalue" class="card my-3">
     <div class="card-body">
-        <div class="row">             
-            <label class="form-control" class="card-title col-12 mb-0"  id="oui" required name="oui">
-                    <input type="checkbox" (change)="this.onCheckboxChange(this.discovery_saving_key_use.key)"
-                            name={{this.discovery_saving_key_use.key}} [checked]=this.discovery_saving_key_use.value/>
-                    {{this.discovery_saving_key_use.key}}
-                    <!-- print space Raw system output -->
-                    <div *ngIf="this.system_name != undefined && this.discovery_saving_key_use.key == 'Raw system output'" class="card">
-                        <div class="card-body">
-                            <p class="card-text d-inline" *ngFor="let elt_output_space of objectKeys(this.system_settings.output_space); let index = index">
-                                <span *ngIf="index > 0"> | </span>{{elt_output_space}}</p>
-                        </div>
-                    </div>
-                    <!-- print space Parameters sent by the explorer before input wrappers -->
-                    <div *ngIf="this.system_name != undefined && 
-                                this.input_wrappers.length > 0 && 
-                                this.discovery_saving_key_use.key == 'Parameters sent by the explorer before input wrappers'" class="card">
-                        <div class="card-body">
-                            <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.system_settings.input_space); let index = index">
-                                <span *ngIf="index > 0"> | </span>{{elt_input_space == this.input_wrappers[0].config['wrapped_output_space_key']?
-                                objectKeys(this.input_wrappers_settings.input_space)[0]
-                                    : elt_input_space}}
-                            </p>
-                        </div>
-                    </div>
-                    <!-- print space Parameters sent by the explorer after input wrappers -->
-                    <div *ngIf="this.system_name != undefined && this.discovery_saving_key_use.key == 'Parameters sent by the explorer after input wrappers'" class="card">
-                        <div class="card-body">
-                            <p class="card-text d-inline" *ngFor="let elt_input_space of objectKeys(this.system_settings.input_space); let index = index">
-                                <span *ngIf="index > 0"> | </span>{{elt_input_space +' '}}</p>
-                        </div>
-                    </div>
-                    <!-- print space  Representation of system output -->
-                    <div *ngIf="this.system_name != undefined && 
-                                this.output_representations.length > 0 && 
-                                this.discovery_saving_key_use.key == 'Representation of system output'" class="card">
-                        <div class="card-body">
-                            <p class="card-text" *ngFor="let elt_output_space of objectKeys(this.system_settings.output_space); let index = index">
-                                <span *ngIf="index > 0"> | </span>{{elt_output_space == this.output_representations[this.output_representations.length -1].config['wrapped_input_space_key']?
-                                objectKeys(this.output_representations_settings.output_space)[0]
-                                : elt_output_space}}
-                            </p>
-                        </div>
-                    </div>
+        <div class="row">
+            <label class="form-control" class="card-title col-12 mb-0" id="oui" required name="oui">
+                <input type="checkbox" (change)="this.onCheckboxChange(this.d.key)" name={{this.d.key}}
+                    [checked]=this.d.value />
+                {{this.d.key}}
             </label>
         </div>
     </div>
