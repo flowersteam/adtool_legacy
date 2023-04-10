@@ -7,7 +7,7 @@ import shutil
 
 """
 TODO: This test suite is pretty broken, need to revisit it when documenting
-the new Leaf API.
+the new Leaf API. See #188, #216
 """
 
 

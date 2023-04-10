@@ -404,6 +404,7 @@ def test_BufferStreamer___next__():
 
 
 def test_BufferStreamer___iter__():
+    # broken for now, see #219
     leaf_uid, wrapper = generate_data_alot()
     streamer = BufferStreamer(
         wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2,
