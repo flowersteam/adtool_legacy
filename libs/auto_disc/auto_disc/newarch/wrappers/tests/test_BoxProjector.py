@@ -108,3 +108,25 @@ def test_map():
 
     assert torch.all(torch.greater(box.sample(), box.low))
     assert torch.all(torch.less(box.sample(), box.high))
+
+
+def test_map_clamped():
+    dim = 10
+    input = torch.rand(dim) + 10
+    input_dict = {"output": input, "metadata": 1}
+
+    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([1.]))
+    output_dict = box.map(input_dict)
+
+    # will clamp all of these to 1
+    assert torch.allclose(output_dict["output"], torch.tensor([1.]))
+
+    dim = 10
+    input = torch.rand(dim) - 10
+    input_dict = {"output": input, "metadata": 1}
+
+    box = BoxProjector(premap_key="output", bound_lower=torch.tensor([-1.]))
+    output_dict = box.map(input_dict)
+
+    # will clamp all of these to -1
+    assert torch.allclose(output_dict["output"], torch.tensor([-1.]))

@@ -53,6 +53,8 @@ class BoxProjector(Leaf):
         tensor_data = self._clamp_and_truncate(tensor_data)
         self._update_low_high(tensor_data)
 
+        output[self.premap_key] = tensor_data
+
         return output
 
     def sample(self) -> torch.Tensor:
