@@ -12,7 +12,7 @@ import neat
 from copy import deepcopy
 
 
-class LeniaCPPN(Leaf):
+class CPPNParameterMap(Leaf):
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
 

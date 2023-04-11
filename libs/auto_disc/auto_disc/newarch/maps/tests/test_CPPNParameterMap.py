@@ -1,4 +1,4 @@
-from auto_disc.newarch.maps.CPPN import LeniaCPPN
+from auto_disc.newarch.maps.CPPNParameterMap import CPPNParameterMap
 import os
 
 
@@ -12,18 +12,18 @@ def setup_function(function):
     return
 
 
-def test_LeniaCPPN___init__():
-    cppn = LeniaCPPN(config_path=CONFIG_PATH)
+def test_CPPNParameterMap___init__():
+    cppn = CPPNParameterMap(config_path=CONFIG_PATH)
 
 
-def test_LeniaCPPN_sample():
-    cppn = LeniaCPPN(config_path=CONFIG_PATH)
+def test_CPPNParameterMap_sample():
+    cppn = CPPNParameterMap(config_path=CONFIG_PATH)
     out = cppn.sample((1))
 
 
-def test_LeniaCPPN_map():
+def test_CPPNParameterMap_map():
     input_dict = {"random_data": 1, "metadata": "hello"}
-    cppn = LeniaCPPN(config_path=CONFIG_PATH, postmap_dim=(10, 10))
+    cppn = CPPNParameterMap(config_path=CONFIG_PATH, postmap_dim=(10, 10))
     out = cppn.map(input_dict)
     assert "init_state" in out
     assert out["init_state"].size() == (10, 10)
