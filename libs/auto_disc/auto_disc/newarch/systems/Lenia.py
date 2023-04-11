@@ -99,6 +99,8 @@ class Lenia(Leaf):
             # for testing, generate init_state randomly
             param_dict["init_state"] = torch.rand(self.config["SX"],
                                                   self.config["SY"])
+        else:
+            param_dict = params
         return param_dict
 
     def _generate_automaton(self, param_dict: Dict) -> Any:

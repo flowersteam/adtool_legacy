@@ -17,11 +17,9 @@ def setup_function(function):
     }}
     dummy_tensor_input = \
         {"params":
-         {"param_tensor":
-          torch.tensor(
-              [5., 10., 0.5, 0.1, 0., 1., 0.1, 0.2, 0.3, 0.4]),
-          "init_state": deepcopy(dummy_input["params"]["init_state"])
-          }}
+         torch.tensor(
+             [5., 10., 0.5, 0.1, 0., 1., 0.1, 0.2, 0.3, 0.4]),
+         }
     return
 
 
@@ -42,6 +40,9 @@ def test_process_dict():
     dummy_params_alt = system._process_dict(dummy_tensor_input)
 
     for (key, val) in dummy_params_alt.items():
+        if key == "init_state":
+            # don't check this one
+            continue
         assert isinstance(val, torch.Tensor)
         assert torch.allclose(dummy_params[key], val)
 
@@ -108,5 +109,5 @@ def test_render():
 
     out_dict = system.map(dummy_input)
 
-    system.render(mode="human")
+    system.render(out_dict, mode="human")
     assert 1
