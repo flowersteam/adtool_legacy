@@ -14,6 +14,7 @@ class MeanBehaviorMap(Leaf):
 
     def __init__(self,
                  premap_key: str = "output",
+                 postmap_key: str = "output",
                  input_shape: Tuple[int] = (1)) -> None:
         super().__init__()
         self.locator = BlobLocator()
@@ -36,7 +37,9 @@ class MeanBehaviorMap(Leaf):
 
         # unsqueeze to ensure tensor rank is not 0
         mean = torch.mean(tensor_flat, dim=0).unsqueeze(-1)
-        intermed_dict[self.premap_key] = mean
+        intermed_dict[self.postmap_key] = mean
+        # remove original output item
+        del intermed_dict[self.premap_key]
 
         behavior_dict = self.projector.map(intermed_dict)
         # behavior_dict = self.history_saver.map(projected_dict)
