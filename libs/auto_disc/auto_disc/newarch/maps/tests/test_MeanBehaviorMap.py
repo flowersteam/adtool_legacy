@@ -22,7 +22,16 @@ def teardown_function(function):
 
 
 def test_map():
+    # test for a flat 1D tensor
     input_dict = {"metadata": 1, "output": torch.rand(10)}
+    mean_map = MeanBehaviorMap(premap_key="output")
+    output_dict = mean_map.map(input_dict)
+    assert output_dict["output"].size() == torch.Size([1])
+    assert mean_map.projector.low is not None
+    assert mean_map.projector.high is not None
+
+    # test for a 2D tensor
+    input_dict = {"metadata": 1, "output": torch.rand(10, 10)}
     mean_map = MeanBehaviorMap(premap_key="output")
     output_dict = mean_map.map(input_dict)
     assert output_dict["output"].size() == torch.Size([1])

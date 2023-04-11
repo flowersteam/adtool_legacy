@@ -31,8 +31,11 @@ class MeanBehaviorMap(Leaf):
         raw_output_key = "raw_" + self.premap_key
         intermed_dict[raw_output_key] = tensor
 
+        # flatten to 1D
+        tensor_flat = tensor.view(-1)
+
         # unsqueeze to ensure tensor rank is not 0
-        mean = torch.mean(tensor, dim=0).unsqueeze(-1)
+        mean = torch.mean(tensor_flat, dim=0).unsqueeze(-1)
         intermed_dict[self.premap_key] = mean
 
         behavior_dict = self.projector.map(intermed_dict)
