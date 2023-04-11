@@ -4,17 +4,24 @@ from copy import deepcopy
 
 
 def setup_function(function):
-    global dummy_input
+    global dummy_input, dummy_tensor_input
     dummy_input = {"params": {
-        "R": torch.tensor(5),
+        "R": torch.tensor(5.),
         "T": torch.tensor(10.),
-        "b": torch.rand(4),
+        "b": torch.tensor([0.1, 0.2, 0.3, 0.4]),
         "m": torch.tensor(0.5),
         "s": torch.tensor(0.1),
-        "kn": torch.tensor(0),
-        "gn": torch.tensor(1),
+        "kn": torch.tensor(0.),
+        "gn": torch.tensor(1.),
         "init_state": torch.rand((256, 256))
     }}
+    dummy_tensor_input = \
+        {"params":
+         {"param_tensor":
+          torch.tensor(
+              [5., 10., 0.5, 0.1, 0., 1., 0.1, 0.2, 0.3, 0.4]),
+          "init_state": deepcopy(dummy_input["params"]["init_state"])
+          }}
     return
 
 
@@ -30,7 +37,16 @@ def test___init__():
 def test_process_dict():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
-    assert dummy_params.get("R", None) is not None
+    assert "R" in dummy_params
+
+    dummy_params_alt = system._process_dict(dummy_tensor_input)
+
+    for (key, val) in dummy_params_alt.items():
+        assert isinstance(val, torch.Tensor)
+        assert torch.allclose(dummy_params[key], val)
+
+    assert "R" in dummy_params_alt
+    assert "b" in dummy_params_alt
 
 
 def test__generate_automaton():
@@ -80,6 +96,9 @@ def test_map():
     out_dict = system.map(dummy_input)
 
     assert torch.allclose(out_dict["output"], system.orbit[-1])
+    # padded due to the way automaton steps
+    assert out_dict["output"].size() == (1, 1, 256, 256)
+    assert system.orbit[-1].size() == (256, 256)
 
 
 def test_render():

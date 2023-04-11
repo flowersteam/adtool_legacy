@@ -78,8 +78,20 @@ class Lenia(Leaf):
             raise NotImplementedError
 
     def _process_dict(self, input_dict: Dict) -> Dict:
-        param_dict = deepcopy(input_dict["params"])
-        return param_dict
+        params = deepcopy(input_dict["params"])
+        if "param_tensor" in params:
+            # convert param_tensor to dict for Lenia automaton
+            # TODO: named tensors would be better
+            param_tensor = params["param_tensor"]
+            params["R"] = param_tensor[0]
+            params["T"] = param_tensor[1]
+            params["m"] = param_tensor[2]
+            params["s"] = param_tensor[3]
+            params["kn"] = param_tensor[4]
+            params["gn"] = param_tensor[5]
+            params["b"] = param_tensor[6:10]
+            del params["param_tensor"]
+        return params
 
     def _generate_automaton(self, param_dict: Dict) -> Any:
         if self.config["version"].lower() == "pytorch_fft":
