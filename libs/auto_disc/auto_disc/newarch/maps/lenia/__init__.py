@@ -1,1 +1,2 @@
+from .LeniaStatistics import LeniaStatistics
 from .LeniaUniformParameterMap import LeniaUniformParameterMap
