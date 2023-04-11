@@ -102,7 +102,12 @@ class ExperimentPipeline(Leaf):
         self.seed = seed
         self.save_frequency = save_frequency
         self.logger = logger
+
+        # stores the original resource_uri from the config
+        # we pass this to the configs, because self.locator.resource_uri
+        # gets overridden frequently by the save routine
         self.resource_uri = resource_uri
+
         self.discovery_saving_keys = discovery_saving_keys
 
         ### SYSTEM ###
@@ -183,9 +188,10 @@ class ExperimentPipeline(Leaf):
 
                 # TODO: pass the rendered output more easily
                 discovery_to_save["rendered_output"] = rendered_output
+
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
-                    resource_uri=self.locator.resource_uri,
+                    resource_uri=self.resource_uri,
                     run_idx=self.run_idx,
                     experiment_id=self.experiment_id,
                     seed=self.seed,
@@ -206,7 +212,7 @@ class ExperimentPipeline(Leaf):
 
                 if (run_idx_start_from_one % self.save_frequency == 0
                         or run_idx_start_from_one == n_exploration_runs):
-                    self.save(resource_uri=self.locator.resource_uri)
+                    self.save(resource_uri=self.resource_uri)
 
                 self.run_idx += 1
 

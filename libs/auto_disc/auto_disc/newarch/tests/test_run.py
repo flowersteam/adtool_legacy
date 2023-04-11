@@ -11,7 +11,7 @@ def setup_function(function):
     file_path = str(pathlib.Path(__file__).parent.resolve())
     RESOURCE_URI = os.path.join(file_path, "tmp")
     os.mkdir(RESOURCE_URI)
-    config_json = \
+    config_json_exp_mix = \
         {
             "experiment": {
                 "name": "newarch_demo",
@@ -42,6 +42,52 @@ def setup_function(function):
             "callbacks": {},
             "logger_handlers": []
         }
+    config_json_lenia = \
+        {
+            "experiment": {
+                "name": "newlenia",
+                "config": {
+                    "host": "local",
+                    "nb_seeds": 1,
+                    "nb_iterations": 10,
+                    "save_location": f"{RESOURCE_URI}",
+                    "save_frequency": 1,
+                    "discovery_saving_keys": []
+                }
+            },
+            "system": {
+                "name": "auto_disc.newarch.systems.Lenia.Lenia",
+                "config": {
+                    "SX": 128,
+                    "SY": 128,
+                    "version": "pytorch_fft",
+                    "final_step": 50,
+                    "scale_init_state": 1
+                }
+            },
+            "explorer": {
+                "name": "auto_disc.newarch.explorers.IMGEPFactory",
+                "config": {
+                    "param_dim": 10,
+                    "equil_time": 2,
+                    "behavior_map": "mean",
+                    "parameter_map": "uniform",
+                    "param_init_low": 0.8,
+                    "param_bound_low": "-inf",
+                    "param_init_high": 0,
+                    "param_bound_high": "inf",
+                    "system_output_dim": 1,
+                    "mutation_noise_std": 0.1,
+                    "behavior_map_config": {}
+                }
+            },
+            "input_wrappers": [],
+            "output_representations": [],
+            "callbacks": {},
+            "logger_handlers": []
+        }
+    config_json = config_json_lenia
+
     return
 
 

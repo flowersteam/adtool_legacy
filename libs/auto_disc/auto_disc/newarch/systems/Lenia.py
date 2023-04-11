@@ -1,5 +1,5 @@
 from leaf.Leaf import Leaf
-from leaf.locators.Locator import FileLocator
+from leaf.locators.locators import BlobLocator
 from typing import Dict, Any, Callable, Optional, List
 from copy import deepcopy
 
@@ -28,7 +28,7 @@ class Lenia(Leaf):
 
     def __init__(self):
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.orbit = torch.empty(
             (self.config["final_step"], self.config["SX"], self.config["SY"])
         )
@@ -48,11 +48,16 @@ class Lenia(Leaf):
             self.orbit[step + 1] = state
 
         output_dict = deepcopy(input)
-        output_dict["output"] = state
+        # must detach here as gradients are not used
+        # and this also leads to a deepcopy error downstream
+        output_dict["output"] = state.detach()
 
         return output_dict
 
-    def render(self, mode: str = "PIL_image") -> Optional[bytes]:
+    def render(self, data_dict, mode: str = "PIL_image") -> Optional[bytes]:
+        # ignores data_dict, as the render is based on self.orbit
+        # in which only the last state is stored in data_dict["output"]
+
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
@@ -73,25 +78,28 @@ class Lenia(Leaf):
             byte_img = io.BytesIO()
             imageio.mimwrite(byte_img, im_array, 'mp4',
                              fps=30, output_params=["-f", "mp4"])
-            return (byte_img, "mp4")
+            return byte_img.getvalue()
         else:
             raise NotImplementedError
 
     def _process_dict(self, input_dict: Dict) -> Dict:
         params = deepcopy(input_dict["params"])
-        if "param_tensor" in params:
+        if isinstance(params, torch.Tensor):
+            param_dict = {}
             # convert param_tensor to dict for Lenia automaton
             # TODO: named tensors would be better
-            param_tensor = params["param_tensor"]
-            params["R"] = param_tensor[0]
-            params["T"] = param_tensor[1]
-            params["m"] = param_tensor[2]
-            params["s"] = param_tensor[3]
-            params["kn"] = param_tensor[4]
-            params["gn"] = param_tensor[5]
-            params["b"] = param_tensor[6:10]
-            del params["param_tensor"]
-        return params
+            param_dict["R"] = params[0]
+            param_dict["T"] = params[1]
+            param_dict["m"] = params[2]
+            param_dict["s"] = params[3]
+            param_dict["kn"] = params[4]
+            param_dict["gn"] = params[5]
+            param_dict["b"] = params[6:10]
+
+            # for testing, generate init_state randomly
+            param_dict["init_state"] = torch.rand(self.config["SX"],
+                                                  self.config["SY"])
+        return param_dict
 
     def _generate_automaton(self, param_dict: Dict) -> Any:
         if self.config["version"].lower() == "pytorch_fft":
