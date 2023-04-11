@@ -7,6 +7,7 @@ from auto_disc.input_wrappers import BaseInputWrapper
 from auto_disc.utils.config_parameters import IntegerConfigParameter
 
 from leaf.Leaf import Leaf
+from leaf.locators.locators import BlobLocator
 import os
 import neat
 from copy import deepcopy
@@ -22,6 +23,7 @@ class CPPNParameterMap(Leaf):
                  n_passes: int = 2,
                  config_path: str = "./config.cfg") -> None:
         super().__init__()
+        self.locator = BlobLocator()
         self.premap_key = premap_key
         self.postmap_key = postmap_key
         self.postmap_dim = postmap_dim
