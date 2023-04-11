@@ -1,5 +1,5 @@
 from auto_disc.newarch.maps import UniformParameterMap
-from leaf.locators import BlobLocator
+from leaf.locators.locators import BlobLocator
 from leaf.Leaf import Leaf
 import torch
 from typing import Dict, Tuple
