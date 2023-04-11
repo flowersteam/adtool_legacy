@@ -36,6 +36,11 @@ def test_process_dict():
 def test__generate_automaton():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
+
+    # remove init_state
+    # as it is usually loaded into the object attributes by _bootstrap
+    del dummy_params["init_state"]
+
     automaton = system._generate_automaton(dummy_params)
     assert isinstance(automaton, torch.nn.Module)
 
@@ -43,14 +48,16 @@ def test__generate_automaton():
 def test__bootstrap():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
-    init_state = system._bootstrap(dummy_params)
-    assert init_state.size() == (1, 1, 256, 256)
+    system._bootstrap(dummy_params)
+    init_state = system.orbit[0]
+    assert init_state.size() == (256, 256)
 
 
 def test__step():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
-    init_state = system._bootstrap(dummy_params)
+    system._bootstrap(dummy_params)
+    init_state = system.orbit[0]
     automaton = system._generate_automaton(dummy_params)
     new_state = system._step(init_state, automaton)
 
@@ -83,3 +90,4 @@ def test_render():
     out_dict = system.map(dummy_input)
 
     system.render(mode="human")
+    assert 1

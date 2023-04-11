@@ -36,13 +36,13 @@ class Lenia(Leaf):
     def map(self, input: Dict) -> Dict:
         param_dict = self._process_dict(input)
 
-        # set initial state
-        state = self._bootstrap(param_dict)
-        self.orbit[0] = state
+        # set initial state self.orbit[0]
+        self._bootstrap(param_dict)
 
         # set automata
         automaton = self._generate_automaton(param_dict)
 
+        state = self.orbit[0]
         for step in range(self.config["final_step"]-1):
             state = self._step(state, automaton)
             self.orbit[step + 1] = state
@@ -86,17 +86,15 @@ class Lenia(Leaf):
             automaton = LeniaStepFFT(
                 SX=self.config["SX"], SY=self.config["SY"], **param_dict
             )
-            return automaton
         elif self.config["version"].lower() == "pytorch_conv2d":
             automaton = LeniaStepConv2d(**param_dict)
-            return automaton
         else:
             raise ValueError(
-                'Unknown lenia version (config.version = {!r})'.format(self.config["version"]))
-
+                'Unknown lenia version (config.version = {!r})'.format(
+                    self.config["version"]))
         return automaton
 
-    def _bootstrap(self, param_dict: Dict) -> torch.Tensor:
+    def _bootstrap(self, param_dict: Dict):
         init_state = torch.zeros(
             1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64)
 
@@ -112,8 +110,9 @@ class Lenia(Leaf):
         # state is fixed deterministically by CPPN params,
         # so no need to save it after this point
         del param_dict["init_state"]
+        self.orbit[0] = init_state
 
-        return init_state
+        return
 
     def _step(self,
               state: torch.Tensor,
