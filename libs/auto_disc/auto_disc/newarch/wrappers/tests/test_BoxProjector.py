@@ -46,12 +46,22 @@ def test__update_low_high_type_conversion():
 
 def test__clamp_and_truncate():
     dim = 10
-    input = torch.rand(dim) + 10
+    input = torch.rand(dim) + 20
 
     box = BoxProjector(premap_key="output", bound_upper=torch.tensor([5.]))
     clamped_output = box._clamp_and_truncate(input)
-
     assert torch.all(torch.isclose(clamped_output, torch.tensor([5.])))
+
+    # clamp to a tensor
+    box = BoxProjector(premap_key="output", bound_upper=torch.tensor(
+        [1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]))
+    clamped_output = box._clamp_and_truncate(input)
+    assert torch.all(
+        torch.isclose(
+            clamped_output,
+            torch.tensor([1., 2., 3., 4., 5., 6., 7., 8., 9., 10.])
+        )
+    )
 
 
 def test_sample():

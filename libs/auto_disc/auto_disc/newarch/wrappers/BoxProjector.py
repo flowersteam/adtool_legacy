@@ -67,6 +67,8 @@ class BoxProjector(Leaf):
         return sample
 
     def _clamp_and_truncate(self, data: torch.Tensor) -> torch.Tensor:
+        # could use torch.clamp with updated pytorch version,
+        # but in our version, torch.clamp doesn't support tensors
         clamped_data = torch.min(
             torch.max(data, self.bound_lower), self.bound_upper)
         # TODO: truncate dimensions
