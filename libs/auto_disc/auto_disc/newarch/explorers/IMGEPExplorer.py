@@ -129,7 +129,7 @@ class IMGEPExplorer(Leaf):
         """
         data_dict = {}
         # initialize sample
-        data_shape = self.parameter_map.output_shape
+        data_shape = self.parameter_map.postmap_shape
         params_init = self.parameter_map.sample(data_shape)
         data_dict[self.postmap_key] = params_init
 

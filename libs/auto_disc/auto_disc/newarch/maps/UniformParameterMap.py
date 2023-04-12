@@ -29,7 +29,7 @@ class UniformParameterMap(Leaf):
         if tensor_bound_low.size() != tensor_bound_high.size():
             raise ValueError(
                 "tensor_bound_low and tensor_bound_high must be same shape.")
-        self.output_shape = tensor_low.size()
+        self.postmap_shape = tensor_low.size()
         # self.history_saver = SaveWrapper()
 
         self.projector = BoxProjector(premap_key=premap_key,
@@ -47,7 +47,7 @@ class UniformParameterMap(Leaf):
         intermed_dict = deepcopy(input)
 
         # always overrides "params" with new sample
-        intermed_dict[self.premap_key] = self.sample(self.output_shape)
+        intermed_dict[self.premap_key] = self.sample(self.postmap_shape)
         param_dict = self.projector.map(intermed_dict)
 
         # params_dict = self.history_saver.map(intermed_dict)
