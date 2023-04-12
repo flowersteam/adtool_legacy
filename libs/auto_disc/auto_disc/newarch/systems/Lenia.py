@@ -119,7 +119,7 @@ class Lenia(Leaf):
         output_dict = deepcopy(input)
         # must detach here as gradients are not used
         # and this also leads to a deepcopy error downstream
-        output_dict["output"] = state.detach()
+        output_dict["output"] = self.orbit[-1].detach().clone()
 
         return output_dict
 
