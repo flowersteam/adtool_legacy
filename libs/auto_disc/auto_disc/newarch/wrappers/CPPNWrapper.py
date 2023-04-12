@@ -41,7 +41,8 @@ class CPPNWrapper(Leaf):
                                                neat_config,
                                                postmap_shape,
                                                n_passes)
-        intermed_dict[self.postmap_key] = init_state
+
+        intermed_dict[self.postmap_key] = init_state.detach()
 
         return intermed_dict
 
