@@ -157,7 +157,8 @@ class IMGEPExplorer(Leaf):
         # TODO: check gradients here
         if self.timestep < self.equil_time:
             # sets "params" key
-            trial_data_reset = self.parameter_map.map(trial_data_reset)
+            trial_data_reset = self.parameter_map.map(trial_data_reset,
+                                                      override_existing=True)
 
             # label which trials were from random initialization
             trial_data_reset["equil"] = 1
@@ -166,7 +167,12 @@ class IMGEPExplorer(Leaf):
             params_trial = self.suggest_trial()
 
             # assemble dict and update parameter_map state
+            # NOTE: that this pass through parameter_map should not modify
+            # the "params" data, but only so that parameter_map can update
+            # its own state from reading the new parameters
             trial_data_reset[self.postmap_key] = params_trial
+            trial_data_reset = self.parameter_map.map(trial_data_reset,
+                                                      override_existing=False)
 
             # label that trials are now from the usual IMGEP procedure
             trial_data_reset["equil"] = 0

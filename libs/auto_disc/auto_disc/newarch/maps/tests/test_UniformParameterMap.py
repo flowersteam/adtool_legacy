@@ -45,9 +45,8 @@ def test_map():
     input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]),
-                                    override_existing=True)
-    output_dict = param_map.map(input_dict)
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    output_dict = param_map.map(input_dict, override_existing=True)
     assert not torch.allclose(
         output_dict["params"], torch.tensor([5., 5., 5.]))
 
@@ -55,9 +54,8 @@ def test_map():
     input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]),
-                                    override_existing=False)
-    output_dict = param_map.map(input_dict)
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    output_dict = param_map.map(input_dict, override_existing=False)
     assert torch.allclose(output_dict["params"], torch.tensor([5., 5., 5.]))
     assert torch.allclose(param_map.projector.high, torch.tensor([5., 5., 5.]))
 

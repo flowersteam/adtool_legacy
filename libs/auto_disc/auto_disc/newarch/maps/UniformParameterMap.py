@@ -41,9 +41,7 @@ class UniformParameterMap(Leaf):
                                       bound_upper=tensor_bound_high
                                       )
 
-        self.override_existing = override_existing
-
-    def map(self, input: Dict) -> Dict:
+    def map(self, input: Dict, override_existing: bool = True) -> Dict:
         """
         map() takes an input dict of metadata and adds the
         `params` key with a sample if it does not exist
@@ -51,7 +49,7 @@ class UniformParameterMap(Leaf):
         intermed_dict = deepcopy(input)
 
         # check if either "params" is not set or if we want to override
-        if ((self.override_existing and self.premap_key in intermed_dict)
+        if ((override_existing and self.premap_key in intermed_dict)
                 or (self.premap_key not in intermed_dict)):
             # overrides "params" with new sample
             intermed_dict[self.premap_key] = self.sample(self.postmap_shape)
