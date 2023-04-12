@@ -1,7 +1,7 @@
 from auto_disc.newarch.maps.NEATParameterMap import NEATParameterMap
 import os
-import torch
 import neat.genome
+from copy import deepcopy
 
 
 def setup_function(function):
@@ -31,5 +31,11 @@ def test_NEATParameterMap_map():
     neat_map = NEATParameterMap(config_path=CONFIG_PATH)
     out = neat_map.map(input_dict)
     assert "genome" in out
+    assert "neat_config" in out
+    # NOTE: same memory object being pointed to
+    assert out["neat_config"] is neat_map.neat_config
+
+    dc = deepcopy(out)
+    assert dc["neat_config"] is not neat_map.neat_config
 
     # TODO: postmap_shape = (1,1) edge case is broken

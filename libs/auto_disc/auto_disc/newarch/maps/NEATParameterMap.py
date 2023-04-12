@@ -19,9 +19,6 @@ class NEATParameterMap(Leaf):
     """
 
     def __init__(self, premap_key: str = "genome",
-                 #  postmap_key: str = "init_state",
-                 #  postmap_shape: Tuple[int, int] = (8, 8),
-                 #  n_passes: int = 2,
                  config_path: str = "./config.cfg") -> None:
         super().__init__()
         self.locator = BlobLocator()
@@ -47,6 +44,10 @@ class NEATParameterMap(Leaf):
         else:
             # passes "genome" through if it exists
             pass
+
+        # also passes the neat_config needed to initialize the genome into
+        # an initial state tensor
+        intermed_dict["neat_config"] = self.neat_config
 
         return intermed_dict
 
