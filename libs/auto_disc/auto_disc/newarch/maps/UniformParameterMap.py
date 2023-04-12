@@ -17,8 +17,8 @@ class UniformParameterMap(Leaf):
                  premap_key: str = "params",
                  tensor_low: torch.Tensor = torch.tensor([0.]),
                  tensor_high: torch.Tensor = torch.tensor([0.]),
-                 float_bound_low: float = 0.,
-                 float_bound_high: float = 1.) -> None:
+                 tensor_bound_low: torch.Tensor = torch.tensor([float('-inf')]),
+                 tensor_bound_high: torch.Tensor = torch.tensor([float('inf')])):
 
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
@@ -26,15 +26,17 @@ class UniformParameterMap(Leaf):
         self.premap_key = premap_key
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
+        if tensor_bound_low.size() != tensor_bound_high.size():
+            raise ValueError(
+                "tensor_bound_low and tensor_bound_high must be same shape.")
         self.output_shape = tensor_low.size()
         # self.history_saver = SaveWrapper()
+
         self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
                                       init_low=tensor_low,
-                                      bound_lower=torch.tensor(
-                                          [float(float_bound_low)]),
-                                      bound_upper=torch.tensor(
-                                          [float(float_bound_high)])
+                                      bound_lower=tensor_bound_low,
+                                      bound_upper=tensor_bound_high
                                       )
 
     def map(self, input: Dict) -> Dict:
