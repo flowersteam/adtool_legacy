@@ -52,7 +52,7 @@ class UniformParameterMap(Leaf):
         if ((override_existing and self.premap_key in intermed_dict)
                 or (self.premap_key not in intermed_dict)):
             # overrides "params" with new sample
-            intermed_dict[self.premap_key] = self.sample(self.postmap_shape)
+            intermed_dict[self.premap_key] = self.sample()
         else:
             # passes "params" through if it exists
             pass
@@ -62,7 +62,8 @@ class UniformParameterMap(Leaf):
 
         return param_dict
 
-    def sample(self, data_shape: Tuple) -> torch.Tensor:
+    def sample(self) -> torch.Tensor:
+        data_shape = self.postmap_shape
         dimensions_to_keep = data_shape[0]
         sample = self.projector.sample()
         return sample[:dimensions_to_keep]
