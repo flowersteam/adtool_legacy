@@ -1,6 +1,6 @@
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from typing import Dict, Any, Callable, Optional, List
+from typing import Dict, Any, Callable, Optional, List, Union
 from copy import deepcopy
 
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter
@@ -16,6 +16,75 @@ from matplotlib.animation import FuncAnimation
 import io
 import imageio
 from PIL import Image
+
+import dataclasses
+from dataclasses import dataclass, asdict
+
+
+@dataclass
+class LeniaDynamicalParameters:
+    R: Union[int, float] = 0
+    T: float = 1.
+    b: torch.Tensor = torch.tensor([0., 0., 0., 0.])
+    m: float = 0.
+    s: float = 0.001
+
+    def __post_init__(self):
+        # convert out of tensors
+        if isinstance(self.R, torch.Tensor):
+            self.R = self.R.item()
+        if isinstance(self.T, torch.Tensor):
+            self.T = self.T.item()
+        if isinstance(self.m, torch.Tensor):
+            self.m = self.m.item()
+        if isinstance(self.s, torch.Tensor):
+            self.s = self.s.item()
+
+        # check constraints
+        if isinstance(self.R, float):
+            self.R = round(self.R)
+        if self.R > 19:
+            self.R = 19
+
+        if self.T < 1.:
+            self.T = 1.
+        elif self.T > 10.:
+            self.T = 10.
+
+        if self.b.size() != (4,):
+            raise ValueError("b must be a 4-vector.")
+        self.b = torch.clamp(self.b, min=0., max=1.)
+
+        if self.m < 0.:
+            self.m = 0.
+        elif self.m > 1.:
+            self.m = 1.
+
+        if self.s < 0.001:
+            self.s = 0.001
+        elif self.s > 0.3:
+            self.s = 0.3
+
+    def to_tensor(self) -> torch.Tensor:
+        return torch.cat((torch.tensor([self.R, self.T]),
+                          torch.tensor([self.m, self.s]),
+                          self.b))
+
+    @classmethod
+    def from_tensor(cls, tensor: torch.Tensor):
+        r = tensor[0].item()
+        t = tensor[1].item()
+        m = tensor[2].item()
+        s = tensor[3].item()
+        b = tensor[4:8]
+        return cls(R=r, T=t, m=m, s=s, b=b)
+
+
+@dataclass
+class LeniaParameters:
+    """ Holds input parameters for Lenia model."""
+    dynamic_params: LeniaDynamicalParameters = LeniaDynamicalParameters()
+    init_state: torch.Tensor = torch.rand((10, 10))
 
 
 @StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
@@ -34,13 +103,13 @@ class Lenia(Leaf):
         )
 
     def map(self, input: Dict) -> Dict:
-        param_dict = self._process_dict(input)
+        params = self._process_dict(input)
 
         # set initial state self.orbit[0]
-        self._bootstrap(param_dict)
+        self._bootstrap(params)
 
         # set automata
-        automaton = self._generate_automaton(param_dict)
+        automaton = self._generate_automaton(params.dynamic_params)
 
         state = self.orbit[0]
         for step in range(self.config["final_step"]-1):
@@ -82,41 +151,49 @@ class Lenia(Leaf):
         else:
             raise NotImplementedError
 
-    def _process_dict(self, input_dict: Dict) -> Dict:
-        params = deepcopy(input_dict["params"])
-        if isinstance(params, torch.Tensor):
-            param_dict = {}
-            # convert param_tensor to dict for Lenia automaton
-            # TODO: named tensors would be better
-            param_dict["R"] = params[0]
-            param_dict["T"] = params[1]
-            param_dict["m"] = params[2]
-            param_dict["s"] = params[3]
-            param_dict["kn"] = params[4]
-            param_dict["gn"] = params[5]
-            param_dict["b"] = params[6:10]
+    def _process_dict(self, input_dict: Dict) -> LeniaParameters:
+        """
+        Converts data_dictionary and parses for the correct
+        parameters for Lenia.
+        """
+        init_params = deepcopy(input_dict["params"])
+        if not isinstance(init_params, LeniaParameters):
+            dyn_p = LeniaDynamicalParameters(**init_params["dynamic_params"])
+            init_state = init_params["init_state"]
+            params = LeniaParameters(dynamic_params=dyn_p,
+                                     init_state=init_state)
+        return params
 
-            # for testing, generate init_state randomly
-            param_dict["init_state"] = torch.rand(self.config["SX"],
-                                                  self.config["SY"])
-        else:
-            param_dict = params
-        return param_dict
-
-    def _generate_automaton(self, param_dict: Dict) -> Any:
+    def _generate_automaton(self, dyn_params: LeniaDynamicalParameters) -> Any:
+        tensor_params = dyn_params.to_tensor()
         if self.config["version"].lower() == "pytorch_fft":
             automaton = LeniaStepFFT(
-                SX=self.config["SX"], SY=self.config["SY"], **param_dict
+                SX=self.config["SX"], SY=self.config["SY"],
+                R=tensor_params[0],
+                T=tensor_params[1],
+                m=tensor_params[2],
+                s=tensor_params[3],
+                b=tensor_params[4:8],
+                kn=0,
+                gn=1
             )
         elif self.config["version"].lower() == "pytorch_conv2d":
-            automaton = LeniaStepConv2d(**param_dict)
+            automaton = LeniaStepConv2d(
+                R=tensor_params[0],
+                T=tensor_params[1],
+                m=tensor_params[2],
+                s=tensor_params[3],
+                b=tensor_params[4:8],
+                kn=0,
+                gn=1
+            )
         else:
             raise ValueError(
                 'Unknown lenia version (config.version = {!r})'.format(
                     self.config["version"]))
         return automaton
 
-    def _bootstrap(self, param_dict: Dict):
+    def _bootstrap(self, params: LeniaParameters):
         init_state = torch.zeros(
             1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64)
 
@@ -128,10 +205,10 @@ class Lenia(Leaf):
             self.config["SY"] // 2 + scaled_SY // 2,
             self.config["SX"] // 2 - math.ceil(scaled_SX / 2):
             self.config["SX"] // 2 + scaled_SX // 2
-        ] = param_dict["init_state"]
+        ] = params.init_state
         # state is fixed deterministically by CPPN params,
         # so no need to save it after this point
-        del param_dict["init_state"]
+        del params.init_state
         self.orbit[0] = init_state
 
         return
