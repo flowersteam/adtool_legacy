@@ -41,6 +41,26 @@ def test_map():
     assert torch.all(torch.less(output_dict["params"],
                                 param_map.projector.high))
 
+    # test override
+    input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]),
+                                    override_existing=True)
+    output_dict = param_map.map(input_dict)
+    assert not torch.allclose(
+        output_dict["params"], torch.tensor([5., 5., 5.]))
+
+    # test no override
+    input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]),
+                                    override_existing=False)
+    output_dict = param_map.map(input_dict)
+    assert torch.allclose(output_dict["params"], torch.tensor([5., 5., 5.]))
+    assert torch.allclose(param_map.projector.high, torch.tensor([5., 5., 5.]))
+
 
 def test_save():
     input_dict = {"metadata": 1}

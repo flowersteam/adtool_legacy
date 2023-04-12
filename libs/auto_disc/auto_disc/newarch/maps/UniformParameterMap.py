@@ -18,12 +18,14 @@ class UniformParameterMap(Leaf):
                  tensor_low: torch.Tensor = torch.tensor([0.]),
                  tensor_high: torch.Tensor = torch.tensor([0.]),
                  tensor_bound_low: torch.Tensor = torch.tensor([float('-inf')]),
-                 tensor_bound_high: torch.Tensor = torch.tensor([float('inf')])):
+                 tensor_bound_high: torch.Tensor = torch.tensor([float('inf')]),
+                 override_existing: bool = True,):
 
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
+
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
         if tensor_bound_low.size() != tensor_bound_high.size():
@@ -39,6 +41,8 @@ class UniformParameterMap(Leaf):
                                       bound_upper=tensor_bound_high
                                       )
 
+        self.override_existing = override_existing
+
     def map(self, input: Dict) -> Dict:
         """
         map() takes an input dict of metadata and adds the
@@ -46,10 +50,16 @@ class UniformParameterMap(Leaf):
         """
         intermed_dict = deepcopy(input)
 
-        # always overrides "params" with new sample
-        intermed_dict[self.premap_key] = self.sample(self.postmap_shape)
-        param_dict = self.projector.map(intermed_dict)
+        # check if either "params" is not set or if we want to override
+        if ((self.override_existing and self.premap_key in intermed_dict)
+                or (self.premap_key not in intermed_dict)):
+            # overrides "params" with new sample
+            intermed_dict[self.premap_key] = self.sample(self.postmap_shape)
+        else:
+            # passes "params" through if it exists
+            pass
 
+        param_dict = self.projector.map(intermed_dict)
         # params_dict = self.history_saver.map(intermed_dict)
 
         return param_dict
