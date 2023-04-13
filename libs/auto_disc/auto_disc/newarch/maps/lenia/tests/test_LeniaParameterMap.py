@@ -1,0 +1,91 @@
+from auto_disc.newarch.maps.lenia.LeniaParameterMap import (
+    LeniaHyperParameters,
+    LeniaParameterMapConfig,
+    LeniaParameterMap)
+from auto_disc.newarch.maps import NEATParameterMap
+from auto_disc.newarch.systems.Lenia import LeniaDynamicalParameters
+import torch
+from leaf.locators.locators import BlobLocator
+import os
+from dataclasses import asdict
+from copy import deepcopy
+
+
+def setup_function(function):
+    global CONFIG, CONFIG_PATH
+    path = os.path.dirname(os.path.abspath(__file__))
+    CONFIG_PATH = os.path.join(path, "config_test.cfg")
+
+    CONFIG = LeniaParameterMapConfig(neat_config_path=CONFIG_PATH)
+
+
+def test_LeniaHyperParamaters___init__():
+    hp = LeniaHyperParameters()
+    assert hp.tensor_low.size() == (8,)
+    assert hp.tensor_high.size() == (8,)
+    assert hp.tensor_bound_low.size() == (8,)
+    assert hp.tensor_bound_high.size() == (8,)
+    assert hp.init_state_dim == (10, 10)
+    assert hp.cppn_n_passes == 2
+
+
+def test_LeniaParameterMapConfig___init__():
+    c = LeniaParameterMapConfig()
+    assert isinstance(c.hp, LeniaHyperParameters)
+    assert c.neat_config_path == "./config.cfg"
+
+
+def test_LeniaParamaterMap___init__():
+    map = LeniaParameterMap(config=CONFIG)
+    assert isinstance(map.locator, BlobLocator)
+
+
+def test_LeniaParameterMap_map():
+    map = LeniaParameterMap(config=CONFIG)
+    input = {}
+    output = map.map(input)
+
+    assert "params" in output
+    assert "init_state" in output["params"]
+    assert "dynamic_params" in output["params"]
+
+
+def test_LeniaParameterMap_sample():
+    map = LeniaParameterMap(config=CONFIG)
+    params_dict = map.sample()
+
+    assert "init_state" in params_dict
+    assert "dynamic_params" in params_dict
+
+
+def test_LeniaParameterMap_mutate():
+    # NOTE: not deterministic
+    map = LeniaParameterMap(config=CONFIG)
+    params_dict = map.sample()
+    orig_dyn_p = LeniaDynamicalParameters(
+        **params_dict["dynamic_params"]
+    ).to_tensor()
+    del params_dict["init_state"]
+
+    neat = NEATParameterMap(config_path=CONFIG_PATH)
+    genome = neat.sample()
+    params_dict["genome"] = genome
+    orig_init_state = map._cppn_map_genome(
+        genome, map.neat.neat_config).detach().clone()
+
+    # mutation
+    params_dict = map.mutate(params_dict)
+
+    assert "genome" in params_dict
+    assert "dynamic_params" in params_dict
+
+    # check that the dynamic params have been mutated
+    new_dyn_p = LeniaDynamicalParameters(
+        **params_dict["dynamic_params"]
+    ).to_tensor()
+    assert not torch.allclose(orig_dyn_p, new_dyn_p)
+
+    # check that the genome has been mutated, leading to a new init_state
+    genome = params_dict["genome"]
+    new_init_state = map._cppn_map_genome(genome, map.neat.neat_config)
+    assert not torch.allclose(orig_init_state, new_init_state)
