@@ -41,7 +41,7 @@ class LeniaParameterMap(Leaf):
     def __init__(self,
                  premap_key: str = "params",
                  param_obj: LeniaHyperParameters = LeniaHyperParameters(),
-                 neat_config_path: str = "./config.cfg",
+                 neat_config_path: str = "./maps/cppn/config.cfg",
                  **config_decorator_kwargs
                  ):
         super().__init__()
@@ -96,22 +96,20 @@ class LeniaParameterMap(Leaf):
     def sample(self) -> Dict:
         """ 
         Samples from the parameter map to yield the parameters ready
-        for processing by the model (Lenia), i.e., the genome has been
-        used to generate the `init_state` of Lenia.
+        for processing by the model (LeniaCPPN), i.e., including the genome.
         """
         # sample dynamical parameters
         p_dyn_tensor = self.uniform.sample()
 
-        # sample init_state from genome
+        # sample genome
         genome = self.neat.sample()
-        neat_config = self.neat.neat_config
-        init_state = self._cppn_map_genome(genome, neat_config)
 
         # convert to parameter objects
         dp = LeniaDynamicalParameters().from_tensor(p_dyn_tensor)
-        p = LeniaParameters(dynamic_params=dp, init_state=init_state)
+        p_dict = {"dynamic_params": asdict(dp), "genome": genome,
+                  "neat_config": self.neat.neat_config}
 
-        return asdict(p)
+        return p_dict
 
     def mutate(self, parameter_dict: Dict) -> Dict:
         """ 
