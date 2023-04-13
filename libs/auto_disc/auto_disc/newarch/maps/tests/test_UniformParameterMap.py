@@ -28,6 +28,11 @@ def test___init__():
     assert param_map.projector.high == 0
     assert param_map.projector.bound_lower == float('-inf')
     assert param_map.projector.bound_upper == float('+inf')
+    # confirm that the tensors are unsqueezed to not be size 0
+    assert param_map.projector.low.size() == (1,)
+    assert param_map.projector.high.size() == (1,)
+    assert param_map.projector.bound_lower.size() == (1,)
+    assert param_map.projector.bound_upper.size() == (1,)
 
     # regular init
     param_map = UniformParameterMap(premap_key="params",
@@ -48,6 +53,11 @@ def test___init__():
     assert param_map.projector.high == 2
     assert param_map.projector.bound_lower == float('-inf')
     assert param_map.projector.bound_upper == float('+inf')
+    # confirm that the tensors are unsqueezed to not be size 0
+    assert param_map.projector.low.size() == (1,)
+    assert param_map.projector.high.size() == (1,)
+    assert param_map.projector.bound_lower.size() == (1,)
+    assert param_map.projector.bound_upper.size() == (1,)
 
     # array init
     param_map = UniformParameterMap(premap_key="params",

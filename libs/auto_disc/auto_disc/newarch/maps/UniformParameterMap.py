@@ -37,6 +37,16 @@ class UniformParameterMap(Leaf):
         if not isinstance(tensor_bound_high, torch.Tensor):
             tensor_bound_high = torch.tensor(tensor_bound_high)
 
+        # ensure no tensor is of size 0 by unsqueezing
+        if tensor_low.size() == torch.Size([]):
+            tensor_low = tensor_low.unsqueeze(0)
+        if tensor_high.size() == torch.Size([]):
+            tensor_high = tensor_high.unsqueeze(0)
+        if tensor_bound_low.size() == torch.Size([]):
+            tensor_bound_low = tensor_bound_low.unsqueeze(0)
+        if tensor_bound_high.size() == torch.Size([]):
+            tensor_bound_high = tensor_bound_high.unsqueeze(0)
+
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
         if tensor_bound_low.size() != tensor_bound_high.size():
