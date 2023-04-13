@@ -19,9 +19,10 @@ class MeanBehaviorMap(Leaf):
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
+        self.postmap_key = postmap_key
         self.input_shape = input_shape  # unused by the module itself here
         # self.history_saver = SaveWrapper()
-        self.projector = BoxProjector(premap_key=premap_key)
+        self.projector = BoxProjector(premap_key=self.postmap_key)
 
     def map(self, input: Dict) -> Dict:
         # TODO: does not handle batches

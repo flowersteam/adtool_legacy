@@ -253,7 +253,7 @@ class LeniaStatistics(Leaf):
         self._n_latents = len(self._statistic_names)
 
         # projector for behavior space
-        self.projector = BoxProjector(premap_key=premap_key)
+        self.projector = BoxProjector(premap_key=self.postmap_key)
 
     def map(self, input: typing.Dict) -> typing.Dict:
         """
@@ -275,11 +275,15 @@ class LeniaStatistics(Leaf):
         embedding = self._calc_static_statistics(tensor)
 
         intermed_dict[self.postmap_key] = embedding
+        intermed_dict = self.projector.map(intermed_dict)
 
         return intermed_dict
 
-    def calc_distance(self, embedding_a: torch.Tensor,
-                      embedding_b: torch.Tensor) -> torch.Tensor:
+    def sample(self):
+        return self.projector.sample()
+
+    def _calc_distance(self, embedding_a: torch.Tensor,
+                       embedding_b: torch.Tensor) -> torch.Tensor:
         """
             Compute the distance between 2 embeddings in the latent space
             /!\ batch mode embedding_a and embedding_b can be N*M or M
