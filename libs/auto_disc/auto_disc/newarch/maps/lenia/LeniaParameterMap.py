@@ -11,6 +11,12 @@ import dataclasses
 from dataclasses import dataclass, asdict
 from copy import deepcopy
 from functools import partial
+from auto_disc.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+    DictConfigParameter
+)
 
 
 @dataclass
@@ -26,12 +32,6 @@ class LeniaHyperParameters:
     cppn_n_passes: int = 2
 
 
-@dataclass
-class LeniaParameterMapConfig:
-    hp: LeniaHyperParameters = LeniaHyperParameters()
-    neat_config_path: str = "./config.cfg"
-
-
 class LeniaParameterMap(Leaf):
     """
     Due to the complexities of initializing Lenia parameters,
@@ -40,24 +40,28 @@ class LeniaParameterMap(Leaf):
 
     def __init__(self,
                  premap_key: str = "params",
-                 SX: int = 10,
-                 SY: int = 10,
-                 config: LeniaParameterMapConfig = LeniaParameterMapConfig()
+                 param_obj: LeniaHyperParameters = LeniaHyperParameters(),
+                 neat_config_path: str = "./config.cfg",
+                 **config_decorator_kwargs
                  ):
         super().__init__()
         self.locator = BlobLocator()
+        # if config options set by decorator, override config
+        if len(config_decorator_kwargs) > 0:
+            param_obj = dataclasses.replace(
+                param_obj, **config_decorator_kwargs)
 
         self.premap_key = premap_key
 
         self.uniform = UniformParameterMap(
             premap_key=f"tensor_{self.premap_key}",
-            tensor_low=config.hp.tensor_low,
-            tensor_high=config.hp.tensor_high,
-            tensor_bound_low=config.hp.tensor_bound_low,
-            tensor_bound_high=config.hp.tensor_bound_high
+            tensor_low=param_obj.tensor_low,
+            tensor_high=param_obj.tensor_high,
+            tensor_bound_low=param_obj.tensor_bound_low,
+            tensor_bound_high=param_obj.tensor_bound_high
         )
         self.neat = NEATParameterMap(premap_key=f"genome_{self.premap_key}",
-                                     config_path=config.neat_config_path)
+                                     config_path=neat_config_path)
 
         # multi-dimensional "ragged" Gaussian noise
         # based upon the tensor representation of LeniaDynamicalParameters
@@ -67,9 +71,9 @@ class LeniaParameterMap(Leaf):
             std=torch.tensor([0.5, 0.5, 0.1, 0.05, 0.1, 0.1, 0.1, 0.1])
         )
 
-        self.SX = SX
-        self.SY = SY
-        self.cppn_n_passes = config.hp.cppn_n_passes
+        self.SX = param_obj.init_state_dim[1]
+        self.SY = param_obj.init_state_dim[0]
+        self.cppn_n_passes = param_obj.cppn_n_passes
 
     def map(self, input: Dict, override_existing: bool = True) -> Dict:
         """ 

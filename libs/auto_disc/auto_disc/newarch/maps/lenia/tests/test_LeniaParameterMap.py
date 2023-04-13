@@ -1,6 +1,5 @@
 from auto_disc.newarch.maps.lenia.LeniaParameterMap import (
     LeniaHyperParameters,
-    LeniaParameterMapConfig,
     LeniaParameterMap)
 from auto_disc.newarch.maps import NEATParameterMap
 from auto_disc.newarch.systems.Lenia import LeniaDynamicalParameters
@@ -9,6 +8,7 @@ from leaf.locators.locators import BlobLocator
 import os
 from dataclasses import asdict
 from copy import deepcopy
+import pytest
 
 
 def setup_function(function):
@@ -16,7 +16,7 @@ def setup_function(function):
     path = os.path.dirname(os.path.abspath(__file__))
     CONFIG_PATH = os.path.join(path, "config_test.cfg")
 
-    CONFIG = LeniaParameterMapConfig(neat_config_path=CONFIG_PATH)
+    CONFIG = LeniaHyperParameters()
 
 
 def test_LeniaHyperParamaters___init__():
@@ -29,19 +29,26 @@ def test_LeniaHyperParamaters___init__():
     assert hp.cppn_n_passes == 2
 
 
-def test_LeniaParameterMapConfig___init__():
-    c = LeniaParameterMapConfig()
-    assert isinstance(c.hp, LeniaHyperParameters)
-    assert c.neat_config_path == "./config.cfg"
-
-
 def test_LeniaParamaterMap___init__():
-    map = LeniaParameterMap(config=CONFIG)
+    map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     assert isinstance(map.locator, BlobLocator)
+
+    # replace with kwargs
+    with pytest.raises(Exception) as ex:
+        map = LeniaParameterMap(param_obj=CONFIG, neat_config_path="test")
+        assert "No such config" in ex
+    map = LeniaParameterMap(
+        param_obj=CONFIG, neat_config_path=CONFIG_PATH, cppn_n_passes=3)
+    assert map.cppn_n_passes == 3
+
+    map = LeniaParameterMap(
+        param_obj=CONFIG, neat_config_path=CONFIG_PATH, init_state_dim=(3, 3))
+    assert map.SX == 3
+    assert map.SY == 3
 
 
 def test_LeniaParameterMap_map():
-    map = LeniaParameterMap(config=CONFIG)
+    map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     input = {}
     output = map.map(input)
 
@@ -51,7 +58,7 @@ def test_LeniaParameterMap_map():
 
 
 def test_LeniaParameterMap_sample():
-    map = LeniaParameterMap(config=CONFIG)
+    map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     params_dict = map.sample()
 
     assert "init_state" in params_dict
@@ -60,7 +67,7 @@ def test_LeniaParameterMap_sample():
 
 def test_LeniaParameterMap_mutate():
     # NOTE: not deterministic
-    map = LeniaParameterMap(config=CONFIG)
+    map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     params_dict = map.sample()
     orig_dyn_p = LeniaDynamicalParameters(
         **params_dict["dynamic_params"]
