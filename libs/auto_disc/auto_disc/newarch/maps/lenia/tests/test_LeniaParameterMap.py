@@ -53,7 +53,8 @@ def test_LeniaParameterMap_map():
     output = map.map(input)
 
     assert "params" in output
-    assert "init_state" in output["params"]
+    assert "genome" in output["params"]
+    assert "neat_config" in output["params"]
     assert "dynamic_params" in output["params"]
 
 
@@ -61,7 +62,8 @@ def test_LeniaParameterMap_sample():
     map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     params_dict = map.sample()
 
-    assert "init_state" in params_dict
+    assert "genome" in params_dict
+    assert "neat_config" in params_dict
     assert "dynamic_params" in params_dict
 
 
@@ -72,11 +74,7 @@ def test_LeniaParameterMap_mutate():
     orig_dyn_p = LeniaDynamicalParameters(
         **params_dict["dynamic_params"]
     ).to_tensor()
-    del params_dict["init_state"]
-
-    neat = NEATParameterMap(config_path=CONFIG_PATH)
-    genome = neat.sample()
-    params_dict["genome"] = genome
+    genome = params_dict["genome"]
     orig_init_state = map._cppn_map_genome(
         genome, map.neat.neat_config).detach().clone()
 

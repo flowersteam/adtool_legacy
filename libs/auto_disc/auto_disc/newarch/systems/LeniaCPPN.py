@@ -41,10 +41,6 @@ class LeniaCPPN(Leaf):
         # as CPPNWrapper is a wrapper, it operates on the lowest level
         intermed_dict["params"] = self.cppn.map(intermed_dict["params"])
 
-        # remove genome and neat_config info
-        del intermed_dict["params"][self.cppn.premap_key.genome]
-        del intermed_dict["params"][self.cppn.premap_key.neat_config]
-
         # pass params to Lenia
         intermed_dict = self.lenia.map(intermed_dict)
 
