@@ -90,9 +90,11 @@ def test_run():
     system_output_key = "output"
     logger = AutoDiscLogger(experiment_id, seed, [])
 
-    factory = IMGEPFactory(equil_time=5, param_dim=2,
-                           param_init_low=0., param_init_high=1.,
-                           mutation_noise_std=0.)
+    factory = IMGEPFactory(equil_time=5,
+                           parameter_map_config={"tensor_low": 0.0,
+                                                 "tensor_high": 1.0},
+                           mutator="gaussian",
+                           mutator_config={"std": 0.0})
     explorer = factory()
     system = ExponentialMixture(sequence_density=10)
     input_pipeline = IdentityWrapper()

@@ -1,5 +1,6 @@
 import torch
-from typing import Any
+from typing import Any, Dict
+from leaf.Leaf import Leaf
 
 
 def add_gaussian_noise(input_tensor: torch.Tensor,
@@ -15,17 +16,10 @@ def add_gaussian_noise(input_tensor: torch.Tensor,
     return input_tensor + noise
 
 
-def call_mutate_method(input_object: Any):
+def call_mutate_method(param_dict: Dict, param_map: Any = None) -> Dict:
     """
-    If parameters are given as a custom object, then the object must have a 
-    `mutate` method in order to mutate the underlying parameters controlling
-    the object.
+    If parameters are given as a complicated dict, then the parameter map which
+    creates it must have a `mutate` method in order to mutate the underlying 
+    parameters controlling.
     """
-    # quick test to check if `mutate` method returns a new object or
-    # modifies in place the input_object
-    # if it does something else, this is a user error
-    capture_out = input_object.mutate()
-    if capture_out is not None:
-        return capture_out
-    else:
-        return input_object
+    return param_map.mutate(param_dict)
