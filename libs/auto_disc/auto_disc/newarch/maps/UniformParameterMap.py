@@ -1,7 +1,7 @@
 import torch
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union, List
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
 from copy import deepcopy
@@ -15,16 +15,27 @@ class UniformParameterMap(Leaf):
 
     def __init__(self,
                  premap_key: str = "params",
-                 tensor_low: torch.Tensor = torch.tensor([0.]),
-                 tensor_high: torch.Tensor = torch.tensor([0.]),
-                 tensor_bound_low: torch.Tensor = torch.tensor([float('-inf')]),
-                 tensor_bound_high: torch.Tensor = torch.tensor([float('inf')]),
-                 override_existing: bool = True,):
+                 tensor_low: Union[torch.Tensor, List[float]] = torch.tensor([0.]),
+                 tensor_high: Union[torch.Tensor, List[float]] = torch.tensor([0.]),
+                 tensor_bound_low: Union[torch.Tensor, List[float]] = torch.tensor([float('-inf')]),
+                 tensor_bound_high: Union[torch.Tensor, List[float]] = torch.tensor([float('inf')]),
+                 override_existing: bool = True,
+                 ):
 
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
+
+        # convert all Union types to tensors
+        if not isinstance(tensor_low, torch.Tensor):
+            tensor_low = torch.tensor(tensor_low)
+        if not isinstance(tensor_high, torch.Tensor):
+            tensor_high = torch.tensor(tensor_high)
+        if not isinstance(tensor_bound_low, torch.Tensor):
+            tensor_bound_low = torch.tensor(tensor_bound_low)
+        if not isinstance(tensor_bound_high, torch.Tensor):
+            tensor_bound_high = torch.tensor(tensor_bound_high)
 
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
