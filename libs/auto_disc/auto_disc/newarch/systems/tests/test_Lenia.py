@@ -1,6 +1,9 @@
-from auto_disc.newarch.systems.Lenia import Lenia
+from auto_disc.newarch.systems.Lenia import (Lenia,
+                                             LeniaDynamicalParameters,
+                                             LeniaParameters)
 import torch
 from copy import deepcopy
+from dataclasses import asdict
 
 
 def setup_function(function):
@@ -25,18 +28,83 @@ def teardown_function(function):
     pass
 
 
-def test___init__():
+def test_LeniaDynamicalParamaters___init__():
+    p = LeniaDynamicalParameters()
+    assert p.R == 0
+    assert p.T == 1.
+    assert p.b.size() == (4,)
+    assert isinstance(p.b, torch.Tensor)
+    assert p.m == 0.
+    assert p.s == 0.001
+
+    # check custom initialization
+    p = LeniaDynamicalParameters(R=10, T=2.,
+                                 b=torch.tensor([1., 1., 1., 1.]),
+                                 m=0.5, s=0.2)
+    assert p.R == 10
+    assert p.T == 2.
+    assert p.b.size() == (4,)
+    assert isinstance(p.b, torch.Tensor)
+    assert p.m == 0.5
+    assert p.s == 0.2
+
+    # check rounding of R
+    p = LeniaDynamicalParameters(R=5.5)
+    assert p.R == 6
+
+
+def test_LeniaDynamicalParamaters___post_init__():
+    # assert that all constraints are respected
+    p = LeniaDynamicalParameters(R=20, T=11., b=torch.tensor([2., -1, 1., 1.]),
+                                 m=1.5, s=0.5)
+    assert p.R == 19
+    assert p.T == 10.
+    assert torch.max(p.b) == 1.
+    assert torch.min(p.b) == 0.
+    assert torch.allclose(p.b, torch.tensor([1., 0., 1., 1.]))
+    assert p.m == 1.
+    assert p.s == 0.3
+
+
+def test_LeniaDynamicalParamaters_to_tensor():
+    p = LeniaDynamicalParameters()
+    tensor = p.to_tensor()
+    assert tensor.size() == (8,)
+    assert isinstance(tensor, torch.Tensor)
+    assert tensor[0] == p.R
+    assert tensor[1] == p.T
+    assert tensor[2] == p.m
+    assert tensor[3] == p.s
+    assert torch.allclose(tensor[4:8], p.b)
+
+
+def test_LeniaParameters___init__():
+    p = LeniaParameters()
+    assert p.init_state.size() == (10, 10)
+    assert isinstance(p.dynamic_params, LeniaDynamicalParameters)
+
+    # check dict rep
+    pdict = asdict(p)
+    assert pdict["init_state"].size() == (10, 10)
+    assert "R" in pdict["dynamic_params"]
+    assert "T" in pdict["dynamic_params"]
+    assert "b" in pdict["dynamic_params"]
+    assert "m" in pdict["dynamic_params"]
+    assert "s" in pdict["dynamic_params"]
+
+
+def test_Lenia___init__():
     system = Lenia()
     assert system.orbit.size() == (200, 256, 256)
 
 
-def test_process_dict():
+def test_Lenia_process_dict():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
     assert dummy_params.dynamic_params.R
 
 
-def test__generate_automaton():
+def test_Lenia__generate_automaton():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
 
@@ -44,7 +112,7 @@ def test__generate_automaton():
     assert isinstance(automaton, torch.nn.Module)
 
 
-def test__bootstrap():
+def test_Lenia__bootstrap():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
     system._bootstrap(dummy_params)
@@ -52,7 +120,7 @@ def test__bootstrap():
     assert init_state.size() == (256, 256)
 
 
-def test__step():
+def test_Lenia__step():
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
     system._bootstrap(dummy_params)
@@ -72,17 +140,17 @@ def test__step():
     assert automaton.s.grad is not None
 
 
-def test_map():
+def test_Lenia_map():
     system = Lenia()
     out_dict = system.map(dummy_input)
 
     assert torch.allclose(out_dict["output"], system.orbit[-1])
     # padded due to the way automaton steps
-    assert out_dict["output"].size() == (1, 1, 256, 256)
+    assert out_dict["output"].size() == (256, 256)
     assert system.orbit[-1].size() == (256, 256)
 
 
-def test_render():
+def test_Lenia_render():
     # eyeball test this one
     system = Lenia()
     dummy_params = system._process_dict(dummy_input)
