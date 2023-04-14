@@ -1,5 +1,5 @@
 import auto_disc
-from auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import SaveDiscoveryOnDisk, _CustomJSONEncoder, _JSONEncoderFactory, _save_binary_callback
+from auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import SaveDiscoveryOnDisk
 import os
 import shutil
 import pathlib
@@ -31,78 +31,17 @@ def teardown_function(function):
 
 def test_SaveDiscoveryOnDisk__construct_save_path():
     cb = SaveDiscoveryOnDisk()
-    dir_path = cb._construct_save_path(RESOURCE_URI, "test_id", 777, 33)
+    dir_path = cb._initialize_save_path(RESOURCE_URI, "test_id", 777, 33)
 
     assert os.path.dirname(dir_path) == RESOURCE_URI + "/discoveries"
 
 
 def test__save_binary_callback():
     cb = SaveDiscoveryOnDisk()
-    dir_path = cb._construct_save_path(RESOURCE_URI, "test_id", 777)
-    os.mkdir(dir_path)
+    dir_path = cb._initialize_save_path(RESOURCE_URI, "test_id", 777, 33)
     bin = b"123"
-    uid = _save_binary_callback(bin, dir_path)
+    uid = cb._save_binary_callback(bin, dir_path)
     assert os.path.exists(os.path.join(dir_path, uid))
-
-
-def test__JSONEncoderFactory():
-    fac = _JSONEncoderFactory()
-    cls = fac(dir_path="dummy_path")
-    assert cls.dir_path == "dummy_path"
-    assert cls.__name__ == "_CustomJSONEncoder"
-    assert _CustomJSONEncoder.dir_path == "dummy_path"
-
-
-def test__CustomJSONEncoder(mocker):
-    fac = _JSONEncoderFactory()
-    cls = fac(dir_path="dummy_path")
-    encoder = cls()
-
-    # catch torch Tensors
-    obj = torch.Tensor([1, 2, 3])
-    encoded = encoder.default(obj)
-    assert encoded == [1, 2, 3]
-
-    # catch numpy arrays
-    obj = numpy.array([1, 2, 3])
-    encoded = encoder.default(obj)
-    assert encoded == [1, 2, 3]
-
-    # catch bytes
-    obj = b"dummy_bytes"
-    callback_name = "auto_disc.utils.callbacks."\
-        "on_discovery_callbacks.save_discovery_on_disk."\
-        "_save_binary_callback"
-    mocker.patch(callback_name,
-                 return_value="dummy_uid")
-    encoded = encoder.default(obj)
-    assert encoded == "dummy_uid"
-    assert auto_disc.utils.callbacks.\
-        on_discovery_callbacks.save_discovery_on_disk.\
-        _save_binary_callback.call_count == 1
-
-    # catch Leaf objects
-    obj = Leaf()
-    mocker.patch("leaf.Leaf.Leaf.save_leaf", return_value="dummy_uid")
-    encoded = encoder.default(obj)
-    assert encoded == "dummy_uid"
-    assert leaf.Leaf.Leaf.save_leaf.call_count == 1
-
-    # catch python objects not serializable by JSON
-    obj = object()
-    encoded = encoder.default(obj)
-    assert encoded == "dummy_uid"
-    assert auto_disc.utils.callbacks.\
-        on_discovery_callbacks.save_discovery_on_disk.\
-        _save_binary_callback.call_count == 2
-
-    # ensure that the default method is called
-    obj = "dummy_string"
-    mocker.patch("json.JSONEncoder.default", return_value="dummy_return")
-    encoded = encoder.default(obj)
-    assert encoded == "dummy_return"
-    # it is called twice, because the first is in the try block
-    assert json.JSONEncoder.default.call_count == 2
 
 
 def test___call__():
@@ -117,7 +56,7 @@ def test___call__():
        run_idx=777, discovery=data)
 
     # check if the discovery was saved
-    dir_path = cb._construct_save_path(RESOURCE_URI, "test_id", 777, 33)
+    dir_path = cb._initialize_save_path(RESOURCE_URI, "test_id", 777, 33)
     assert os.path.exists(dir_path)
     assert os.path.exists(os.path.join(dir_path, "discovery.json"))
 
