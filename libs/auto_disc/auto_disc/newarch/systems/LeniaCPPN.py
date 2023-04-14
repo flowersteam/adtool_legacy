@@ -4,7 +4,7 @@ from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
 from auto_disc.utils.config_parameters import (StringConfigParameter,
                                                IntegerConfigParameter)
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 from copy import deepcopy
 from dataclasses import dataclass, asdict
 import torch
@@ -45,3 +45,6 @@ class LeniaCPPN(Leaf):
         intermed_dict = self.lenia.map(intermed_dict)
 
         return intermed_dict
+
+    def render(self, data_dict, mode: str = "PIL_image") -> Optional[bytes]:
+        return self.lenia.render(data_dict, mode=mode)

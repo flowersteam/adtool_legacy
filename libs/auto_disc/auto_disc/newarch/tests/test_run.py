@@ -10,6 +10,7 @@ def setup_function(function):
     global RESOURCE_URI, config_json
     file_path = str(pathlib.Path(__file__).parent.resolve())
     RESOURCE_URI = os.path.join(file_path, "tmp")
+    neat_config_path = os.path.join(file_path, "neat_config_test.cfg")
     os.mkdir(RESOURCE_URI)
     config_json_exp_mix = \
         {
@@ -45,40 +46,45 @@ def setup_function(function):
     config_json_lenia = \
         {
             "experiment": {
-                "name": "newlenia",
+                "name": "demo",
                 "config": {
                     "host": "local",
                     "nb_seeds": 1,
-                    "nb_iterations": 10,
+                    "nb_iterations": 3,
                     "save_location": f"{RESOURCE_URI}",
                     "save_frequency": 1,
                     "discovery_saving_keys": []
                 }
             },
             "system": {
-                "name": "auto_disc.newarch.systems.Lenia.Lenia",
+                "name": "auto_disc.newarch.systems.LeniaCPPN.LeniaCPPN",
                 "config": {
-                    "SX": 128,
-                    "SY": 128,
+                    "SX": 64,
+                    "SY": 64,
                     "version": "pytorch_fft",
-                    "final_step": 50,
+                    "final_step": 200,
                     "scale_init_state": 1
                 }
             },
             "explorer": {
                 "name": "auto_disc.newarch.explorers.IMGEPFactory",
                 "config": {
-                    "param_dim": 10,
-                    "equil_time": 2,
-                    "behavior_map": "mean",
-                    "parameter_map": "uniform",
-                    "param_init_low": 0.8,
-                    "param_bound_low": "-inf",
-                    "param_init_high": 0,
-                    "param_bound_high": "inf",
-                    "system_output_dim": 1,
-                    "mutation_noise_std": 0.1,
-                    "behavior_map_config": {}
+                    "mutator": "specific",
+                    "equil_time": 1,
+                    "behavior_map": "LeniaStatistics",
+                    "parameter_map": "LeniaParameterMap",
+                    "mutator_config": {},
+                    "behavior_map_config": {
+                        "SX": 64,
+                        "SY": 64
+                    },
+                    "parameter_map_config": {
+                        "init_state_dim": [
+                            64,
+                            64
+                        ],
+                        "neat_config_path": f"{neat_config_path}"
+                    }
                 }
             },
             "input_wrappers": [],
@@ -86,6 +92,49 @@ def setup_function(function):
             "callbacks": {},
             "logger_handlers": []
         }
+    # {
+    #     "experiment": {
+    #         "name": "newlenia",
+    #         "config": {
+    #             "host": "local",
+    #             "nb_seeds": 1,
+    #             "nb_iterations": 10,
+    #             "save_location": f"{RESOURCE_URI}",
+    #             "save_frequency": 1,
+    #             "discovery_saving_keys": []
+    #         }
+    #     },
+    #     "system": {
+    #         "name": "auto_disc.newarch.systems.Lenia.Lenia",
+    #         "config": {
+    #             "SX": 128,
+    #             "SY": 128,
+    #             "version": "pytorch_fft",
+    #             "final_step": 50,
+    #             "scale_init_state": 1
+    #         }
+    #     },
+    #     "explorer": {
+    #         "name": "auto_disc.newarch.explorers.IMGEPFactory",
+    #         "config": {
+    #             "param_dim": 10,
+    #             "equil_time": 2,
+    #             "behavior_map": "Mean",
+    #             "parameter_map": "Uniform",
+    #             "param_init_low": 0.8,
+    #             "param_bound_low": "-inf",
+    #             "param_init_high": 0,
+    #             "param_bound_high": "inf",
+    #             "system_output_dim": 1,
+    #             "mutation_noise_std": 0.1,
+    #             "behavior_map_config": {}
+    #         }
+    #     },
+    #     "input_wrappers": [],
+    #     "output_representations": [],
+    #     "callbacks": {},
+    #     "logger_handlers": []
+    # }
     config_json = config_json_lenia
 
     return
