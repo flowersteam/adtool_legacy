@@ -68,6 +68,14 @@ def _add_files_to_document(collection, document, files):
     collection.update_one({"_id": document["_id"]}, updates_to_do)
     return make_response(jsonify({'success': True}), 200)
 
+
+def _update_document_by_id(collection, id, updates):
+    """
+    Update a document
+    """
+    collection.update_one({"_id": ObjectId(id)}, {'$set': updates})
+    return make_response(jsonify({'success': True}), 200)
+
 # endregion
 
 # region Discovery endpoints
@@ -86,6 +94,15 @@ def list_discoveries():
 @app.route('/discoveries/<id>', methods=['GET'])  # get a discovery by its id
 def get_discovery_by_id(id):
     return _get_one_by_filter(db.discoveries, {"_id": ObjectId(id)})
+
+
+@app.route('/discoveries/<id>', methods=['POST'])
+def update_discovery_by_id(id):
+    """
+    Add to existing discovery
+    """
+    updates = request.json
+    return _update_document_by_id(db.discoveries, id, updates)
 
 
 @app.route('/discoveries/<id>/<file>', methods=['GET'])

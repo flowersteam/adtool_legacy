@@ -26,7 +26,8 @@ class SaveDiscoveryOnDisk(SaveDiscovery):
     @staticmethod
     def _dump_json(discovery: Dict[str, Any],
                    dir_path: str,
-                   json_encoder: Type[json.JSONEncoder]
+                   json_encoder: Type[json.JSONEncoder],
+                   **kwargs
                    ) -> None:
         # save dict_data to disk as JSON object
         file_path = os.path.join(dir_path, "discovery.json")

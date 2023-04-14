@@ -62,14 +62,20 @@ class SaveDiscovery:
             custom_callback=self._save_binary_callback)
 
         # save dict_data
-        self._dump_json(discovery, dir_path, json_encoder)
+        self._dump_json(discovery=discovery,
+                        dir_path=dir_path,
+                        json_encoder=json_encoder,
+                        experiment_id=experiment_id,
+                        run_idx=run_idx,
+                        seed=seed)
 
         return
 
     @staticmethod
     def _dump_json(discovery: Dict[str, Any],
                    dir_path: str,
-                   json_encoder: Type[json.JSONEncoder]
+                   json_encoder: Type[json.JSONEncoder],
+                   **kwargs
                    ) -> None:
         """
         Method called which dumps a human-readable JSON file.
@@ -94,6 +100,7 @@ class SaveDiscovery:
                               save_dir: str
                               ) -> str:
         """
-        Callback to call on binary objects when saving discovery
+        Callback to call on binary objects when saving discovery. Its return
+        value will be the value of the key in the serialized JSON object.
         """
         raise NotImplementedError

@@ -1,20 +1,24 @@
 from auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb import SaveDiscoveryInExpeDB
 import torch
+import pytest_mock
 
 
-def test___call__():
-    binary = bytes(2000)
-    discovery = {"input": 1, "output": torch.tensor(
-        [[2, 3], [3, 4]]), "rendered_output": binary}
-    experiment_id = 162000
-    seed = 10
-    run_idx = 10
-
+def test___call__(mocker):
+    data = {
+        "params": torch.tensor([1., 2., 3.]),
+        "loss": 0.5,
+        "model": object(),
+        "metadata": {"test": b"test"}
+    }
     resource_uri = "http://127.0.0.1:5001"
+    cb = SaveDiscoveryInExpeDB()
+    spy = mocker.spy(cb, "_initialize_save_path")
+    cb(resource_uri=resource_uri,
+       experiment_id="test_id",
+       run_idx=777,
+       seed=33,
+       discovery=data)
 
-    callback = SaveDiscoveryInExpeDB()
-    callback(resource_uri=resource_uri,
-             experiment_id=experiment_id,
-             seed=seed,
-             run_idx=run_idx,
-             discovery=discovery)
+    # TODO: check if the discovery was saved by interfacing with the MongoDB
+    # for now, just use this spy and manually check the DB
+    assert spy.spy_return
