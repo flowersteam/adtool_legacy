@@ -51,7 +51,8 @@ export class ExpeDbService {
       "/discoveries?filter=" + filter,
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-        observe: 'response'
+        observe: 'response',
+        responseType: 'blob' as 'json'
       })
       .pipe(
         map(response => { return httpResponseToRESTResponse<any[]>(response); }),
