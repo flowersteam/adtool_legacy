@@ -162,42 +162,6 @@ def test_run():
     run.start(pipeline, 10)
 
 
-def test_save_GenerateReport():
-    """
-    primarily tests the GenerateReport callback
-    """
-    config_json["callbacks"] = {
-        "on_save_finished": [{"name":
-                              "utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
-                              "config": {}
-                              }]
-    }
-    experiment_id = 1
-    seed = 1
-    pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
-
-    run.start(pipeline, 10)
-
-    # rough check of file tree
-    files = os.listdir(RESOURCE_URI)
-    assert len(files) > 0
-    data_dirs = []
-    reports = []
-    for f in files:
-        if f.split(".")[-1] == "json":
-            reports.append(f)
-        else:
-            data_dirs.append(f)
-
-    for r in reports:
-        tmp = r.split(".")[0]
-        uid = tmp.split("_")[-1]
-        assert uid in data_dirs
-
-
 def test_save_SaveDiscoveryOnDisk():
     config_json["callbacks"] = {
         "on_discovery": [{"name":
@@ -342,3 +306,66 @@ def test_save_resume():
         output = conn.execute(sqlalchemy.text("SELECT * FROM tree"))
 
     assert output.fetchall() == [(1, 2), (2, 3), (2, 4), (4, 5)]
+
+
+def test_save_GenerateReport():
+    """
+    primarily tests the GenerateReport callback
+    """
+    config_json["callbacks"] = {
+        "on_save_finished": [{"name":
+                              "utils.callbacks."
+                              "on_save_finished_callbacks."
+                              "generate_report_callback."
+                              "GenerateReport",
+                              "config": {}
+                              }]
+    }
+    experiment_id = 1
+    seed = 1
+    pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
+    run.start(pipeline, 1)
+
+    # check file tree
+    files = os.listdir(RESOURCE_URI)
+    # callback doesn't run if save callback is not provided
+    assert len(files) == 0
+
+    # provide the savecallback
+    config_json["callbacks"] = {
+        "on_save_finished": [{"name":
+                              "utils.callbacks."
+                              "on_save_finished_callbacks."
+                              "generate_report_callback."
+                              "GenerateReport",
+                              "config": {}
+                              }],
+        "on_save": [{"name":
+                     "utils.callbacks."
+                     "on_save_callbacks."
+                     "save_discovery_on_disk."
+                     "SaveDiscoveryOnDisk",
+                     "config": {}
+                     }]
+    }
+    experiment_id = 2
+    seed = 1
+    pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
+    run.start(pipeline, 10)
+
+    # check file tree
+    files = os.listdir(RESOURCE_URI)
+    # callback runs now
+    assert len(files) == 0
+    data_dirs = []
+    reports = []
+    for f in files:
+        if f.split(".")[-1] == "json":
+            reports.append(f)
+        else:
+            data_dirs.append(f)
+
+    for r in reports:
+        tmp = r.split(".")[0]
+        uid = tmp.split("_")[-1]
+        assert uid in data_dirs
