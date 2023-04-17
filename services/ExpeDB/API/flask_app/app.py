@@ -45,14 +45,29 @@ def _get_multiple_by_filter(collection, filter, query=None):
     return make_response(jsonify(elements), 200)
 
 
-def _get_file_from_document(document, filename):
+def _get_file_from_document(document, filename,
+                            _filename: str = ""):
     """
-    Return request with a file from a document
+    Return request with a file from a document. The `follow_ptr` flag
+    dictates if we will recurse one level down in pointer indirections
+    to find the GridFS file. `_filename` is used internally to keep track
+    of semantic/human-readable filename of the file we are trying to retrieve.
+
+    NOTE: I think Flask does not play well with recursion, but thankfully
+        we do not expect to deal with more than one layer of indirection.
     """
+    error_msg = "No file {} found with in document with id {}"\
+        .format(filename, document['_id'])
     if not filename in document:
-        return make_response("No file {} found with in document with id {}".format(filename, document['_id']), 403)
-    file = fs.get(ObjectId(document[filename]))
-    return send_file(file, attachment_filename=file.filename)
+        return make_response(error_msg, 403)
+    else:
+        try:
+            file = fs.get(ObjectId(document[filename]))
+        except:
+            # if can't find file, try to follow pointer one level
+            new_filename = str(document[filename])
+            file = fs.get(ObjectId(document[new_filename]))
+    return send_file(file, attachment_filename=_filename)
 
 
 def _add_files_to_document(collection, document, files):
@@ -106,13 +121,13 @@ def update_discovery_by_id(id):
 
 
 @app.route('/discoveries/<id>/<file>', methods=['GET'])
-def get_discovery_file(id, file):
+def get_discovery_file_by_name(id, file):
     """ 
-    Get discovery by name 
+    Get discovery field by name 
     """
     discovery = db.discoveries.find_one({"_id": ObjectId(id)})
     if discovery:
-        return _get_file_from_document(discovery, file)
+        return _get_file_from_document(discovery, file, _filename=file)
     else:
         return make_response("No discovery found with id {}".format(id), 403)
 
