@@ -34,10 +34,25 @@ class SaveDiscoveryInExpeDB(SaveDiscovery):
         # converts discovery to JSON blob and calls the _save_binary_callback
         # when needed. Reloads the JSON blob as a dict to push to the DB
         json_blob = json.dumps(discovery, cls=json_encoder)
-        parsed_dict_data = json.loads(json_blob)
 
         # push to DB
-        requests.post(dir_path, json=parsed_dict_data)
+        # NOTE: that the Python stdlib json encoder treats NaN/float(+-inf)
+        # as strings, which is technically not valid JSON. This will cause an
+        # error using the python requests library if one loads it in with the
+        # json kwarg. The "solution" is to use the data kwarg instead, which
+        # passes a dumb binary, and manually override the mimetype
+        # Note, that this is "noncompliant" with JSON standards,
+        # but it is JavaScript compliant,
+        # see this PR: https://github.com/psf/requests/issues/5767
+        #
+        # Broken code example:
+        # ```
+        #     parsed_dict_data = json.loads(json_blob)
+        #     requests.post(dir_path, json=parsed_dict_data)
+        # ````
+        response = requests.post(dir_path, data=json_blob,
+                                 headers={'Content-Type': 'application/json'})
+        print(response.text)
 
         return
 
