@@ -100,7 +100,8 @@ class Lenia(Leaf):
         super().__init__()
         self.locator = BlobLocator()
         self.orbit = torch.empty(
-            (self.config["final_step"], self.config["SX"], self.config["SY"])
+            (self.config["final_step"],
+             1, 1, self.config["SX"], self.config["SY"])
         )
 
     def map(self, input: Dict) -> Dict:
@@ -120,7 +121,8 @@ class Lenia(Leaf):
         output_dict = deepcopy(input)
         # must detach here as gradients are not used
         # and this also leads to a deepcopy error downstream
-        output_dict["output"] = self.orbit[-1].detach().clone()
+        # also, squeezing leading dimensions for convenience
+        output_dict["output"] = self.orbit[-1].detach().clone().squeeze()
 
         return output_dict
 
@@ -133,8 +135,9 @@ class Lenia(Leaf):
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
         im_array = []
         for img in self.orbit:
-            im = im_from_array_with_colormap(
-                img.cpu().detach().numpy(), colormap)
+            # need to squeeze leading dimensions
+            parsed_img = img.squeeze().cpu().detach().numpy()
+            im = im_from_array_with_colormap(parsed_img, colormap)
             im_array.append(im.convert('RGB'))
 
         if mode == "human":
@@ -313,8 +316,13 @@ class LeniaStepFFT(torch.nn.Module):
         y = torch.arange(self.SY)
         xx = x.repeat(self.SY, 1)
         yy = y.view(-1, 1).repeat(1, self.SX)
-        X = (xx - int(self.SX / 2)).double() / float(self.R)
-        Y = (yy - int(self.SY / 2)).double() / float(self.R)
+
+        X = (xx - int(self.SX / 2)).double() / float(self.SX / 2)
+        Y = (yy - int(self.SY / 2)).double() / float(self.SY / 2)
+
+        # canonical implementation from Mayalen, but I think there is a bug
+        # X = (xx - int(self.SX / 2)).double() / float(self.R / 2)
+        # Y = (yy - int(self.SY / 2)).double() / float(self.R / 2)
 
         # distance to center in normalized space
         D = torch.sqrt(X ** 2 + Y ** 2)

@@ -46,11 +46,14 @@ def test_map():
 
     assert "output" in out
     assert out["output"].size() == (256, 256)
-    assert system.lenia.orbit[-1].size() == (256, 256)
-    assert out["output"] is not system.lenia.orbit[-1]
+    assert system.lenia.orbit[-1].size() == (1, 1, 256, 256)
+    assert out["output"] is not system.lenia.orbit[-1][0, 0]
 
     # ensure all parts of parameters are kept
     assert "params" in out
     assert "dynamic_params" in out["params"]
     assert "genome" in out["params"]
     assert "neat_config" in out["params"]
+
+    # eyeball test the render
+    system.render(out, mode="human")

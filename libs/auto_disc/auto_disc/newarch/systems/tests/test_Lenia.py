@@ -95,7 +95,7 @@ def test_LeniaParameters___init__():
 
 def test_Lenia___init__():
     system = Lenia()
-    assert system.orbit.size() == (200, 256, 256)
+    assert system.orbit.size() == (1, 1, 200, 256, 256)
 
 
 def test_Lenia_process_dict():
@@ -117,7 +117,7 @@ def test_Lenia__bootstrap():
     dummy_params = system._process_dict(dummy_input)
     system._bootstrap(dummy_params)
     init_state = system.orbit[0]
-    assert init_state.size() == (256, 256)
+    assert init_state.size() == (1, 1, 256, 256)
 
 
 def test_Lenia__step():
@@ -145,9 +145,9 @@ def test_Lenia_map():
     out_dict = system.map(dummy_input)
 
     assert torch.allclose(out_dict["output"], system.orbit[-1])
-    # padded due to the way automaton steps
     assert out_dict["output"].size() == (256, 256)
-    assert system.orbit[-1].size() == (256, 256)
+    # padded due to the way automaton steps
+    assert system.orbit[-1].size() == (1, 1, 256, 256)
 
 
 def test_Lenia_render():
