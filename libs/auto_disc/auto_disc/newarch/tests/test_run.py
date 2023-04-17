@@ -183,6 +183,7 @@ def test_save_GenerateReport():
 
     # rough check of file tree
     files = os.listdir(RESOURCE_URI)
+    assert len(files) > 0
     data_dirs = []
     reports = []
     for f in files:
@@ -215,6 +216,7 @@ def test_save_SaveDiscoveryOnDisk():
 
     # rough check of file tree
     files = os.listdir(RESOURCE_URI)
+    assert len(files) > 0
     disc_dirs = []
 
     for f in files:
