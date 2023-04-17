@@ -7,6 +7,7 @@ from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConf
 from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch, soft_clip
 
 import torch
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
@@ -137,6 +138,7 @@ class Lenia(Leaf):
             im_array.append(im.convert('RGB'))
 
         if mode == "human":
+            matplotlib.use("TkAgg")
             fig = plt.figure(figsize=(4, 4))
             animation = FuncAnimation(
                 fig, lambda frame: plt.imshow(frame), frames=im_array)
