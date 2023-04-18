@@ -101,14 +101,21 @@ def list_discoveries():
     filter = request.args.get('filter', default=None)
     if filter is not None:
         query = request.args.get('query', default=None)
-        return _get_multiple_by_filter(db.discoveries, json.loads(filter), json.loads(query) if query else None)
+        return _get_multiple_by_filter(db.discoveries, json.loads(filter),
+                                       json.loads(query) if query else None)
     else:
-        return make_response("You must provide a filter in the request args", 403)
+        return make_response("You must provide a filter in the request args",
+                             403)
 
 
 @app.route('/discoveries/<id>', methods=['GET'])  # get a discovery by its id
 def get_discovery_by_id(id):
-    return _get_one_by_filter(db.discoveries, {"_id": ObjectId(id)})
+    query = request.args.get('query', default=None)
+    if query is not None:
+        return _get_one_by_filter(db.discoveries, {"_id": ObjectId(id)},
+                                  query=json.loads(query))
+    else:
+        return _get_one_by_filter(db.discoveries, {"_id": ObjectId(id)})
 
 
 @app.route('/discoveries/<id>', methods=['POST'])
