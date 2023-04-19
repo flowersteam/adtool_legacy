@@ -4,34 +4,34 @@ from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
 from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.newarch.wrappers.mutators import add_gaussian_noise
+from auto_disc.newarch.maps.lenia.LeniaParameterMap import LeniaParameterMap
+from auto_disc.newarch.wrappers.mutators import (add_gaussian_noise,
+                                                 call_mutate_method)
 from auto_disc.utils.config_parameters import (
     DecimalConfigParameter,
     IntegerConfigParameter,
     StringConfigParameter,
     DictConfigParameter
 )
-from typing import Dict, Tuple, Callable, List
+from auto_disc.newarch.maps.lenia.LeniaStatistics import LeniaStatistics
+from typing import Dict, Tuple, Callable, List, Any
 import torch
 from copy import deepcopy
 from functools import partial
 
 
 @IntegerConfigParameter("equil_time", default=1, min=1)
-@IntegerConfigParameter("param_dim", default=1, min=1)
-@DecimalConfigParameter("param_init_low", default=0.)
-@DecimalConfigParameter("param_init_high", default=0.)
-@DecimalConfigParameter("param_bound_low", default=float('-inf'))
-@DecimalConfigParameter("param_bound_high", default=float('inf'))
-@IntegerConfigParameter("system_output_dim", default=1, min=1)
-@DecimalConfigParameter("mutation_noise_std", default=0., min=0.)
 @StringConfigParameter("behavior_map",
-                       possible_values=["mean"],
-                       default="mean")
+                       possible_values=["Mean", "LeniaStatistics"],
+                       default="Mean")
 @DictConfigParameter("behavior_map_config", default={})
 @StringConfigParameter("parameter_map",
-                       possible_values=["uniform"],
-                       default="uniform")
+                       possible_values=["Uniform", "LeniaParameterMap"],
+                       default="Uniform")
+@DictConfigParameter("parameter_map_config", default={})
+@StringConfigParameter("mutator", possible_values=["gaussian", "specific"],
+                       default="specific")
+@DictConfigParameter("mutator_config", default={})
 class IMGEPFactory:
     """
     Factory class providing interface with config parameters and therefore the
@@ -39,13 +39,18 @@ class IMGEPFactory:
     """
     CONFIG_DEFINITION = {}
 
+    # create specification for discovery attributes
+    # TODO: kind of hard-coded for now, based on constructor defaults
+    discovery_spec = ["params", "output", "raw_output", "rendered_output"]
+
     def __init__(self, *args, **kwargs):
+        # never called
         pass
 
-    def __call__(self):
+    def __call__(self) -> "IMGEPExplorer":
         behavior_map = self.make_behavior_map()
         param_map = self.make_parameter_map()
-        mutator = self.make_mutator()
+        mutator = self.make_mutator(param_map)
         equil_time = self.config["equil_time"]
         explorer = IMGEPExplorer(parameter_map=param_map,
                                  behavior_map=behavior_map,
@@ -55,9 +60,11 @@ class IMGEPFactory:
         return explorer
 
     def make_behavior_map(self):
-        if self.config["behavior_map"] == "mean":
-            kwargs = self.config["behavior_map_config"]
+        kwargs = self.config["behavior_map_config"]
+        if self.config["behavior_map"] == "Mean":
             behavior_map = MeanBehaviorMap(**kwargs)
+        elif self.config["behavior_map"] == "LeniaStatistics":
+            behavior_map = LeniaStatistics(**kwargs)
         else:
             # this branch should be unreachable,
             # because the ConfigParameter decorator checks
@@ -66,21 +73,11 @@ class IMGEPFactory:
         return behavior_map
 
     def make_parameter_map(self):
-        if self.config["parameter_map"] == "uniform":
-            param_size = torch.Size([self.config["param_dim"]])
-            init_low = self.config["param_init_low"]
-            init_high = self.config["param_init_high"]
-            tensor_low = torch.full(size=param_size, fill_value=init_low)
-            tensor_high = torch.full(size=param_size, fill_value=init_high)
-            float_bound_low = self.config["param_bound_low"]
-            float_bound_high = self.config["param_bound_high"]
-
-            param_map = UniformParameterMap(
-                tensor_low=tensor_low,
-                tensor_high=tensor_high,
-                float_bound_low=float_bound_low,
-                float_bound_high=float_bound_high
-            )
+        kwargs = self.config["parameter_map_config"]
+        if self.config["parameter_map"] == "Uniform":
+            param_map = UniformParameterMap(**kwargs)
+        elif self.config["parameter_map"] == "LeniaParameterMap":
+            param_map = LeniaParameterMap(**kwargs)
         else:
             # this branch should be unreachable,
             # because the ConfigParameter decorator checks
@@ -88,10 +85,13 @@ class IMGEPFactory:
 
         return param_map
 
-    def make_mutator(self):
-        if self.config["mutation_noise_std"] > 0:
+    def make_mutator(self, param_map: Any = None):
+        if self.config["mutator"] == "specific":
+            mutator = partial(call_mutate_method,
+                              param_map=param_map)
+        elif self.config["mutator"] == "gaussian":
             mutator = partial(add_gaussian_noise,
-                              std=self.config["mutation_noise_std"])
+                              std=self.config["mutator_config"]["std"])
         else:
             mutator = torch.nn.Identity()
 
@@ -125,8 +125,7 @@ class IMGEPExplorer(Leaf):
         """
         data_dict = {}
         # initialize sample
-        data_shape = self.parameter_map.output_shape
-        params_init = self.parameter_map.sample(data_shape)
+        params_init = self.parameter_map.sample()
         data_dict[self.postmap_key] = params_init
 
         # first timestep recorded
@@ -153,7 +152,8 @@ class IMGEPExplorer(Leaf):
         # TODO: check gradients here
         if self.timestep < self.equil_time:
             # sets "params" key
-            trial_data_reset = self.parameter_map.map(trial_data_reset)
+            trial_data_reset = self.parameter_map.map(trial_data_reset,
+                                                      override_existing=True)
 
             # label which trials were from random initialization
             trial_data_reset["equil"] = 1
@@ -162,7 +162,12 @@ class IMGEPExplorer(Leaf):
             params_trial = self.suggest_trial()
 
             # assemble dict and update parameter_map state
+            # NOTE: that this pass through parameter_map should not modify
+            # the "params" data, but only so that parameter_map can update
+            # its own state from reading the new parameters
             trial_data_reset[self.postmap_key] = params_trial
+            trial_data_reset = self.parameter_map.map(trial_data_reset,
+                                                      override_existing=False)
 
             # label that trials are now from the usual IMGEP procedure
             trial_data_reset["equil"] = 0
@@ -214,6 +219,18 @@ class IMGEPExplorer(Leaf):
         """
         pass
 
+    def _extract_dict_history(self,
+                              dict_history: List[Dict],
+                              key: str) -> List[Dict]:
+        """
+        Extracts history from an array of dicts with labelled data,
+        with the desired subdict being labelled by key
+        """
+        key_history = []
+        for dict in dict_history:
+            key_history.append(dict[key])
+        return key_history
+
     def _extract_tensor_history(self,
                                 dict_history: List[Dict],
                                 key: str) -> torch.Tensor:
@@ -235,14 +252,17 @@ class IMGEPExplorer(Leaf):
         return torch.argmin((goal_history-goal).pow(2).sum(-1))
 
     def _vector_search_for_goal(self, goal: torch.Tensor,
-                                lookback_length: int) -> torch.Tensor:
+                                lookback_length: int) -> Dict:
+
         history_buffer = self._history_saver.get_history(
             lookback_length=lookback_length)
+
         goal_history = self._extract_tensor_history(history_buffer,
                                                     self.premap_key)
-        param_history = self._extract_tensor_history(history_buffer,
-                                                     self.postmap_key)
         source_policy_idx = self._find_closest(goal, goal_history)
+
+        param_history = self._extract_dict_history(history_buffer,
+                                                   self.postmap_key)
         source_policy = param_history[source_policy_idx]
 
         return source_policy

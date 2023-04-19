@@ -6,6 +6,7 @@ from auto_disc.output_representations.specific import *
 from auto_disc.newarch.explorers import IMGEPFactory as IMGEPExplorer
 from auto_disc.newarch.maps import MeanBehaviorMap, UniformParameterMap
 from auto_disc.newarch.systems import ExponentialMixture
+from auto_disc.newarch.systems.LeniaCPPN import LeniaCPPN as LeniaCPPN
 import auto_disc.utils.callbacks.on_discovery_callbacks as on_discovery_callbacks
 import auto_disc.utils.callbacks.on_cancelled_callbacks as on_cancelled_callbacks
 import auto_disc.utils.callbacks.on_error_callbacks as on_error_callbacks
@@ -18,6 +19,7 @@ from auto_disc.utils.logger.handlers import *
 REGISTRATION = {
     'systems': {
         'PythonLenia': PythonLenia,
+        'LeniaCPPN': LeniaCPPN,
         'ExponentialMixture': ExponentialMixture
     },
     'explorers': {

@@ -61,9 +61,9 @@ export class AutoDiscServerService {
       );
   }
 
-  getDiscoverySavingKeys(): Observable<RESTResponse<string[]>> {
+  getDiscoverySavingKeys(explorer: string): Observable<RESTResponse<string[]>> {
     return this.http.get<string[]>(
-      this.autodiscServerUrl + "/discovery-saving-keys", { observe: 'response' })
+      this.autodiscServerUrl + "/discovery-saving-keys" + "/" + explorer, { observe: 'response' })
       .pipe(
         map(response => { return httpResponseToRESTResponse<string[]>(response); }),
         catchError(response => { return of(httpErrorResponseToRESTResponse<string[]>(response)); })

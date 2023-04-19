@@ -45,22 +45,31 @@ export class ExpeDbService {
       );
   }
 
-  getDiscovery(filter: string): Observable<RESTResponse<any[]>> {
-    return this.http.get<any[]>(
-      this.expeDBUrl +
-      "/discoveries?filter=" + filter,
+  getDiscovery(filter: string): Observable<RESTResponse<string>> {
+    return this.http.get(
+      // temporary fix for excluding mal-formed JSON from the response
+      encodeURI(
+        this.expeDBUrl +
+        "/discoveries?filter=" + filter +
+        '&query={"output" : false, "raw_output" : false, "params" : false}'
+      ),
       {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-        observe: 'response'
+        observe: 'response',
+        responseType: 'text'
       })
       .pipe(
-        map(response => { return httpResponseToRESTResponse<any[]>(response); }),
-        catchError(response => { return of(httpErrorResponseToRESTResponse<any[]>(response)); })
+        map(response => {
+          return httpResponseToRESTResponse<string>(response);
+        }),
+        catchError(response => {
+          return of(httpErrorResponseToRESTResponse<string>(response));
+        })
       );
   }
 
-  getDiscoveryRenderedOutput(id: string): Observable<RESTResponse<any[]>> {
-    return this.http.get<any[]>(
+  getDiscoveryRenderedOutput(id: string): Observable<RESTResponse<Blob>> {
+    return this.http.get<Blob>(
       this.expeDBUrl +
       "/discoveries/" + id + "/rendered_output",
       {
@@ -69,8 +78,8 @@ export class ExpeDbService {
         observe: 'response'
       })
       .pipe(
-        map(response => { return httpResponseToRESTResponse<any[]>(response); }),
-        catchError(response => { return of(httpErrorResponseToRESTResponse<any[]>(response)); })
+        map(response => { return httpResponseToRESTResponse<Blob>(response); }),
+        catchError(response => { return of(httpErrorResponseToRESTResponse<Blob>(response)); })
       );
   }
 

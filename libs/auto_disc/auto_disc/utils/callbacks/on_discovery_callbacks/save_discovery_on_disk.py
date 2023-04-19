@@ -1,53 +1,65 @@
+from typing import Dict, Any, Type
 import pickle
 import os
 from datetime import datetime
 import json
 import torch
+import numpy as np
+from leaf.Leaf import Leaf
+from hashlib import sha1
+from auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery import SaveDiscovery
 
 
-class _TorchTensorJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        # catch torch Tensors
-        if isinstance(obj, torch.Tensor):
-            return obj.tolist()
-        # pass to usual encoder
-        return json.JSONEncoder.default(self, obj)
-
-
-class SaveDiscoveryOnDisk:
-    def __call__(self,
-                 resource_uri: str,
+class SaveDiscoveryOnDisk(SaveDiscovery):
+    def __call__(self, resource_uri: str,
                  experiment_id: int,
-                 seed: int,
                  run_idx: int,
-                 discovery: dict
+                 seed: int,
+                 discovery: Dict[str, Any]
                  ) -> None:
-        # construct save_path
+        return super().__call__(resource_uri,
+                                experiment_id,
+                                run_idx,
+                                seed,
+                                discovery)
+
+    @staticmethod
+    def _dump_json(discovery: Dict[str, Any],
+                   dir_path: str,
+                   json_encoder: Type[json.JSONEncoder],
+                   **kwargs
+                   ) -> None:
+        # save dict_data to disk as JSON object
+        file_path = os.path.join(dir_path, "discovery.json")
+        with open(file_path, "w") as f:
+            json.dump(discovery, f, cls=json_encoder)
+
+    @staticmethod
+    def _initialize_save_path(resource_uri: str,
+                              experiment_id: int,
+                              run_idx: int,
+                              seed: int
+                              ) -> str:
         dt = datetime.now()
         date_str = dt.isoformat(timespec='minutes')
         disc_path = os.path.join(resource_uri, "discoveries")
         if not os.path.exists(disc_path):
             os.mkdir(disc_path)
-        dir_str = f"{date_str}_exp_{experiment_id}_idx_{run_idx}"
+        dir_str = f"{date_str}_exp_{experiment_id}_idx_{run_idx}_seed_{seed}"
         dir_path = os.path.join(disc_path, dir_str)
+
+        # initialize
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
 
-        # extract binaries to separate dictionary
-        binaries = {}
-        for (k, v) in discovery.items():
-            if isinstance(v, bytes):
-                binaries[k] = v
-        for k in binaries.keys():
-            del discovery[k]
+        return dir_path
 
-        # dump binaries to disk
-        for (name, data) in binaries.items():
-            file_path = os.path.join(dir_path, name)
-            with open(file_path, "wb") as f:
-                f.write(data)
-
-        # save dict_data to disk as JSON object
-        file_path = os.path.join(dir_path, "discovery.json")
-        with open(file_path, "w") as f:
-            json.dump(discovery, f, cls=_TorchTensorJSONEncoder)
+    @classmethod
+    def _save_binary_callback(cls: Type,
+                              binary: bytes,
+                              save_dir: str) -> str:
+        file_name = sha1(binary).hexdigest()
+        file_path = os.path.join(save_dir, file_name)
+        with open(file_path, "wb") as f:
+            f.write(binary)
+        return file_name

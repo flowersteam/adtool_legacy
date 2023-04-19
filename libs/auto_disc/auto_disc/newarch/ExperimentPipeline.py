@@ -72,7 +72,8 @@ class ExperimentPipeline(Leaf):
                  on_error_callbacks: List[Callable] = [],
                  interact_callbacks: List[Callable] = [],
                  logger=None,
-                 resource_uri: str = ""
+                 resource_uri: str = "",
+                 discovery_saving_keys: List[str] = []
                  ) -> None:
         """
             Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.
@@ -101,6 +102,13 @@ class ExperimentPipeline(Leaf):
         self.seed = seed
         self.save_frequency = save_frequency
         self.logger = logger
+
+        # stores the original resource_uri from the config
+        # we pass this to the configs, because self.locator.resource_uri
+        # gets overridden frequently by the save routine
+        self.resource_uri = resource_uri
+
+        self.discovery_saving_keys = discovery_saving_keys
 
         ### SYSTEM ###
         self._system = system
@@ -171,11 +179,19 @@ class ExperimentPipeline(Leaf):
 
                 # pass new dict to prevent in-place mutation by callback
                 discovery_to_save = deepcopy(discovery)
+
+                # use discovery_saving_keys as a mask for what to save
+                if len(self.discovery_saving_keys) > 0:
+                    for key in list(discovery_to_save.keys()):
+                        if key not in self.discovery_saving_keys:
+                            del discovery_to_save[key]
+
                 # TODO: pass the rendered output more easily
                 discovery_to_save["rendered_output"] = rendered_output
+
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
-                    resource_uri=self.locator.resource_uri,
+                    resource_uri=self.resource_uri,
                     run_idx=self.run_idx,
                     experiment_id=self.experiment_id,
                     seed=self.seed,
@@ -196,7 +212,7 @@ class ExperimentPipeline(Leaf):
 
                 if (run_idx_start_from_one % self.save_frequency == 0
                         or run_idx_start_from_one == n_exploration_runs):
-                    self.save(resource_uri=self.locator.resource_uri)
+                    self.save(resource_uri=self.resource_uri)
 
                 self.run_idx += 1
 

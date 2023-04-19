@@ -20,11 +20,63 @@ def teardown_function(function):
     return
 
 
+def test___init__():
+    # default init
+    param_map = UniformParameterMap()
+    assert param_map.premap_key == "params"
+    assert param_map.projector.low == 0
+    assert param_map.projector.high == 0
+    assert param_map.projector.bound_lower == float('-inf')
+    assert param_map.projector.bound_upper == float('+inf')
+    # confirm that the tensors are unsqueezed to not be size 0
+    assert param_map.projector.low.size() == (1,)
+    assert param_map.projector.high.size() == (1,)
+    assert param_map.projector.bound_lower.size() == (1,)
+    assert param_map.projector.bound_upper.size() == (1,)
+
+    # regular init
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    assert param_map.premap_key == "params"
+    assert torch.allclose(param_map.projector.low,
+                          torch.tensor([0., 0., 0.]))
+    assert torch.allclose(param_map.projector.high,
+                          torch.tensor([2., 2., 2.]))
+    assert param_map.projector.bound_lower == float('-inf')
+    assert param_map.projector.bound_upper == float('+inf')
+
+    # float init
+    param_map = UniformParameterMap(tensor_low=0., tensor_high=2.)
+    assert param_map.premap_key == "params"
+    assert param_map.projector.low == 0
+    assert param_map.projector.high == 2
+    assert param_map.projector.bound_lower == float('-inf')
+    assert param_map.projector.bound_upper == float('+inf')
+    # confirm that the tensors are unsqueezed to not be size 0
+    assert param_map.projector.low.size() == (1,)
+    assert param_map.projector.high.size() == (1,)
+    assert param_map.projector.bound_lower.size() == (1,)
+    assert param_map.projector.bound_upper.size() == (1,)
+
+    # array init
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=[0., 0., 0.],
+                                    tensor_high=[2., 2., 2.])
+    assert param_map.premap_key == "params"
+    assert torch.allclose(param_map.projector.low,
+                          torch.tensor([0., 0., 0.]))
+    assert torch.allclose(param_map.projector.high,
+                          torch.tensor([2., 2., 2.]))
+    assert param_map.projector.bound_lower == float('-inf')
+    assert param_map.projector.bound_upper == float('+inf')
+
+
 def test_sample():
     param_map = UniformParameterMap(premap_key="params",
                                     tensor_low=torch.tensor([0., 0., 0.]),
                                     tensor_high=torch.tensor([2., 2., 2.]))
-    sample_tensor = param_map.sample(param_map.output_shape)
+    sample_tensor = param_map.sample()
     assert torch.all(torch.greater(sample_tensor, torch.tensor([0.])))
     assert torch.all(torch.less(sample_tensor, torch.tensor([2.])))
 
@@ -40,6 +92,24 @@ def test_map():
                                    param_map.projector.low))
     assert torch.all(torch.less(output_dict["params"],
                                 param_map.projector.high))
+
+    # test override
+    input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    output_dict = param_map.map(input_dict, override_existing=True)
+    assert not torch.allclose(
+        output_dict["params"], torch.tensor([5., 5., 5.]))
+
+    # test no override
+    input_dict = {"metadata": 1, "params": torch.tensor([5., 5., 5.])}
+    param_map = UniformParameterMap(premap_key="params",
+                                    tensor_low=torch.tensor([0., 0., 0.]),
+                                    tensor_high=torch.tensor([2., 2., 2.]))
+    output_dict = param_map.map(input_dict, override_existing=False)
+    assert torch.allclose(output_dict["params"], torch.tensor([5., 5., 5.]))
+    assert torch.allclose(param_map.projector.high, torch.tensor([5., 5., 5.]))
 
 
 def test_save():

@@ -135,7 +135,8 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         on_error_callbacks=callbacks['on_error'],
         interact_callbacks=callbacks['interact'],
         logger=logger,
-        resource_uri=parameters['experiment']['config']['save_location']
+        resource_uri=parameters['experiment']['config']['save_location'],
+        discovery_saving_keys=parameters['experiment']['config']['discovery_saving_keys']
     )
 
     return experiment

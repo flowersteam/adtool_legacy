@@ -1,12 +1,13 @@
 from leaf.Leaf import Leaf
-from leaf.locators.Locator import FileLocator
-from typing import Dict, Any, Callable, Optional, List
+from leaf.locators.locators import BlobLocator
+from typing import Dict, Any, Callable, Optional, List, Union
 from copy import deepcopy
 
 from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter
 from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch, soft_clip
 
 import torch
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
@@ -16,6 +17,75 @@ from matplotlib.animation import FuncAnimation
 import io
 import imageio
 from PIL import Image
+
+import dataclasses
+from dataclasses import dataclass, asdict
+
+
+@dataclass
+class LeniaDynamicalParameters:
+    R: Union[int, float] = 0
+    T: float = 1.
+    b: torch.Tensor = torch.tensor([0., 0., 0., 0.])
+    m: float = 0.
+    s: float = 0.001
+
+    def __post_init__(self):
+        # convert out of tensors
+        if isinstance(self.R, torch.Tensor):
+            self.R = self.R.item()
+        if isinstance(self.T, torch.Tensor):
+            self.T = self.T.item()
+        if isinstance(self.m, torch.Tensor):
+            self.m = self.m.item()
+        if isinstance(self.s, torch.Tensor):
+            self.s = self.s.item()
+
+        # check constraints
+        if isinstance(self.R, float):
+            self.R = round(self.R)
+        if self.R > 19:
+            self.R = 19
+
+        if self.T < 1.:
+            self.T = 1.
+        elif self.T > 10.:
+            self.T = 10.
+
+        if self.b.size() != (4,):
+            raise ValueError("b must be a 4-vector.")
+        self.b = torch.clamp(self.b, min=0., max=1.)
+
+        if self.m < 0.:
+            self.m = 0.
+        elif self.m > 1.:
+            self.m = 1.
+
+        if self.s < 0.001:
+            self.s = 0.001
+        elif self.s > 0.3:
+            self.s = 0.3
+
+    def to_tensor(self) -> torch.Tensor:
+        return torch.cat((torch.tensor([self.R, self.T]),
+                          torch.tensor([self.m, self.s]),
+                          self.b))
+
+    @classmethod
+    def from_tensor(cls, tensor: torch.Tensor):
+        r = tensor[0].item()
+        t = tensor[1].item()
+        m = tensor[2].item()
+        s = tensor[3].item()
+        b = tensor[4:8]
+        return cls(R=r, T=t, m=m, s=s, b=b)
+
+
+@dataclass
+class LeniaParameters:
+    """ Holds input parameters for Lenia model."""
+    dynamic_params: LeniaDynamicalParameters = LeniaDynamicalParameters()
+    init_state: torch.Tensor = torch.rand((10, 10))
 
 
 @StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
@@ -28,41 +98,50 @@ class Lenia(Leaf):
 
     def __init__(self):
         super().__init__()
-        self.locator = FileLocator()
+        self.locator = BlobLocator()
         self.orbit = torch.empty(
-            (self.config["final_step"], self.config["SX"], self.config["SY"])
+            (self.config["final_step"],
+             1, 1, self.config["SX"], self.config["SY"])
         )
 
     def map(self, input: Dict) -> Dict:
-        param_dict = self._process_dict(input)
+        params = self._process_dict(input)
 
-        # set initial state
-        state = self._bootstrap(param_dict)
-        self.orbit[0] = state
+        # set initial state self.orbit[0]
+        self._bootstrap(params)
 
         # set automata
-        automaton = self._generate_automaton(param_dict)
+        automaton = self._generate_automaton(params.dynamic_params)
 
+        state = self.orbit[0]
         for step in range(self.config["final_step"]-1):
             state = self._step(state, automaton)
             self.orbit[step + 1] = state
 
         output_dict = deepcopy(input)
-        output_dict["output"] = state
+        # must detach here as gradients are not used
+        # and this also leads to a deepcopy error downstream
+        # also, squeezing leading dimensions for convenience
+        output_dict["output"] = self.orbit[-1].detach().clone().squeeze()
 
         return output_dict
 
-    def render(self, mode: str = "PIL_image") -> Optional[bytes]:
+    def render(self, data_dict, mode: str = "PIL_image") -> Optional[bytes]:
+        # ignores data_dict, as the render is based on self.orbit
+        # in which only the last state is stored in data_dict["output"]
+
         colormap = create_colormap(np.array(
             [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
              [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
         im_array = []
         for img in self.orbit:
-            im = im_from_array_with_colormap(
-                img.cpu().detach().numpy(), colormap)
+            # need to squeeze leading dimensions
+            parsed_img = img.squeeze().cpu().detach().numpy()
+            im = im_from_array_with_colormap(parsed_img, colormap)
             im_array.append(im.convert('RGB'))
 
         if mode == "human":
+            matplotlib.use("TkAgg")
             fig = plt.figure(figsize=(4, 4))
             animation = FuncAnimation(
                 fig, lambda frame: plt.imshow(frame), frames=im_array)
@@ -73,30 +152,53 @@ class Lenia(Leaf):
             byte_img = io.BytesIO()
             imageio.mimwrite(byte_img, im_array, 'mp4',
                              fps=30, output_params=["-f", "mp4"])
-            return (byte_img, "mp4")
+            return byte_img.getvalue()
         else:
             raise NotImplementedError
 
-    def _process_dict(self, input_dict: Dict) -> Dict:
-        param_dict = deepcopy(input_dict["params"])
-        return param_dict
+    def _process_dict(self, input_dict: Dict) -> LeniaParameters:
+        """
+        Converts data_dictionary and parses for the correct
+        parameters for Lenia.
+        """
+        init_params = deepcopy(input_dict["params"])
+        if not isinstance(init_params, LeniaParameters):
+            dyn_p = LeniaDynamicalParameters(**init_params["dynamic_params"])
+            init_state = init_params["init_state"]
+            params = LeniaParameters(dynamic_params=dyn_p,
+                                     init_state=init_state)
+        return params
 
-    def _generate_automaton(self, param_dict: Dict) -> Any:
+    def _generate_automaton(self, dyn_params: LeniaDynamicalParameters) -> Any:
+        tensor_params = dyn_params.to_tensor()
         if self.config["version"].lower() == "pytorch_fft":
             automaton = LeniaStepFFT(
-                SX=self.config["SX"], SY=self.config["SY"], **param_dict
+                SX=self.config["SX"], SY=self.config["SY"],
+                R=tensor_params[0],
+                T=tensor_params[1],
+                m=tensor_params[2],
+                s=tensor_params[3],
+                b=tensor_params[4:8],
+                kn=0,
+                gn=1
             )
-            return automaton
         elif self.config["version"].lower() == "pytorch_conv2d":
-            automaton = LeniaStepConv2d(**param_dict)
-            return automaton
+            automaton = LeniaStepConv2d(
+                R=tensor_params[0],
+                T=tensor_params[1],
+                m=tensor_params[2],
+                s=tensor_params[3],
+                b=tensor_params[4:8],
+                kn=0,
+                gn=1
+            )
         else:
             raise ValueError(
-                'Unknown lenia version (config.version = {!r})'.format(self.config["version"]))
-
+                'Unknown lenia version (config.version = {!r})'.format(
+                    self.config["version"]))
         return automaton
 
-    def _bootstrap(self, param_dict: Dict) -> torch.Tensor:
+    def _bootstrap(self, params: LeniaParameters):
         init_state = torch.zeros(
             1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64)
 
@@ -108,12 +210,13 @@ class Lenia(Leaf):
             self.config["SY"] // 2 + scaled_SY // 2,
             self.config["SX"] // 2 - math.ceil(scaled_SX / 2):
             self.config["SX"] // 2 + scaled_SX // 2
-        ] = param_dict["init_state"]
+        ] = params.init_state
         # state is fixed deterministically by CPPN params,
         # so no need to save it after this point
-        del param_dict["init_state"]
+        del params.init_state
+        self.orbit[0] = init_state
 
-        return init_state
+        return
 
     def _step(self,
               state: torch.Tensor,
@@ -213,8 +316,13 @@ class LeniaStepFFT(torch.nn.Module):
         y = torch.arange(self.SY)
         xx = x.repeat(self.SY, 1)
         yy = y.view(-1, 1).repeat(1, self.SX)
-        X = (xx - int(self.SX / 2)).double() / float(self.R)
-        Y = (yy - int(self.SY / 2)).double() / float(self.R)
+
+        X = (xx - int(self.SX / 2)).double() / float(self.SX / 2)
+        Y = (yy - int(self.SY / 2)).double() / float(self.SY / 2)
+
+        # canonical implementation from Mayalen, but I think there is a bug
+        # X = (xx - int(self.SX / 2)).double() / float(self.R / 2)
+        # Y = (yy - int(self.SY / 2)).double() / float(self.R / 2)
 
         # distance to center in normalized space
         D = torch.sqrt(X ** 2 + Y ** 2)

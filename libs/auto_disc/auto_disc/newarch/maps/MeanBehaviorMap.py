@@ -14,13 +14,15 @@ class MeanBehaviorMap(Leaf):
 
     def __init__(self,
                  premap_key: str = "output",
+                 postmap_key: str = "output",
                  input_shape: Tuple[int] = (1)) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
+        self.postmap_key = postmap_key
         self.input_shape = input_shape  # unused by the module itself here
         # self.history_saver = SaveWrapper()
-        self.projector = BoxProjector(premap_key=premap_key)
+        self.projector = BoxProjector(premap_key=self.postmap_key)
 
     def map(self, input: Dict) -> Dict:
         # TODO: does not handle batches
@@ -30,10 +32,15 @@ class MeanBehaviorMap(Leaf):
         tensor = intermed_dict[self.premap_key].detach().clone()
         raw_output_key = "raw_" + self.premap_key
         intermed_dict[raw_output_key] = tensor
+        # remove original output item
+        del intermed_dict[self.premap_key]
+
+        # flatten to 1D
+        tensor_flat = tensor.view(-1)
 
         # unsqueeze to ensure tensor rank is not 0
-        mean = torch.mean(tensor, dim=0).unsqueeze(-1)
-        intermed_dict[self.premap_key] = mean
+        mean = torch.mean(tensor_flat, dim=0).unsqueeze(-1)
+        intermed_dict[self.postmap_key] = mean
 
         behavior_dict = self.projector.map(intermed_dict)
         # behavior_dict = self.history_saver.map(projected_dict)

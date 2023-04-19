@@ -1,7 +1,7 @@
 import torch
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union, List
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
 from copy import deepcopy
@@ -15,44 +15,76 @@ class UniformParameterMap(Leaf):
 
     def __init__(self,
                  premap_key: str = "params",
-                 tensor_low: torch.Tensor = torch.tensor([0.]),
-                 tensor_high: torch.Tensor = torch.tensor([0.]),
-                 float_bound_low: float = 0.,
-                 float_bound_high: float = 1.) -> None:
+                 tensor_low: Union[torch.Tensor, List[float]] = torch.tensor([0.]),
+                 tensor_high: Union[torch.Tensor, List[float]] = torch.tensor([0.]),
+                 tensor_bound_low: Union[torch.Tensor, List[float]] = torch.tensor([float('-inf')]),
+                 tensor_bound_high: Union[torch.Tensor, List[float]] = torch.tensor([float('inf')]),
+                 override_existing: bool = True,
+                 ):
 
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
+
+        # convert all Union types to tensors
+        if not isinstance(tensor_low, torch.Tensor):
+            tensor_low = torch.tensor(tensor_low)
+        if not isinstance(tensor_high, torch.Tensor):
+            tensor_high = torch.tensor(tensor_high)
+        if not isinstance(tensor_bound_low, torch.Tensor):
+            tensor_bound_low = torch.tensor(tensor_bound_low)
+        if not isinstance(tensor_bound_high, torch.Tensor):
+            tensor_bound_high = torch.tensor(tensor_bound_high)
+
+        # ensure no tensor is of size 0 by unsqueezing
+        if tensor_low.size() == torch.Size([]):
+            tensor_low = tensor_low.unsqueeze(0)
+        if tensor_high.size() == torch.Size([]):
+            tensor_high = tensor_high.unsqueeze(0)
+        if tensor_bound_low.size() == torch.Size([]):
+            tensor_bound_low = tensor_bound_low.unsqueeze(0)
+        if tensor_bound_high.size() == torch.Size([]):
+            tensor_bound_high = tensor_bound_high.unsqueeze(0)
+
         if tensor_low.size() != tensor_high.size():
             raise ValueError("tensor_low and tensor_high must be same shape.")
-        self.output_shape = tensor_low.size()
+        if tensor_bound_low.size() != tensor_bound_high.size():
+            raise ValueError(
+                "tensor_bound_low and tensor_bound_high must be same shape.")
+        self.postmap_shape = tensor_low.size()
         # self.history_saver = SaveWrapper()
+
         self.projector = BoxProjector(premap_key=premap_key,
                                       init_high=tensor_high,
                                       init_low=tensor_low,
-                                      bound_lower=torch.tensor(
-                                          [float(float_bound_low)]),
-                                      bound_upper=torch.tensor(
-                                          [float(float_bound_high)])
+                                      bound_lower=tensor_bound_low,
+                                      bound_upper=tensor_bound_high
                                       )
 
-    def map(self, input: Dict) -> Dict:
+    def map(self, input: Dict, override_existing: bool = True) -> Dict:
         """
         map() takes an input dict of metadata and adds the
         `params` key with a sample if it does not exist
         """
         intermed_dict = deepcopy(input)
 
-        # always overrides "params" with new sample
-        intermed_dict[self.premap_key] = self.sample(self.output_shape)
-        param_dict = self.projector.map(intermed_dict)
+        # check if either "params" is not set or if we want to override
+        if ((override_existing and self.premap_key in intermed_dict)
+                or (self.premap_key not in intermed_dict)):
+            # overrides "params" with new sample
+            intermed_dict[self.premap_key] = self.sample()
+        else:
+            # passes "params" through if it exists
+            pass
 
+        param_dict = self.projector.map(intermed_dict)
         # params_dict = self.history_saver.map(intermed_dict)
 
         return param_dict
 
-    def sample(self, data_shape: Tuple) -> torch.Tensor:
+    def sample(self) -> torch.Tensor:
+        data_shape = self.postmap_shape
         dimensions_to_keep = data_shape[0]
         sample = self.projector.sample()
         return sample[:dimensions_to_keep]

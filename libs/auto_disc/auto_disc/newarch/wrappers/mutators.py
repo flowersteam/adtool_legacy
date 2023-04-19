@@ -1,4 +1,6 @@
 import torch
+from typing import Any, Dict
+from leaf.Leaf import Leaf
 
 
 def add_gaussian_noise(input_tensor: torch.Tensor,
@@ -12,3 +14,12 @@ def add_gaussian_noise(input_tensor: torch.Tensor,
     noise_unit = torch.randn(input_tensor.size())
     noise = noise_unit*std + mean
     return input_tensor + noise
+
+
+def call_mutate_method(param_dict: Dict, param_map: Any = None) -> Dict:
+    """
+    If parameters are given as a complicated dict, then the parameter map which
+    creates it must have a `mutate` method in order to mutate the underlying 
+    parameters controlling.
+    """
+    return param_map.mutate(param_dict)
