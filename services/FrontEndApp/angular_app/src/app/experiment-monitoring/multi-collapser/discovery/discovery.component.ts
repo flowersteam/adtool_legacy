@@ -3,6 +3,10 @@ import { Component, OnInit, Input } from '@angular/core';
 import { ExpeDbService } from '../../../services/REST-services/expe-db.service';
 import { NumberUtilsService } from '../../../services/number-utils.service'
 import { ToasterService } from '../../../services/toaster.service';
+// NOTE: this import path is deprecated
+// https://rxjs.dev/guide/importing
+import { map, catchError } from "rxjs/operators";
+import { RESTResponse } from 'src/app/entities/rest_response';
 
 @Component({
   selector: 'app-discovery',
@@ -105,37 +109,87 @@ export class DiscoveryComponent implements OnInit {
   }
 
   getDiscovery(): void {
-    if (this.experiment) {
-      for (let index = 0; index < this.experiment.config.nb_seeds; index++) {
-        let video = <HTMLVideoElement><any>document.querySelector("#video_" + index.toString());
-        if (video) {
-          video.src = "";
-        }
+    if (!this.experiment) { return; }
+    for (let index = 0; index < this.experiment.config.nb_seeds; index++) {
+      const video = <HTMLVideoElement><any>document.querySelector("#video_" + index.toString());
+      if (video) {
+        video.src = "";
       }
-      let filter = this.definedFilters()
-      this.expeDbService.getDiscovery(filter)
-      .subscribe(response => {
-        if(response.success) {
-          let discoveries = response.data ?? []
-          if(discoveries.length > 0){
-            for(let discovery of discoveries){
-              this.expeDbService.getDiscoveryRenderedOutput(discovery._id)
-              .subscribe(response => {
-                if(response.success) {
-                  let video = <HTMLVideoElement> <any> document.querySelector("#video_"+discovery.seed.toString()+"_"+discovery.run_idx.toString());
-                  if(video){
-                    video.src = window.URL.createObjectURL(response.data);
-                  } 
-                }
-              });
-            }
-          }
-        }
-        else{
-          this.toasterService.showError(response.message ?? '', "Error getting discoveries");
-        }
-      });
     }
+    let filter = this.definedFilters()
+    const discoveries = this.expeDbService.getDiscovery(filter)
+      .pipe(
+        map(response => {
+
+          if (!response.success) { throw Error("123"); }
+          // assert type, as response.success is true
+          const data = response.data as string;
+          // nullish coalescing to fail silently, 
+          // although this should never happen
+          return <any[]>JSON.parse(data) ?? [];
+
+        }),
+        map(discoveries => {
+
+          if (!discoveries) { throw new Error("123"); }
+          for (const discovery of discoveries) {
+            const video$ = this.expeDbService
+              .getDiscoveryRenderedOutput(discovery._id);
+
+            video$.subscribe(response => {
+
+              if (!response.success) { throw new Error("123"); }
+              // assert type, as response.success is true
+              const media = response.data as Blob;
+              const video = <HTMLVideoElement><any>document
+                .querySelector(
+                  "#video_" +
+                  discovery.seed.toString() +
+                  "_" +
+                  discovery.run_idx.toString()
+                );
+              if (!video) { throw new Error("123"); }
+              video.src = URL.createObjectURL(media);
+
+            })
+
+          }
+        }),
+        catchError(err => {
+          throw err;
+        })
+      );
+    discoveries.subscribe({
+      next: () => { console.log("Output rendered.") },
+      error: err => { console.log(err); }
+    })
+
+    // this.expeDbService.getDiscovery(filter)
+    //   .subscribe(response => {
+    //     if (response.success) {
+    //       // assert type, as response.success is true
+    //       const data = response.data as string;
+    //       let discoveries = JSON.parse(data) ?? []
+    //       if (discoveries.length > 0) {
+    //         for (let discovery of discoveries) {
+    //           this.expeDbService.getDiscoveryRenderedOutput(discovery._id)
+    //             .subscribe(response => {
+    //               if (response.success) {
+    //                 // assert type, as response.success is true
+    //                 const media = response.data as Blob;
+    //                 let video = <HTMLVideoElement><any>document.querySelector("#video_" + discovery.seed.toString() + "_" + discovery.run_idx.toString());
+    //                 if (video) {
+    //                   video.src = window.URL.createObjectURL(media);
+    //                 }
+    //               }
+    //             });
+    //         }
+    //       }
+    //     }
+    //     else {
+    //       this.toasterService.showError(response.message ?? '', "Error getting discoveries");
+    //     }
+    //   });
   }
 
   refreshDiscoveries() {
