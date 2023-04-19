@@ -340,13 +340,13 @@ def test_save_GenerateReport():
                               "GenerateReport",
                               "config": {}
                               }],
-        "on_save": [{"name":
+        "on_saved": [{"name":
                      "utils.callbacks."
-                     "on_save_callbacks."
-                     "save_discovery_on_disk."
-                     "SaveDiscoveryOnDisk",
-                     "config": {}
-                     }]
+                      "on_save_callbacks."
+                      "save_leaf_callback."
+                      "SaveLeaf",
+                      "config": {}
+                      }]
     }
     experiment_id = 2
     seed = 1
@@ -356,7 +356,7 @@ def test_save_GenerateReport():
     # check file tree
     files = os.listdir(RESOURCE_URI)
     # callback runs now
-    assert len(files) == 0
+    assert len(files) != 0
     data_dirs = []
     reports = []
     for f in files:
