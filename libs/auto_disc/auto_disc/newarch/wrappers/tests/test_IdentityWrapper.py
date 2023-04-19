@@ -15,6 +15,7 @@ def test_map():
 
 
 def test_save_leaf_load_leaf():
+    # broken for now, see #216
     id = IdentityWrapper()
     leaf_uid = id.save_leaf()
 

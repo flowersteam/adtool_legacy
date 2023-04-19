@@ -5,6 +5,21 @@ import pickle
 import os
 import shutil
 
+"""
+TODO: This test suite is pretty broken, need to revisit it when documenting
+the new Leaf API. See #188, #216
+"""
+
+
+class DummyStatefulModule(Leaf):
+    def __init__(self, s=None):
+        super().__init__()
+        self.locator = FileLocator()
+        self.internal_state = s
+
+    def forward(self, x):
+        return [x+y for y in self.internal_state]
+
 
 class DummyPipeline(Leaf):
     def __init__(self, l1=[1, 2, 3, 4], l2=[5, 6, 7, 8], resource_uri=""):
@@ -113,7 +128,10 @@ def test_pipeline___init__():
     assert isinstance(a.l2, Leaf)
     assert a.l1 == a._modules["l1"]
     assert a.l2 == a._modules["l2"]
-    assert a.locator.resource_uri == PipelineDB
+    assert a.locator.resource_uri is PipelineDB
+
+    assert a.l1.locator.resource_uri is PipelineDB
+    assert a.l2.locator.resource_uri is PipelineDB
 
 
 def test_pipeline_mutate_data():
@@ -123,8 +141,8 @@ def test_pipeline_mutate_data():
 
 
 def test_pipeline_container_ptr():
-    assert a.l1._container_ptr == a
-    assert a.l2._container_ptr == a
+    assert a.l1._container_ptr is a
+    assert a.l2._container_ptr is a
 
 
 def test_pipeline_container_subleaf_names():

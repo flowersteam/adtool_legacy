@@ -150,6 +150,7 @@ def test_run():
 
 
 def test_logger(capsys):
+    # broken for now, see #188
     experiment_id = 1
     seed = 1
     logger = AutoDiscLogger(experiment_id, seed, [])

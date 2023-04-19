@@ -56,11 +56,12 @@ class FileLocator(Locator):
     """
 
     def __init__(self, resource_uri: str = ""):
-        # set default to relative directory of the caller
-        if resource_uri == "":
-            self.resource_uri = str(os.getcwd())
-        else:
-            self.resource_uri = resource_uri
+        self.resource_uri = resource_uri
+        # # set default to relative directory of the caller
+        # if resource_uri == "":
+        #     self.resource_uri = str(os.getcwd())
+        # else:
+        #     self.resource_uri = resource_uri
 
     def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
         uid = self.hash(bin)

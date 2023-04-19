@@ -24,6 +24,7 @@ def test__update_low_high():
 
     # test immutability
     new_input += 2
+    assert box.low is not new_input
     assert not torch.allclose(box.low[lower_mask], new_input[lower_mask])
 
 

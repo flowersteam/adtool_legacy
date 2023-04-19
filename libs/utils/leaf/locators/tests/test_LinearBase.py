@@ -112,10 +112,23 @@ def test_FileLinearLocator__get_trajectory():
     generate_fake_data(DB_PATH)
 
     with _EngineContext(DB_PATH) as engine:
-        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, 0)
+        # test retrieve all
+        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, -1)
         assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
+        assert len(trajectory) - 1 == depths[0]
+        # test retrieve one
+        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, 1)
+        assert trajectory == [bytes(5)]
+        assert len(trajectory) - 1 == depths[0]
+        # test retrieve arbitrary length with arbitrary id
         _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 7, 3)
         assert trajectory == [bytes(2), bytes(4), bytes(8)]
+        assert len(trajectory) - 1 == depths[0]
+        # test retrieving longer trajectory than exists
+        # should limit to what is available
+        _, trajectory, depths = LinearBase._get_trajectory_raw(
+            engine, 5, 100)
+        assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
         assert len(trajectory) - 1 == depths[0]
 
 
@@ -152,7 +165,8 @@ def test_FileLinearLocator_store():
     db_url = os.path.join(subdir, "lineardb")
 
     with _EngineContext(db_url) as engine:
-        ids, trajectory, _ = LinearBase._get_trajectory_raw(engine, row_id, 0)
+        ids, trajectory, _ = LinearBase._get_trajectory_raw(
+            engine, row_id, -1)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
     assert len(os.listdir(FILE_PATH)) == 1
@@ -174,7 +188,7 @@ def test_FileLinearLocator_retrieve():
     x = FileLinearLocator(FILE_PATH)
     assert x.parent_id == -1
 
-    bin = x.retrieve(retrieval_key, length=0)
+    bin = x.retrieve(retrieval_key, length=-1)
     assert x.parent_id == 2
     loaded_obj = Stepper().deserialize(bin)
 
@@ -199,7 +213,7 @@ def test_FileLinearLocator_branching():
 
     # retrieve original
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(root_retrieval_key, 0)
+    bin = x.retrieve(root_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9)]
 
@@ -209,13 +223,13 @@ def test_FileLinearLocator_branching():
     assert third_retrieval_key != second_retrieval_key
 
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(third_retrieval_key, 0)
+    bin = x.retrieve(third_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
 
     x = FileLinearLocator(FILE_PATH)
-    bin = x.retrieve(second_retrieval_key, 0)
+    bin = x.retrieve(second_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
     assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
                                  bytes(1), bytes(2), bytes(4), bytes(9)]
