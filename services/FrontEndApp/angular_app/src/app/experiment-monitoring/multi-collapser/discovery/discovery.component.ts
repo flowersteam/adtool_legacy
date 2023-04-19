@@ -5,7 +5,8 @@ import { NumberUtilsService } from '../../../services/number-utils.service'
 import { ToasterService } from '../../../services/toaster.service';
 // NOTE: this import path is deprecated
 // https://rxjs.dev/guide/importing
-import { map, catchError } from "rxjs/operators";
+import { from } from 'rxjs';
+import { map, concatMap, catchError } from "rxjs/operators";
 import { RESTResponse } from 'src/app/entities/rest_response';
 
 @Component({
@@ -110,35 +111,30 @@ export class DiscoveryComponent implements OnInit {
 
   getDiscovery(): void {
     if (!this.experiment) { return; }
-    for (let index = 0; index < this.experiment.config.nb_seeds; index++) {
-      const video = <HTMLVideoElement><any>document.querySelector("#video_" + index.toString());
-      if (video) {
-        video.src = "";
-      }
-    }
-    let filter = this.definedFilters()
-    const discoveries = this.expeDbService.getDiscovery(filter)
-      .pipe(
-        map(response => {
 
-          if (!response.success) { throw Error("123"); }
+    let filter = this.definedFilters()
+    const discoveries$ = this.expeDbService.getDiscovery(filter)
+      .pipe(
+        concatMap(response => {
+          if (!response.success) {
+            throw new Error("Unsuccessful retrieval of discovery from DB.");
+          }
           // assert type, as response.success is true
           const data = response.data as string;
           // nullish coalescing to fail silently, 
           // although this should never happen
-          return <any[]>JSON.parse(data) ?? [];
-
+          // return as an Observable for the next step
+          return from(<any[]>JSON.parse(data) ?? [])
         }),
-        map(discoveries => {
+        concatMap(discovery => {
+          // TODO: need to add a failure case here, but would require refactoring
+          // from Observables to Subjects in the service, that way we can
+          return this.expeDbService.getDiscoveryRenderedOutput(discovery._id)
+            .pipe(map(response => {
+              if (!response.success) {
+                throw new Error("Unsuccessful retrieval of rendered output.");
+              }
 
-          if (!discoveries) { throw new Error("123"); }
-          for (const discovery of discoveries) {
-            const video$ = this.expeDbService
-              .getDiscoveryRenderedOutput(discovery._id);
-
-            video$.subscribe(response => {
-
-              if (!response.success) { throw new Error("123"); }
               // assert type, as response.success is true
               const media = response.data as Blob;
               const video = <HTMLVideoElement><any>document
@@ -148,48 +144,29 @@ export class DiscoveryComponent implements OnInit {
                   "_" +
                   discovery.run_idx.toString()
                 );
-              if (!video) { throw new Error("123"); }
+              if (!video) {
+                throw new Error("Unsuccessful lookup of HTML video element.");
+              }
               video.src = URL.createObjectURL(media);
 
-            })
-
-          }
+            }));
         }),
         catchError(err => {
           throw err;
         })
       );
-    discoveries.subscribe({
-      next: () => { console.log("Output rendered.") },
-      error: err => { console.log(err); }
-    })
+    discoveries$.subscribe({
+      // next: () => console.log("Output rendered."),
+      error: err => {
+        this.toasterService.showError(err.toString() ?? '',
+          "Error getting discoveries");
+        console.log(err);
+      },
+      // complete: () => console.log("Done rendering output.")
+    });
 
-    // this.expeDbService.getDiscovery(filter)
-    //   .subscribe(response => {
-    //     if (response.success) {
-    //       // assert type, as response.success is true
-    //       const data = response.data as string;
-    //       let discoveries = JSON.parse(data) ?? []
-    //       if (discoveries.length > 0) {
-    //         for (let discovery of discoveries) {
-    //           this.expeDbService.getDiscoveryRenderedOutput(discovery._id)
-    //             .subscribe(response => {
-    //               if (response.success) {
-    //                 // assert type, as response.success is true
-    //                 const media = response.data as Blob;
-    //                 let video = <HTMLVideoElement><any>document.querySelector("#video_" + discovery.seed.toString() + "_" + discovery.run_idx.toString());
-    //                 if (video) {
-    //                   video.src = window.URL.createObjectURL(media);
-    //                 }
-    //               }
-    //             });
-    //         }
-    //       }
-    //     }
-    //     else {
-    //       this.toasterService.showError(response.message ?? '', "Error getting discoveries");
-    //     }
-    //   });
+    return;
+
   }
 
   refreshDiscoveries() {

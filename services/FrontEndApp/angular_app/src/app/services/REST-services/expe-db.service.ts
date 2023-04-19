@@ -60,11 +60,11 @@ export class ExpeDbService {
       })
       .pipe(
         map(response => {
-          const rest_response = httpResponseToRESTResponse<string>(response);
-          console.log("Got response:", rest_response)
-          return rest_response;
+          return httpResponseToRESTResponse<string>(response);
         }),
-        catchError(response => { return of(httpErrorResponseToRESTResponse<string>(response)); })
+        catchError(response => {
+          return of(httpErrorResponseToRESTResponse<string>(response));
+        })
       );
   }
 
