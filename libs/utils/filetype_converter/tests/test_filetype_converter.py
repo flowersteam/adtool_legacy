@@ -1,4 +1,7 @@
-from filetype_converter.filetype_converter import is_mp4, convert
+from filetype_converter.filetype_converter import (is_mp4,
+                                                   convert_from_image,
+                                                   convert_from_video)
+import imageio.v3 as iio
 
 
 def setup_function(function):
@@ -7,15 +10,19 @@ def setup_function(function):
     img_path = asset_folder + "/img.png"
     vid_path = asset_folder + "/vid.mp4"
     doc_path = asset_folder + "/doc.docx"
+    mov_path = asset_folder + "/mkv.mkv"
     with open(img_path, "rb") as f:
         img = f.read()
     with open(vid_path, "rb") as f:
         vid = f.read()
     with open(doc_path, "rb") as f:
         doc = f.read()
+    with open(mov_path, "rb") as f:
+        mkv = f.read()
     TEST_ARTIFACTS = {"img": img,
                       "vid": vid,
-                      "doc": doc}
+                      "doc": doc,
+                      "mkv": mkv}
 
 
 def teardown_function(function):
@@ -29,12 +36,25 @@ def test_is_mp4():
 
 
 def test_convert_image():
-    pass
+    vid = convert_from_image(TEST_ARTIFACTS["img"])
+
+    assert is_mp4(vid)
+
+    meta = iio.immeta(vid, plugin="pyav")
+    ndarray = iio.imread(vid, plugin="pyav")
+    # test that the video is a single frame, two ways
+    assert meta["duration"]*meta["fps"] == 1.
+    assert ndarray.shape[0] == 1
 
 
 def test_convert_video():
-    pass
+    vid = convert_from_video(TEST_ARTIFACTS["vid"])
+    assert is_mp4(vid)
+    # assert that the video is the same as the original
+    assert vid == TEST_ARTIFACTS["vid"]
 
-
-def test_convert_errors():
-    pass
+    mkv = convert_from_video(TEST_ARTIFACTS["mkv"])
+    assert is_mp4(mkv)
+    # assert that the video is not the same as the original
+    # due to nontrivial conversion
+    assert mkv != TEST_ARTIFACTS["mkv"]
