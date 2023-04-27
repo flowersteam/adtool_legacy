@@ -1,12 +1,16 @@
 from filetype_converter.filetype_converter import (is_mp4,
-                                                   convert_from_image,
-                                                   convert_from_video)
-import imageio.v3 as iio
+                                                   is_png,
+                                                   convert_image,
+                                                   convert_video)
+import pathlib
+import os
 
 
 def setup_function(function):
     global TEST_ARTIFACTS
-    asset_folder = "filetype_converter/tests/assets"
+    file_path = str(pathlib.Path(__file__).parent.resolve())
+    asset_folder = os.path.join(file_path, "assets")
+
     img_path = asset_folder + "/img.png"
     vid_path = asset_folder + "/vid.mp4"
     doc_path = asset_folder + "/doc.docx"
@@ -33,27 +37,28 @@ def test_is_mp4():
     assert is_mp4(TEST_ARTIFACTS["vid"])
     assert not is_mp4(TEST_ARTIFACTS["img"])
     assert not is_mp4(TEST_ARTIFACTS["doc"])
+    assert not is_mp4(TEST_ARTIFACTS["mkv"])
+
+
+def test_is_png():
+    assert is_png(TEST_ARTIFACTS["img"])
+    assert not is_png(TEST_ARTIFACTS["vid"])
+    assert not is_png(TEST_ARTIFACTS["doc"])
+    assert not is_png(TEST_ARTIFACTS["mkv"])
 
 
 def test_convert_image():
-    vid = convert_from_image(TEST_ARTIFACTS["img"])
-
-    assert is_mp4(vid)
-
-    meta = iio.immeta(vid, plugin="pyav")
-    ndarray = iio.imread(vid, plugin="pyav")
-    # test that the video is a single frame, two ways
-    assert meta["duration"]*meta["fps"] == 1.
-    assert ndarray.shape[0] == 1
+    png = convert_image(TEST_ARTIFACTS["img"])
+    assert is_png(png)
 
 
 def test_convert_video():
-    vid = convert_from_video(TEST_ARTIFACTS["vid"])
+    vid = convert_video(TEST_ARTIFACTS["vid"])
     assert is_mp4(vid)
     # assert that the video is the same as the original
     assert vid == TEST_ARTIFACTS["vid"]
 
-    mkv = convert_from_video(TEST_ARTIFACTS["mkv"])
+    mkv = convert_video(TEST_ARTIFACTS["mkv"])
     assert is_mp4(mkv)
     # assert that the video is not the same as the original
     # due to nontrivial conversion
