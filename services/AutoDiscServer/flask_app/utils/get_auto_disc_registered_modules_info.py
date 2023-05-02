@@ -1,5 +1,6 @@
 import math
 
+
 def check_jsonify(my_dict):
     try:
         for key, value in my_dict.items():
@@ -10,7 +11,7 @@ def check_jsonify(my_dict):
                     if isinstance(my_dict[key], dict):
                         check_jsonify(x)
                     elif isinstance(my_dict[key], float):
-                         if math.isinf(my_dict[key]):
+                        if math.isinf(my_dict[key]):
                             if my_dict[key] > 0:
                                 my_dict[key] = "inf"
                             else:
@@ -22,7 +23,9 @@ def check_jsonify(my_dict):
                     else:
                         my_dict[key] = "-inf"
     except Exception as ex:
-        print("my_dict = ", my_dict, "key = ", key, "my_dict[key] = ",my_dict[key] , "exception =", ex)
+        print("my_dict = ", my_dict, "key = ", key,
+              "my_dict[key] = ", my_dict[key], "exception =", ex)
+
 
 def get_auto_disc_registered_modules_info(registered_modules):
     infos = []
@@ -41,6 +44,7 @@ def get_auto_disc_registered_modules_info(registered_modules):
         check_jsonify(info)
         infos.append(info)
     return infos
+
 
 def get_auto_disc_registered_callbacks(registered_callbacks):
     infos = []

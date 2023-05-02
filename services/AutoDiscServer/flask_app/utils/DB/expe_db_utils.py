@@ -2,6 +2,7 @@ from torch import Tensor
 from enum import Enum
 import json
 
+
 def serialize_autodisc_space(space):
     """
     brief:  transform space into serializable object for json (tensor to list)
@@ -21,12 +22,14 @@ def serialize_autodisc_space(space):
         serialized_space = space
     return serialized_space
 
+
 def is_json_serializable(object):
     try:
         json.dumps(object)
         return True
     except (TypeError, OverflowError):
         return False
+
 
 class SavableOutputs(Enum):
     raw_run_parameters = "Parameters sent by the explorer before input wrappers"

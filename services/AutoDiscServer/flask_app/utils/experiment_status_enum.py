@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+
 class ExperimentStatusEnum(IntEnum):
     DONE = 0
     RUNNING = 1
