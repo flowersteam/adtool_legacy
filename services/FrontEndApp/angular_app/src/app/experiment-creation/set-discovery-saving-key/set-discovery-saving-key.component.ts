@@ -7,10 +7,9 @@ import { ExperimentSettings } from 'src/app/entities/experiment_settings';
 @Component({
   selector: 'app-set-discovery-saving-key',
   templateUrl: './set-discovery-saving-key.component.html',
-  styleUrls: ['./set-discovery-saving-key.component.scss']
+  styleUrls: ['./set-discovery-saving-key.component.scss'],
 })
 export class SetDiscoverySavingKeyComponent implements OnInit {
-
   objectKeys = Object.keys;
 
   @Input() saveCheckBox?: any;
@@ -29,16 +28,19 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
 
   discovery_saveflags: Map<string, boolean> = new Map();
 
-  constructor(private AutoDiscServerService: AutoDiscServerService,
+  constructor(
+    private AutoDiscServerService: AutoDiscServerService,
     private toasterService: ToasterService,
-    private CreateNewExperimentService: CreateNewExperimentService) { }
+    private CreateNewExperimentService: CreateNewExperimentService
+  ) {}
 
   ngOnInit(): void {
-    this.CreateNewExperimentService.stagedExperiment
-      .subscribe((newSetting: ExperimentSettings) => {
+    this.CreateNewExperimentService.stagedExperiment.subscribe(
+      (newSetting: ExperimentSettings) => {
         this.explorer_name = newSetting.explorer.name;
         this.updateDiscoverySpec();
-      });
+      }
+    );
   }
 
   updateDiscoverySpec(): void {
@@ -50,24 +52,24 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
     // null guard
     if (this.explorer_name) {
       let discovery_spec: string[] = [];
-      this.AutoDiscServerService
-        .getDiscoverySavingKeys(this.explorer_name as string)
-        .subscribe(response => {
-
-          if (response.success) {
-            // reinitialize labels for checkbox
-            discovery_spec = response.data ?? [];
-            this.discovery_saveflags = new Map(discovery_spec.map(x => [x, true]));
-            this.updateParentComponent();
-          }
-
-          else {
-            this.toasterService.showError(response.message ?? '',
-              "Error querying discovery specification",
-              { timeOut: 0, extendedTimeOut: 0 });
-          }
-
-        });
+      this.AutoDiscServerService.getDiscoverySavingKeys(
+        this.explorer_name as string
+      ).subscribe((response) => {
+        if (response.success) {
+          // reinitialize labels for checkbox
+          discovery_spec = response.data ?? [];
+          this.discovery_saveflags = new Map(
+            discovery_spec.map((x) => [x, true])
+          );
+          this.updateParentComponent();
+        } else {
+          this.toasterService.showError(
+            response.message ?? '',
+            'Error querying discovery specification',
+            { timeOut: 0, extendedTimeOut: 0 }
+          );
+        }
+      });
     }
   }
 
@@ -76,15 +78,14 @@ export class SetDiscoverySavingKeyComponent implements OnInit {
     this.discovery_saveflags.set(key, !flag);
 
     // get all keys that are true and save them to the experiment config
-    let keys_to_save = Array.from(this.discovery_saveflags.entries())
-      .filter(([key, value]) => value)
-    this.CreateNewExperimentService.newExperiment.experiment.config
-      .discovery_saving_keys = keys_to_save.map(([key, value]) => key);
-
+    let keys_to_save = Array.from(this.discovery_saveflags.entries()).filter(
+      ([key, value]) => value
+    );
+    this.CreateNewExperimentService.newExperiment.experiment.config.discovery_saving_keys =
+      keys_to_save.map(([key, value]) => key);
   }
 
   updateParentComponent() {
     this.saveCheckBoxEventEmitter.emit(this.saveCheckBox);
   }
-
 }

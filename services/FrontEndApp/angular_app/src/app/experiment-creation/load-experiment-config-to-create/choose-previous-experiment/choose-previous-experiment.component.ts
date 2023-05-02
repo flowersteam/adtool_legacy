@@ -1,5 +1,12 @@
-import { Component, Inject, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import {
+  Component,
+  Inject,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+} from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { AppDbService } from '../../../services/REST-services/app-db.service';
 import { ToasterService } from '../../../services/toaster.service';
@@ -9,35 +16,35 @@ import { Experiment } from '../../../entities/experiment';
 @Component({
   selector: 'app-choose-previous-experiment',
   templateUrl: './choose-previous-experiment.component.html',
-  styleUrls: ['./choose-previous-experiment.component.scss']
+  styleUrls: ['./choose-previous-experiment.component.scss'],
 })
 export class ChoosePreviousExperimentComponent implements OnInit {
-  
-  constructor(private appDBService: AppDbService, 
-              private toasterService: ToasterService,
-              private dialogRef: MatDialogRef<ChoosePreviousExperimentComponent>) { }
-  
+  constructor(
+    private appDBService: AppDbService,
+    private toasterService: ToasterService,
+    private dialogRef: MatDialogRef<ChoosePreviousExperimentComponent>
+  ) {}
+
   experiments: Experiment[] = [];
-  sortByDateAsc: boolean = true; 
+  sortByDateAsc: boolean = true;
   searchText = '';
-  experiment : any;
+  experiment: any;
 
-
-  
   ngOnInit() {
     this.getExperiments();
   }
 
   getExperiments(): void {
-    this.appDBService.getLightExperiments()
-    .subscribe(response => {
-      if(response.success){
-        this.sortByDateAsc = true; 
+    this.appDBService.getLightExperiments().subscribe((response) => {
+      if (response.success) {
+        this.sortByDateAsc = true;
         this.experiments = response.data ?? [];
         this.sortExperimentsByDate();
-      }
-      else {
-        this.toasterService.showError(response.message ?? '', "Error listing experiments");
+      } else {
+        this.toasterService.showError(
+          response.message ?? '',
+          'Error listing experiments'
+        );
       }
     });
   }
@@ -45,12 +52,13 @@ export class ChoosePreviousExperimentComponent implements OnInit {
   sortExperimentsByDate(): void {
     this.sortByDateAsc = !this.sortByDateAsc;
     this.experiments.sort((a, b) => {
-      return this.sortByDateAsc ? +new Date(a.created_on) - +new Date(b.created_on) : +new Date(b.created_on) - +new Date(a.created_on);
+      return this.sortByDateAsc
+        ? +new Date(a.created_on) - +new Date(b.created_on)
+        : +new Date(b.created_on) - +new Date(a.created_on);
     });
   }
 
-  selectPreviousExperiment(){
+  selectPreviousExperiment() {
     this.dialogRef.close(this.experiment.id);
   }
-
 }

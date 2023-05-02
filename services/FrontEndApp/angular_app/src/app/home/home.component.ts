@@ -8,30 +8,33 @@ import { Experiment } from '../entities/experiment';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-
   experiments: Experiment[] = [];
-  sortByDateAsc: boolean = true; 
+  sortByDateAsc: boolean = true;
   searchText = '';
-  
-  constructor(private appDBService: AppDbService, private toasterService: ToasterService) { }
+
+  constructor(
+    private appDBService: AppDbService,
+    private toasterService: ToasterService
+  ) {}
 
   ngOnInit() {
     this.getExperiments();
   }
 
   getExperiments(): void {
-    this.appDBService.getLightExperiments()
-    .subscribe(response => {
-      if(response.success){
-        this.sortByDateAsc = true; 
+    this.appDBService.getLightExperiments().subscribe((response) => {
+      if (response.success) {
+        this.sortByDateAsc = true;
         this.experiments = response.data ?? [];
         this.sortExperimentsByDate();
-      }
-      else {
-        this.toasterService.showError(response.message ?? '', "Error listing experiments");
+      } else {
+        this.toasterService.showError(
+          response.message ?? '',
+          'Error listing experiments'
+        );
       }
     });
   }
@@ -39,8 +42,9 @@ export class HomeComponent implements OnInit {
   sortExperimentsByDate(): void {
     this.sortByDateAsc = !this.sortByDateAsc;
     this.experiments.sort((a, b) => {
-      return this.sortByDateAsc ? +new Date(a.created_on) - +new Date(b.created_on) : +new Date(b.created_on) - +new Date(a.created_on);
+      return this.sortByDateAsc
+        ? +new Date(a.created_on) - +new Date(b.created_on)
+        : +new Date(b.created_on) - +new Date(a.created_on);
     });
   }
-
 }

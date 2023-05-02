@@ -1,37 +1,80 @@
 <div class="border container" id="containerChoiceFilterLog">
-    <div class="row m-3">
-        <div class="col-3">
-            <h3 style="text-decoration:underline;">Filters:</h3>
-            <button (click)="this.shareFilters= !this.shareFilters"  class="btn btn-secondary btn-circle m-3"><i class="bi bi-plus"></i></button>
-        </div>    
-        <div class="border col-9" style="overflow-y:scroll; height:150px;">
-            <button type="button" class="btn btn-info col-3 m-2 text-white" (click)="this.removeAllFilters()" [hidden]="this.isFilterUse()">
-                <i class="bi bi-x-lg text-white"></i>
-                Remove All Filters
-            </button>
-            <p *ngFor="let key of objectKeys(this.useFilters)" class="col-12 row">
-                <button *ngFor="let value of this.useFilters[key]; let index = index" type="button" class="btn btn-info col-3 m-2 text-white" (click)="this.fromListToOther(this.useFilters[key], this.filters[key], index)">
-                    <i class="bi bi-x-lg text-white"></i>
-                    {{key}}: {{value}}
-                </button>
-            </p>
-        </div>
+  <div class="row m-3">
+    <div class="col-3">
+      <h3 style="text-decoration: underline">Filters:</h3>
+      <button
+        (click)="this.shareFilters = !this.shareFilters"
+        class="btn btn-secondary btn-circle m-3"
+      >
+        <i class="bi bi-plus"></i>
+      </button>
     </div>
+    <div class="border col-9" style="overflow-y: scroll; height: 150px">
+      <button
+        type="button"
+        class="btn btn-info col-3 m-2 text-white"
+        (click)="this.removeAllFilters()"
+        [hidden]="this.isFilterUse()"
+      >
+        <i class="bi bi-x-lg text-white"></i>
+        Remove All Filters
+      </button>
+      <p *ngFor="let key of objectKeys(this.useFilters)" class="col-12 row">
+        <button
+          *ngFor="let value of this.useFilters[key]; let index = index"
+          type="button"
+          class="btn btn-info col-3 m-2 text-white"
+          (click)="
+            this.fromListToOther(this.useFilters[key], this.filters[key], index)
+          "
+        >
+          <i class="bi bi-x-lg text-white"></i>
+          {{ key }}: {{ value }}
+        </button>
+      </p>
+    </div>
+  </div>
 </div>
 
-<div class="row border mb-3 mx-0 {{'col-'+objectKeys(this.filters).length*4}}" [hidden]="this.shareFilters">
-    <div *ngFor="let key of objectKeys(this.filters)" class="mx-n2 {{'col-'+12/objectKeys(this.filters).length}}">
-        <div class="border mt-2" style="overflow-y:scroll; height:150px;">
-            <button type="button" class="btn btn-info m-2 text-white center" (click)="this.fromListToOther(this.filters[key], this.useFilters[key])" [hidden]="this.filters[key].length == 0">
-                <i class="bi bi-plus-lg text-white"></i>
-                add all {{key}}
-            </button>
-                <button *ngFor="let value of this.filters[key]; let index = index" type="button" class="btn btn-info m-2 text-white center" (click)="this.fromListToOther(this.filters[key], this.useFilters[key], index)">
-                    <i class="bi bi-plus-lg text-white"></i>
-                    {{key}}: {{value}}
-                </button>
-        </div>
+<div
+  class="row border mb-3 mx-0 {{
+    'col-' + objectKeys(this.filters).length * 4
+  }}"
+  [hidden]="this.shareFilters"
+>
+  <div
+    *ngFor="let key of objectKeys(this.filters)"
+    class="mx-n2 {{ 'col-' + 12 / objectKeys(this.filters).length }}"
+  >
+    <div class="border mt-2" style="overflow-y: scroll; height: 150px">
+      <button
+        type="button"
+        class="btn btn-info m-2 text-white center"
+        (click)="this.fromListToOther(this.filters[key], this.useFilters[key])"
+        [hidden]="this.filters[key].length == 0"
+      >
+        <i class="bi bi-plus-lg text-white"></i>
+        add all {{ key }}
+      </button>
+      <button
+        *ngFor="let value of this.filters[key]; let index = index"
+        type="button"
+        class="btn btn-info m-2 text-white center"
+        (click)="
+          this.fromListToOther(this.filters[key], this.useFilters[key], index)
+        "
+      >
+        <i class="bi bi-plus-lg text-white"></i>
+        {{ key }}: {{ value }}
+      </button>
     </div>
-    <a role="button" class="btn ml-n3" style="font-size: 2em;" (click)="this.shareFilters= !this.shareFilters"> <i class="bi bi-chevron-compact-up"></i> </a>
+  </div>
+  <a
+    role="button"
+    class="btn ml-n3"
+    style="font-size: 2em"
+    (click)="this.shareFilters = !this.shareFilters"
+  >
+    <i class="bi bi-chevron-compact-up"></i>
+  </a>
 </div>
-

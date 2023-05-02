@@ -1,20 +1,51 @@
-<label class="card-title col-12" for="experiment_name">Enter the exeperiment name:</label>
-<input type="text" class="form-control" id="experiment_name" placeholder="New-experiment" 
-        [(ngModel)]="this.currentConfig.name" (change)="this.createNewExperimentService.checkExperimentName()">
+<label class="card-title col-12" for="experiment_name"
+  >Enter the exeperiment name:</label
+>
+<input
+  type="text"
+  class="form-control"
+  id="experiment_name"
+  placeholder="New-experiment"
+  [(ngModel)]="this.currentConfig.name"
+  (change)="this.createNewExperimentService.checkExperimentName()"
+/>
 
-<label class="card-title col-12" for="nb_iteration">Enter the number of iteration:</label>
-<input type="number" min="1" class="form-control" id="nb_iteration" 
-[(ngModel)]="this.currentConfig.config.nb_iterations">
+<label class="card-title col-12" for="nb_iteration"
+  >Enter the number of iteration:</label
+>
+<input
+  type="number"
+  min="1"
+  class="form-control"
+  id="nb_iteration"
+  [(ngModel)]="this.currentConfig.config.nb_iterations"
+/>
 
 <label class="card-title col-12" for="nb_seed">Enter the number of seed:</label>
-<input type="number" min="1" class="form-control" id="nb_seed"
-[(ngModel)]="this.currentConfig.config.nb_seeds">
+<input
+  type="number"
+  min="1"
+  class="form-control"
+  id="nb_seed"
+  [(ngModel)]="this.currentConfig.config.nb_seeds"
+/>
 
-<label class="card-title col-12" for="save_frequency">Enter the frequence to save:</label>
-<input type="number" min="1" class="form-control" id="save_frequency"
-[(ngModel)]="this.currentConfig.config.save_frequency">
+<label class="card-title col-12" for="save_frequency"
+  >Enter the frequence to save:</label
+>
+<input
+  type="number"
+  min="1"
+  class="form-control"
+  id="save_frequency"
+  [(ngModel)]="this.currentConfig.config.save_frequency"
+/>
 
 <label class="card-title col-12">Choose an Host:</label>
-<select class="form-select" aria-label="Default select example" [(ngModel)]="this.currentConfig.config.host">
-    <option *ngFor="let host of hosts" >{{host}}</option>
+<select
+  class="form-select"
+  aria-label="Default select example"
+  [(ngModel)]="this.currentConfig.config.host"
+>
+  <option *ngFor="let host of hosts">{{ host }}</option>
 </select>

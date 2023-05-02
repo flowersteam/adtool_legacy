@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  GATEWAY_PORT: (window as any)["env"]["GATEWAY_PORT"],
-  GATEWAY_HOST: (window as any)["env"]["GATEWAY_HOST"],
-  debug: (window as any)["env"]["debug"] || false
+  GATEWAY_PORT: (window as any)['env']['GATEWAY_PORT'],
+  GATEWAY_HOST: (window as any)['env']['GATEWAY_HOST'],
+  debug: (window as any)['env']['debug'] || false,
 };
 
 /*

@@ -20,21 +20,20 @@ export class FilterPipe implements PipeTransform {
     }
     searchText = searchText.toLocaleLowerCase();
 
-    return items.filter(it => {
-        return this.filter(it, searchText);
+    return items.filter((it) => {
+      return this.filter(it, searchText);
     });
   }
 
-  filter(item: any, searchText: string): boolean{
+  filter(item: any, searchText: string): boolean {
     let result = false;
-    if (typeof(item) == 'string'){
+    if (typeof item == 'string') {
       result = item.toLocaleLowerCase().includes(searchText);
-    }
-    else if (typeof(item) == 'object'){
-      Object.keys(item).forEach(key => {
-        if(this.filter(item[key], searchText)){
+    } else if (typeof item == 'object') {
+      Object.keys(item).forEach((key) => {
+        if (this.filter(item[key], searchText)) {
           result = true;
-        };
+        }
       });
     }
 

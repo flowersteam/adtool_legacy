@@ -1,11 +1,21 @@
 <div *ngFor="let d of this.discovery_saveflags | keyvalue" class="card my-3">
-    <div class="card-body">
-        <div class="row">
-            <label class="form-control" class="card-title col-12 mb-0" id="oui" required name="oui">
-                <input type="checkbox" (change)="this.onCheckboxChange(this.d.key)" name={{this.d.key}}
-                    [checked]=this.d.value />
-                {{this.d.key}}
-            </label>
-        </div>
+  <div class="card-body">
+    <div class="row">
+      <label
+        class="form-control"
+        class="card-title col-12 mb-0"
+        id="oui"
+        required
+        name="oui"
+      >
+        <input
+          type="checkbox"
+          (change)="this.onCheckboxChange(this.d.key)"
+          name="{{ this.d.key }}"
+          [checked]="this.d.value"
+        />
+        {{ this.d.key }}
+      </label>
     </div>
+  </div>
 </div>

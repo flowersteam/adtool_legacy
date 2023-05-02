@@ -1,98 +1,190 @@
-<button class="btn btn-primary" data-bs-toggle="collapse" href="#collapseDetails" role="button" aria-expanded="false" aria-controls="collapseDetails">
-    Details <i class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
+<button
+  class="btn btn-primary"
+  data-bs-toggle="collapse"
+  href="#collapseDetails"
+  role="button"
+  aria-expanded="false"
+  aria-controls="collapseDetails"
+>
+  Details <i class="bi bi-caret-down-fill me-1" width="16" height="16"></i>
 </button>
 <div class="collapse" id="collapseDetails">
-    <div class="card card-body mt-3">
-        <div class="accordion" id="accordionDetails1">
-
-            <!-- system accordion -->
-            <div class="accordion-item mt-2">
-                <h2 class="accordion-header" id="headingSystem">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="false" aria-controls="collapseSystem">
-                    System
-                </button>
-                </h2>
-                <div id="collapseSystem" class="accordion-collapse collapse" aria-labelledby="headingSystem">
-                    <div class="accordion-body text-secondary">
-                        <li>{{'name : '+this.experiment.systems[0].name}}</li>
-                        <div class="my-2" *ngFor="let key of objectKeys(this.experiment.systems[0].config)">
-                            <li>{{key+' : '+this.experiment.systems[0].config[key]}}</li>
-                        </div>
-                    </div>
-                </div>
+  <div class="card card-body mt-3">
+    <div class="accordion" id="accordionDetails1">
+      <!-- system accordion -->
+      <div class="accordion-item mt-2">
+        <h2 class="accordion-header" id="headingSystem">
+          <button
+            class="accordion-button text-secondary collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseSystem"
+            aria-expanded="false"
+            aria-controls="collapseSystem"
+          >
+            System
+          </button>
+        </h2>
+        <div
+          id="collapseSystem"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingSystem"
+        >
+          <div class="accordion-body text-secondary">
+            <li>{{ "name : " + this.experiment.systems[0].name }}</li>
+            <div
+              class="my-2"
+              *ngFor="let key of objectKeys(this.experiment.systems[0].config)"
+            >
+              <li>
+                {{ key + " : " + this.experiment.systems[0].config[key] }}
+              </li>
             </div>
-
-            <!-- explorer accordion -->
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingExplorer">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExplorer" aria-expanded="false" aria-controls="collapseExplorer">
-                    Explorer
-                </button>
-                </h2>
-                <div id="collapseExplorer" class="accordion-collapse collapse" aria-labelledby="headingExplorer">
-                    <div class="accordion-body text-secondary">
-                        <li>{{'name : '+this.experiment.explorers[0].name}}</li>
-                        <div class="my-2" *ngFor="let key of objectKeys(this.experiment.explorers[0].config)">
-                            <li>{{key+' : '+this.experiment.explorers[0].config[key]}}</li>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- input wrappers accordion -->
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingInputWrapper">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInputWrapper" aria-expanded="false" aria-controls="collapseInputWrapper">
-                    Input Wrappers
-                </button>
-                </h2>
-                <div id="collapseInputWrapper" class="accordion-collapse collapse" aria-labelledby="headingInputWrapper">
-                    <div class="accordion-body text-secondary">
-                        <div *ngFor="let inputWrapper of this.experiment.input_wrappers" class="container my-2 border">
-                            <li>{{'name : '+inputWrapper.name}}</li>
-                            <div class="my-2" *ngFor="let key of objectKeys(inputWrapper.config)">
-                                <li>{{key+' : '+inputWrapper.config[key]}}</li>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- output representation accordion -->
-            <div class="accordion-item mb-2">
-                <h2 class="accordion-header" id="headingOutputRepresentation">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOutputRepresentation" aria-expanded="false" aria-controls="collapseOutputRepresentation">
-                    Output Representations
-                </button>
-                </h2>
-                <div id="collapseOutputRepresentation" class="accordion-collapse collapse" aria-labelledby="headingOutputRepresentation">
-                    <div class="accordion-body text-secondary">
-                        <div *ngFor="let output_representation of this.experiment.output_representations" class="container my-2 border">
-                            <li>{{'name : '+output_representation.name}}</li>
-                            <div class="my-2" *ngFor="let key of objectKeys(output_representation.config)">
-                                <li>{{key+' : '+output_representation.config[key]}}</li>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- what you saved accordion -->
-            <div class="accordion-item mb-2">
-                <h2 class="accordion-header" id="headingWhatYouSaved">
-                <button class="accordion-button text-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhatYouSaved" aria-expanded="false" aria-controls="collapseWhatYouSaved">
-                    Saved in discoveries
-                </button>
-                </h2>
-                <div id="collapseWhatYouSaved" class="accordion-collapse collapse" aria-labelledby="headingWhatYouSaved">
-                    <div class="accordion-body text-secondary">
-                        <div *ngFor="let discovery_saving_keys of this.experiment.config.discovery_saving_keys | keyvalue">
-                                <li>{{discovery_saving_keys.value}}</li>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+          </div>
         </div>
+      </div>
+
+      <!-- explorer accordion -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingExplorer">
+          <button
+            class="accordion-button text-secondary collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseExplorer"
+            aria-expanded="false"
+            aria-controls="collapseExplorer"
+          >
+            Explorer
+          </button>
+        </h2>
+        <div
+          id="collapseExplorer"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingExplorer"
+        >
+          <div class="accordion-body text-secondary">
+            <li>{{ "name : " + this.experiment.explorers[0].name }}</li>
+            <div
+              class="my-2"
+              *ngFor="
+                let key of objectKeys(this.experiment.explorers[0].config)
+              "
+            >
+              <li>
+                {{ key + " : " + this.experiment.explorers[0].config[key] }}
+              </li>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- input wrappers accordion -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingInputWrapper">
+          <button
+            class="accordion-button text-secondary collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseInputWrapper"
+            aria-expanded="false"
+            aria-controls="collapseInputWrapper"
+          >
+            Input Wrappers
+          </button>
+        </h2>
+        <div
+          id="collapseInputWrapper"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingInputWrapper"
+        >
+          <div class="accordion-body text-secondary">
+            <div
+              *ngFor="let inputWrapper of this.experiment.input_wrappers"
+              class="container my-2 border"
+            >
+              <li>{{ "name : " + inputWrapper.name }}</li>
+              <div
+                class="my-2"
+                *ngFor="let key of objectKeys(inputWrapper.config)"
+              >
+                <li>{{ key + " : " + inputWrapper.config[key] }}</li>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- output representation accordion -->
+      <div class="accordion-item mb-2">
+        <h2 class="accordion-header" id="headingOutputRepresentation">
+          <button
+            class="accordion-button text-secondary collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseOutputRepresentation"
+            aria-expanded="false"
+            aria-controls="collapseOutputRepresentation"
+          >
+            Output Representations
+          </button>
+        </h2>
+        <div
+          id="collapseOutputRepresentation"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingOutputRepresentation"
+        >
+          <div class="accordion-body text-secondary">
+            <div
+              *ngFor="
+                let output_representation of this.experiment
+                  .output_representations
+              "
+              class="container my-2 border"
+            >
+              <li>{{ "name : " + output_representation.name }}</li>
+              <div
+                class="my-2"
+                *ngFor="let key of objectKeys(output_representation.config)"
+              >
+                <li>{{ key + " : " + output_representation.config[key] }}</li>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- what you saved accordion -->
+      <div class="accordion-item mb-2">
+        <h2 class="accordion-header" id="headingWhatYouSaved">
+          <button
+            class="accordion-button text-secondary collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseWhatYouSaved"
+            aria-expanded="false"
+            aria-controls="collapseWhatYouSaved"
+          >
+            Saved in discoveries
+          </button>
+        </h2>
+        <div
+          id="collapseWhatYouSaved"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingWhatYouSaved"
+        >
+          <div class="accordion-body text-secondary">
+            <div
+              *ngFor="
+                let discovery_saving_keys of this.experiment.config
+                  .discovery_saving_keys | keyvalue
+              "
+            >
+              <li>{{ discovery_saving_keys.value }}</li>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

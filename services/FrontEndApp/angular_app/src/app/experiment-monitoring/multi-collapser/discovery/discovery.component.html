@@ -1,54 +1,108 @@
 <div class="card card-body">
-    <div class="container mx-1">
-        <div class="row">
-            <label for="customRange3" class="col-10 form-label my-3">Set iteration range:
-                <ngx-slider [(value)]="this.sliderDoubleValue.value" [(highValue)]="this.sliderDoubleValue.highValue"
-                    [options]="this.sliderDoubleValue.options" (valueChange)="this.defineWhatWeWantVisualise()"
-                    (highValueChange)="this.defineWhatWeWantVisualise()">
-                </ngx-slider>
-            </label>
-            <div class="col-2 position-relative">
-                <button type="button" class="btn position-absolute top-50 start-50 translate-middle fs-4"
-                    data-bs-toggle="dropdown"><i class="bi bi-gear" width="16" height="16"></i></button>
-                <label class="px-2 mt-2 dropdown-menu" role="menu" aria-labelledby="dropdownModule">
-                    Number of discoveries per page:
-                    <input *ngIf="this.experiment" type="number" min="1" max="{{this.experiment.progress}}"
-                        class="form-control" [(ngModel)]="this.nbDiscoveriesDisplay" (change)="setIndexDiscoveries(0)">
-                </label>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <app-filter [filters]="this.allSeed" [useFilters]="this.allSeedSelect"
-                    (triggerParentMethod)="this.defineWhatWeWantVisualise()">
-                </app-filter>
-            </div>
-        </div>
+  <div class="container mx-1">
+    <div class="row">
+      <label for="customRange3" class="col-10 form-label my-3"
+        >Set iteration range:
+        <ngx-slider
+          [(value)]="this.sliderDoubleValue.value"
+          [(highValue)]="this.sliderDoubleValue.highValue"
+          [options]="this.sliderDoubleValue.options"
+          (valueChange)="this.defineWhatWeWantVisualise()"
+          (highValueChange)="this.defineWhatWeWantVisualise()"
+        >
+        </ngx-slider>
+      </label>
+      <div class="col-2 position-relative">
+        <button
+          type="button"
+          class="btn position-absolute top-50 start-50 translate-middle fs-4"
+          data-bs-toggle="dropdown"
+        >
+          <i class="bi bi-gear" width="16" height="16"></i>
+        </button>
+        <label
+          class="px-2 mt-2 dropdown-menu"
+          role="menu"
+          aria-labelledby="dropdownModule"
+        >
+          Number of discoveries per page:
+          <input
+            *ngIf="this.experiment"
+            type="number"
+            min="1"
+            max="{{ this.experiment.progress }}"
+            class="form-control"
+            [(ngModel)]="this.nbDiscoveriesDisplay"
+            (change)="setIndexDiscoveries(0)"
+          />
+        </label>
+      </div>
     </div>
 
-    <div class="row mt-2 mx-1" *ngIf="this.experiment">
-        <div *ngFor="let i of (this.allSeedSelect['seeds'].length > 0 ? this.allSeedSelect['seeds'] : this.allSeed['seeds'])"
-            class="row col-12">
-            <div *ngFor="let j of this.arrayFilterRunIdx[this.indexDiscoveriesDisplay]" class="col-3">
-                <div class="card mt-1">
-                    <div class="card-body">
-                        <h5 class="card-title text-center">{{'seed:' + i + ' | iteration:' + (j+1)}}</h5>
-                        <video autoplay loop id="{{'video_' + i + '_' + j}}" class="col-12">
-                            <source id="{{'video_' + i + '_' + j}}" type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="row">
+      <div class="col-12">
+        <app-filter
+          [filters]="this.allSeed"
+          [useFilters]="this.allSeedSelect"
+          (triggerParentMethod)="this.defineWhatWeWantVisualise()"
+        >
+        </app-filter>
+      </div>
     </div>
+  </div>
 
-    <div *ngIf="this.arrayFilterRunIdx.length  > 1" class="container col-6 d-flex justify-content-center mt-2">
-        <button class="btn btn-light mx-1" (click)="setIndexDiscoveries(-1)"
-            [disabled]="this.indexDiscoveriesDisplay == 0"><i class="bi bi-chevron-left" width="16"
-                height="16"></i></button>
-        <button class="btn btn-light mx-1" type="button" (click)="setIndexDiscoveries(1)"
-            [disabled]="this.indexDiscoveriesDisplay == this.arrayFilterRunIdx.length - 1"><i
-                class="bi bi-chevron-right" width="16" height="16"></i></button>
+  <div class="row mt-2 mx-1" *ngIf="this.experiment">
+    <div
+      *ngFor="
+        let i of this.allSeedSelect['seeds'].length > 0
+          ? this.allSeedSelect['seeds']
+          : this.allSeed['seeds']
+      "
+      class="row col-12"
+    >
+      <div
+        *ngFor="let j of this.arrayFilterRunIdx[this.indexDiscoveriesDisplay]"
+        class="col-3"
+      >
+        <div class="card mt-1">
+          <div class="card-body">
+            <h5 class="card-title text-center">
+              {{ "seed:" + i + " | iteration:" + (j + 1) }}
+            </h5>
+            <video
+              autoplay
+              loop
+              id="{{ 'video_' + i + '_' + j }}"
+              class="col-12"
+            >
+              <source id="{{ 'video_' + i + '_' + j }}" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div
+    *ngIf="this.arrayFilterRunIdx.length > 1"
+    class="container col-6 d-flex justify-content-center mt-2"
+  >
+    <button
+      class="btn btn-light mx-1"
+      (click)="setIndexDiscoveries(-1)"
+      [disabled]="this.indexDiscoveriesDisplay == 0"
+    >
+      <i class="bi bi-chevron-left" width="16" height="16"></i>
+    </button>
+    <button
+      class="btn btn-light mx-1"
+      type="button"
+      (click)="setIndexDiscoveries(1)"
+      [disabled]="
+        this.indexDiscoveriesDisplay == this.arrayFilterRunIdx.length - 1
+      "
+    >
+      <i class="bi bi-chevron-right" width="16" height="16"></i>
+    </button>
+  </div>
 </div>

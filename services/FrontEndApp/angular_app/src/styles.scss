@@ -9,22 +9,22 @@
 //   // "dark":       $dark
 // );
 
-$primary: #AED9E0;
-$secondary: #5E6472;
-$highlighted: #FFA69E;
+$primary: #aed9e0;
+$secondary: #5e6472;
+$highlighted: #ffa69e;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 @import "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
 
-#sidebar{
+#sidebar {
   height: 100vh;
 }
 
-.text-highlighted{
+.text-highlighted {
   color: $highlighted;
 }
 
-.bg-highlighted{
+.bg-highlighted {
   background-color: $highlighted;
 }
 
