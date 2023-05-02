@@ -4,10 +4,11 @@ from leaf.locators.locators import BlobLocator
 from typing import Dict, Tuple, Union, List
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
+from auto_disc.newarch.maps.Map import Map
 from copy import deepcopy
 
 
-class UniformParameterMap(Leaf):
+class UniformParameterMap(Map):
     """
     A simple `ParameterMap` which generates parameters according to a uniform
     distribution over a box.

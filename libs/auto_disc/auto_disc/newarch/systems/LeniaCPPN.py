@@ -1,6 +1,6 @@
 from auto_disc.newarch.systems.Lenia import Lenia
 from auto_disc.newarch.wrappers.CPPNWrapper import CPPNWrapper
-from leaf.Leaf import Leaf
+from auto_disc.newarch.systems.System import System
 from leaf.locators.locators import BlobLocator
 from auto_disc.utils.config_parameters import (StringConfigParameter,
                                                IntegerConfigParameter)
@@ -16,7 +16,7 @@ import torch
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
 @IntegerConfigParameter(name="scale_init_state", default=1, min=1)
 @IntegerConfigParameter(name="cppn_n_passes", default=2, min=1)
-class LeniaCPPN(Leaf):
+class LeniaCPPN(System):
     CONFIG_DEFINITION = {}
 
     def __init__(self):

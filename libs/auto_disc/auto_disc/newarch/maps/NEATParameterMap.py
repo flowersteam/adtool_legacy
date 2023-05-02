@@ -1,6 +1,7 @@
 from typing import Any, Dict, Tuple
 import torch
 from auto_disc.utils.spaces import DictSpace
+from auto_disc.newarch.maps.Map import Map
 from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.input_wrappers import BaseInputWrapper
@@ -13,7 +14,7 @@ import neat
 from copy import deepcopy
 
 
-class NEATParameterMap(Leaf):
+class NEATParameterMap(Map):
     """ 
     Base class to map the parameters sent by the explorer to the system's input space
     """

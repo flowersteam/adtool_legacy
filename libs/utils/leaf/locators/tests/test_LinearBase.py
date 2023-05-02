@@ -28,8 +28,6 @@ def teardown_function(function):
     if os.path.exists(FILE_PATH):
         shutil.rmtree(FILE_PATH)
 
-    return
-
 
 def generate_mock_binary() -> bytes:
     def _pad_binary(bin: bytes) -> bytes:

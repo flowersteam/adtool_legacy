@@ -1,6 +1,7 @@
 import io
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
+from auto_disc.newarch.systems.System import System
 from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from copy import deepcopy
 from typing import Dict, Tuple
@@ -12,7 +13,7 @@ matplotlib.use('Agg')
 
 @DecimalConfigParameter(name="sequence_max", default=100.)
 @IntegerConfigParameter(name="sequence_density", default=100)
-class ExponentialMixture(Leaf):
+class ExponentialMixture(System):
     def __init__(self):
         super().__init__()
         # this module is stateless
