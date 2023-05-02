@@ -2,13 +2,14 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
+
 class BaseOutputRepresentation (BaseAutoDiscModule):
     """ Base class to map the observations of a system to an embedding vector (BC characterization)
     """
 
     output_space = DictSpace()
 
-    def __init__(self, wrapped_input_space_key: str=None, **kwargs) -> None:
+    def __init__(self, wrapped_input_space_key: str = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.output_space = deepcopy(self.output_space)
         self.output_space.initialize(self)
@@ -23,7 +24,6 @@ class BaseOutputRepresentation (BaseAutoDiscModule):
         for key in iter(input_space):
             if key != self._wrapped_input_space_key:
                 self.output_space[key] = input_space[key]
-        
 
     def map(self, input, is_output_new_discovery, **kwargs):
         """

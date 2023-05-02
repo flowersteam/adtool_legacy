@@ -15,7 +15,7 @@ class DB(TinyDB):
     def close(self) -> None:
         super().close()
 
-    def to_autodisc_history(self, documents: list, keys: typing.List[str], new_keys: typing.List[str]=None) -> History:
+    def to_autodisc_history(self, documents: list, keys: typing.List[str], new_keys: typing.List[str] = None) -> History:
         '''
             Select only some keys in documents and return a History. Use `new_keys` to rename these keys in the returned History.
 
@@ -41,9 +41,9 @@ class DB(TinyDB):
 
             if add_document:
                 results.append(current_result)
-        
+
         return results
-    
+
     def __getitem__(self, index: Union[int, slice]) -> None:
         '''
             Use indexing and slicing over db.
@@ -55,7 +55,7 @@ class DB(TinyDB):
             if index >= 0:
                 return self.search(where("idx") == index)
             else:
-                return self.search(where("idx") == len(self) + index)    
+                return self.search(where("idx") == len(self) + index)
         elif isinstance(index, slice):
             db_idx = list(range(len(self)))
             return self.search(Query().idx.test(lambda val: val in db_idx[index]))
@@ -73,7 +73,3 @@ class DB(TinyDB):
             Reload DB.
         '''
         pass
-
-
-    
-    

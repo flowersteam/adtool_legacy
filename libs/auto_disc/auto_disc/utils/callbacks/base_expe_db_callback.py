@@ -3,10 +3,12 @@ from auto_disc.utils.callbacks import BaseCallback
 
 from torch import Tensor
 
+
 class BaseExpeDBCallback(BaseCallback):
     '''
     Base class for callbacks used by the expe_db when progress is made (e.g. new dicovery, explorer's optimization).
     '''
+
     def __init__(self, base_url: str, **kwargs) -> None:
         """
             initialize attributes common to all expe_db callbacks
@@ -21,7 +23,7 @@ class BaseExpeDBCallback(BaseCallback):
     def _serialize_autodisc_space(self, space) -> typing.Dict:
         """
             Serialize an autodisc_space to make it savable as pickle or json
-            
+
             Args:
                 space: the autodisc space we want save as pickle or json
             Returns:

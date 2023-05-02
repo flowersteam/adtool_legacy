@@ -1,9 +1,11 @@
 from auto_disc.utils.config_parameters import BaseConfigParameter
 
+
 class BooleanConfigParameter(BaseConfigParameter):
     '''
     Decorator to add a boolean config parameter to a class.
     '''
+
     def __init__(self, name: str, default: bool) -> None:
         """
             Init a boolean config parameter. Define all possible values
@@ -27,7 +29,8 @@ class BooleanConfigParameter(BaseConfigParameter):
         if value in self._possible_values:
             return True
         else:
-            raise Exception('Chosen value ({0}) is not a boolean.'.format(value))
+            raise Exception(
+                'Chosen value ({0}) is not a boolean.'.format(value))
 
     def __call__(self, original_class: type) -> type:
         """

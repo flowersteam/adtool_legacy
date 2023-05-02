@@ -8,6 +8,7 @@ import torch
 from addict import Dict
 import typing
 
+
 @StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
@@ -15,10 +16,11 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
     CONFIG_DEFINITION = {}
 
     output_space = DictSpace(
-        embedding = BoxSpace(low=0, high=10, shape=(ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
+        embedding=BoxSpace(low=0, high=10, shape=(
+            ConfigParameterBinding("SX") * ConfigParameterBinding("SY"),))
     )
 
-    def __init__(self, wrapped_input_space_key: str =None, **kwargs) -> None:
+    def __init__(self, wrapped_input_space_key: str = None, **kwargs) -> None:
         super().__init__('states', **kwargs)
 
     def map(self, input: typing.Dict, is_output_new_discovery: bool) -> typing.Dict[str, torch.Tensor]:
@@ -31,7 +33,8 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
                 Return a torch tensor in dict
         """
         # filter low values
-        filtered_im = torch.where(input.states[-1] > 0.2, input.states[-1], torch.zeros_like(input.states[-1]))
+        filtered_im = torch.where(
+            input.states[-1] > 0.2, input.states[-1], torch.zeros_like(input.states[-1]))
 
         # recenter
         mu_0 = filtered_im.sum()
@@ -55,7 +58,6 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
 
         return {'embedding': embedding}
 
-
     def calc_distance(self, embedding_a: torch.Tensor, embedding_b: torch.Tensor, **kwargs) -> torch.Tensor:
         """
             Compute the distance between 2 embeddings in the latent space
@@ -63,7 +65,8 @@ class LeniaImageRepresentation(BaseOutputRepresentation):
         """
         # l2 loss
         if self.config.distance_function == "L2":
-            dist = distance.calc_l2(embedding_a, embedding_b) # add regularizer to avoid dead outcomes
+            # add regularizer to avoid dead outcomes
+            dist = distance.calc_l2(embedding_a, embedding_b)
 
         else:
             raise NotImplementedError

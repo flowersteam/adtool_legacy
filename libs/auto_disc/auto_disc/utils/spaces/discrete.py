@@ -15,7 +15,7 @@ class DiscreteSpace(BaseSpace):
 
     """
 
-    def __init__(self, n:int, mutator: BaseMutator =None, indpb: float=1.0) -> None:
+    def __init__(self, n: int, mutator: BaseMutator = None, indpb: float = 1.0) -> None:
         """
             Init the elements useful to the spaces
 
@@ -27,8 +27,8 @@ class DiscreteSpace(BaseSpace):
         assert n >= 0
         self._n = n
         self._indpb = indpb
-        
-        super(DiscreteSpace, self).__init__((),torch.int64, mutator)
+
+        super(DiscreteSpace, self).__init__((), torch.int64, mutator)
 
     def initialize(self, parent_obj: object) -> None:
         """
@@ -84,7 +84,8 @@ class DiscreteSpace(BaseSpace):
         """
         if isinstance(x, int):
             as_int = x
-        elif not x.dtype.is_floating_point and (x.shape == ()):  # integer or size 0
+        # integer or size 0
+        elif not x.dtype.is_floating_point and (x.shape == ()):
             as_int = int(x)
         else:
             return False
@@ -99,7 +100,8 @@ class DiscreteSpace(BaseSpace):
                 x: After being set
         """
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
-        x = torch.min(x, torch.as_tensor(self.n - 1, dtype=self.dtype, device=x.device))
+        x = torch.min(x, torch.as_tensor(
+            self.n - 1, dtype=self.dtype, device=x.device))
         return x
 
     def __repr__(self):

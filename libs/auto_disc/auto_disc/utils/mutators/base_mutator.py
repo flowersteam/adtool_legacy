@@ -2,7 +2,8 @@ class BaseMutator():
     """ 
     Base class to mute space var
     """
-    def __init__(self ):
+
+    def __init__(self):
         raise NotImplementedError
 
     def __call__(self, x, mutate_mask):

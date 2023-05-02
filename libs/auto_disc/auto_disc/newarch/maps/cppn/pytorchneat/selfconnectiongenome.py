@@ -3,6 +3,7 @@ import neat.genes
 import neat.attributes
 from random import gauss, random, uniform
 
+
 class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
     """
     Class for connection weight attributes. Is introduced to allow a differentiation between self connections of a node and connections to other nodes.
@@ -36,7 +37,6 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
         return max(min(value, max_value), min_value)
 
-
     def init_value(self, is_other_connect, config):
 
         if is_other_connect:
@@ -67,7 +67,6 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
         raise RuntimeError("Unknown init_type {!r}!".format(init_type))
 
-
     def mutate_value(self, value, is_other_connect, config):
         # mutate_rate is usually no lower than replace_rate, and frequently higher -
         # so put first for efficiency
@@ -87,7 +86,6 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
             return self.clamp(value + gauss(0.0, mutate_power), is_other_connect, config)
 
-
         if is_other_connect:
             replace_rate = getattr(config, self.other_replace_rate_name)
         else:
@@ -98,10 +96,8 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
         return value
 
-
     def validate(self, config):  # pragma: no cover
         pass
-
 
 
 class SelfConnectionGene(neat.genes.BaseGene):
@@ -109,7 +105,8 @@ class SelfConnectionGene(neat.genes.BaseGene):
                         neat.attributes.BoolAttribute('enabled')]
 
     def __init__(self, key):
-        assert isinstance(key, tuple), "SelfConnectionGene key must be a tuple, not {!r}".format(key)
+        assert isinstance(
+            key, tuple), "SelfConnectionGene key must be a tuple, not {!r}".format(key)
         neat.genes.BaseGene.__init__(self, key)
 
     def distance(self, other, config):
@@ -117,7 +114,6 @@ class SelfConnectionGene(neat.genes.BaseGene):
         if self.enabled != other.enabled:
             d += 1.0
         return d * config.compatibility_weight_coefficient
-
 
     def init_attributes(self, config):
         for a in self._gene_attributes:
@@ -130,7 +126,6 @@ class SelfConnectionGene(neat.genes.BaseGene):
                 val = a.init_value(config)
 
             setattr(self, a.name, val)
-
 
     def mutate(self, config):
         for a in self._gene_attributes:

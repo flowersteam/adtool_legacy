@@ -1,4 +1,6 @@
 from auto_disc.utils.callbacks import BaseCallback
+
+
 class BaseOnCancelledCallback(BaseCallback):
     '''
     Base class for cancelled callbacks used by the experiment pipelines when the experiment was cancelled.

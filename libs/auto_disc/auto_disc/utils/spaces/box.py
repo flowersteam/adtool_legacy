@@ -6,6 +6,7 @@ from auto_disc.utils.spaces import BaseSpace
 
 from auto_disc.utils.mutators import BaseMutator
 
+
 class BoxSpace(BaseSpace):
     """
     A (possibly unbounded) box in R^n. Specifically, a Box represents the
@@ -24,7 +25,7 @@ class BoxSpace(BaseSpace):
 
     """
 
-    def __init__(self, low: float, high: float, mutator:BaseMutator=None, shape:tuple=None, dtype=torch.float32, indpb: float =1.0) -> None:
+    def __init__(self, low: float, high: float, mutator: BaseMutator = None, shape: tuple = None, dtype=torch.float32, indpb: float = 1.0) -> None:
         """
             Init the elements useful to the spaces
 
@@ -37,20 +38,25 @@ class BoxSpace(BaseSpace):
                 indpb: Independent probability for each attribute to be exchanged
         """
         assert dtype is not None, 'dtype must be explicitly provided. '
-    
+
         # determine shape if it isn't provided directly
         if shape is not None:
             shape = tuple(shape)
-            assert isinstance(low, numbers.Number) or low.shape == shape, "low.shape doesn't match provided shape"
-            assert isinstance(high, numbers.Number) or high.shape == shape, "high.shape doesn't match provided shape"
+            assert isinstance(
+                low, numbers.Number) or low.shape == shape, "low.shape doesn't match provided shape"
+            assert isinstance(
+                high, numbers.Number) or high.shape == shape, "high.shape doesn't match provided shape"
         elif not isinstance(low, numbers.Number):
             shape = low.shape
-            assert isinstance(high, numbers.Number) or high.shape == shape, "high.shape doesn't match low.shape"
+            assert isinstance(
+                high, numbers.Number) or high.shape == shape, "high.shape doesn't match low.shape"
         elif not isinstance(high, numbers.Number):
             shape = high.shape
-            assert isinstance(low, numbers.Number) or low.shape == shape, "low.shape doesn't match high.shape"
+            assert isinstance(
+                low, numbers.Number) or low.shape == shape, "low.shape doesn't match high.shape"
         else:
-            raise ValueError("shape must be provided or inferred from the shapes of low or high")
+            raise ValueError(
+                "shape must be provided or inferred from the shapes of low or high")
 
         self._low = low
         self._high = high
@@ -85,10 +91,11 @@ class BoxSpace(BaseSpace):
 
         # indpb – independent probability for each attribute to be mutated.
         if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(self.shape, self._indpb, dtype=torch.float64)
+            self._indpb = torch.full(
+                self.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
-    def is_bounded(self, manner:str="both") -> torch.bool:
+    def is_bounded(self, manner: str = "both") -> torch.bool:
         """
             Check if the space is bounded (below above or both)
 
@@ -121,7 +128,8 @@ class BoxSpace(BaseSpace):
         Return:
             The return value is torch of the sample value
         """
-        high = self.high.type(torch.float64) if self.dtype.is_floating_point else self.high.type(torch.int64) + 1
+        high = self.high.type(
+            torch.float64) if self.dtype.is_floating_point else self.high.type(torch.int64) + 1
         sample = torch.empty(self.shape, dtype=torch.float64)
 
         # Masking arrays which classify the coordinates according to interval
@@ -132,10 +140,11 @@ class BoxSpace(BaseSpace):
         bounded = self.bounded_below & self.bounded_above
 
         # Vectorized sampling by interval type
-        sample[unbounded] = torch.randn(unbounded[unbounded].shape, dtype=torch.float64)
+        sample[unbounded] = torch.randn(
+            unbounded[unbounded].shape, dtype=torch.float64)
 
         sample[low_bounded] = (-torch.rand(low_bounded[low_bounded].shape, dtype=torch.float64)).exponential_() + \
-                              self.low[low_bounded]
+            self.low[low_bounded]
 
         sample[upp_bounded] = self.high[upp_bounded] - (
             -torch.rand(upp_bounded[upp_bounded].shape, dtype=torch.float64)).exponential_()
@@ -158,7 +167,8 @@ class BoxSpace(BaseSpace):
                 x: the result of mutation
         """
         if self.mutator:
-            mutate_mask = (torch.rand(self.shape) < self.indpb).type(torch.float64)
+            mutate_mask = (torch.rand(self.shape) <
+                           self.indpb).type(torch.float64)
             x = self.mutator(x, mutate_mask)
             if not self.dtype.is_floating_point:  # integer
                 x = torch.floor(x)
@@ -170,7 +180,7 @@ class BoxSpace(BaseSpace):
         else:
             return x
 
-    def contains(self, x:Union[torch.Tensor, List]) -> bool:
+    def contains(self, x: Union[torch.Tensor, List]) -> bool:
         """
             Check if x is included in the space
 
@@ -192,9 +202,11 @@ class BoxSpace(BaseSpace):
                 x: After being set
         """
         if self.is_bounded(manner="below"):
-            x = torch.max(x, torch.as_tensor(self.low, dtype=self.dtype, device=x.device))
+            x = torch.max(x, torch.as_tensor(
+                self.low, dtype=self.dtype, device=x.device))
         if self.is_bounded(manner="above"):
-            x = torch.min(x, torch.as_tensor(self.high, dtype=self.dtype, device=x.device))
+            x = torch.min(x, torch.as_tensor(
+                self.high, dtype=self.dtype, device=x.device))
         return x
 
     def __repr__(self) -> str:

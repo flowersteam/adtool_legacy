@@ -1,12 +1,14 @@
 from auto_disc.utils.config_parameters import BaseConfigParameter
 
+
 class DecimalConfigParameter(BaseConfigParameter):
     '''
     Decorator to add a decimal config parameter to a class.
     Uses a 'min' and 'max' to bound the authorized values.
     If a bound is set to 'None', this means no bound.
     '''
-    def __init__(self, name: str, default: float, min:float=None, max:float=None) -> None:
+
+    def __init__(self, name: str, default: float, min: float = None, max: float = None) -> None:
         """
             Init a decimal config parameter. Define the bounds of the value
 
@@ -30,10 +32,12 @@ class DecimalConfigParameter(BaseConfigParameter):
                The return value is True if the value is between the two bounds else an exception is thrown 
         """
         if self._min is not None and value < self._min:
-            raise Exception('Chosen value ({0}) is lower than the minimum authorized ({1}).'.format(value, self._min))
+            raise Exception(
+                'Chosen value ({0}) is lower than the minimum authorized ({1}).'.format(value, self._min))
 
         if self._max is not None and value > self._max:
-            raise Exception('Chosen value ({0}) is lower than the maximum authorized ({1}).'.format(value, self._max))
+            raise Exception(
+                'Chosen value ({0}) is lower than the maximum authorized ({1}).'.format(value, self._max))
 
         return True
 

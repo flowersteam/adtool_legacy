@@ -4,10 +4,12 @@ import math
 import typing
 from typing import Any
 
+
 class ConfigParameterBinding():
     '''
     Allows to bind some properties of a space to the value of a config parameter that belongs to the config of the instance.
     '''
+
     def __init__(self, parameter_name: str) -> None:
         """
             Initialize ConfigParamter by defining its name and the operations to perform on it (basic none)
@@ -18,7 +20,7 @@ class ConfigParameterBinding():
         self.parameter_name = parameter_name
         self._operations = []
 
-    def _apply_operation(self, val1: Any, val2: Any, operator: str) -> Any :
+    def _apply_operation(self, val1: Any, val2: Any, operator: str) -> Any:
         """
             Perform the previously recorded operation between 2 value dependign on the operator.
 
@@ -26,7 +28,7 @@ class ConfigParameterBinding():
                 val1 : the first value involved in the calculation
                 val2 : the second value involved in the calculation
                 operator: the operator to define witch operation we have to do
-            
+
             Returns:
                 the result of the calculation
         """
@@ -41,10 +43,10 @@ class ConfigParameterBinding():
         elif operator == '//':
             return val1 // val2
 
-    def __get__(self, obj: object, objtype:type=None) -> Any:
+    def __get__(self, obj: object, objtype: type = None) -> Any:
         """
             Acces to the result of an operation including one or more ConfigParameterBinding when we actually appply the binding
-            
+
             Args:
                 obj: an autodisc module (e.g. system, explorer) in which the configparameters need binding
                 objtype: a type
@@ -58,7 +60,7 @@ class ConfigParameterBinding():
             if isinstance(other, ConfigParameterBinding):
                 other = other.__get__(obj)
             value = self._apply_operation(value, other, operator)
-        
+
         return value
 
     def __add__(self, other: ConfigParameterBinding) -> ConfigParameterBinding:
@@ -118,7 +120,7 @@ class ConfigParameterBinding():
         """
         self._operations.append((other, '*'))
         return self
-    
+
     def __rmul__(self, other: ConfigParameterBinding) -> ConfigParameterBinding:
         """
             overwrite __rmul__. Append mul operation to the configParameter
@@ -165,7 +167,7 @@ class ConfigParameterBinding():
         self._operations.append((other, '//'))
         return self
 
-    def __rfloordiv__(self, other: ConfigParameterBinding)-> ConfigParameterBinding:
+    def __rfloordiv__(self, other: ConfigParameterBinding) -> ConfigParameterBinding:
         """
             overwrite __rfloordiv__. Append floordiv operation to the configParameter
 
@@ -175,7 +177,6 @@ class ConfigParameterBinding():
                 self: return self with it new operation
         """
         return self.__floordiv__(other)
-
 
     def to_json(self) -> str:
         """
@@ -190,5 +191,5 @@ class ConfigParameterBinding():
             operator = operation[1]
             if isinstance(other, ConfigParameterBinding):
                 other = other.to_json()
-            binding = "({0}, {1}, {2})".format(binding, other, operator)                
+            binding = "({0}, {1}, {2})".format(binding, other, operator)
         return binding

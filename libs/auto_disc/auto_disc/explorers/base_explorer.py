@@ -5,6 +5,7 @@ from auto_disc.utils.spaces import DictSpace, BoxSpace
 
 from auto_disc import BaseAutoDiscModule
 
+
 class BaseExplorer (BaseAutoDiscModule):
     '''
     Base class for explorers.
@@ -39,7 +40,6 @@ class BaseExplorer (BaseAutoDiscModule):
         '''
         raise NotImplementedError()
 
-
     # def save(self, filepath):
     #     """
     #     Saves the explorer object using torch.save function in pickle format
@@ -58,7 +58,6 @@ class BaseExplorer (BaseAutoDiscModule):
 
     #     # attach db again to the exploration object
     #     self.db = tmp_data
-
 
     # @staticmethod
     # def load(explorer_filepath, load_data=True, run_ids=None, map_location='cuda'):
