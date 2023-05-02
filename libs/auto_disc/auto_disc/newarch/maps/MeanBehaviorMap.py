@@ -4,10 +4,11 @@ from leaf.locators.locators import BlobLocator
 from typing import Dict, Tuple
 from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
+from auto_disc.newarch.maps.Map import Map
 from copy import deepcopy
 
 
-class MeanBehaviorMap(Leaf):
+class MeanBehaviorMap(Map):
     """
     A simple `BehaviorMap` which merely extracts the mean.
     """
@@ -47,7 +48,7 @@ class MeanBehaviorMap(Leaf):
 
         return behavior_dict
 
-    def sample(self):
+    def sample(self) -> torch.Tensor:
         return self.projector.sample()
 
     # def get_tensor_history(self):

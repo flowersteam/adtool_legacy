@@ -5,7 +5,8 @@ import pathlib
 
 def test_FileLocator___init__():
     locator = FileLocator()
-    assert locator.resource_uri != ""
+    # removed default init of FileLocators
+    assert locator.resource_uri == ""
 
 
 def test_FileLocator_store():
