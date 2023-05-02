@@ -145,8 +145,6 @@ export class DiscoveryComponent implements OnInit {
         return from(<any[]>JSON.parse(data) ?? []);
       }),
       concatMap((discovery) => {
-        // TODO: need to add a failure case here, but would require refactoring
-        // from Observables to Subjects in the service, that way we can
         return this.expeDbService
           .getDiscoveryRenderedOutput(discovery._id)
           .pipe(
@@ -154,32 +152,27 @@ export class DiscoveryComponent implements OnInit {
               if (!response.success) {
                 throw new Error('Unsuccessful retrieval of rendered output.');
               }
+              const seed: number = parseInt(discovery.seed.toString());
+              const run_idx: number = parseInt(discovery.run_idx.toString());
+              const src_url = URL.createObjectURL(response.data as Blob);
 
-              // assert type, as response.success is true
-              const media = response.data as Blob;
-              const video = <HTMLVideoElement>(
-                (<any>(
-                  document.querySelector(
-                    '#video_' +
-                      discovery.seed.toString() +
-                      '_' +
-                      discovery.run_idx.toString()
-                  )
-                ))
-              );
-              if (!video) {
-                throw new Error('Unsuccessful lookup of HTML video element.');
-              }
-              video.src = URL.createObjectURL(media);
+              return { index: [seed, run_idx], src_url };
             })
           );
-      }),
-      catchError((err) => {
-        throw err;
       })
     );
+    // we consume the observable now
     discoveries$.subscribe({
-      // next: () => console.log("Output rendered."),
+      next: (media) => {
+        // push the 2D array to the subject, which will asyncPipe to the view
+        // we do this as below to avoid using BehaviorSubject's .getValue,
+        // in case we want to refactor
+        this.media$
+          .pipe(take(1))
+          .subscribe((val) =>
+            this.media$.next(val.set(media.index, media.src_url))
+          );
+      },
       error: (err) => {
         this.toasterService.showError(
           err.toString() ?? '',
@@ -187,9 +180,11 @@ export class DiscoveryComponent implements OnInit {
         );
         console.log(err);
       },
-      // complete: () => console.log("Done rendering output.")
+      // for debugging only
+      complete: () => {
+        console.log('Discovery retrieval complete.');
+      },
     });
-
     return;
   }
 
