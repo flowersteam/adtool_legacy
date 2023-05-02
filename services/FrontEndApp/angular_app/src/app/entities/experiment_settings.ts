@@ -6,13 +6,13 @@ import { Callback } from '../entities/callback';
 import { Config } from '../entities/config';
 
 export interface ExperimentSettings {
-    experiment: Config;
-    explorer: Config;
-    system: Config;
-    input_wrappers: Config[];
-    output_representations: Config[];
-    callbacks: string[];
-    logger_handlers: any[];
-    host:string;
-    [key: string]: any;
-  }
+  experiment: Config;
+  explorer: Config;
+  system: Config;
+  input_wrappers: Config[];
+  output_representations: Config[];
+  callbacks: string[];
+  logger_handlers: any[];
+  host: string;
+  [key: string]: any;
+}

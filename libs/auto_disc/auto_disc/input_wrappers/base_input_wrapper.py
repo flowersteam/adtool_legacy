@@ -2,10 +2,11 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
+
 class BaseInputWrapper(BaseAutoDiscModule):
     """ Base class to map the parameters sent by the explorer to the system's input space
     """
-    
+
     input_space = DictSpace()
 
     def __init__(self, wrapped_output_space_key=None, **kwargs) -> None:

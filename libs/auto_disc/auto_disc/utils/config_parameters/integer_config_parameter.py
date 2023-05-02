@@ -1,5 +1,6 @@
 from auto_disc.utils.config_parameters import DecimalConfigParameter
 
+
 class IntegerConfigParameter(DecimalConfigParameter):
     '''
     Decorator to add an integer config parameter to a class.
@@ -7,7 +8,8 @@ class IntegerConfigParameter(DecimalConfigParameter):
     If a bound is set to 'None', this means no bound.
     If a decimal value is passed, it will be rounded.
     '''
-    def __init__(self, name:str, default: int, min: int=None, max: int =None) -> None:
+
+    def __init__(self, name: str, default: int, min: int = None, max: int = None) -> None:
         """
             Init a int config parameter. Define the bounds of the value
 
@@ -17,10 +19,10 @@ class IntegerConfigParameter(DecimalConfigParameter):
                 min: the lower bound
                 max: the upper limit
         """
-        super().__init__(name, 
-                        round(default), 
-                        min=round(min) if min else min, 
-                        max=round(max) if max else max)
+        super().__init__(name,
+                         round(default),
+                         min=round(min) if min else min,
+                         max=round(max) if max else max)
 
     def check_value_to_set(self, value: int) -> bool:
         """

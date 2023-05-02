@@ -29,7 +29,7 @@ class MultiBinarySpace(BaseSpace):
 
     """
 
-    def __init__(self, n: int, indpb:float=1.0) -> None:
+    def __init__(self, n: int, indpb: float = 1.0) -> None:
         """
             Init the elements useful to the spaces
 
@@ -52,7 +52,8 @@ class MultiBinarySpace(BaseSpace):
         super().initialize(parent_obj)
 
         if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(self.shape, self._indpb, dtype=torch.float64)
+            self._indpb = torch.full(
+                self.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
     def sample(self) -> torch.Tensor:

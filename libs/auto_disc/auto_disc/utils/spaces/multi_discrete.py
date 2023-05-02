@@ -14,7 +14,6 @@ class MultiDiscreteSpace(BaseSpace):
     """
 
     def __init__(self, nvec, mutator=None, indpb=1.0):
-
         """
         Init the elements useful to the spaces
 
@@ -39,12 +38,14 @@ class MultiDiscreteSpace(BaseSpace):
         super().initialize(parent_obj)
         self._nvec = self.apply_binding_if_existing(self._nvec, parent_obj)
         self.shape = self._nvec
-        assert (torch.tensor(self._nvec) > 0).all(), 'nvec (counts) have to be positive'
+        assert (torch.tensor(self._nvec) > 0).all(
+        ), 'nvec (counts) have to be positive'
         self.nvec = torch.as_tensor(self._nvec, dtype=torch.int64)
 
         # indpb – independent probability for each attribute to be mutated.
         if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(self.nvec.shape, self._indpb, dtype=torch.float64)
+            self._indpb = torch.full(
+                self.nvec.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
     def sample(self) -> torch.Tensor:
@@ -100,7 +101,8 @@ class MultiDiscreteSpace(BaseSpace):
                 x: After being set
         """
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
-        x = torch.min(x, torch.as_tensor(self.nvec - 1, dtype=self.dtype, device=x.device))
+        x = torch.min(x, torch.as_tensor(
+            self.nvec - 1, dtype=self.dtype, device=x.device))
         return x
 
     def __repr__(self):

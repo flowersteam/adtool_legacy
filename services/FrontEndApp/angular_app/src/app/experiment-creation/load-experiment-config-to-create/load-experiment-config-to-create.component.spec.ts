@@ -8,9 +8,8 @@ describe('LoadExperimentConfigToCreateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LoadExperimentConfigToCreateComponent ]
-    })
-    .compileComponents();
+      declarations: [LoadExperimentConfigToCreateComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

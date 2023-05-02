@@ -2,11 +2,12 @@ import torch
 from auto_disc.utils.mutators import BaseMutator
 import numbers
 
+
 class GaussianMutator(BaseMutator):
     """
         Class to mutate a space with gaussian method
     """
-    
+
     def __init__(self, mean: float, std: float) -> None:
         """
             Init what gaussian method need
@@ -19,7 +20,7 @@ class GaussianMutator(BaseMutator):
         self._mean = mean
         self._std = std
 
-    def init_shape(self, shape: tuple =None) -> None:
+    def init_shape(self, shape: tuple = None) -> None:
         """
             Define the init shape
 
@@ -42,12 +43,10 @@ class GaussianMutator(BaseMutator):
             Args:
                 x: the data we want mutate
                 mutate_mask: mask of mutation
-            
+
             Returns:
                 x: Data after being mutated
         """
         noise = torch.normal(self.mean, self.std)
         x = x.type(torch.float64) + mutate_mask * noise
         return x
-
-    

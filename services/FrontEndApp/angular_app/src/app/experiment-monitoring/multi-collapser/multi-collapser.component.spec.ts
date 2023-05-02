@@ -8,9 +8,8 @@ describe('MultiCollapserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ MultiCollapserComponent ]
-    })
-    .compileComponents();
+      declarations: [MultiCollapserComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

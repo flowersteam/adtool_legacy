@@ -1,23 +1,47 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-4">
-    <div class="container-fluid">
-      <h3 class="text-secondary fs-4 mb-0">List of experiments</h3>
-      <div class="navbar-nav">
-        <button class="btn btn-light text-secondary" (click)="getExperiments()"><i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh</button>
-        <button class="btn btn-light mx-2 text-secondary" (click)="sortExperimentsByDate()">Date 
-            <i [ngClass]="sortByDateAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill'" class="bi me-1" width="16" height="16"></i>
-          </button>
-          <div class="d-flex">
-            <input type="search" class="form-control" id="search-text" aria-describedby="search-text" 
-            [(ngModel)]="searchText" placeholder="Enter text to search" 
-            autofocus>
-          </div>   
+  <div class="container-fluid">
+    <h3 class="text-secondary fs-4 mb-0">List of experiments</h3>
+    <div class="navbar-nav">
+      <button class="btn btn-light text-secondary" (click)="getExperiments()">
+        <i class="bi bi-arrow-repeat me-1" width="16" height="16"></i>Refresh
+      </button>
+      <button
+        class="btn btn-light mx-2 text-secondary"
+        (click)="sortExperimentsByDate()"
+      >
+        Date
+        <i
+          [ngClass]="sortByDateAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill'"
+          class="bi me-1"
+          width="16"
+          height="16"
+        ></i>
+      </button>
+      <div class="d-flex">
+        <input
+          type="search"
+          class="form-control"
+          id="search-text"
+          aria-describedby="search-text"
+          [(ngModel)]="searchText"
+          placeholder="Enter text to search"
+          autofocus
+        />
       </div>
     </div>
+  </div>
 </nav>
 <app-experiments-list
   [experiments]="this.experiments"
-  [needRouter]=true
-  [needChoice]=false
-  [searchText]="this.searchText">
+  [needRouter]="true"
+  [needChoice]="false"
+  [searchText]="this.searchText"
+>
 </app-experiments-list>
-<button [routerLink]="'/new-experiment'" id="newExperimentHomeButton" class="btn btn-secondary btn-circle btn-xl position-fixed z-index-master bottom-0 end-0 m-4"><i class="bi bi-plus"></i></button>
+<button
+  [routerLink]="'/new-experiment'"
+  id="newExperimentHomeButton"
+  class="btn btn-secondary btn-circle btn-xl position-fixed z-index-master bottom-0 end-0 m-4"
+>
+  <i class="bi bi-plus"></i>
+</button>

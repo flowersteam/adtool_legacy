@@ -1,10 +1,12 @@
 from addict import Dict
 from typing import Any
 
+
 class BaseConfigParameter():
     '''
     Decorator to add a config parameter to a class.
     '''
+
     def __init__(self, name: str, default: Any) -> None:
         """
             Init a config parameter
@@ -50,20 +52,21 @@ class BaseConfigParameter():
                 assert check_value(kws[name])
                 value_to_set = kws[name]
                 del kws[name]
-            
-            if not hasattr(self, 'config'): # Initialize config if not done
+
+            if not hasattr(self, 'config'):  # Initialize config if not done
                 self.config = Dict()
 
-            self.config[name] = value_to_set # add entry to config
+            self.config[name] = value_to_set  # add entry to config
             # setattr(self, name, value_to_set)
 
-            original_init(self, *args, **kws) # Call the original __init__
+            original_init(self, *args, **kws)  # Call the original __init__
 
-        original_class.__init__ = __init__ # Set the class' __init__ to the new one
+        original_class.__init__ = __init__  # Set the class' __init__ to the new one
 
         # Add the parameter to the config definition
         if not hasattr(original_class, 'CONFIG_DEFINITION'):
-            raise Exception("Class {} should define an empty static CONFIG_DEFINITION: `CONFIG_DEFINITION = {}`".format(original_class))
+            raise Exception(
+                "Class {} should define an empty static CONFIG_DEFINITION: `CONFIG_DEFINITION = {}`".format(original_class))
         original_class.CONFIG_DEFINITION[name] = {'default': default_value}
 
         return original_class

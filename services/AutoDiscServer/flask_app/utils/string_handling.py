@@ -18,6 +18,6 @@
 
 def match_except_number(txt1, txt2):
     return (
-        [i for i in txt1 if not i.isdigit()] 
+        [i for i in txt1 if not i.isdigit()]
         == [i for i in txt2 if not i.isdigit()]
     )

@@ -1,4 +1,6 @@
 from auto_disc.utils.callbacks import BaseCallback
+
+
 class BaseOnErrorCallback(BaseCallback):
     '''
     Base class for on error callbacks used by the experiment pipelines when an error are raise during the experiment progress.

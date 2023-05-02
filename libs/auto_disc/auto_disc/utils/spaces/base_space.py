@@ -3,12 +3,14 @@ import torch
 from auto_disc.base_autodisc_module import BaseAutoDiscModule
 from auto_disc.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.utils.mutators import BaseMutator
+
+
 class BaseSpace(object):
     """
         Defines the init_space, genome_space and intervention_space of a system
     """
 
-    def __init__(self, shape:Tuple[Union[ConfigParameterBinding,Any]]=None, dtype:torch.dtype=None, mutator:BaseMutator=None) -> None:
+    def __init__(self, shape: Tuple[Union[ConfigParameterBinding, Any]] = None, dtype: torch.dtype = None, mutator: BaseMutator = None) -> None:
         """
             Init the elements useful to the spaces
 
@@ -31,12 +33,13 @@ class BaseSpace(object):
         if self.shape is not None:
             new_shape = []
             for elem in self.shape:
-                new_shape.append(int(self.apply_binding_if_existing(elem, parent_obj)))
+                new_shape.append(
+                    int(self.apply_binding_if_existing(elem, parent_obj)))
             self.shape = tuple(new_shape)
             if self.mutator:
                 self.mutator.init_shape(self.shape)
 
-    def apply_binding_if_existing(self, var:Union[ConfigParameterBinding, Any], lookup_obj: object) -> Any:
+    def apply_binding_if_existing(self, var: Union[ConfigParameterBinding, Any], lookup_obj: object) -> Any:
         """
             Get result of config parameter binding operation
 
@@ -50,7 +53,7 @@ class BaseSpace(object):
             value = var.__get__(lookup_obj)
         else:
             value = var
-            
+
         return value
 
     def sample(self):

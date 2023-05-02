@@ -1,12 +1,14 @@
 import typing
 from auto_disc.utils.config_parameters import BaseConfigParameter
 
+
 class StringConfigParameter(BaseConfigParameter):
     '''
     Decorator to add a string config parameter to a class.
     Uses a list of possible values to choose among.
     '''
-    def __init__(self, name : str, default: str ="", possible_values: typing.List[str]=None) -> None:
+
+    def __init__(self, name: str, default: str = "", possible_values: typing.List[str] = None) -> None:
         """
             Init a str config parameter. Define the list of all possible values.
 
@@ -18,10 +20,10 @@ class StringConfigParameter(BaseConfigParameter):
         self._possible_values = possible_values
         if possible_values is not None and default not in possible_values:
             raise Exception("Default value not in possible values.")
-            
+
         super().__init__(name, default)
 
-    def check_value_to_set(self, value:str) -> bool:
+    def check_value_to_set(self, value: str) -> bool:
         """
             Check if the value is one of the possible values
 
@@ -35,8 +37,9 @@ class StringConfigParameter(BaseConfigParameter):
             if value in self._possible_values:
                 return True
             else:
-                raise Exception('Chosen value ({0}) does not belong to the authorized list ({1}).'.format(value, self._possible_values))
-        
+                raise Exception('Chosen value ({0}) does not belong to the authorized list ({1}).'.format(
+                    value, self._possible_values))
+
         return True
 
     def __call__(self, original_class: type) -> type:

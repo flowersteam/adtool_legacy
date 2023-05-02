@@ -3,15 +3,17 @@ from os import environ as env
 from typing import get_type_hints, Union
 
 
-def _parse_bool(val: Union[str, bool]) -> bool:  # pylint: disable=E1136 
+def _parse_bool(val: Union[str, bool]) -> bool:  # pylint: disable=E1136
     return val if type(val) == bool else val.lower() in ['true', 'yes', '1']
+
 
 class ConfigError(Exception):
     pass
 
+
 class Config():
-    EXPEDB_CALLER_HOST : str = "127.0.0.1"
-    EXPEDB_CALLER_PORT : str = "5001"
+    EXPEDB_CALLER_HOST: str = "127.0.0.1"
+    EXPEDB_CALLER_PORT: str = "5001"
 
     def __init__(self):
         for field in self.__annotations__:
@@ -21,7 +23,7 @@ class Config():
 
             var_type = get_type_hints(Config)[field]
 
-            try: 
+            try:
                 if var_type == bool:
                     value = _parse_bool(env.get(field, default_value))
                 else:
@@ -33,5 +35,5 @@ class Config():
                     env[field],
                     var_type,
                     field
-                    )
+                )
                 )

@@ -1,4 +1,4 @@
 export interface Config {
-    name: string | undefined;
-    config: { [key: string]: any };
-  }
+  name: string | undefined;
+  config: { [key: string]: any };
+}

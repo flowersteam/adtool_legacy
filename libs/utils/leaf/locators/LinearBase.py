@@ -109,7 +109,7 @@ def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1) -> bytes:
 
 def retrieve_packed_trajectory(
         db_url: str, row_id: int = 1, length: int = 1
-        ) -> Tuple[List[int], List[bytes], List[int]]:
+) -> Tuple[List[int], List[bytes], List[int]]:
     """
     Simple wrapper which retrieves the raw packed trajectory data
     from db_url.
@@ -117,6 +117,7 @@ def retrieve_packed_trajectory(
     with _EngineContext(db_url) as engine:
         ids, packed_traj, depths = _get_trajectory_raw(engine, row_id, length)
     return ids, packed_traj, depths
+
 
 def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                         ) -> Tuple[List[int], List[bytes], List[int]]:

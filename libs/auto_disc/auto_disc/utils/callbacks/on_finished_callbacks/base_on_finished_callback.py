@@ -1,4 +1,6 @@
 from auto_disc.utils.callbacks import BaseCallback
+
+
 class BaseOnFinishedCallback(BaseCallback):
     '''
     Base class for on finished callbacks used by the experiment pipelines when the experiment is over.

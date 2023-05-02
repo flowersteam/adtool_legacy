@@ -2,16 +2,19 @@ import typing
 from addict import Dict
 from auto_disc.utils.logger import AutoDiscLogger
 
+
 class BaseAutoDiscModule:
     '''
         Base class of all modules usable in auto_disc.
     '''
-    _access_history = None # Function to access (readonly) history of (input, output) pairs. Takes 1 positional argument which could be an index or a slice.
-    _call_output_history_update = None # Function to ask history of outputs to be updated (use this if some output_representations changed)
-    _call_run_parameters_history_update = None # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
+    _access_history = None  # Function to access (readonly) history of (input, output) pairs. Takes 1 positional argument which could be an index or a slice.
+    # Function to ask history of outputs to be updated (use this if some output_representations changed)
+    _call_output_history_update = None
+    # Function to ask history of run_parameters to be updated (use this if some input_wrappers changed)
+    _call_run_parameters_history_update = None
     CURRENT_RUN_INDEX = 0
 
-    def __init__(self, logger: AutoDiscLogger=None, **kwargs) -> None:
+    def __init__(self, logger: AutoDiscLogger = None, **kwargs) -> None:
         """
             initialize attributes common to all auto_disc modules
 

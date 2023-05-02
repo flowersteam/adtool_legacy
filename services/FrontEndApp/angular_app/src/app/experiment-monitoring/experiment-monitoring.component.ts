@@ -17,10 +17,9 @@ import { RESTResponse } from '../entities/rest_response';
   styleUrls: ['./experiment-monitoring.component.scss'],
 })
 export class ExperimentMonitoringComponent implements OnInit {
-
   experiment: Experiment | undefined;
   public ellapsed: string | undefined;
-  public progressPercent:string = "0";
+  public progressPercent: string = '0';
   public autoRefreshSeconds: number = 5;
   public allowCancelButton: boolean = true;
 
@@ -29,22 +28,33 @@ export class ExperimentMonitoringComponent implements OnInit {
 
   objectKeys = Object.keys;
   urlSafe: SafeResourceUrl | undefined;
-  
-  constructor(private appDBService: AppDbService, private AutoDiscServerService: AutoDiscServerService, private route: ActivatedRoute,
-              public sanitizer: DomSanitizer, private toasterService: ToasterService, private preparingLogService: PreparingLogService) { }
+
+  constructor(
+    private appDBService: AppDbService,
+    private AutoDiscServerService: AutoDiscServerService,
+    private route: ActivatedRoute,
+    public sanitizer: DomSanitizer,
+    private toasterService: ToasterService,
+    private preparingLogService: PreparingLogService
+  ) {}
 
   ngOnInit() {
     this.resetAutoRefresh();
   }
 
-  resetAutoRefresh(): void{
+  resetAutoRefresh(): void {
     this.updateSubscription?.unsubscribe();
     this.intervalToSubscribe = undefined;
-    if (this.experiment == null || this.experiment?.exp_status == 1 || this.experiment?.exp_status == 4){
+    if (
+      this.experiment == null ||
+      this.experiment?.exp_status == 1 ||
+      this.experiment?.exp_status == 4
+    ) {
       this.refreshExperiment();
-      this.intervalToSubscribe = interval(this.autoRefreshSeconds*1000);
-      this.updateSubscription = this.intervalToSubscribe.subscribe(
-        (val) => { this.refreshExperiment()});
+      this.intervalToSubscribe = interval(this.autoRefreshSeconds * 1000);
+      this.updateSubscription = this.intervalToSubscribe.subscribe((val) => {
+        this.refreshExperiment();
+      });
     }
   }
 
@@ -53,26 +63,37 @@ export class ExperimentMonitoringComponent implements OnInit {
   }
 
   refreshExperiment(): void {
-    this.appDBService.getExperimentById(
-      Number(this.route.snapshot.paramMap.get('id'))
-    )
-    .subscribe(response => {
-      if(response.success && response.data){
-        this.displayPreparingLog(response.data.exp_status);
-        this.experiment = response.data;
-        this.progressPercent = (this.experiment.progress/this.experiment.config.nb_iterations*100).toFixed(1);
-        this.experiment.checkpoints.sort((a, b) => {return a.id - b.id})
-        if(this.experiment.exp_status == 1){
-          this.ellapsed = ((new Date().getTime() - new Date(this.experiment.created_on).getTime()) / 1000 / 60 / 60).toFixed(2);
+    this.appDBService
+      .getExperimentById(Number(this.route.snapshot.paramMap.get('id')))
+      .subscribe((response) => {
+        if (response.success && response.data) {
+          this.displayPreparingLog(response.data.exp_status);
+          this.experiment = response.data;
+          this.progressPercent = (
+            (this.experiment.progress / this.experiment.config.nb_iterations) *
+            100
+          ).toFixed(1);
+          this.experiment.checkpoints.sort((a, b) => {
+            return a.id - b.id;
+          });
+          if (this.experiment.exp_status == 1) {
+            this.ellapsed = (
+              (new Date().getTime() -
+                new Date(this.experiment.created_on).getTime()) /
+              1000 /
+              60 /
+              60
+            ).toFixed(2);
+          } else {
+            this.resetAutoRefresh();
+          }
+        } else {
+          this.toasterService.showError(
+            response.message ?? '',
+            'Error refreshing experiment'
+          );
         }
-        else{
-          this.resetAutoRefresh();
-        }
-      }
-      else {
-        this.toasterService.showError(response.message ?? '', "Error refreshing experiment");
-      }
-    });
+      });
   }
 
   get callObservableStopExperimentMethod() {
@@ -80,49 +101,60 @@ export class ExperimentMonitoringComponent implements OnInit {
   }
 
   stopExperiment(): void {
-    this.callObservableStopExperiment().subscribe(
-      response => {
-        if(!response.success){
-          this.toasterService.showError(response.message ?? '', "Error stopping experiment", {timeOut: 0, extendedTimeOut: 0});
-          this.toasterService.showWarning("Experiment is considered cancelled but may still run, please consider checking host.", "Experiment cancellation has failed", {timeOut: 0, extendedTimeOut: 0})
-        }
-
-        this.refreshExperiment();
-        this.allowCancelButton = true;
+    this.callObservableStopExperiment().subscribe((response) => {
+      if (!response.success) {
+        this.toasterService.showError(
+          response.message ?? '',
+          'Error stopping experiment',
+          { timeOut: 0, extendedTimeOut: 0 }
+        );
+        this.toasterService.showWarning(
+          'Experiment is considered cancelled but may still run, please consider checking host.',
+          'Experiment cancellation has failed',
+          { timeOut: 0, extendedTimeOut: 0 }
+        );
       }
-    )
+
+      this.refreshExperiment();
+      this.allowCancelButton = true;
+    });
   }
 
   callObservableStopExperiment(): Observable<RESTResponse<any>> {
-    if (this.experiment != undefined){
-      this.toasterService.showInfo("Cancelling experiment...", "Cancel");
+    if (this.experiment != undefined) {
+      this.toasterService.showInfo('Cancelling experiment...', 'Cancel');
       this.allowCancelButton = false;
-      console.log("Stoppping experiment with id " + this.experiment.id)
+      console.log('Stoppping experiment with id ' + this.experiment.id);
       return this.AutoDiscServerService.stopExperiment(this.experiment.id);
-    }
-    else{
+    } else {
       return new Observable<any>();
     }
   }
 
-  downloadExperimentConfig(){
-    if(this.experiment){
+  downloadExperimentConfig() {
+    if (this.experiment) {
       let experimentConfig = {
-        "experiment" : {
-          "name" : this.experiment.name,
-          "config" : this.experiment.config,
+        experiment: {
+          name: this.experiment.name,
+          config: this.experiment.config,
         },
-        "system" : this.experiment.systems[0],
-        "explorer": this.experiment.explorers[0],
-        "input_wrappers": this.experiment.input_wrappers,
-        "output_representations":this.experiment.output_representations,
-        "callbacks":[],
-        "logger_handlers":[]
-      }
+        system: this.experiment.systems[0],
+        explorer: this.experiment.explorers[0],
+        input_wrappers: this.experiment.input_wrappers,
+        output_representations: this.experiment.output_representations,
+        callbacks: [],
+        logger_handlers: [],
+      };
       var sJson = JSON.stringify(experimentConfig);
       var element = document.createElement('a');
-      element.setAttribute('href', "data:text/json;charset=UTF-8," + encodeURIComponent(sJson));
-      element.setAttribute('download', experimentConfig.experiment.name+".json");
+      element.setAttribute(
+        'href',
+        'data:text/json;charset=UTF-8,' + encodeURIComponent(sJson)
+      );
+      element.setAttribute(
+        'download',
+        experimentConfig.experiment.name + '.json'
+      );
       element.style.display = 'none';
       document.body.appendChild(element);
       element.click();
@@ -130,17 +162,22 @@ export class ExperimentMonitoringComponent implements OnInit {
     }
   }
 
-  ngOnDestroy(): void{
+  ngOnDestroy(): void {
     this.updateSubscription?.unsubscribe();
-    this.intervalToSubscribe = undefined;    
+    this.intervalToSubscribe = undefined;
   }
 
-  displayPreparingLog(expSatus : number){
-    if(this.experiment == undefined && expSatus == 4){
-      this.preparingLogService.openDialog(Number(this.route.snapshot.paramMap.get('id')));
-    }
-    else if(this.experiment != undefined && this.experiment.exp_status == 4 && expSatus != 4){
-      this.preparingLogService.closeDialog()
+  displayPreparingLog(expSatus: number) {
+    if (this.experiment == undefined && expSatus == 4) {
+      this.preparingLogService.openDialog(
+        Number(this.route.snapshot.paramMap.get('id'))
+      );
+    } else if (
+      this.experiment != undefined &&
+      this.experiment.exp_status == 4 &&
+      expSatus != 4
+    ) {
+      this.preparingLogService.closeDialog();
     }
   }
 }

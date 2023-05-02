@@ -1,11 +1,13 @@
 import typing
 from auto_disc.utils.config_parameters import BaseConfigParameter
 
+
 class DictConfigParameter(BaseConfigParameter):
     '''
     Decorator to add a dict config parameter to a class.
     '''
-    def __init__(self, name:str, default:typing.Dict={}) -> None:
+
+    def __init__(self, name: str, default: typing.Dict = {}) -> None:
         """
             Init a dict config parameter.
 

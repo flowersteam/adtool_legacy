@@ -28,7 +28,8 @@ class AutoDiscLogger(logging.Logger):
             stream_h = logging.StreamHandler()
             stream_h.setLevel(logging.NOTSET)
             logging.getLogger().setLevel(logging.NOTSET)
-            formatter = logging.Formatter('%(name)s - %(levelname)s - SEED %(seed)s - LOG_ID %(id)s - %(message)s')
+            formatter = logging.Formatter(
+                '%(name)s - %(levelname)s - SEED %(seed)s - LOG_ID %(id)s - %(message)s')
             stream_h.setFormatter(formatter)
             stream_h.experiment_id = experiment_id
             self._shared_logger.addHandler(stream_h)
@@ -41,40 +42,47 @@ class AutoDiscLogger(logging.Logger):
             Call the logs method at the debug level and increment the log index to make an unique id for each log 
         """
         self.__index += 1
-        self._shared_logger.debug(*args, {"experiment_id": self.__experiment_id,"seed": self._seed, "id":"{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+        self._shared_logger.debug(*args, {"experiment_id": self.__experiment_id, "seed": self._seed,
+                                  "id": "{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
 
-    def info(self, *args)-> None:
+    def info(self, *args) -> None:
         """
             Call the logs method at the info level and increment the log index to make an unique id for each log 
         """
         self.__index += 1
-        self._shared_logger.info(*args, {"experiment_id": self.__experiment_id,"seed": self._seed, "id":"{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
-    
-    def warning(self, *args)-> None:
+        self._shared_logger.info(*args, {"experiment_id": self.__experiment_id, "seed": self._seed,
+                                 "id": "{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+
+    def warning(self, *args) -> None:
         """
             Call the logs method at the warning level and increment the log index to make an unique id for each log 
         """
         self.__index += 1
-        self._shared_logger.warning(*args, {"experiment_id": self.__experiment_id,"seed": self._seed, "id":"{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+        self._shared_logger.warning(*args, {"experiment_id": self.__experiment_id, "seed": self._seed,
+                                    "id": "{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
 
-    def error(self, *args)-> None:
+    def error(self, *args) -> None:
         """
             Call the logs method at the error level and increment the log index to make an unique id for each log 
         """
         self.__index += 1
-        self._shared_logger.error(*args, {"experiment_id": self.__experiment_id,"seed": self._seed, "id":"{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+        self._shared_logger.error(*args, {"experiment_id": self.__experiment_id, "seed": self._seed,
+                                  "id": "{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
 
-    def critical(self, *args)-> None:
+    def critical(self, *args) -> None:
         """
             Call the logs method at the critical level and increment the log index to make an unique id for each log 
         """
         self.__index += 1
-        self._shared_logger.critical(*args, {"experiment_id": self.__experiment_id,"seed": self._seed, "id":"{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+        self._shared_logger.critical(*args, {"experiment_id": self.__experiment_id, "seed": self._seed,
+                                     "id": "{}_{}_{}".format(self.__experiment_id, self._seed, self.__index)})
+
 
 class ContextFilter(logging.Filter):
     """
     This is a filter which injects contextual information into the log.
     """
+
     def filter(self, record: logging.LogRecord) -> bool:
         """
             Add contextual info to log

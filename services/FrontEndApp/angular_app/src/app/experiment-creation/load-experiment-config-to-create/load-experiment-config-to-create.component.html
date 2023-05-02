@@ -1,22 +1,41 @@
 <div class="card position-fixed z-index-master m-5">
-    <div class="container">
-
-        <div class="card-body">
-            <h5 class="card-title">Export current configuration</h5>
-            <button class="btn btn-light text-secondary mt-1" (click)="this.downloadJson()"><i class="bi bi-download me-1" width="16" height="16"></i>Export</button>
-        </div>
-
-        <div class="card-body">
-            <h5 class="card-title">Import configuration</h5>
-
-            
-            <button class="btn btn-light text-secondary mt-1" type="file" (click)="fileInput.click()">
-                <i class="bi bi-file-earmark-arrow-up" width="16" height="16"></i>
-                From Json file
-                <input #fileInput type="file" id="file-upolad" class="file-input" style="display:none;" (change)="onFileSelected($event)">
-            </button>
-            
-            <button class="btn btn-light text-secondary mt-1" (click)="this.loadPreviousExperiment()"><i class="bi bi-file-arrow-up"></i> From previous experiment</button>
-        </div>
+  <div class="container">
+    <div class="card-body">
+      <h5 class="card-title">Export current configuration</h5>
+      <button
+        class="btn btn-light text-secondary mt-1"
+        (click)="this.downloadJson()"
+      >
+        <i class="bi bi-download me-1" width="16" height="16"></i>Export
+      </button>
     </div>
+
+    <div class="card-body">
+      <h5 class="card-title">Import configuration</h5>
+
+      <button
+        class="btn btn-light text-secondary mt-1"
+        type="file"
+        (click)="fileInput.click()"
+      >
+        <i class="bi bi-file-earmark-arrow-up" width="16" height="16"></i>
+        From Json file
+        <input
+          #fileInput
+          type="file"
+          id="file-upolad"
+          class="file-input"
+          style="display: none"
+          (change)="onFileSelected($event)"
+        />
+      </button>
+
+      <button
+        class="btn btn-light text-secondary mt-1"
+        (click)="this.loadPreviousExperiment()"
+      >
+        <i class="bi bi-file-arrow-up"></i> From previous experiment
+      </button>
+    </div>
+  </div>
 </div>

@@ -1,16 +1,33 @@
-<div class="card card-body row col-12" *ngIf="this.keyList && this.useKeyList && this.checkboxName">
-    <label>
-        {{this.isAllSelect ? "unselect all" : "select all"}}
-        <input name="manegeAllCheckbox" type="checkbox" id="manegeAllCheckbox" [checked]="this.isAllSelect" (click)=this.manegeAllCheckbox()>
+<div
+  class="card card-body row col-12"
+  *ngIf="this.keyList && this.useKeyList && this.checkboxName"
+>
+  <label>
+    {{ this.isAllSelect ? "unselect all" : "select all" }}
+    <input
+      name="manegeAllCheckbox"
+      type="checkbox"
+      id="manegeAllCheckbox"
+      [checked]="this.isAllSelect"
+      (click)="this.manegeAllCheckbox()"
+    />
+  </label>
+
+  <div
+    *ngFor="
+      let in of this.numberUtilsService.nFirstIntegers(this.keyList.length);
+      let i = index
+    "
+    class="col-3"
+  >
+    <label
+      >{{ this.keyList[i].toString() }} :
+      <input
+        [attr.name]="this.checkboxName"
+        type="checkbox"
+        [id]="this.checkboxName + i.toString()"
+        (click)="this.setUseKeyList()"
+      />
     </label>
-    
-    
-    <div *ngFor="let in of this.numberUtilsService.nFirstIntegers(this.keyList.length) ;let i = index" class="col-3">
-        <label>{{this.keyList[i].toString()}} :
-            <input [attr.name]="this.checkboxName" 
-                   type="checkbox" 
-                   [id]="this.checkboxName+i.toString()" 
-                   (click)="this.setUseKeyList()">
-        </label>
-    </div>
+  </div>
 </div>

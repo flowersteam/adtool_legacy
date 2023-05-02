@@ -2,6 +2,7 @@ from auto_disc import BaseAutoDiscModule
 from auto_disc.utils.spaces import DictSpace
 from copy import deepcopy
 
+
 class BaseSystem(BaseAutoDiscModule):
     """The main BaseSystem class. It encapsulates an environment with
     arbitrary behind-the-scenes dynamics. An environment can be

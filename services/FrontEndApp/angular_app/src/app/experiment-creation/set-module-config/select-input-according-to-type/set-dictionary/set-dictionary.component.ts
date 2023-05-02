@@ -1,36 +1,37 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import  * as bootstrap  from 'bootstrap';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-set-dictionary',
   templateUrl: './set-dictionary.component.html',
-  styleUrls: ['./set-dictionary.component.scss']
+  styleUrls: ['./set-dictionary.component.scss'],
 })
 export class SetDictionaryComponent implements OnInit {
-
   @Input() inputValue?: any;
   @Output() inputValueChange = new EventEmitter();
   @Output() triggerParentMethod = new EventEmitter<any>();
 
   parseError = false;
-  constructor() { }
+  constructor() {}
 
   ngOnInit(): void {
     this.initPopover();
   }
 
-  initPopover(){
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+  initPopover() {
+    var popoverTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="popover"]')
+    );
     var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-      return new bootstrap.Popover(popoverTriggerEl)
-    })
+      return new bootstrap.Popover(popoverTriggerEl);
+    });
   }
 
-  parseToDict(){
+  parseToDict() {
     this.inputValue = JSON.parse(this.inputValue);
   }
 
-  parseAndReturnToParent(){
+  parseAndReturnToParent() {
     try {
       let temporaryValue = JSON.parse(this.inputValue);
       this.inputValue = temporaryValue;
@@ -41,9 +42,8 @@ export class SetDictionaryComponent implements OnInit {
     }
   }
 
-  returnToParent(){
+  returnToParent() {
     this.inputValueChange.emit(this.inputValue);
     this.triggerParentMethod.next();
   }
-
 }

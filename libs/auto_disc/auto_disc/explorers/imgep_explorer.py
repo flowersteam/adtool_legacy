@@ -13,21 +13,20 @@ from copy import deepcopy
 from typing import Type, Callable
 from auto_disc.utils.spaces import DictSpace, BoxSpace
 
+
 @StringConfigParameter(name="source_policy_selection_type", possible_values=["optimal"], default="optimal")
 @StringConfigParameter(name="goal_selection_type", possible_values=["random", "specific", "function", None], default="random")
 @IntegerConfigParameter(name="num_of_random_initialization", default=10, min=1)
 @BooleanConfigParameter(name="use_exandable_goal_space", default=True)
-
 class IMGEPExplorer(BaseExplorer):
     """
     Basic explorer that samples goals in a goalspace and uses a policy library to generate parameters to reach the goal.
     """
     CONFIG_DEFINITION = {}
-    
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-    
+
     def initialize(self, input_space: DictSpace, output_space: DictSpace, input_distance_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]) -> None:
         """
             Defines input and output space for the explorer (as well as a distance function for the input space).
@@ -39,8 +38,10 @@ class IMGEPExplorer(BaseExplorer):
         """
         super().initialize(input_space, output_space, input_distance_fn)
         if len(self.input_space) > 1:
-            raise NotImplementedError("Only 1 vector can be accepted as input space")
-        self._outter_input_space_key = list(self.input_space.spaces.keys())[0] # select first key in DictSpace
+            raise NotImplementedError(
+                "Only 1 vector can be accepted as input space")
+        self._outter_input_space_key = list(self.input_space.spaces.keys())[
+            0]  # select first key in DictSpace
 
     def expand_box_goal_space(self, space: BoxSpace, observations: torch.Tensor) -> None:
         """
@@ -50,7 +51,7 @@ class IMGEPExplorer(BaseExplorer):
                 space: current goal space
                 observations: observations/results of previous explorations
         """
-        observations= observations.type(space.dtype)
+        observations = observations.type(space.dtype)
         is_nan_mask = torch.isnan(observations)
         if is_nan_mask.sum() > 0:
             observations[is_nan_mask] = space.low[is_nan_mask]
@@ -69,18 +70,18 @@ class IMGEPExplorer(BaseExplorer):
 
         return target_goal[self._outter_input_space_key]
 
-
     def _get_source_policy_idx(self, target_goal: torch.Tensor, history: list) -> torch.Tensor:
         """
             get idx of source policy which should be mutated
             Args:
                 target_goal: The aim goal
                 history: previous observations
-            
+
             Returns:
                 source_policy_idx: idx int tensor
         """
-        goal_library = torch.stack([h[self._outter_input_space_key] for h in history]) # get goal history as tensor
+        goal_library = torch.stack(
+            [h[self._outter_input_space_key] for h in history])  # get goal history as tensor
 
         if self.config.source_policy_selection_type == 'optimal':
             # get distance to other goals
@@ -115,17 +116,18 @@ class IMGEPExplorer(BaseExplorer):
 
             # get source policy which should be mutated
             history = self._access_history()
-            source_policy_idx = self._get_source_policy_idx(target_goal, history['input'])
+            source_policy_idx = self._get_source_policy_idx(
+                target_goal, history['input'])
             source_policy = history[int(source_policy_idx)]['output']
 
             policy_parameters = self.output_space.mutate(source_policy)
 
         # TODO: Target goal
         # run with parameters
-        run_parameters = deepcopy(policy_parameters) #self._convert_policy_to_run_parameters(policy_parameters)
+        # self._convert_policy_to_run_parameters(policy_parameters)
+        run_parameters = deepcopy(policy_parameters)
 
         return run_parameters
-
 
     def observe(self, parameters: Dict, observations: typing.Dict[str, Tensor]) -> None:
         """
@@ -136,7 +138,8 @@ class IMGEPExplorer(BaseExplorer):
                 observations: observations/results of previous explorations
         """
         if self.config.use_exandable_goal_space:
-            self.expand_box_goal_space(self.input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
+            self.expand_box_goal_space(
+                self.input_space[self._outter_input_space_key], observations[self._outter_input_space_key])
             self.logger.debug("Imgep goal space was extended")
 
     def optimize(self):
@@ -147,4 +150,3 @@ class IMGEPExplorer(BaseExplorer):
 
     def load(self, saved_dict) -> None:
         self.input_space = saved_dict['input_space']
-

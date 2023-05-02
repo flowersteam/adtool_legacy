@@ -8,9 +8,8 @@ describe('setDiscoverySavingKeyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SetDiscoverySavingKeyComponent ]
-    })
-    .compileComponents();
+      declarations: [SetDiscoverySavingKeyComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

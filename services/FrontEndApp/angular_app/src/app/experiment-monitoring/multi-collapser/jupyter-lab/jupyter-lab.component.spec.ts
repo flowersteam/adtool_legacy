@@ -8,9 +8,8 @@ describe('JupyterLabComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ JupyterLabComponent ]
-    })
-    .compileComponents();
+      declarations: [JupyterLabComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

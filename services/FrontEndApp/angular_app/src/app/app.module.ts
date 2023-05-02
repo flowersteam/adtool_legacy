@@ -13,8 +13,8 @@ import { ExperimentMonitoringComponent } from './experiment-monitoring/experimen
 import { ArchiveExperimentComponent } from './experiment-monitoring/archive-experiment/archive-experiment.component';
 import { AboutComponent } from './about/about.component';
 
-import {FilterPipe} from './pipes/filter.pipe';
-import { DragDropModule }from '@angular/cdk/drag-drop';
+import { FilterPipe } from './pipes/filter.pipe';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
@@ -88,9 +88,9 @@ import { ExperimentsListComponent } from './utils/experiments-list/experiments-l
     ToastrModule.forRoot(),
     BrowserAnimationsModule,
     MonacoEditorModule.forRoot(),
-    MatDialogModule
+    MatDialogModule,
   ],
   providers: [SetModuleComponent],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

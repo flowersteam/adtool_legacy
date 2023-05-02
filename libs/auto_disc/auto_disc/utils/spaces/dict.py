@@ -50,8 +50,10 @@ class DictSpace(BaseSpace):
             spaces = Dict(spaces)
         self.spaces = spaces
         for space in spaces.values():
-            assert isinstance(space, BaseSpace), 'Values of the attrdict should be instances of gym.Space'
-        super().__init__(None, None)  # None for shape and dtype, since it'll require special handling
+            assert isinstance(
+                space, BaseSpace), 'Values of the attrdict should be instances of gym.Space'
+        # None for shape and dtype, since it'll require special handling
+        super().__init__(None, None)
 
     def initialize(self, parent_obj: object) -> None:
         """

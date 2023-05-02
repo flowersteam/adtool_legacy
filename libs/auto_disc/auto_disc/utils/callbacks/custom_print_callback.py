@@ -1,5 +1,6 @@
 from auto_disc.utils.callbacks import BaseCallback
 
+
 class CustomPrintCallback(BaseCallback):
     def __init__(self, custom_message_to_print: str, **kwargs) -> None:
         """
@@ -19,4 +20,5 @@ class CustomPrintCallback(BaseCallback):
             seed: current seed number
             kwargs: some usefull paramters (e.g. run_idx)
         """
-        print(self._custom_message_to_print + " / Iteration: {}".format(kwargs["run_idx"]))
+        print(self._custom_message_to_print +
+              " / Iteration: {}".format(kwargs["run_idx"]))

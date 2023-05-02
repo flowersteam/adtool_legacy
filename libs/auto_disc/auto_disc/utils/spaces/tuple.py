@@ -3,6 +3,7 @@ from typing import Tuple
 
 from auto_disc.utils.spaces import BaseSpace
 
+
 class TupleSpace(BaseSpace):
     """
     A tuple (i.e., product) of simpler spaces
@@ -20,7 +21,8 @@ class TupleSpace(BaseSpace):
         """
         self.spaces = spaces
         for space in spaces:
-            assert isinstance(space, BaseSpace), "Elements of the tuple must be instances of leniasearch.Space"
+            assert isinstance(
+                space, BaseSpace), "Elements of the tuple must be instances of leniasearch.Space"
         super(TupleSpace, self).__init__(None, None)
 
     def initialize(self, parent_obj):

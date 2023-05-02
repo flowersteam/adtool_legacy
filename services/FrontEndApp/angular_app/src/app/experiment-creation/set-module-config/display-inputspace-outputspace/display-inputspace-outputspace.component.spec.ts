@@ -8,9 +8,8 @@ describe('DisplayInputspaceOutputspaceComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DisplayInputspaceOutputspaceComponent ]
-    })
-    .compileComponents();
+      declarations: [DisplayInputspaceOutputspaceComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

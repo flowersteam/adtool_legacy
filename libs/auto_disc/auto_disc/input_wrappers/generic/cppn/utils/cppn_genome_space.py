@@ -4,16 +4,17 @@ import neat
 import os
 from copy import deepcopy
 
+
 class CPPNGenomeSpace(BaseSpace):
 
     def __init__(self):
         config_path = os.path.join(os.path.dirname(__file__), '../config.cfg')
         self.neat_config = neat.Config(pytorchneat.selfconnectiongenome.SelfConnectionGenome,
-                                        neat.DefaultReproduction,
-                                        neat.DefaultSpeciesSet,
-                                        neat.DefaultStagnation,
-                                        config_path
-                                        )
+                                       neat.DefaultReproduction,
+                                       neat.DefaultSpeciesSet,
+                                       neat.DefaultStagnation,
+                                       config_path
+                                       )
 
         super().__init__(shape=None, dtype=None)
 
