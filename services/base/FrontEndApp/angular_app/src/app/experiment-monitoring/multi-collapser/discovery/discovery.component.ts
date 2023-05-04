@@ -5,8 +5,8 @@ import { NumberUtilsService } from '../../../services/number-utils.service';
 import { ToasterService } from '../../../services/toaster.service';
 // NOTE: this import path is deprecated
 // https://rxjs.dev/guide/importing
-import { from } from 'rxjs';
-import { map, concatMap, catchError } from 'rxjs/operators';
+import { from, BehaviorSubject } from 'rxjs';
+import { map, concatMap, catchError, take, tap } from 'rxjs/operators';
 import { RESTResponse } from 'src/app/entities/rest_response';
 
 @Component({
@@ -35,8 +35,9 @@ export class DiscoveryComponent implements OnInit {
       },
     },
   };
-
   lastExperimentProgress: number = 0;
+  media$ = new BehaviorSubject(new Map());
+
   constructor(
     private expeDbService: ExpeDbService,
     private toasterService: ToasterService,
@@ -126,6 +127,69 @@ export class DiscoveryComponent implements OnInit {
     this.getDiscovery();
   }
 
+  fetchMedia(): void {
+    // Retrieves the rendered media for each discovery based on the
+    // experiment.config spec of nb_iterations and nb_seeds
+    if (!this.experiment) {
+      return;
+    }
+
+    let filter = this.definedFilters();
+    const discoveries$ = this.expeDbService.getDiscovery(filter).pipe(
+      concatMap((response) => {
+        if (!response.success) {
+          throw new Error('Unsuccessful retrieval of discovery from DB.');
+        }
+        // assert type, as response.success is true
+        const data = response.data as string;
+        // nullish coalescing to fail silently,
+        // although this should never happen
+        // return as an Observable for the next step
+        return from(<any[]>JSON.parse(data) ?? []);
+      }),
+      concatMap((discovery) => {
+        return this.expeDbService
+          .getDiscoveryRenderedOutput(discovery._id)
+          .pipe(
+            map((response) => {
+              if (!response.success) {
+                throw new Error('Unsuccessful retrieval of rendered output.');
+              }
+              const seed: number = parseInt(discovery.seed.toString());
+              const run_idx: number = parseInt(discovery.run_idx.toString());
+              const src_url = URL.createObjectURL(response.data as Blob);
+
+              return { index: [seed, run_idx], src_url };
+            })
+          );
+      })
+    );
+    // we consume the observable now
+    discoveries$.subscribe({
+      next: (media) => {
+        // push the 2D array to the subject, which will asyncPipe to the view
+        // we do this as below to avoid using BehaviorSubject's .getValue,
+        // in case we want to refactor
+        this.media$
+          .pipe(take(1))
+          .subscribe((val) =>
+            this.media$.next(val.set(media.index, media.src_url))
+          );
+      },
+      error: (err) => {
+        this.toasterService.showError(
+          err.toString() ?? '',
+          'Error getting discoveries'
+        );
+        console.log(err);
+      },
+      // for debugging only
+      complete: () => {
+        console.log('Discovery retrieval complete.');
+      },
+    });
+    return;
+  }
   getDiscovery(): void {
     if (!this.experiment) {
       return;

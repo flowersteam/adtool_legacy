@@ -51,43 +51,9 @@
     </div>
   </div>
 
-  <div class="row mt-2 mx-1" *ngIf="this.experiment">
-    <div
-      *ngFor="
-        let i of this.allSeedSelect['seeds'].length > 0
-          ? this.allSeedSelect['seeds']
-          : this.allSeed['seeds']
-      "
-      class="row col-12"
-    >
-      <div
-        *ngFor="let j of this.arrayFilterRunIdx[this.indexDiscoveriesDisplay]"
-        class="col-3"
-      >
-        <div class="card mt-1">
-          <div class="card-body">
-            <h5 class="card-title text-center">
-              {{ "seed:" + i + " | iteration:" + (j + 1) }}
-            </h5>
-            <video
-              autoplay
-              loop
-              id="{{ 'video_' + i + '_' + j }}"
-              class="col-12"
-            >
-              <!-- We use async pipe to unwrap the media$ BehaviorSubject. 
-                We use the ! operator to assert that the inner value is non-null 
-                (it's a BehaviorSubject), then we .get the desired value -->
-              <source
-                type="video/mp4"
-                src="{{ (media$ | async)!.get([i, j]) }}"
-              />
-            </video>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- <div>something here</div> -->
+  <app-discovery-vis [experiment]="this.experiment" [media$]="this.media$">
+  </app-discovery-vis>
 
   <div
     *ngIf="this.arrayFilterRunIdx.length > 1"

@@ -41,6 +41,7 @@ import { FilterComponent } from './experiment-monitoring/multi-collapser/filter/
 import { ChoosePreviousExperimentComponent } from './experiment-creation/load-experiment-config-to-create/choose-previous-experiment/choose-previous-experiment.component';
 import { PreparingLogComponent } from './utils/preparing-log/preparing-log.component';
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
+import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/discovery/discovery-vis/discovery-vis.component';
 
 @NgModule({
   declarations: [
@@ -70,6 +71,7 @@ import { ExperimentsListComponent } from './utils/experiments-list/experiments-l
     ChoosePreviousExperimentComponent,
     PreparingLogComponent,
     ExperimentsListComponent,
+    DiscoveryVisComponent,
   ],
   imports: [
     BrowserModule,
