@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit } from '@angular/core';
 import { Input, Output } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Options } from '@angular-slider/ngx-slider';
 
@@ -15,11 +15,11 @@ export class ReactiveSliderComponent implements OnInit {
   @Output() highValueChange = new EventEmitter();
 
   // Input Observables which are watched
-  @Input() reactiveMax?: Observable<number>;
-  @Input() reactiveMin?: Observable<number>;
+  @Input() reactiveMax?: Observable<number> = new BehaviorSubject(1);
+  @Input() reactiveMin: Observable<number> = new BehaviorSubject(0);
   options: Options = {
     floor: 0,
-    ceil: 0,
+    ceil: 1,
   };
   // by default, set the slider to the Options defaults
   lowValue: number = this.options.floor!;
