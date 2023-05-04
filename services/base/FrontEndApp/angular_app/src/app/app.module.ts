@@ -45,6 +45,7 @@ import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/d
 import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider.component';
+import { SafePipe } from './pipes/safe.pipe';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider
     ExperimentsListComponent,
     DiscoveryVisComponent,
     ReactiveSliderComponent,
+    SafePipe,
   ],
   imports: [
     BrowserModule,
