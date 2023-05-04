@@ -2,8 +2,8 @@ services:
   autodisc-py3.7:
     platform: linux/amd64
     build:
-      context: ../
-      dockerfile: ./dev/Dockerfile
+      context: ../../
+      dockerfile: ./dev/autodisc/Dockerfile
       tags:
         - jesselin/autodisc-py3.7:v1
     tty: true
