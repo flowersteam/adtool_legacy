@@ -29,7 +29,7 @@ export class ReactiveSliderComponent implements OnInit {
 
   ngOnInit(): void {
     // hook observable into options
-    this.reactiveMax?.pipe(tap(console.log)).subscribe((max) => {
+    this.reactiveMax?.subscribe((max) => {
       this.reloadOptions({ ceil: max });
       if (!this.userHasChangedSlider) {
         // only propagate the options change if user has not touched
