@@ -2,6 +2,13 @@
   Range of iterations is {{ experiment?.config?.nb_iterations }} Range of seeds
   is {{ experiment?.config?.nb_seeds }}
 </div>
+<div *ngIf="mediaSrcArray$ | async as mediaSrcArray">
+  <div *ngFor="let mediaSrc of mediaSrcArray">
+    <video autoplay loop>
+      <source type="video/mp4" [src]="mediaSrc.src | safe" />
+    </video>
+  </div>
+</div>
 <!-- <div class="row mt-2 mx-1" *ngIf="this.experiment">
   <div
     *ngFor="
