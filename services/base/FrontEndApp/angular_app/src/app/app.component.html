@@ -1,62 +1,77 @@
-<div
-  id="sidebar"
-  class="d-flex flex-column flex-shrink-0 p-2 text-white bg-primary col-2 position-fixed"
->
-  <div class="position-relative w-100 h-100">
-    <a
-      routerLink="/home"
-      class="d-flex align-items-center text-decoration-none gap-3"
+<nb-layout>
+
+  <nb-layout-header fixed>
+  <!-- Insert header here -->
+  </nb-layout-header>
+
+  <nb-layout-column>
+    <div
+      id="sidebar"
+      class="d-flex flex-column flex-shrink-0 p-2 text-white bg-primary col-2 position-fixed"
     >
-      <img
-        src="../assets/microscope.png"
-        alt="Microscope logo"
-        style="max-width: 50px; max-height: 50px"
-      />
-      <span class="fs-4 text-secondary">{{ title }}</span>
-    </a>
-    <hr />
-    <ul class="nav nav-pills flex-column fs-5">
-      <li class="nav-item mt-2">
+      <div class="position-relative w-100 h-100">
         <a
           routerLink="/home"
-          class="nav-link"
-          [ngClass]="path == '/home' ? 'active' : 'text-secondary'"
-          [attr.aria-current]="path == '/home' ? 'page' : null"
+          class="d-flex align-items-center text-decoration-none gap-3"
         >
-          <i class="bi bi-house-door me-2" width="16" height="16"></i>
-          Home
+          <img
+            src="../assets/microscope.png"
+            alt="Microscope logo"
+            style="max-width: 50px; max-height: 50px"
+          />
+          <span class="fs-4 text-secondary">{{ title }}</span>
         </a>
-      </li>
-      <li class="nav-item mt-2">
-        <a
-          routerLink="/new-experiment"
-          class="nav-link"
-          [ngClass]="path == '/new-experiment' ? 'active' : 'text-secondary'"
-          [attr.aria-current]="path == '/new-experiment' ? 'page' : null"
-        >
-          <i class="bi bi-binoculars me-2" width="16" height="16"></i>
-          New experiment
-        </a>
-      </li>
-    </ul>
-    <div style="position: absolute; bottom: 2%; width: 100%">
-      <hr />
-      <ul class="nav nav-pills flex-column fs-5">
-        <li class="nav-item">
-          <a
-            routerLink="/about"
-            class="nav-link"
-            [ngClass]="path == '/about' ? 'active' : 'text-secondary'"
-            [attr.aria-current]="path == '/about' ? 'page' : null"
-          >
-            <i class="bi bi-info-circle me-2" width="16" height="16"></i>
-            About
-          </a>
-        </li>
-      </ul>
+        <hr />
+        <ul class="nav nav-pills flex-column fs-5">
+          <li class="nav-item mt-2">
+            <a
+              routerLink="/home"
+              class="nav-link"
+              [ngClass]="path == '/home' ? 'active' : 'text-secondary'"
+              [attr.aria-current]="path == '/home' ? 'page' : null"
+            >
+              <i class="bi bi-house-door me-2" width="16" height="16"></i>
+              Home
+            </a>
+          </li>
+          <li class="nav-item mt-2">
+            <a
+              routerLink="/new-experiment"
+              class="nav-link"
+              [ngClass]="path == '/new-experiment' ? 'active' : 'text-secondary'"
+              [attr.aria-current]="path == '/new-experiment' ? 'page' : null"
+            >
+              <i class="bi bi-binoculars me-2" width="16" height="16"></i>
+              New experiment
+            </a>
+          </li>
+        </ul>
+        <div style="position: absolute; bottom: 2%; width: 100%">
+          <hr />
+          <ul class="nav nav-pills flex-column fs-5">
+            <li class="nav-item">
+              <a
+                routerLink="/about"
+                class="nav-link"
+                [ngClass]="path == '/about' ? 'active' : 'text-secondary'"
+                [attr.aria-current]="path == '/about' ? 'page' : null"
+              >
+                <i class="bi bi-info-circle me-2" width="16" height="16"></i>
+                About
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<div class="col-10 float-end">
-  <router-outlet></router-outlet>
-</div>
+    <div class="col-10 float-end">
+      <router-outlet></router-outlet>
+    </div>
+    
+  </nb-layout-column>
+
+  <nb-layout-footer fixed>
+  <!-- Insert footer here -->
+  </nb-layout-footer>
+
+</nb-layout>

@@ -42,6 +42,8 @@ import { ChoosePreviousExperimentComponent } from './experiment-creation/load-ex
 import { PreparingLogComponent } from './utils/preparing-log/preparing-log.component';
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
 import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/discovery/discovery-vis/discovery-vis.component';
+import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider.component';
 
 @NgModule({
@@ -87,6 +89,9 @@ import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider
     ToastrModule.forRoot(),
     BrowserAnimationsModule,
     MatDialogModule,
+    NbThemeModule.forRoot({ name: 'default' }),
+    NbLayoutModule,
+    NbEvaIconsModule,
   ],
   providers: [SetModuleComponent],
   bootstrap: [AppComponent],
