@@ -42,6 +42,7 @@ import { ChoosePreviousExperimentComponent } from './experiment-creation/load-ex
 import { PreparingLogComponent } from './utils/preparing-log/preparing-log.component';
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
 import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/discovery/discovery-vis/discovery-vis.component';
+import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider.component';
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/d
     PreparingLogComponent,
     ExperimentsListComponent,
     DiscoveryVisComponent,
+    ReactiveSliderComponent,
   ],
   imports: [
     BrowserModule,
