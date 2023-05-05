@@ -3,9 +3,8 @@ FROM python:3.7.14-slim
 RUN apt-get update -y && apt-get install -y gcc
 
 # AutoDiscServer dependency resolution
-# NOTE: can only run in the build context provided in docker-compose.yml
-COPY services/AutoDiscServer/flask_app/app.py /usr/src/services/flask_app/app.py
-COPY services/AutoDiscServer/flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
+COPY flask_app/app.py /usr/src/services/flask_app/app.py
+COPY flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
 COPY libs/auto_disc /usr/src/libs/auto_disc
 WORKDIR /usr/src/libs/auto_disc
 RUN pip install -e . 
@@ -18,7 +17,7 @@ RUN pip install -e .
 # nginx setup
 RUN apt-get update -y && apt-get install -y nginx 
 RUN rm /etc/nginx/sites-enabled/default
-COPY services/AutoDiscServer/nginx/nginx.conf /etc/nginx/sites-available/flask
+COPY nginx/nginx.conf /etc/nginx/sites-available/flask
 RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
 
 # dev tools
