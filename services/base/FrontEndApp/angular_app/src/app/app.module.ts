@@ -43,10 +43,12 @@ import { PreparingLogComponent } from './utils/preparing-log/preparing-log.compo
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
 import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/discovery/discovery-vis/discovery-vis.component';
 import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider.component';
 import { SafePipe } from './pipes/safe.pipe';
-
+import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
+import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -78,6 +80,8 @@ import { SafePipe } from './pipes/safe.pipe';
     DiscoveryVisComponent,
     ReactiveSliderComponent,
     SafePipe,
+    SetDictionaryComponent,
+    CodeEditorComponent,
   ],
   imports: [
     BrowserModule,
@@ -94,6 +98,7 @@ import { SafePipe } from './pipes/safe.pipe';
     NbThemeModule.forRoot({ name: 'default' }),
     NbLayoutModule,
     NbEvaIconsModule,
+    MonacoEditorModule.forRoot(),
   ],
   providers: [SetModuleComponent],
   bootstrap: [AppComponent],
