@@ -45,15 +45,15 @@ build-hello:
         - small
     image: docker:stable
     script:
-        - docker build -t "$CI_REGISTRY_IMAGE/hello" .
+        - docker build -t "hello" .
         - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-        - docker push "$CI_REGISTRY_IMAGE/hello"
+        - docker push "hello"
 
 run-hello:
     stage: "stage2"
     tags:
         - ci.inria.fr
         - small
-    image: "$CI_REGISTRY_IMAGE/hello"
+    image: "hello"
     script: 
      - /bin/greeter
