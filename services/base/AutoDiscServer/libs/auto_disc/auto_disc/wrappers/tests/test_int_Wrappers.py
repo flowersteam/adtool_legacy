@@ -1,4 +1,4 @@
-from auto_disc.newarch.wrappers \
+from auto_disc.wrappers \
     import SaveWrapper, WrapperPipeline, TransformWrapper
 from leaf.Leaf import Leaf
 from leaf.locators.Locator import Locator, StatelessLocator, FileLocator

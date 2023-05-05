@@ -1,4 +1,4 @@
-from auto_disc.newarch.systems.ExponentialMixture import ExponentialMixture
+from auto_disc.systems.ExponentialMixture import ExponentialMixture
 import torch
 
 

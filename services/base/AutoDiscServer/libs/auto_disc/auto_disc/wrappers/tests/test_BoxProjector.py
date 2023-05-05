@@ -1,4 +1,4 @@
-from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
+from auto_disc.wrappers.BoxProjector import BoxProjector
 import torch
 
 

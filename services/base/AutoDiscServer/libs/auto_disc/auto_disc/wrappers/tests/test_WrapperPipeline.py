@@ -1,6 +1,6 @@
 from leaf.Leaf import Leaf, StatelessLocator
 from leaf.locators.Locator import FileLocator
-from auto_disc.newarch.wrappers import WrapperPipeline, SaveWrapper
+from auto_disc.wrappers import WrapperPipeline, SaveWrapper
 from leaf.tests.test_leaf import DummyLocator
 from copy import deepcopy
 from typing import Dict

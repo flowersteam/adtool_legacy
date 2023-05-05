@@ -1,19 +1,19 @@
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator, LinearLocator
-from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
-from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
-from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.newarch.maps.lenia.LeniaParameterMap import LeniaParameterMap
-from auto_disc.newarch.wrappers.mutators import (add_gaussian_noise,
+from auto_disc.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc.wrappers.SaveWrapper import SaveWrapper
+from auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.maps.lenia.LeniaParameterMap import LeniaParameterMap
+from auto_disc.wrappers.mutators import (add_gaussian_noise,
                                                  call_mutate_method)
-from auto_disc.utils.config_parameters import (
+from auto_disc_legacy.utils.config_parameters import (
     DecimalConfigParameter,
     IntegerConfigParameter,
     StringConfigParameter,
     DictConfigParameter
 )
-from auto_disc.newarch.maps.lenia.LeniaStatistics import LeniaStatistics
+from auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
 from typing import Dict, Tuple, Callable, List, Any
 import torch
 from copy import deepcopy

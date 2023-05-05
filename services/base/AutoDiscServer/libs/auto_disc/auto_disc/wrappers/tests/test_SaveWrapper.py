@@ -1,4 +1,4 @@
-from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper, BufferStreamer
+from auto_disc.wrappers.SaveWrapper import SaveWrapper, BufferStreamer
 from leaf.locators.LinearBase import Stepper
 from leaf.locators.locators import LinearLocator
 import os

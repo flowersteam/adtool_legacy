@@ -7,7 +7,7 @@ assert sys.version_info.major == 3 and sys.version_info.minor in [6, 7], \
 
 setup(
     name='auto_disc',
-    py_modules=['auto_disc'],
+    py_modules=['auto_disc', 'auto_disc_legacy'],
     version="1.0",
     install_requires=[
         'addict==2.4.0',

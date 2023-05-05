@@ -1,4 +1,4 @@
-from auto_disc.newarch.systems.Lenia import (Lenia,
+from auto_disc.systems.Lenia import (Lenia,
                                              LeniaDynamicalParameters,
                                              LeniaParameters)
 import torch

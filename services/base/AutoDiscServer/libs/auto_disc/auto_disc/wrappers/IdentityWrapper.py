@@ -1,4 +1,4 @@
-from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
+from auto_disc.wrappers.TransformWrapper import TransformWrapper
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
 from typing import Dict, List

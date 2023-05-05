@@ -1,8 +1,8 @@
-from auto_disc.newarch.systems.Lenia import Lenia
-from auto_disc.newarch.wrappers.CPPNWrapper import CPPNWrapper
-from auto_disc.newarch.systems.System import System
+from auto_disc.systems.Lenia import Lenia
+from auto_disc.wrappers.CPPNWrapper import CPPNWrapper
+from auto_disc.systems.System import System
 from leaf.locators.locators import BlobLocator
-from auto_disc.utils.config_parameters import (StringConfigParameter,
+from auto_disc_legacy.utils.config_parameters import (StringConfigParameter,
                                                IntegerConfigParameter)
 from typing import Dict, Union, Optional
 from copy import deepcopy

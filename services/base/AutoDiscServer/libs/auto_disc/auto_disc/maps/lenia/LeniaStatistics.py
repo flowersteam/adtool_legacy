@@ -1,9 +1,9 @@
-from auto_disc.output_representations import BaseOutputRepresentation
-from auto_disc.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
-from auto_disc.utils.spaces.utils import ConfigParameterBinding
-from auto_disc.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
-from auto_disc.utils.misc.torch_utils import roll_n
-from auto_disc.utils.spaces.utils import distance
+from auto_disc_legacy.output_representations import BaseOutputRepresentation
+from auto_disc_legacy.utils.config_parameters import StringConfigParameter, DecimalConfigParameter, IntegerConfigParameter
+from auto_disc_legacy.utils.spaces.utils import ConfigParameterBinding
+from auto_disc_legacy.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
+from auto_disc_legacy.utils.misc.torch_utils import roll_n
+from auto_disc_legacy.utils.spaces.utils import distance
 
 import torch
 from addict import Dict
@@ -11,7 +11,7 @@ import typing
 from copy import deepcopy
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
+from auto_disc.wrappers.BoxProjector import BoxProjector
 
 
 EPS = 0.0001

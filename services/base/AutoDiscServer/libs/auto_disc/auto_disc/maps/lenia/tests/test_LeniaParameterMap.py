@@ -1,8 +1,8 @@
-from auto_disc.newarch.maps.lenia.LeniaParameterMap import (
+from auto_disc.maps.lenia.LeniaParameterMap import (
     LeniaHyperParameters,
     LeniaParameterMap)
-from auto_disc.newarch.maps import NEATParameterMap
-from auto_disc.newarch.systems.Lenia import LeniaDynamicalParameters
+from auto_disc.maps import NEATParameterMap
+from auto_disc.systems.Lenia import LeniaDynamicalParameters
 import torch
 from leaf.locators.locators import BlobLocator
 import os

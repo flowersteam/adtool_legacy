@@ -1,4 +1,4 @@
-from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.maps.UniformParameterMap import UniformParameterMap
 import torch
 import pathlib
 import os

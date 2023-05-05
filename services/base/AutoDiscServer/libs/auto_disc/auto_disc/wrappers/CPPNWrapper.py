@@ -1,4 +1,4 @@
-from auto_disc.input_wrappers.generic.cppn import pytorchneat
+from auto_disc_legacy.input_wrappers.generic.cppn import pytorchneat
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
 from typing import Dict, Any, Tuple, NamedTuple

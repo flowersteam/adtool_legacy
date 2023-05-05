@@ -1,7 +1,7 @@
-from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer
-from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPFactory
-from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.explorers.IMGEPExplorer import IMGEPExplorer
+from auto_disc.explorers.IMGEPExplorer import IMGEPFactory
+from auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.maps.UniformParameterMap import UniformParameterMap
 import torch
 import pathlib
 import os

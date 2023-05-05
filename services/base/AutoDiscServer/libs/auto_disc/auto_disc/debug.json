@@ -16,7 +16,7 @@
         }
     },
     "system": {
-        "name": "auto_disc.newarch.systems.lenia.PythonLenia",
+        "name": "auto_disc.systems.lenia.PythonLenia",
         "config": {
             "SX": 8,
             "SY": 8,
@@ -26,7 +26,7 @@
         }
     },
     "explorer": {
-        "name": "auto_disc.newarch.explorers.imgep_explorer.IMGEPExplorer",
+        "name": "auto_disc.explorers.imgep_explorer.IMGEPExplorer",
         "config": {
             "goal_selection_type": "random",
             "use_exandable_goal_space": true,
@@ -36,7 +36,7 @@
     },
     "input_wrappers": [
         {
-            "name": "auto_disc.newarch.wrappers.cppn_input_wrapper.CPPNInputWrapper",
+            "name": "auto_disc.wrappers.cppn_input_wrapper.CPPNInputWrapper",
             "config": {
                 "n_passes": 2,
                 "wrapped_output_space_key": "init_state"
@@ -46,7 +46,7 @@
     ],
     "output_representations": [
         {
-            "name": "auto_disc.newarch.wrappers.LeniaImageRepresentation",
+            "name": "auto_disc.wrappers.LeniaImageRepresentation",
             "config": {
                 "SX": 8,
                 "SY": 8,

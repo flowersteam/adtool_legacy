@@ -1,5 +1,5 @@
-from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
 import torch
 import pathlib
 import os

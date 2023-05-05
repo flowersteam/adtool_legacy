@@ -1,5 +1,5 @@
-from auto_disc.newarch.wrappers.CPPNWrapper import CPPNWrapper
-from auto_disc.newarch.maps.NEATParameterMap import NEATParameterMap
+from auto_disc.wrappers.CPPNWrapper import CPPNWrapper
+from auto_disc.maps.NEATParameterMap import NEATParameterMap
 import os
 import neat.genome
 from copy import deepcopy

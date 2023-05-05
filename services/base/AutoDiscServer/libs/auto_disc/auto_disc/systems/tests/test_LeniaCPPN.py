@@ -1,5 +1,5 @@
-from auto_disc.newarch.systems.LeniaCPPN import LeniaCPPN
-from auto_disc.newarch.maps.NEATParameterMap import NEATParameterMap
+from auto_disc.systems.LeniaCPPN import LeniaCPPN
+from auto_disc.maps.NEATParameterMap import NEATParameterMap
 import torch
 from copy import deepcopy
 import os

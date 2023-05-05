@@ -2,13 +2,13 @@
 Helper script which allows creation of `ExperimentPipeline`. 
 This file `run.py` can also be run as `__main__`, for example in remote configurations.
 """
-from auto_disc.utils.callbacks import interact_callbacks
+from auto_disc_legacy.utils.callbacks import interact_callbacks
 import torch
 import random
 import numpy as np
-from auto_disc.utils.logger import AutoDiscLogger
-from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
-from auto_disc.newarch.registration import get_cls_from_path
+from auto_disc_legacy.utils.logger import AutoDiscLogger
+from auto_disc.ExperimentPipeline import ExperimentPipeline
+from auto_disc.registration import get_cls_from_path
 import sys
 import argparse
 import json

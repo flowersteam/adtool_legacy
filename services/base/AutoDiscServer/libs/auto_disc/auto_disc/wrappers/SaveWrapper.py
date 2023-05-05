@@ -5,7 +5,7 @@ from leaf.locators.LinearBase import (Stepper,
                                       retrieve_packed_trajectory,
                                       retrieve_trajectory)
 from leaf.locators.locators import LinearLocator
-from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
+from auto_disc.wrappers.TransformWrapper import TransformWrapper
 import os
 
 

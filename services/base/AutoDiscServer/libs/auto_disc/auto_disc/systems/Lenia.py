@@ -3,8 +3,8 @@ from leaf.locators.locators import BlobLocator
 from typing import Dict, Any, Callable, Optional, List, Union
 from copy import deepcopy
 
-from auto_disc.utils.config_parameters import StringConfigParameter, IntegerConfigParameter
-from auto_disc.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch, soft_clip
+from auto_disc_legacy.utils.config_parameters import StringConfigParameter, IntegerConfigParameter
+from auto_disc_legacy.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch, soft_clip
 
 import torch
 import matplotlib

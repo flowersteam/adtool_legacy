@@ -1,8 +1,8 @@
 import io
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
-from auto_disc.newarch.systems.System import System
-from auto_disc.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
+from auto_disc.systems.System import System
+from auto_disc_legacy.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from copy import deepcopy
 from typing import Dict, Tuple
 import torch

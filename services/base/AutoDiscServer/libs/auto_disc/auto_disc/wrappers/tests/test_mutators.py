@@ -1,5 +1,5 @@
 import torch
-from auto_disc.newarch.wrappers.mutators import add_gaussian_noise
+from auto_disc.wrappers.mutators import add_gaussian_noise
 
 
 def test_broadcast():

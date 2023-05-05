@@ -2,9 +2,9 @@ import torch
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator
 from typing import Dict, Tuple
-from auto_disc.newarch.wrappers.SaveWrapper import SaveWrapper
-from auto_disc.newarch.wrappers.BoxProjector import BoxProjector
-from auto_disc.newarch.maps.Map import Map
+from auto_disc.wrappers.SaveWrapper import SaveWrapper
+from auto_disc.wrappers.BoxProjector import BoxProjector
+from auto_disc.maps.Map import Map
 from copy import deepcopy
 
 

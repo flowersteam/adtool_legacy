@@ -1,4 +1,4 @@
-from auto_disc.newarch.wrappers.TransformWrapper import TransformWrapper
+from auto_disc.wrappers.TransformWrapper import TransformWrapper
 from leaf.tests.test_leaf import DummyLocator
 
 

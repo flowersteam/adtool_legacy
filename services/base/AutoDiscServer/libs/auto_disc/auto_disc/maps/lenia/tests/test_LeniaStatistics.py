@@ -1,4 +1,4 @@
-from auto_disc.newarch.maps.lenia.LeniaStatistics import LeniaStatistics
+from auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
 import torch
 from copy import deepcopy
 

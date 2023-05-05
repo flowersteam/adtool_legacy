@@ -5,13 +5,13 @@ from typing import Dict, Callable, List, Any, Tuple
 
 from leaf.Leaf import Leaf, prune_state
 from leaf.locators.locators import BlobLocator
-from auto_disc.input_wrappers import BaseInputWrapper
-from auto_disc.output_representations import BaseOutputRepresentation
-from auto_disc.utils.callbacks.interact_callbacks import Interact
-from auto_disc.systems.base_system import BaseSystem
-from auto_disc.explorers.base_explorer import BaseExplorer
+from auto_disc_legacy.input_wrappers import BaseInputWrapper
+from auto_disc_legacy.output_representations import BaseOutputRepresentation
+from auto_disc_legacy.utils.callbacks.interact_callbacks import Interact
+from auto_disc_legacy.systems.base_system import BaseSystem
+from auto_disc_legacy.explorers.base_explorer import BaseExplorer
 
-from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc.wrappers.IdentityWrapper import IdentityWrapper
 
 from copy import deepcopy
 
@@ -54,7 +54,7 @@ class ExperimentPipeline(Leaf):
     When the system requires an action at each timestep, an `action_policy` must be provided.
 
     In order to monitor the experiment, you must provide **callbacks**, which will be called every time a discovery has been made. 
-    Please see: `auto_disc.utils.callbacks.base_callback.BaseCallback`.
+    Please see: `auto_disc_legacy.utils.callbacks.base_callback.BaseCallback`.
     """
 
     def __init__(self, experiment_id: int = 0, seed: int = 0,

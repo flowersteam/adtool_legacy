@@ -1,11 +1,11 @@
 from typing import Any, Dict, Tuple
 import torch
-from auto_disc.utils.spaces import DictSpace
-from auto_disc.newarch.maps.Map import Map
-from auto_disc.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
-from auto_disc.input_wrappers.generic.cppn import pytorchneat
-from auto_disc.input_wrappers import BaseInputWrapper
-from auto_disc.utils.config_parameters import IntegerConfigParameter
+from auto_disc_legacy.utils.spaces import DictSpace
+from auto_disc.maps.Map import Map
+from auto_disc_legacy.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
+from auto_disc_legacy.input_wrappers.generic.cppn import pytorchneat
+from auto_disc_legacy.input_wrappers import BaseInputWrapper
+from auto_disc_legacy.utils.config_parameters import IntegerConfigParameter
 
 from leaf.Leaf import Leaf
 from leaf.locators.locators import BlobLocator

@@ -1,11 +1,11 @@
-from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
-from auto_disc.newarch.systems.ExponentialMixture import ExponentialMixture
-from auto_disc.newarch.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.newarch.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.newarch.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
-from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
-from auto_disc.utils.logger import AutoDiscLogger
-from auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import SaveLeaf
+from auto_disc.ExperimentPipeline import ExperimentPipeline
+from auto_disc.systems.ExponentialMixture import ExponentialMixture
+from auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
+from auto_disc.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc_legacy.utils.logger import AutoDiscLogger
+from auto_disc_legacy.utils.callbacks.on_save_callbacks.save_leaf_callback import SaveLeaf
 
 import torch
 import pathlib

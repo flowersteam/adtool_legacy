@@ -1,9 +1,9 @@
 import pathlib
 import os
 import shutil
-import auto_disc.newarch.run as run
-from auto_disc.newarch.ExperimentPipeline import ExperimentPipeline
-from utils.callbacks.on_save_finished_callbacks.generate_report_callback import GenerateReport
+import auto_disc.run as run
+from auto_disc.ExperimentPipeline import ExperimentPipeline
+from auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import GenerateReport
 
 
 def setup_function(function):
@@ -25,14 +25,14 @@ def setup_function(function):
                 }
             },
             "system": {
-                "name": "auto_disc.newarch.systems.ExponentialMixture",
+                "name": "auto_disc.systems.ExponentialMixture",
                 "config": {
                     "sequence_max": 1,
                     "sequence_density": 20
                 }
             },
             "explorer": {
-                "name": "auto_disc.newarch.explorers.IMGEPFactory",
+                "name": "auto_disc.explorers.IMGEPFactory",
                 "config": {
                     "equil_time": 2,
                     "param_dim": 1,
@@ -57,7 +57,7 @@ def setup_function(function):
                 }
             },
             "system": {
-                "name": "auto_disc.newarch.systems.LeniaCPPN.LeniaCPPN",
+                "name": "auto_disc.systems.LeniaCPPN.LeniaCPPN",
                 "config": {
                     "SX": 64,
                     "SY": 64,
@@ -67,7 +67,7 @@ def setup_function(function):
                 }
             },
             "explorer": {
-                "name": "auto_disc.newarch.explorers.IMGEPFactory",
+                "name": "auto_disc.explorers.IMGEPFactory",
                 "config": {
                     "mutator": "specific",
                     "equil_time": 1,
@@ -105,7 +105,7 @@ def setup_function(function):
     #         }
     #     },
     #     "system": {
-    #         "name": "auto_disc.newarch.systems.Lenia.Lenia",
+    #         "name": "auto_disc.systems.Lenia.Lenia",
     #         "config": {
     #             "SX": 128,
     #             "SY": 128,
@@ -115,7 +115,7 @@ def setup_function(function):
     #         }
     #     },
     #     "explorer": {
-    #         "name": "auto_disc.newarch.explorers.IMGEPFactory",
+    #         "name": "auto_disc.explorers.IMGEPFactory",
     #         "config": {
     #             "param_dim": 10,
     #             "equil_time": 2,

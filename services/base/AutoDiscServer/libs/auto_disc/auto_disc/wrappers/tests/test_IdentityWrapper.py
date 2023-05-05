@@ -1,5 +1,5 @@
 from typing import Tuple
-from auto_disc.newarch.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc.wrappers.IdentityWrapper import IdentityWrapper
 
 
 def test__init__():

@@ -1,8 +1,8 @@
-from auto_disc.newarch.maps import UniformParameterMap, NEATParameterMap
-from auto_disc.newarch.systems.Lenia import (LeniaParameters,
+from auto_disc.maps import UniformParameterMap, NEATParameterMap
+from auto_disc.systems.Lenia import (LeniaParameters,
                                              LeniaDynamicalParameters)
-from auto_disc.newarch.wrappers.mutators import add_gaussian_noise
-from auto_disc.newarch.wrappers.CPPNWrapper import CPPNWrapper
+from auto_disc.wrappers.mutators import add_gaussian_noise
+from auto_disc.wrappers.CPPNWrapper import CPPNWrapper
 from leaf.locators.locators import BlobLocator
 from leaf.Leaf import Leaf
 import torch
@@ -11,7 +11,7 @@ import dataclasses
 from dataclasses import dataclass, asdict
 from copy import deepcopy
 from functools import partial
-from auto_disc.utils.config_parameters import (
+from auto_disc_legacy.utils.config_parameters import (
     DecimalConfigParameter,
     IntegerConfigParameter,
     StringConfigParameter,
