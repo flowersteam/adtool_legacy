@@ -45,9 +45,10 @@ build-hello:
         - small
     image: docker:stable
     script:
-        - docker build -t "hello" ./testCI
+        - env
+        - docker build -t "$CI_REGISTRY/hello" ./testCI
         - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-        - docker push "hello"
+        - docker push "$CI_REGISTRY/hello"
 
 run-hello:
     stage: "stage2"
