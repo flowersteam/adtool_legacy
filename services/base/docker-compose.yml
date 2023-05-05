@@ -93,8 +93,8 @@ services:
       SSH_CONFIG_FILE: "/root/.ssh/config"
     volumes:
       - "./AutoDiscServer/flask_app:/usr/src/services/flask_app"
-      - "../libs:/usr/src/libs"
-      - "../configs:/usr/src/configs"
+      - "./AutoDiscServer/libs:/usr/src/libs"
+      - "../../configs/:/usr/src/configs"
       - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
       - "$SSH_SOCK_PATH:/ssh-agent"
     links:
