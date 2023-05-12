@@ -159,14 +159,14 @@ class ExperimentsHandler():
             )
 
             return id
-        except Exception as err:
+        except Exception:
             message = "Error when creating experiment: {}".format(
                 traceback.format_exc())
             try:
                 self.remove_experiment(
                     id, CheckpointsStatusEnum.ERROR,
                     ExperimentStatusEnum.ERROR)
-            except Exception as second_err:
+            except Exception:
                 message += "\nError when removing experiment: {}".format(
                     traceback.format_exc())
             finally:
@@ -192,7 +192,7 @@ class ExperimentsHandler():
         # Cancel experiment
             experiment.stop()
 
-        except Exception as err:
+        except Exception:
             message = "Error when removing experiment: {}".format(
                 traceback.format_exc())
             raise Exception(message)
@@ -268,7 +268,7 @@ class ExperimentsHandler():
                 "/experiments?id=eq.{}".format(experiement_id),
                 AppDBMethods.PATCH, param_to_update)
             return response
-        except Exception as err:
+        except Exception:
             message = "Error when update experiment: {}".format(
                 traceback.format_exc())
             raise Exception(message)

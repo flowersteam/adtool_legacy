@@ -1,12 +1,14 @@
 #### Add auto_disc lib to path ####
-from auto_disc import REGISTRATION
-from utils.DB.expe_db_utils import SavableOutputs
-from utils import get_auto_disc_registered_modules_info, get_auto_disc_registered_callbacks, list_profiles, AutoDiscServerConfig
-from experiments import ExperimentsHandler
-from flask_cors import CORS
-from flask import Flask, request, jsonify, make_response
-import sys
 import os
+import sys
+
+from experiments import ExperimentsHandler
+from flask import Flask, jsonify, make_response, request
+from flask_cors import CORS
+from utils import (AutoDiscServerConfig, get_auto_disc_registered_callbacks,
+                   get_auto_disc_registered_modules_info, list_profiles)
+from utils.DB.expe_db_utils import SavableOutputs
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../../../libs/auto_disc"))
 #### Add auto_disc lib to path ####
