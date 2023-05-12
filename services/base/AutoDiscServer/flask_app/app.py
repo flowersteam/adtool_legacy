@@ -2,6 +2,7 @@
 import os
 import sys
 
+from auto_disc import registration
 from experiments import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
@@ -37,8 +38,8 @@ def create_experiment():
         id = experiments_handler.add_experiment(request.json)
         return make_response(jsonify({'ID': id}), 200)
     except Exception as ex:
-        error_message = "Error while creating the new experiment : {}".format(
-            ex)
+        error_message = \
+            "Error while creating the new experiment : {}".format(ex)
         print(error_message)
         return make_response(error_message, 403)
 
@@ -49,8 +50,8 @@ def stop_experiment(id):
         experiments_handler.remove_experiment(id)
         return make_response(jsonify({'ID': id}), 200)
     except Exception as ex:
-        error_message = "Error while deleting experiment with id {}: {}".format(
-            id, ex)
+        error_message = \
+            "Error while deleting experiment with id {}: {}".format(id, ex)
         print(error_message)
         return make_response(error_message, 403)
 
@@ -59,7 +60,7 @@ def stop_experiment(id):
 
 @app.route('/explorers', methods=['GET'])
 def list_explorers():
-    info = get_auto_disc_registered_modules_info(REGISTRATION['explorers'])
+    info = get_auto_disc_registered_modules_info(registration('explorers'))
     return make_response(
         jsonify(info),
         200)
@@ -69,7 +70,7 @@ def list_explorers():
 
 @app.route('/systems', methods=['GET'])
 def list_systems():
-    info = get_auto_disc_registered_modules_info(REGISTRATION['systems'])
+    info = get_auto_disc_registered_modules_info(registration('systems'))
     return make_response(
         jsonify(info),
         200)
@@ -80,7 +81,7 @@ def list_systems():
 @app.route('/output-representations', methods=['GET'])
 def list_output_representations():
     info = get_auto_disc_registered_modules_info(
-        REGISTRATION['output_representations'])
+        registration('output_representations'))
     return make_response(
         jsonify(info),
         200)
@@ -91,7 +92,7 @@ def list_output_representations():
 @app.route('/input-wrappers', methods=['GET'])
 def list_input_wrappers():
     info = get_auto_disc_registered_modules_info(
-        REGISTRATION['input_wrappers'])
+        registration('input_wrappers'))
     return make_response(
         jsonify(info),
         200)
@@ -101,7 +102,7 @@ def list_input_wrappers():
 
 @app.route('/discovery-saving-keys/<explorer_name>', methods=['GET'])
 def list_keys_to_save_on_discovery(explorer_name: str):
-    explorer_class = REGISTRATION["explorers"].get(explorer_name, None)
+    explorer_class = registration("explorers").get(explorer_name, None)
     try:
         info = explorer_class.discovery_spec
         return make_response(jsonify(info), 200)
@@ -116,7 +117,7 @@ def list_keys_to_save_on_discovery(explorer_name: str):
 
 @app.route('/callbacks', methods=['GET'])
 def list_callbacks():
-    info = get_auto_disc_registered_callbacks(REGISTRATION['callbacks'])
+    info = get_auto_disc_registered_callbacks(registration('callbacks'))
     return make_response(
         jsonify(info),
         200)
