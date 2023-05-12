@@ -1,11 +1,12 @@
-import traceback
-from utils.experiment_status_enum import ExperimentStatusEnum
-from experiments import LocalExperiment, RemoteExperiment
-from utils import CheckpointsStatusEnum, reconstruct_parameters, AutoDiscServerConfig
-from utils.DB import AppDBCaller, AppDBMethods
 import datetime
-import traceback
 import threading
+import traceback
+
+from experiments import LocalExperiment, RemoteExperiment
+from utils import (AutoDiscServerConfig, CheckpointsStatusEnum,
+                   reconstruct_parameters)
+from utils.DB import AppDBCaller, AppDBMethods
+from utils.experiment_status_enum import ExperimentStatusEnum
 
 
 class ExperimentsHandler():
@@ -13,13 +14,15 @@ class ExperimentsHandler():
         self._experiments = []
         self.autoDiscServerConfig = AutoDiscServerConfig()
         self._app_db_caller = AppDBCaller("http://{}:{}".format(
-            self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT))
+            self.autoDiscServerConfig.APPDB_CALLER_HOST,
+            self.autoDiscServerConfig.APPDB_CALLER_PORT))
 
 # region utils
     def _get_experiment(self, id):
         # Check if experiment is in the list
         experiment = next(
-            iter(filter(lambda element: element.id == id, self._experiments)), None)
+            iter(filter(lambda element: element.id == id, self._experiments)),
+            None)
         if experiment is None:
             raise Exception("Unknown experiment ID !")
 
@@ -35,13 +38,14 @@ class ExperimentsHandler():
                                          self.on_checkpoint_update_callback,
                                          self.on_experiment_update_callback)
         else:
-            experiment = RemoteExperiment(parameters["experiment"]["config"]["host"],
-                                          id, parameters,
-                                          self.on_progress_callback,
-                                          self.on_checkpoint_needed_callback,
-                                          self.on_checkpoint_finished_callback,
-                                          self.on_checkpoint_update_callback,
-                                          self.on_experiment_update_callback)
+            experiment = RemoteExperiment(
+                parameters["experiment"]["config"]["host"],
+                id, parameters,
+                self.on_progress_callback,
+                self.on_checkpoint_needed_callback,
+                self.on_checkpoint_finished_callback,
+                self.on_checkpoint_update_callback,
+                self.on_experiment_update_callback)
 
         # Add it in the list
         self._experiments.append(experiment)
@@ -70,9 +74,11 @@ class ExperimentsHandler():
     def reload_running_remote_experiments(self):
         import json
 
-        response = self._app_db_caller("/experiments?exp_status=eq.{}".format(ExperimentStatusEnum.RUNNING),
-                                       AppDBMethods.GET, {}
-                                       )
+        response = self._app_db_caller(
+            "/experiments?exp_status=eq.{}".format(
+                ExperimentStatusEnum.RUNNING),
+            AppDBMethods.GET, {}
+        )
         running_experiments = json.loads(response.content)
         for experiment in running_experiments:
             id = experiment['id']
@@ -84,7 +90,8 @@ class ExperimentsHandler():
                     id, traceback.format_exc())
                 try:
                     self.remove_experiment(
-                        id, CheckpointsStatusEnum.ERROR, ExperimentStatusEnum.ERROR)
+                        id, CheckpointsStatusEnum.ERROR,
+                        ExperimentStatusEnum.ERROR)
                 except:
                     message += "\nError when removing experiment: {}".format(
                         traceback.format_exc())
@@ -111,39 +118,45 @@ class ExperimentsHandler():
                 "/experiments", AppDBMethods.POST, request)
             assert r.status_code == 201
             response = self._app_db_caller(
-                "/experiments?select=id&order=id.desc&limit=1", AppDBMethods.GET, {})
+                "/experiments?select=id&order=id.desc&limit=1",
+                AppDBMethods.GET, {})
             id = response.json()[0]["id"]
 
             experiment = self._create_experiment(id, parameters)
 
             prepare_and_start_experiment_async = threading.Thread(
-                target=self.prepare_and_start_experiment_async, args=(experiment,))
+                target=self.prepare_and_start_experiment_async,
+                args=(experiment,))
             prepare_and_start_experiment_async.start()
 
-            self._app_db_caller("/systems", AppDBMethods.POST, {
-                                "experiment_id": id,
-                                "name": parameters['system']['name'],
-                                "config": parameters['system']['config']
-                                })
-            self._app_db_caller("/explorers", AppDBMethods.POST, {
-                                "experiment_id": id,
-                                "name": parameters['explorer']['name'],
-                                "config": parameters['explorer']['config']
-                                })
-            self._app_db_caller("/input_wrappers", AppDBMethods.POST,
-                                [{"experiment_id": id,
-                                    "name": parameters['input_wrappers'][i]['name'],
-                                    "config": parameters['input_wrappers'][i]['config'],
-                                    "index": i}
-                                    for i in range(len(parameters['input_wrappers']))]
-                                )
-            self._app_db_caller("/output_representations", AppDBMethods.POST,
-                                [{"experiment_id": id,
-                                    "name": parameters['output_representations'][i]['name'],
-                                    "config": parameters['output_representations'][i]['config'],
-                                    "index": i}
-                                    for i in range(len(parameters['output_representations']))]
-                                )
+            self._app_db_caller(
+                "/systems", AppDBMethods.POST, {
+                    "experiment_id": id,
+                    "name": parameters['system']['name'],
+                    "config": parameters['system']['config']
+                })
+            self._app_db_caller(
+                "/explorers", AppDBMethods.POST, {
+                    "experiment_id": id,
+                    "name": parameters['explorer']['name'],
+                    "config": parameters['explorer']['config']
+                })
+            self._app_db_caller(
+                "/input_wrappers", AppDBMethods.POST,
+                [{"experiment_id": id,
+                  "name": parameters['input_wrappers'][i]['name'],
+                  "config": parameters['input_wrappers'][i]['config'],
+                  "index": i}
+                 for i in range(len(parameters['input_wrappers']))]
+            )
+            self._app_db_caller(
+                "/output_representations", AppDBMethods.POST,
+                [{"experiment_id": id,
+                  "name": parameters['output_representations'][i]['name'],
+                  "config": parameters['output_representations'][i]['config'],
+                  "index": i}
+                 for i in range(len(parameters['output_representations']))]
+            )
 
             return id
         except Exception as err:
@@ -151,7 +164,8 @@ class ExperimentsHandler():
                 traceback.format_exc())
             try:
                 self.remove_experiment(
-                    id, CheckpointsStatusEnum.ERROR, ExperimentStatusEnum.ERROR)
+                    id, CheckpointsStatusEnum.ERROR,
+                    ExperimentStatusEnum.ERROR)
             except Exception as second_err:
                 message += "\nError when removing experiment: {}".format(
                     traceback.format_exc())
@@ -164,7 +178,9 @@ class ExperimentsHandler():
                                     )
                 raise Exception(message)
 
-    def remove_experiment(self, id, checkpoint_status=CheckpointsStatusEnum.CANCELLED, experiment_status=ExperimentStatusEnum.CANCELLED):
+    def remove_experiment(self, id,
+                          checkpoint_status=CheckpointsStatusEnum.CANCELLED,
+                          experiment_status=ExperimentStatusEnum.CANCELLED):
         try:
             # Get index in list
             experiment = self._get_experiment(id)
@@ -182,14 +198,17 @@ class ExperimentsHandler():
             raise Exception(message)
         finally:
             # Save in DB
-            self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(id, int(CheckpointsStatusEnum.RUNNING)),
-                                AppDBMethods.PATCH,
-                                {"status": int(checkpoint_status)}
-                                )
-            self._app_db_caller("/experiments?id=eq.{}".format(id),
-                                AppDBMethods.PATCH,
-                                {"exp_status": int(experiment_status)}
-                                )
+            self._app_db_caller(
+                "/checkpoints?experiment_id=eq.{}&status=eq.{}".format(
+                    id, int(CheckpointsStatusEnum.RUNNING)),
+                AppDBMethods.PATCH,
+                {"status": int(checkpoint_status)}
+            )
+            self._app_db_caller(
+                "/experiments?id=eq.{}".format(id),
+                AppDBMethods.PATCH,
+                {"exp_status": int(experiment_status)}
+            )
 
     def list_running_experiments(self):
         return [expe.id for expe in self._experiments]
@@ -202,29 +221,36 @@ class ExperimentsHandler():
                             AppDBMethods.PATCH,
                             {"progress": progress})
 
-    def on_checkpoint_needed_callback(self, experiment_id, previous_checkpoint_id):
-        response = self._app_db_caller("/checkpoints",
-                                       AppDBMethods.POST,
-                                       {
-                                           "experiment_id": experiment_id,
-                                           "parent_id": previous_checkpoint_id,
-                                           "status": int(CheckpointsStatusEnum.RUNNING)
-                                       })
+    def on_checkpoint_needed_callback(self, experiment_id,
+                                      previous_checkpoint_id):
         response = self._app_db_caller(
-            f"/checkpoints?experiment_id=eq.{experiment_id}&select=id&order=id.desc&limit=1", AppDBMethods.GET, {})
+            "/checkpoints",
+            AppDBMethods.POST,
+            {
+                "experiment_id": experiment_id,
+                "parent_id": previous_checkpoint_id,
+                "status": int(CheckpointsStatusEnum.RUNNING)
+            })
+        response = self._app_db_caller(
+            f"/checkpoints?experiment_id=eq.{experiment_id}" +
+            "&select=id&order=id.desc&limit=1",
+            AppDBMethods.GET, {})
         id = response.json()[0]["id"]
         return int(id)
 
     def on_checkpoint_finished_callback(self, experiment_id, checkpoint_id):
-        self._app_db_caller("/checkpoints?id=eq.{}&experiment_id=eq.{}".format(checkpoint_id, experiment_id),
-                            AppDBMethods.PATCH,
-                            {"status": int(CheckpointsStatusEnum.DONE)})
+        self._app_db_caller(
+            "/checkpoints?id=eq.{}&experiment_id=eq.{}".format(
+                checkpoint_id, experiment_id),
+            AppDBMethods.PATCH,
+            {"status": int(CheckpointsStatusEnum.DONE)})
 
     def on_checkpoint_update_callback(self, checkpoint_id, error):
         if error:
-            self._app_db_caller("/checkpoints?id=eq.{}".format(checkpoint_id),
-                                AppDBMethods.PATCH,
-                                {"status": int(CheckpointsStatusEnum.ERROR)})
+            self._app_db_caller(
+                "/checkpoints?id=eq.{}".format(checkpoint_id),
+                AppDBMethods.PATCH,
+                {"status": int(CheckpointsStatusEnum.ERROR)})
 
     def on_experiment_update_callback(self, experiement_id, param_to_update):
         """update experiment in db
@@ -239,7 +265,8 @@ class ExperimentsHandler():
         """
         try:
             response = self._app_db_caller(
-                "/experiments?id=eq.{}".format(experiement_id), AppDBMethods.PATCH, param_to_update)
+                "/experiments?id=eq.{}".format(experiement_id),
+                AppDBMethods.PATCH, param_to_update)
             return response
         except Exception as err:
             message = "Error when update experiment: {}".format(
