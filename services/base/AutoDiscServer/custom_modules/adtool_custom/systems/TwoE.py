@@ -22,7 +22,7 @@ class SystemParams(Defaults):
 
 
 @SystemParams.expose_config()
-class ExponentialMixture(System):
+class TwoE(System):
     def __init__(self):
         super().__init__()
         # this module is stateless
