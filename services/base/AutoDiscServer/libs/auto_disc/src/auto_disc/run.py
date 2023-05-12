@@ -2,18 +2,21 @@
 Helper script which allows creation of `ExperimentPipeline`. 
 This file `run.py` can also be run as `__main__`, for example in remote configurations.
 """
-from auto_disc.legacy.utils.callbacks import interact_callbacks
-import torch
-import random
-import numpy as np
-from auto_disc.legacy.utils.logger import AutoDiscLogger
-from auto_disc.ExperimentPipeline import ExperimentPipeline
-from auto_disc.registration import get_cls_from_path
-import sys
 import argparse
 import json
 import os
+import random
+import sys
 from typing import Callable, Dict, List
+
+import numpy as np
+import torch
+
+from auto_disc.ExperimentPipeline import ExperimentPipeline
+from auto_disc.legacy.utils.callbacks import interact_callbacks
+from auto_disc.legacy.utils.logger import AutoDiscLogger
+from auto_disc.utils.leafutils.leafstructs.registration import \
+    get_cls_from_path
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))
