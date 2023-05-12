@@ -1,2 +1,0 @@
-from auto_disc_legacy.utils.logger.ad_logger import AutoDiscLogger
-from auto_disc_legacy.utils.logger.log_levels_enum import LogsLevelEnum

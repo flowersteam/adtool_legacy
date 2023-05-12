@@ -1,1 +1,0 @@
-from auto_disc_legacy.utils.logger.handlers.file_handler import SetFileHandler

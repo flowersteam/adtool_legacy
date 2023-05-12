@@ -1,1 +1,0 @@
-from auto_disc_legacy.output_representations.base_output_representation import BaseOutputRepresentation
