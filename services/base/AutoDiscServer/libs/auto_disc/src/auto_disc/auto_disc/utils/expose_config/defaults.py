@@ -1,6 +1,8 @@
-from typing import Any, List, Callable
-from dataclasses import dataclass, is_dataclass, asdict
-from auto_disc.legacy.utils.expose_config.expose_config import ExposeConfig, _handlers
+from dataclasses import asdict, dataclass, is_dataclass
+from typing import Any, Callable, List
+
+from auto_disc.auto_disc.utils.expose_config.expose_config import (
+    ExposeConfig, _handlers)
 
 
 def defaults(default: Any, domain: List[Any] = None, min: Any = None, max: Any = None):

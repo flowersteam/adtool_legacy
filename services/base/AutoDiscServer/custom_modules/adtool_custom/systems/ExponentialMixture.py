@@ -1,18 +1,27 @@
 import io
-from auto_disc.utils.leaf.Leaf import Leaf
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.auto_disc.systems.System import System
-from auto_disc.legacy.utils.config_parameters import DecimalConfigParameter, IntegerConfigParameter
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Dict, Tuple
-import torch
+
 import matplotlib
 import matplotlib.pyplot as plt
+import torch
+from auto_disc.auto_disc.systems.System import System
+from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
+from auto_disc.legacy.utils.config_parameters import (DecimalConfigParameter,
+                                                      IntegerConfigParameter)
+from auto_disc.utils.leaf.locators.locators import BlobLocator
+
 matplotlib.use('Agg')
 
 
-@DecimalConfigParameter(name="sequence_max", default=100.)
-@IntegerConfigParameter(name="sequence_density", default=100)
+@dataclass
+class SystemParams(Defaults):
+    sequence_max = defaults(100, min=1, max=1000)
+    sequence_density = defaults(100, min=1, max=1000)
+
+
+@SystemParams.expose_config()
 class ExponentialMixture(System):
     def __init__(self):
         super().__init__()
@@ -61,7 +70,8 @@ class ExponentialMixture(System):
 
     def _tensor_map(self, param_tensor: torch.Tensor,
                     sequence_max: float,
-                    sequence_density: int) -> Tuple[torch.Tensor, torch.Tensor]:
+                    sequence_density: int
+                    ) -> Tuple[torch.Tensor, torch.Tensor]:
         x_tensor = torch.linspace(
             start=0., end=sequence_max, steps=sequence_density)
 
