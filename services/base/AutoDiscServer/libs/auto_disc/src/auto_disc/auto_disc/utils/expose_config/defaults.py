@@ -94,7 +94,7 @@ class Defaults:
 
                         # remove the leading "." from the parent
                         # in a recursive call
-                        if len(parent) > 0 and parent[0] is ".":
+                        if len(parent) > 0 and parent[0] == ".":
                             parent = parent[1:]
 
                         config_dict[k]["parent"] = parent
