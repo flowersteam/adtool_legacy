@@ -1,16 +1,19 @@
-from auto_disc.ExperimentPipeline import ExperimentPipeline
-from auto_disc.auto_disc.systems.ExponentialMixture import ExponentialMixture
-from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
-from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
-from auto_disc.legacy.utils.logger import AutoDiscLogger
-from auto_disc.legacy.utils.callbacks.on_save_callbacks.save_leaf_callback import SaveLeaf
+import os
+import pathlib
+import shutil
 
 import torch
-import pathlib
-import os
-import shutil
+
+from auto_disc.auto_disc.explorers.IMGEPExplorer import (IMGEPExplorer,
+                                                         IMGEPFactory)
+from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.auto_disc.systems.ExponentialMixture import ExponentialMixture
+from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
+from auto_disc.ExperimentPipeline import ExperimentPipeline
+from auto_disc.legacy.utils.callbacks.on_save_callbacks.save_leaf_callback import \
+    SaveLeaf
+from auto_disc.legacy.utils.logger import AutoDiscLogger
 
 
 def setup_function(function):
@@ -46,7 +49,7 @@ def test___init__():
     system_input_key = "params"
     system_output_key = "output"
 
-    system = ExponentialMixture()
+    system = ExponentialMixture(sequence_max=10, sequence_density=10)
     mean_map = MeanBehaviorMap(premap_key=system_output_key)
     param_map = UniformParameterMap(premap_key=system_input_key,
                                     tensor_low=torch.tensor([0., 0., 0.]),

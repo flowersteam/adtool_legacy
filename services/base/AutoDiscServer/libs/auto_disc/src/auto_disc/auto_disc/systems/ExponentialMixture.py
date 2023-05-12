@@ -18,26 +18,29 @@ matplotlib.use('Agg')
 
 @dataclass
 class SystemParams(Defaults):
-    sequence_max = defaults(100, min=1, max=1000)
+    sequence_max = defaults(100., min=1., max=1000.)
     sequence_density = defaults(100, min=1, max=1000)
 
 
 @SystemParams.expose_config()
 class ExponentialMixture(System):
-    def __init__(self):
+    def __init__(self, sequence_max, sequence_density):
         super().__init__()
+        self.sequence_max = sequence_max
+        self.sequence_density = sequence_density
+
         # this module is stateless
         self.locator = BlobLocator()
 
     def map(self, input: Dict) -> Dict:
         intermed_dict = deepcopy(input)
 
-        sequence_max = self.config["sequence_max"]
-        sequence_density = self.config["sequence_density"]
         param_tensor = self._process_dict(input)
 
         _, y_tensor = \
-            self._tensor_map(param_tensor, sequence_max, sequence_density)
+            self._tensor_map(
+                param_tensor, self.sequence_max,
+                self.sequence_density)
 
         intermed_dict["output"] = y_tensor
 
@@ -47,11 +50,9 @@ class ExponentialMixture(System):
         """
         Renders an image given a dict with the `output` key and relevant config
         """
-        sequence_max = self.config["sequence_max"]
-        sequence_density = self.config["sequence_density"]
-
         x_tensor = \
-            torch.linspace(start=0., end=sequence_max, steps=sequence_density)
+            torch.linspace(start=0., end=self.sequence_max,
+                           steps=self.sequence_density)
         y_tensor = input_dict["output"]
 
         output_binary = io.BytesIO()

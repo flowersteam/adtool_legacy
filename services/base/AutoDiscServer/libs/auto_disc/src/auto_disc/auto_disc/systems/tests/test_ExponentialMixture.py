@@ -1,15 +1,12 @@
-from auto_disc.auto_disc.systems.ExponentialMixture import ExponentialMixture
 import torch
+
+from auto_disc.auto_disc.systems.ExponentialMixture import ExponentialMixture
 
 
 def test_init():
-    system = ExponentialMixture(sequence_max=13, sequence_density=1313)
-    assert system.config["sequence_max"] == 13.
-    assert system.config["sequence_density"] == 1313
-
-    system = ExponentialMixture()
-    assert system.config["sequence_max"] == 100.
-    assert system.config["sequence_density"] == 100
+    system = ExponentialMixture(sequence_max=13., sequence_density=1313)
+    assert system.sequence_max == 13.
+    assert system.sequence_density == 1313
 
 
 def test_map():

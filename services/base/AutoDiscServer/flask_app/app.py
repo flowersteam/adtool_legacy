@@ -2,7 +2,7 @@
 import os
 import sys
 
-from auto_disc import registration
+from auto_disc.utils.leafutils.leafstructs.registration import registration
 from experiments import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS

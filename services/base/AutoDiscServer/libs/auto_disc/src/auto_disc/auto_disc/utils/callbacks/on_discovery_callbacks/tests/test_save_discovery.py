@@ -1,11 +1,14 @@
-import auto_disc.auto_disc
-from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import _CustomJSONEncoder, _JSONEncoderFactory
-import torch
-import numpy
-from auto_disc.utils.leaf.Leaf import Leaf
-import auto_disc.utils.leaf
 import json
 import unittest.mock as mock
+
+import numpy
+import torch
+
+import auto_disc.auto_disc
+import auto_disc.utils.leaf
+from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
+    _CustomJSONEncoder, _JSONEncoderFactory)
+from auto_disc.utils.leaf.Leaf import Leaf
 
 
 def test__JSONEncoderFactory():
@@ -43,10 +46,11 @@ def test__CustomJSONEncoder(mocker):
 
     # catch Leaf objects
     obj = Leaf()
-    mocker.patch("leaf.Leaf.Leaf.save_leaf", return_value="dummy_uid")
+    mocker.patch("auto_disc.utils.leaf.Leaf.Leaf.save_leaf",
+                 return_value="dummy_uid")
     encoded = encoder.default(obj)
     assert encoded == "dummy_uid"
-    assert leaf.Leaf.Leaf.save_leaf.call_count == 1
+    assert auto_disc.utils.leaf.Leaf.Leaf.save_leaf.call_count == 1
 
     # catch python objects not serializable by JSON
     obj = object()

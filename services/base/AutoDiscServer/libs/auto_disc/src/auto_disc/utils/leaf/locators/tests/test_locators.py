@@ -12,7 +12,7 @@ def test_BlobLocator_store_FileLocator(mocker):
     locator = BlobLocator(resource_uri=resource_uri)
 
     # use pytest to mock the internal locator.store() method
-    mocker.patch("leaf.locators.Locator.FileLocator.store",
+    mocker.patch("auto_disc.utils.leaf.locators.Locator.FileLocator.store",
                  return_value="uid_test")
 
     uid = locator.store(bin)
@@ -27,7 +27,7 @@ def test_BlobLocator_store_ExpeDBLocator(mocker):
 
     # use pytest to mock the internal locator.store() method
     mocker.patch(
-        "leafutils.leafintegrations.expedb_locators.ExpeDBLocator.store",
+        "auto_disc.utils.leafutils.leafintegrations.expedb_locators.ExpeDBLocator.store",
         return_value="uid_test")
 
     uid = locator.store(bin)
@@ -41,7 +41,7 @@ def test_BlobLocator_retrieve_FileLocator(mocker):
     locator = BlobLocator(resource_uri=resource_uri)
 
     # use pytest to mock the internal locator.retrieve() method
-    mocker.patch("leaf.locators.Locator.FileLocator.retrieve",
+    mocker.patch("auto_disc.utils.leaf.locators.Locator.FileLocator.retrieve",
                  return_value=bin)
 
     retrieved_bin = locator.retrieve("uid_test")
@@ -56,7 +56,7 @@ def test_BlobLocator_retrieve_ExpeDBLocator(mocker):
 
     # use pytest to mock the internal locator.retrieve() method
     mocker.patch(
-        "leafutils.leafintegrations.expedb_locators.ExpeDBLocator.retrieve",
+        "auto_disc.utils.leafutils.leafintegrations.expedb_locators.ExpeDBLocator.retrieve",
         return_value=bin)
 
     retrieved_bin = locator.retrieve("uid_test")
@@ -81,7 +81,7 @@ def test_LinearLocator_store_FileLinearLocator(mocker):
 
     # mock the LinearLocator store method
     mocker.patch(
-        "leaf.locators.LinearBase.FileLinearLocator.store", new=mock_store)
+        "auto_disc.utils.leaf.locators.LinearBase.FileLinearLocator.store", new=mock_store)
 
     uid = locator.store(bin)
 
@@ -100,8 +100,9 @@ def test_LinearLocator_store_ExpeDBLinearLocator(mocker):
         return "uid_test"
 
     # mock the LinearLocator store method
-    mocker.patch("leafutils.leafintegrations.expedb_locators.ExpeDBLinearLocator.store",
-                 new=mock_store)
+    mocker.patch(
+        "auto_disc.utils.leafutils.leafintegrations.expedb_locators.ExpeDBLinearLocator.store",
+        new=mock_store)
 
     uid = locator.store(bin)
 
@@ -122,8 +123,9 @@ def test_LinearLocator_retrieve_FileLinearLocator(mocker):
             raise Exception("unreachable")
 
     # mock the LinearLocator retrieve method
-    mocker.patch("leaf.locators.LinearBase.FileLinearLocator.retrieve",
-                 new=mock_retrieve)
+    mocker.patch(
+        "auto_disc.utils.leaf.locators.LinearBase.FileLinearLocator.retrieve",
+        new=mock_retrieve)
 
     retrieved_bin = locator.retrieve("uid_test")
     assert retrieved_bin == bin
@@ -143,8 +145,9 @@ def test_LinearLocator_retrieve_ExpeDBLinearLocator(mocker):
             raise Exception("unreachable")
 
     # mock the LinearLocator retrieve method
-    mocker.patch("leafutils.leafintegrations.expedb_locators.ExpeDBLinearLocator.retrieve",
-                 new=mock_retrieve)
+    mocker.patch(
+        "auto_disc.utils.leafutils.leafintegrations.expedb_locators.ExpeDBLinearLocator.retrieve",
+        new=mock_retrieve)
 
     retrieved_bin = locator.retrieve("uid_test")
     assert retrieved_bin == bin

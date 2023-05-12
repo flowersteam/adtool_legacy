@@ -1,6 +1,7 @@
-from auto_disc.utils.leaf.locators.Locator import FileLocator
 import os
 import pathlib
+
+from auto_disc.utils.leaf.locators.Locator import FileLocator
 
 
 def test_FileLocator___init__():
@@ -40,3 +41,4 @@ def test_FileLocator_retrieve():
     assert bin == bytestring
 
     os.remove(save_path)
+    os.rmdir(save_dir)
