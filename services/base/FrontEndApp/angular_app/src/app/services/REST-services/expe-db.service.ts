@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
+import { Experiment } from 'src/app/entities/experiment';
 
 import {
   RESTResponse,
@@ -56,6 +57,35 @@ export class ExpeDbService {
           return of(httpErrorResponseToRESTResponse<any>(response));
         })
       );
+  }
+
+  getDiscoveryForExperiment(
+    experiment: Experiment
+  ): Observable<RESTResponse<string>> {
+    // extract necessary data from experiment
+    const id = experiment.id;
+    const nb_iterations = experiment.config.nb_iterations;
+    const nb_seeds = experiment.config.nb_seeds;
+
+    // create ranges for iteration and seed
+    const iterations_array = [...Array(nb_iterations).keys()];
+    const seeds_array = [...Array(nb_seeds).keys()];
+
+    // construct filter string
+    let filter = '{';
+    filter +=
+      '"$and":[{"experiment_id":' +
+      id.toString() +
+      '}, {"run_idx":{"$in":' +
+      JSON.stringify(iterations_array) +
+      '}}';
+    if (nb_seeds > 1) {
+      filter += ', {"seed":{"$in":' + JSON.stringify(seeds_array) + '}}';
+    }
+    filter += ']}';
+
+    // call lower-level API
+    return this.getDiscovery(filter);
   }
 
   getDiscovery(filter: string): Observable<RESTResponse<string>> {

@@ -47,7 +47,7 @@ class ExperimentPipeline(Leaf):
     """
     Pipeline of an automated discovery experiment.
 
-    An experiment is at least constituted of a system and an explorer. 
+    An experiment is at least constituted of a system and an explorer.
 
     Additionally, input wrappers and output representations can be added and composed.
 
@@ -187,7 +187,7 @@ class ExperimentPipeline(Leaf):
                             del discovery_to_save[key]
 
                 # TODO: pass the rendered output more easily
-                discovery_to_save["rendered_output"] = rendered_output
+                # discovery_to_save["rendered_output"] = rendered_output
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
@@ -203,9 +203,8 @@ class ExperimentPipeline(Leaf):
                 )
 
                 self.logger.info(
-                    "[DISCOVERY] - New discovery from experiment {} with seed {}"
-                    .format(self.experiment_id, self.seed)
-                )
+                    "[DISCOVERY] - New discovery from experiment {} with seed {}" .format(
+                        self.experiment_id, self.seed))
 
                 # avoids divide by zero
                 run_idx_start_from_one = self.run_idx + 1

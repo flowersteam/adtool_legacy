@@ -36,6 +36,7 @@ export class DiscoveryComponent implements OnInit {
     },
   };
   lastExperimentProgress: number = 0;
+  dynMediaArray$ = new BehaviorSubject([] as Media[]);
   mediaArray$ = new BehaviorSubject([] as Media[]);
 
   constructor(
@@ -44,7 +45,9 @@ export class DiscoveryComponent implements OnInit {
     public numberUtilsService: NumberUtilsService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.fetchDiscoveries();
+  }
 
   ngOnChanges(): void {
     this.refreshDiscoveries();
@@ -127,6 +130,67 @@ export class DiscoveryComponent implements OnInit {
     this.getDiscovery();
   }
 
+  fetchDiscoveries(): void {
+    if (!this.experiment) {
+      return;
+    }
+
+    const discoveries$ = this.expeDbService
+      .getDiscoveryForExperiment(this.experiment)
+      .pipe(
+        concatMap((response) => {
+          if (!response.success) {
+            throw new Error('Unsuccessful retrieval of discovery from DB.');
+          }
+          // assert type, as response.success is true
+          const data = response.data as string;
+          // nullish coalescing to fail silently,
+          // although this should never happen
+          // return as an Observable for the next step
+          return from(<any[]>JSON.parse(data) ?? []);
+        }),
+        concatMap((discovery) => {
+          return this.expeDbService
+            .getDiscoveryRenderedOutput(discovery._id)
+            .pipe(
+              map((response) => {
+                if (!response.success) {
+                  throw new Error('Unsuccessful retrieval of rendered output.');
+                }
+                const seed: number = parseInt(discovery.seed.toString());
+                const iteration: number = parseInt(
+                  discovery.run_idx.toString()
+                );
+                const content: Blob = response.data as Blob;
+
+                return { seed, iteration, content } as Media;
+              })
+            );
+        })
+      );
+    // we consume the observable now
+    discoveries$.subscribe({
+      next: (media) => {
+        this.mediaArray$.next(this.mediaArray$.value.concat(media));
+      },
+      error: (err) => {
+        this.toasterService.showError(
+          err.toString() ?? '',
+          'Error getting discoveries'
+        );
+        console.log(err);
+      },
+      // for debugging only
+      complete: () => {
+        console.log('Discovery retrieval complete.');
+      },
+    });
+    return;
+  }
+
+  /**
+   * @deprecated
+   */
   getDiscovery(): void {
     if (!this.experiment) {
       return;
@@ -165,7 +229,7 @@ export class DiscoveryComponent implements OnInit {
     // we consume the observable now
     discoveries$.subscribe({
       next: (media) => {
-        this.mediaArray$.next(this.mediaArray$.value.concat(media));
+        this.dynMediaArray$.next(this.dynMediaArray$.value.concat(media));
       },
       error: (err) => {
         this.toasterService.showError(
