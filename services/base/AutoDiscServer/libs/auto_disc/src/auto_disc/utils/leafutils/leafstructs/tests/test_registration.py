@@ -20,8 +20,7 @@ def test_get_path_from_cls():
 
 
 def test_get_custom_modules():
-    assert get_custom_modules("systems") == \
-        {"TwoE": "adtool_custom.systems.TwoE"}
+    assert get_custom_modules("systems") == {}
     assert get_custom_modules("explorers") == {}
     assert get_custom_modules("maps") == {}
     assert get_custom_modules("callbacks") == {}
@@ -48,4 +47,4 @@ def test_get_default_modules():
 def test_get_modules():
     assert set(get_modules("systems").keys()) == \
         set(["ExponentialMixture", "PythonLenia",
-             "LeniaCPPN", "TwoE"])
+             "LeniaCPPN"])
