@@ -16,14 +16,14 @@ class UniformParameterMap(Map):
 
     def __init__(self,
                  premap_key: str = "params",
-                 tensor_low: Union[torch.Tensor, List[float]] = torch.tensor([
-                                                                             0.]),
-                 tensor_high: Union[torch.Tensor, List[float]] = torch.tensor([
-                                                                              0.]),
-                 tensor_bound_low: Union[torch.Tensor, List[float]] = torch.tensor([
-                                                                                   float('-inf')]),
-                 tensor_bound_high: Union[torch.Tensor, List[float]] = torch.tensor([
-                                                                                    float('inf')]),
+                 tensor_low: Union[torch.Tensor,
+                                   List[float]] = torch.tensor([0.]),
+                 tensor_high: Union[torch.Tensor,
+                                    List[float]] = torch.tensor([0.]),
+                 tensor_bound_low: Union[torch.Tensor,
+                                         List[float]] = torch.tensor([float('-inf')]),
+                 tensor_bound_high: Union[torch.Tensor,
+                                          List[float]] = torch.tensor([float('inf')]),
                  override_existing: bool = True,
                  ):
 

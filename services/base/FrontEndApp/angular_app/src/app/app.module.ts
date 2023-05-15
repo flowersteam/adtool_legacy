@@ -38,13 +38,17 @@ import { ExperimentConfigDetailsComponent } from './experiment-monitoring/experi
 import { MultiCollapserComponent } from './experiment-monitoring/multi-collapser/multi-collapser.component';
 import { CheckboxListComponent } from './experiment-monitoring/checkbox-list/checkbox-list.component';
 import { FilterComponent } from './experiment-monitoring/multi-collapser/filter/filter.component';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
-import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
 import { ChoosePreviousExperimentComponent } from './experiment-creation/load-experiment-config-to-create/choose-previous-experiment/choose-previous-experiment.component';
 import { PreparingLogComponent } from './utils/preparing-log/preparing-log.component';
 import { ExperimentsListComponent } from './utils/experiments-list/experiments-list.component';
-
+import { DiscoveryVisComponent } from './experiment-monitoring/multi-collapser/discovery/discovery-vis/discovery-vis.component';
+import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
+import { ReactiveSliderComponent } from './utils/reactive-slider/reactive-slider.component';
+import { SafePipe } from './pipes/safe.pipe';
+import { SetDictionaryComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/set-dictionary.component';
+import { CodeEditorComponent } from './experiment-creation/set-module-config/select-input-according-to-type/set-dictionary/code-editor/code-editor.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -70,11 +74,14 @@ import { ExperimentsListComponent } from './utils/experiments-list/experiments-l
     MultiCollapserComponent,
     CheckboxListComponent,
     FilterComponent,
-    CodeEditorComponent,
-    SetDictionaryComponent,
     ChoosePreviousExperimentComponent,
     PreparingLogComponent,
     ExperimentsListComponent,
+    DiscoveryVisComponent,
+    ReactiveSliderComponent,
+    SafePipe,
+    SetDictionaryComponent,
+    CodeEditorComponent,
   ],
   imports: [
     BrowserModule,
@@ -87,8 +94,11 @@ import { ExperimentsListComponent } from './utils/experiments-list/experiments-l
     NgxSliderModule,
     ToastrModule.forRoot(),
     BrowserAnimationsModule,
-    MonacoEditorModule.forRoot(),
     MatDialogModule,
+    NbThemeModule.forRoot({ name: 'default' }),
+    NbLayoutModule,
+    NbEvaIconsModule,
+    MonacoEditorModule.forRoot(),
   ],
   providers: [SetModuleComponent],
   bootstrap: [AppComponent],

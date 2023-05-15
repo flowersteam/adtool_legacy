@@ -4,7 +4,9 @@ from typing import get_type_hints, Union
 
 
 def _parse_bool(val: Union[str, bool]) -> bool:  # pylint: disable=E1136
-    return val if type(val) == bool else val.lower() in ['true', 'yes', '1']
+    return val if isinstance(
+        val, bool) else val.lower() in [
+        'true', 'yes', '1']
 
 
 class ExpeDBConfigError(Exception):
@@ -36,10 +38,7 @@ class ExpeDBConfig():
                     value = var_type(env.get(field, default_value))
 
                 self.__setattr__(field, value)
-            except:
-                raise ExpeDBConfigError('Unable to cast value of "{}" to type "{}" for "{}" field'.format(
-                    env[field],
-                    var_type,
-                    field
-                )
-                )
+            except BaseException:
+                raise ExpeDBConfigError(
+                    'Unable to cast value of "{}" to type "{}" for "{}" field'.format(
+                        env[field], var_type, field))
