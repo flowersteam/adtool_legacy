@@ -1,0 +1,106 @@
+# docker-compose.yml
+version: "3"
+services:
+  ##### FRONTEND APP #####
+  app:
+    extends:
+      file: ../base/docker-compose.yml
+      service: app
+    image: ${DOCKER_REGISTRY-adtool}/prod-app
+  ##### GATEWAY #####
+  gateway:
+    extends:
+      file: ../base/docker-compose.yml
+      service: gateway
+    image: ${DOCKER_REGISTRY-adtool}/prod-gateway
+  ##### APP DB #####
+  app-db:
+    extends:
+      file: ../base/docker-compose.yml
+      service: app-db
+    image: ${DOCKER_REGISTRY-adtool}/prod-app-db
+  app-db-api:
+    extends:
+      file: ../base/docker-compose.yml
+      service: app-db-api
+    image: ${DOCKER_REGISTRY-adtool}/prod-app-db-api
+  ##### EXPE DB #####
+  expe-db:
+    extends:
+      file: ../base/docker-compose.yml
+      service: expe-db
+    image: ${DOCKER_REGISTRY-adtool}/prod-expe-db
+  expe-db-api:
+    extends:
+      file: ../base/docker-compose.yml
+      service: expe-db-api
+    image: ${DOCKER_REGISTRY-adtool}/prod-expe-db-api
+  ##### AUTODISC SERVER #####
+  autodisc-server:
+    extends:
+      file: ../base/docker-compose.yml
+      service: autodisc-server
+    image: ${DOCKER_REGISTRY-adtool}/prod-autodisc-server
+  ##### JUPYTER LAB #####
+  jupyter:
+    extends:
+      file: ../base/docker-compose.yml
+      service: jupyter
+    image: ${DOCKER_REGISTRY-adtool}/prod-jupyter
+
+  # ##### MONITORING TOOLS #####
+  # portainer:
+  #   image: portainer/portainer-ce:2.11.1
+  #   profiles:
+  #     - monitoring
+  #   ports:
+  #     - "$PORTAINER_PORT:8000"
+  #     - "$PORTAINER_HTTPS_PORT:9443"
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  #     - "./Utils/portainer_data:/data"
+  #   deploy:
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 10s
+  # app-db-monitoring:
+  #   image: dpage/pgadmin4
+  #   profiles:
+  #     - monitoring
+  #   ports:
+  #     - "$PGADMIN_PORT:5050"
+  #   environment:
+  #     PGADMIN_LISTEN_PORT: 5050
+  #     PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+  #     PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
+  #   volumes:
+  #     - "./Utils/pgadmin_mapping/servers.json:/pgadmin4/servers.json"
+  #   depends_on:
+  #     - app-db
+  #   deploy:
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 10s
+  # mongo-express:
+  #   image: mongo-express
+  #   profiles:
+  #     - monitoring
+  #   ports:
+  #     - "$MONGO_EXPRESS_PORT:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_SERVER: expe-db
+  #     ME_CONFIG_MONGODB_PORT: 27017
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+  #   depends_on:
+  #     - expe-db
+  #   deploy:
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 10s
