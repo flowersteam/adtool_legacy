@@ -1,17 +1,20 @@
-from time import sleep
-from experiments import BaseExperiment
-from utils.DB import AppDBLoggerHandler, AppDBMethods
-from utils.DB.expe_db_utils import serialize_autodisc_space, is_json_serializable
-from utils import ExperimentStatusEnum, CheckpointsStatusEnum
-from auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb import SaveLeafExpeDB
-from auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb import SaveDiscoveryInExpeDB
-
-from auto_disc.run import create, start as start_pipeline
-
-import threading
-import pickle
 import logging
+import pickle
+import threading
 from copy import copy
+from time import sleep
+
+from auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb import \
+    SaveDiscoveryInExpeDB
+from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb import \
+    SaveLeafExpeDB
+from auto_disc.run import create
+from auto_disc.run import start as start_pipeline
+from experiments import BaseExperiment
+from utils import CheckpointsStatusEnum, ExperimentStatusEnum
+from utils.DB import AppDBLoggerHandler, AppDBMethods
+from utils.DB.expe_db_utils import (is_json_serializable,
+                                    serialize_autodisc_space)
 
 
 class LocalExperiment(BaseExperiment):
