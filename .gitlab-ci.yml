@@ -36,25 +36,27 @@
 #       exists:
 #         - Dockerfile
 ---
-stages: ["stage1", "stage2"]
+stages: ["build", "test"]
 
-build-hello:
-    stage: "stage1"
-    tags:
-        - ci.inria.fr
-        - small
-    image: docker:stable
-    script:
-        - env
-        - docker build -t "$CI_REGISTRY/hello" ./testCI
-        - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-        - docker push "$CI_REGISTRY/hello"
+build-auto_disc:
+  stage: "build"
+  tags:
+    - ci.inria.fr
+    - medium
+  image: docker:stable
+  script:
+    - export BUILD_CONTEXT=services/base/AutoDiscServer
+    - docker build -f "${BUILD_CONTEXT}/Dockerfile" --target library -t "${CI_REGISTRY_IMAGE}/auto_disc" ${BUILD_CONTEXT}
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
+    - docker push "${CI_REGISTRY_IMAGE}/auto_disc"
 
-run-hello:
-    stage: "stage2"
-    tags:
-        - ci.inria.fr
-        - small
-    image: "hello"
-    script: 
-     - /bin/greeter
+test-auto_disc:
+  stage: "test"
+  tags:
+    - ci.inria.fr
+    - medium
+  image: "$CI_REGISTRY_IMAGE/auto_disc"
+  script:
+    - cd /usr/lib/auto_disc
+    - pip install -e ".[test]"
+    - coverage run -m pytest
