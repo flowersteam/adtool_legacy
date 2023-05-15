@@ -10,14 +10,12 @@ export class CodeEditorComponent implements OnInit {
   @Output() inputValueChange = new EventEmitter();
   @Output() triggerParentMethod = new EventEmitter<any>();
 
-  constructor() {}
-
+  code: string = '';
   editorOptions = {
     theme: 'vs-dark',
     language: 'python',
     automaticLayout: true,
   };
-  code: string = '';
 
   ngOnInit(): void {
     this.code = JSON.stringify(this.inputValue);
