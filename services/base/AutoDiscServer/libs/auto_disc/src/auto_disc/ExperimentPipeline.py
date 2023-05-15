@@ -1,19 +1,17 @@
-from copy import copy
 import traceback
-import torch
-from typing import Dict, Callable, List, Any, Tuple
+from copy import copy, deepcopy
+from typing import Any, Callable, Dict, List, Tuple
 
-from auto_disc.utils.leaf.Leaf import Leaf, prune_state
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.legacy.input_wrappers import BaseInputWrapper
-from auto_disc.legacy.output_representations import BaseOutputRepresentation
-from auto_disc.legacy.utils.callbacks.interact_callbacks import Interact
-from auto_disc.legacy.systems.base_system import BaseSystem
-from auto_disc.legacy.explorers.base_explorer import BaseExplorer
+import torch
 
 from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
-
-from copy import deepcopy
+from auto_disc.legacy.explorers.base_explorer import BaseExplorer
+from auto_disc.legacy.input_wrappers import BaseInputWrapper
+from auto_disc.legacy.output_representations import BaseOutputRepresentation
+from auto_disc.legacy.systems.base_system import BaseSystem
+from auto_disc.legacy.utils.callbacks.interact_callbacks import Interact
+from auto_disc.utils.leaf.Leaf import Leaf, prune_state
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 class CancellationToken:
@@ -54,7 +52,7 @@ class ExperimentPipeline(Leaf):
     When the system requires an action at each timestep, an `action_policy` must be provided.
 
     In order to monitor the experiment, you must provide **callbacks**, which will be called every time a discovery has been made. 
-    Please see: `auto_disc_legacy.utils.callbacks.base_callback.BaseCallback`.
+    Please see: `auto_disc.legacy.utils.callbacks.base_callback.BaseCallback`.
     """
 
     def __init__(self, experiment_id: int = 0, seed: int = 0,

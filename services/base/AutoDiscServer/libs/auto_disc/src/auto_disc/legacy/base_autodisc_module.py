@@ -1,11 +1,13 @@
 import typing
+
 from addict import Dict
+
 from auto_disc.legacy.utils.logger import AutoDiscLogger
 
 
 class BaseAutoDiscModule:
     '''
-        Base class of all modules usable in auto_disc_legacy.
+        Base class of all modules usable in auto_disc.legacy.
     '''
     _access_history = None  # Function to access (readonly) history of (input, output) pairs. Takes 1 positional argument which could be an index or a slice.
     # Function to ask history of outputs to be updated (use this if some output_representations changed)
@@ -16,7 +18,7 @@ class BaseAutoDiscModule:
 
     def __init__(self, logger: AutoDiscLogger = None, **kwargs) -> None:
         """
-            initialize attributes common to all auto_disc_legacy modules
+            initialize attributes common to all auto_disc.legacy modules
 
             Args:
                 logger: the logger which will make it possible to keep information on the progress of an experiment in the database or on files

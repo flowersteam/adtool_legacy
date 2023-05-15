@@ -1,19 +1,18 @@
-from copy import copy
 import traceback
+import typing
+from copy import copy
+from typing import Any, Callable, Dict, List, Type
 
 import torch
 
-import typing
-from typing import Dict, Type, Callable, List, Any
-from auto_disc.legacy import systems, explorers
+from auto_disc.legacy import BaseAutoDiscModule, explorers, systems
 from auto_disc.legacy.input_wrappers import BaseInputWrapper
-from auto_disc.legacy.output_representations import BaseOutputRepresentation
-
-from auto_disc.legacy import BaseAutoDiscModule
-from auto_disc.legacy.output_representations.generic import DummyOutputRepresentation
 from auto_disc.legacy.input_wrappers.generic import DummyInputWrapper
-from auto_disc.legacy.utils.misc import DB
+from auto_disc.legacy.output_representations import BaseOutputRepresentation
+from auto_disc.legacy.output_representations.generic import \
+    DummyOutputRepresentation
 from auto_disc.legacy.utils.callbacks.interact_callbacks import Interact
+from auto_disc.legacy.utils.misc import DB
 
 
 class CancellationToken:
@@ -48,7 +47,7 @@ class ExperimentPipeline():
     Pipeline of an automated discovery experiment.
     An experiment is at least constitued of a system and an explorer. Additionally, input wrappers and output representations can be added (multiple can be stacked).
     When the system requires an action at each timestep, an `action_policy` must be provided.
-    In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc_legacy.utils.BaseAutoDiscCallback`.
+    In order to monitor the experiment, you must provide `on_exploration_classbacks`, which will be called every time a discovery has been made. Please provide callbacks overriding the `libs.auto_disc.legacy.utils.BaseAutoDiscCallback`.
     '''
 
     def __init__(self, experiment_id: int, seed: int,
