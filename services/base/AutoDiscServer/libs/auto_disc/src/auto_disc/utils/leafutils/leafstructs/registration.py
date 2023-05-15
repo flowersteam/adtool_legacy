@@ -6,6 +6,8 @@ import importlib
 import pkgutil
 from pydoc import locate as locate_cls
 
+from mergedeep import merge
+
 _REGISTRATION = {
     'systems': {
         'PythonLenia': "auto_disc.auto_disc.systems.Lenia.Lenia",
@@ -79,4 +81,4 @@ def get_default_modules(submodule: str) -> dict:
 
 
 def get_modules(submodule: str):
-    pass
+    return merge(get_default_modules(submodule), get_custom_modules(submodule))

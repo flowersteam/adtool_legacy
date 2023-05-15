@@ -1,5 +1,5 @@
 from auto_disc.utils.leafutils.leafstructs.registration import (
-    get_cls_from_path, get_custom_modules, get_default_modules,
+    get_cls_from_path, get_custom_modules, get_default_modules, get_modules,
     get_path_from_cls)
 
 
@@ -46,4 +46,6 @@ def test_get_default_modules():
 
 
 def test_get_modules():
-    pass
+    assert set(get_modules("systems").keys()) == \
+        set(["ExponentialMixture", "PythonLenia",
+             "LeniaCPPN", "TwoE"])

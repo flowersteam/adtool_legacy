@@ -25,7 +25,8 @@ dependencies = [
   "tinydb==4.7.0",
   "imageio==2.9.0",
   "imageio-ffmpeg==0.4.7",
-  "sqlalchemy==2.0.3"
+  "sqlalchemy==2.0.3",
+  "mergedeep==1.3.4"
 ]
 
 [project.optional-dependencies]
