@@ -29,7 +29,7 @@ RUN pip install -e .
 # stage app
 COPY flask_app/ /usr/src/services/flask_app/
 # stage user custom modules
-COPY custom_modules /usr/src/libs/adtool_custom
+COPY libs/custom_modules /usr/src/libs/adtool_custom
 WORKDIR /usr/src/libs/adtool_custom
 RUN pip install -e .
 
