@@ -1,11 +1,12 @@
-from typing import Union, Tuple, Dict, Any, List
 import pickle
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
+from typing import Any, Dict, List, Tuple, Union
+
 from auto_disc.utils.leaf.LeafUID import LeafUID
 from auto_disc.utils.leaf.locators.Locator import Locator, StatelessLocator
-from auto_disc.utils.leafutils.leafstructs.registration import \
-    get_path_from_cls, get_cls_from_path
+from auto_disc.utils.leafutils.leafstructs.registration import (
+    get_cls_from_path, get_path_from_cls)
 
 
 def prune_state(state_vars: Dict[str, Any]):
