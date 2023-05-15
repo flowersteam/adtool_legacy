@@ -4,7 +4,7 @@ import sys
 
 from auto_disc.utils.leafutils.leafstructs.registration import (
     get_auto_disc_registered_callbacks, get_auto_disc_registered_modules_info,
-    get_modules)
+    get_cls_from_path, get_modules)
 from experiments import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
@@ -103,10 +103,12 @@ def list_input_wrappers():
 
 @app.route('/discovery-saving-keys/<explorer_name>', methods=['GET'])
 def list_keys_to_save_on_discovery(explorer_name: str):
-    explorer_class = get_modules("explorers").get(explorer_name, None)
+    info = get_modules('explorers')
+    explorer_path = info.get(explorer_name, None)
+    explorer_class = get_cls_from_path(explorer_path)
     try:
-        info = explorer_class.discovery_spec
-        return make_response(jsonify(info), 200)
+        spec = explorer_class.discovery_spec
+        return make_response(jsonify(spec), 200)
     except Exception as ex:
         error_message = "Error querying discovery"
         f"spec for system {explorer_name}: {ex}"

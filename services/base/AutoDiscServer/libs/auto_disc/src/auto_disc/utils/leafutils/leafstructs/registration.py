@@ -17,7 +17,7 @@ _REGISTRATION = {
         'ExponentialMixture': "auto_disc.auto_disc.systems.ExponentialMixture.ExponentialMixture",
     },
     'explorers': {
-        'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPExplorer.IMGEPFactory",
+        'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",
     },
     'maps': {
         'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap.MeanBehaviorMap",
@@ -29,7 +29,7 @@ _REGISTRATION = {
     },
     'output_representations': {
         'specific.LeniaFlattenImage': "auto_disc.legacy.output_representations.specific.lenia_output_representation.LeniaImageRepresentation",
-        'specific.LeniaStatistics': "auto_disc.legacy.output_representations.specific.lenia_output_representation.LeniaHandDefinedRepresentation",
+        'specific.LeniaStatistics': "auto_disc.legacy.output_representations.specific.lenia_output_representation_hand_defined.LeniaHandDefinedRepresentation",
     },
     'callbacks': {
         'on_discovery': {
@@ -90,18 +90,23 @@ def get_default_modules(submodule: str) -> dict:
 
 
 def get_modules(submodule: str):
-    return merge(get_default_modules(submodule), get_custom_modules(submodule))
+    if submodule == "input_wrappers" or submodule == "output_representations":
+        # legacy guard, there is no input_wrappers or output_representations
+        # in the new module spec
+        return get_default_modules(submodule)
+    else:
+        return merge(get_default_modules(submodule), get_custom_modules(submodule))
 
 
 def _check_jsonify(my_dict):
     try:
         for key, value in my_dict.items():
             if isinstance(my_dict[key], dict):
-                check_jsonify(my_dict[key])
+                _check_jsonify(my_dict[key])
             elif isinstance(my_dict[key], list):
                 for x in my_dict[key]:
                     if isinstance(my_dict[key], dict):
-                        check_jsonify(x)
+                        _check_jsonify(x)
                     elif isinstance(my_dict[key], float):
                         if math.isinf(my_dict[key]):
                             if my_dict[key] > 0:
@@ -125,7 +130,10 @@ def get_auto_disc_registered_modules_info(registered_modules):
         module_class = get_cls_from_path(module_class_path)
         info = {}
         info["name"] = module_name
-        info["config"] = module_class.CONFIG_DEFINITION
+        try:
+            info["config"] = module_class.CONFIG_DEFINITION
+        except AttributeError:
+            raise ValueError(f"Could not load class: {module_class_path}")
         if hasattr(module_class, 'input_space'):
             info['input_space'] = \
                 module_class.input_space.to_json()
@@ -137,7 +145,7 @@ def get_auto_disc_registered_modules_info(registered_modules):
         if hasattr(module_class, 'step_output_space'):
             info['step_output_space'] = \
                 module_class.step_output_space.to_json()
-        check_jsonify(info)
+        _check_jsonify(info)
         infos.append(info)
     return infos
 
