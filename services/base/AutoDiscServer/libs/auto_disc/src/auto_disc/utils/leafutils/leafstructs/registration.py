@@ -62,13 +62,18 @@ def get_cls_from_path(cls_path: str) -> object:
 
 
 def get_custom_modules(submodule: str) -> list:
-    module = importlib.import_module("adtool_custom." + submodule)
-    it = pkgutil.walk_packages(module.__path__)
-    module_name_list = [el.name for el in it]
+    lookup_prefix = "adtool_custom." + submodule
+    module = importlib.import_module(lookup_prefix)
+    path_prefix = lookup_prefix + "."
+    it = pkgutil.iter_modules(module.__path__, prefix=path_prefix)
+    module_name_list = {el.name.split(".")[-1]: el.name for el in it}
     return module_name_list
 
 
 def get_default_modules(submodule: str) -> dict:
+    # NOTE: we only return the fully qualified module path instead of
+    # module itself to avoid polluting the namespace with imports
+
     # TODO: don't hardcode this
     return _REGISTRATION.get(submodule)
 
