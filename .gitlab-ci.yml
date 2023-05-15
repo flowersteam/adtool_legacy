@@ -57,6 +57,6 @@ test-auto_disc:
     - medium
   image: "$CI_REGISTRY_IMAGE/auto_disc"
   script:
-    - cd /usr/lib/auto_disc
+    - cd /usr/src/libs/auto_disc
     - pip install -e ".[test]"
     - coverage run -m pytest
