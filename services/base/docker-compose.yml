@@ -20,7 +20,8 @@ services:
   ##### GATEWAY #####
   gateway:
     hostname: gateway
-    build: ./Gateway
+    build:
+      context: ./Gateway
     environment:
       EXPE_DB_API_HOST: ${EXPE_DB_API_HOST-expe-db-api}
       EXPE_DB_API_PORT: ${EXPE_DB_API_PORT-80}
@@ -69,7 +70,8 @@ services:
       - "./ExpeDB/saved_data:/data/db"
   expe-db-api:
     hostname: expe-db-api
-    build: ./ExpeDB/API
+    build:
+      context: ./ExpeDB/API
     environment:
       MONGODB_HOST: expe-db
       MONGODB_PORT: 27017
@@ -81,7 +83,8 @@ services:
   autodisc-server:
     hostname: autodisc-server
     platform: linux/amd64
-    build: ./AutoDiscServer
+    build:
+      context: ./AutoDiscServer
     environment:
       EXPEDB_CALLER_HOST: expe-db-api
       EXPEDB_CALLER_PORT: 80
@@ -102,7 +105,8 @@ services:
   jupyter:
     hostname: jupyter
     platform: linux/amd64
-    build: ./JupyterLab
+    build:
+      context: ./JupyterLab
     environment:
       EXPEDB_CALLER_HOST: ${EXPE_DB_API_HOST-expe-db-api}
       EXPEDB_CALLER_PORT: ${EXPE_DB_API_PORT-80}
