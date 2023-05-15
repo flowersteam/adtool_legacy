@@ -45,10 +45,9 @@ build-auto_disc:
     - medium
   image: docker:stable
   script:
-    - export BUILD_CONTEXT=services/base/AutoDiscServer
-    - docker build -f "${BUILD_CONTEXT}/Dockerfile" --target library -t "${CI_REGISTRY_IMAGE}/auto_disc" ${BUILD_CONTEXT}
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
-    - docker push "${CI_REGISTRY_IMAGE}/auto_disc"
+    - docker build -f "./.gitlab-ci/auto_disc/Dockerfile" -t "$CI_REGISTRY_IMAGE/auto_disc" .
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker push "$CI_REGISTRY_IMAGE/auto_disc"
 
 test-auto_disc:
   stage: "test"
@@ -57,6 +56,6 @@ test-auto_disc:
     - medium
   image: "$CI_REGISTRY_IMAGE/auto_disc"
   script:
-    - cd /usr/src/libs/auto_disc
+    - cd /usr/lib/auto_disc
     - pip install -e ".[test]"
     - coverage run -m pytest

@@ -1,3 +1,6 @@
+# MacOS
+*.DS_Store
+
 experiment_results/*
 tmp_output_results/*
 

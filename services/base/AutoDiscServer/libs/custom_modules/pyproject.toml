@@ -1,0 +1,5 @@
+[project]
+name = "adtool_custom"
+version = "0.0.1"
+description = "User defined custom modules for adtool"
+requires-python = ">=3.6"
