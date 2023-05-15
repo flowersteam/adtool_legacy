@@ -29,8 +29,8 @@ RUN pip install -e .
 # stage app
 COPY flask_app/ /usr/src/services/flask_app/
 # stage user custom modules
-COPY libs/custom_modules /usr/src/libs/adtool_custom
-WORKDIR /usr/src/libs/adtool_custom
+COPY libs/custom_modules /usr/src/libs/custom_modules
+WORKDIR /usr/src/libs/custom_modules
 RUN pip install -e .
 
 # start daemons
