@@ -2,12 +2,13 @@
 import os
 import sys
 
-from auto_disc.utils.leafutils.leafstructs.registration import get_modules
+from auto_disc.utils.leafutils.leafstructs.registration import (
+    get_auto_disc_registered_callbacks, get_auto_disc_registered_modules_info,
+    get_modules)
 from experiments import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
-from utils import (AutoDiscServerConfig, get_auto_disc_registered_callbacks,
-                   get_auto_disc_registered_modules_info, list_profiles)
+from utils import AutoDiscServerConfig, list_profiles
 from utils.DB.expe_db_utils import SavableOutputs
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
