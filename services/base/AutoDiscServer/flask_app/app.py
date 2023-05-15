@@ -2,7 +2,7 @@
 import os
 import sys
 
-from auto_disc.utils.leafutils.leafstructs.registration import registration
+from auto_disc.utils.leafutils.leafstructs.get_modules import get_modules
 from experiments import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
@@ -60,7 +60,7 @@ def stop_experiment(id):
 
 @app.route('/explorers', methods=['GET'])
 def list_explorers():
-    info = get_auto_disc_registered_modules_info(registration('explorers'))
+    info = get_auto_disc_registered_modules_info(get_modules('explorers'))
     return make_response(
         jsonify(info),
         200)
@@ -70,7 +70,7 @@ def list_explorers():
 
 @app.route('/systems', methods=['GET'])
 def list_systems():
-    info = get_auto_disc_registered_modules_info(registration('systems'))
+    info = get_auto_disc_registered_modules_info(get_modules('systems'))
     return make_response(
         jsonify(info),
         200)
@@ -81,7 +81,7 @@ def list_systems():
 @app.route('/output-representations', methods=['GET'])
 def list_output_representations():
     info = get_auto_disc_registered_modules_info(
-        registration('output_representations'))
+        get_modules('output_representations'))
     return make_response(
         jsonify(info),
         200)
@@ -92,7 +92,7 @@ def list_output_representations():
 @app.route('/input-wrappers', methods=['GET'])
 def list_input_wrappers():
     info = get_auto_disc_registered_modules_info(
-        registration('input_wrappers'))
+        get_modules('input_wrappers'))
     return make_response(
         jsonify(info),
         200)
@@ -102,7 +102,7 @@ def list_input_wrappers():
 
 @app.route('/discovery-saving-keys/<explorer_name>', methods=['GET'])
 def list_keys_to_save_on_discovery(explorer_name: str):
-    explorer_class = registration("explorers").get(explorer_name, None)
+    explorer_class = get_modules("explorers").get(explorer_name, None)
     try:
         info = explorer_class.discovery_spec
         return make_response(jsonify(info), 200)
@@ -117,7 +117,7 @@ def list_keys_to_save_on_discovery(explorer_name: str):
 
 @app.route('/callbacks', methods=['GET'])
 def list_callbacks():
-    info = get_auto_disc_registered_callbacks(registration('callbacks'))
+    info = get_auto_disc_registered_callbacks(get_modules('callbacks'))
     return make_response(
         jsonify(info),
         200)
