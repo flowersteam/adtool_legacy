@@ -40,31 +40,33 @@ build-autodisc-server:
   tags:
     - ci.inria.fr
     - medium
-  image: docker:stable
+  image: docker:23.0-git
   script:
+    # load environment variables
+    - cp .gitlab-ci/sample.env services/prod/.env
     # login to docker registry
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
     # build and push image
     - export BUILD_CONTEXT=services/prod
     - cd ${BUILD_CONTEXT}
     - export DOCKER_REGISTRY=${CI_REGISTRY_IMAGE}
-    - export RELEASE_TAG=$(git rev-parse --short HEAD)
-    - docker compose build autodisc-server
+    - export RELEASE_TAG=${CI_COMMIT_SHORT_SHA}
+    - docker-compose build autodisc-server
     - docker tag ${DOCKER_REGISTRY}/prod-autodisc-server:${RELEASE_TAG} latest
-    - docker compose push autodisc-server
+    - docker compose push ${DOCKER_REGISTRY}/prod-autodisc-server:${RELEASE_TAG}
 
 test-autodisc-server:
   stage: "test"
   tags:
     - ci.inria.fr
     - small
-  image: docker:stable
+  image: docker:23.0-git
   script:
     # load environment variables
-    - cp .gitlab-ci/sample.env services/dev
+    - cp .gitlab-ci/sample.env services/dev/.env
     # run the server
     - cd services/dev
-    - docker compose up -d autodisc-server
+    - docker-compose up -d autodisc-server
     # FIXME: need to implement healthcheck to see if server is up
     - sleep 30
     # run REST endpoint test
