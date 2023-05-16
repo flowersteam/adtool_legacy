@@ -1,42 +1,37 @@
 import traceback
-from copy import copy, deepcopy
-from typing import Any, Callable, Dict, List, Tuple
+from copy import deepcopy
+from typing import Callable, List
 
-import torch
-
-from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
-from auto_disc.legacy.explorers.base_explorer import BaseExplorer
-from auto_disc.legacy.input_wrappers import BaseInputWrapper
-from auto_disc.legacy.output_representations import BaseOutputRepresentation
-from auto_disc.legacy.systems.base_system import BaseSystem
-from auto_disc.legacy.utils.callbacks.interact_callbacks import Interact
 from auto_disc.utils.leaf.Leaf import Leaf, prune_state
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 class CancellationToken:
     """
-        Manages the cancellation token which allows you to stop an experiment in progress
+    Manages the cancellation token which allows you to stop an
+    experiment in progress
     """
 
     def __init__(self) -> None:
         """
-            Init the cancellation token to false
+        Init the cancellation token to false
         """
         self._token = False
 
     def get(self) -> bool:
         """
-            Give access to the cancellation token
+        Give access to the cancellation token
 
-            #### Returns:
-            - **token**: a boolean indicating if the current experiment must be cancelled
+        #### Returns:
+        - **token**: a boolean indicating if the current experiment
+        must be cancelled
         """
         return self._token
 
     def trigger(self) -> None:
         """
-            Sets the cancellation token to true (the experiment must be cancelled)
+            Sets the cancellation token to true
+            (the experiment must be cancelled)
         """
         self._token = True
 
@@ -47,20 +42,17 @@ class ExperimentPipeline(Leaf):
 
     An experiment is at least constituted of a system and an explorer.
 
-    Additionally, input wrappers and output representations can be added and composed.
+    Additionally, input wrappers and output representations can be added and
+    composed.
 
-    When the system requires an action at each timestep, an `action_policy` must be provided.
-
-    In order to monitor the experiment, you must provide **callbacks**, which will be called every time a discovery has been made. 
+    In order to monitor the experiment, you must provide **callbacks**, which
+    will be called every time a discovery has been made.
     Please see: `auto_disc.legacy.utils.callbacks.base_callback.BaseCallback`.
     """
 
     def __init__(self, experiment_id: int = 0, seed: int = 0,
                  system=None,
                  explorer=None,
-                 input_pipeline=None,
-                 output_pipeline=None,
-                 action_policy=None,
                  save_frequency: int = 100,
                  on_discovery_callbacks: List[Callable] = [],
                  on_save_finished_callbacks: List[Callable] = [],
@@ -68,33 +60,33 @@ class ExperimentPipeline(Leaf):
                  on_cancelled_callbacks: List[Callable] = [],
                  on_save_callbacks: List[Callable] = [],
                  on_error_callbacks: List[Callable] = [],
-                 interact_callbacks: List[Callable] = [],
                  logger=None,
                  resource_uri: str = "",
                  discovery_saving_keys: List[str] = []
                  ) -> None:
         """
-            Initializes state of experiment pipeline, setting all necessary attributes given by the following arguments.
+        Initializes state of experiment pipeline, setting all necessary
+        attributes given by the following arguments.
 
-            #### Args:
-            - **experiment_id**: ID of current experiment
-            - **seed**: Current seed for random number generation
-            - **system**: System to be explored
-            - **explorer**: Explorer used
-            - **input_wrappers**: List of wrappers which transform the input space
-            - **output_representations**: List of wrappers which transform the output space
-            - **action_policy**: User-defined method ran on each loop, based on policy
-            - **save_frequency**: Frequency to save state of the experiment
-            - **on_discovery_callbacks**: Callbacks raised when a discovery is made
-            - **on_save_finished_callbacks**: Callbacks raised when the experiment save is complete
-            - **on_finished_callbacks**: Callbacks raised when the experiment is finished
-            - **on_cancelled_callbacks**: Callbacks raised when the experiment is cancelled
-            - **on_save_callbacks**: Callbacks raised when a experiment save is made
-            - **on_error_callbacks**: Callbacks raised when an error is raised
+        #### Args:
+        - **experiment_id**: ID of current experiment
+        - **seed**: Current seed for random number generation
+        - **system**: System to be explored
+        - **explorer**: Explorer used
+        - **save_frequency**: Frequency to save state of the experiment
+        - **on_discovery_callbacks**: Called when a discovery is made
+        - **on_save_finished_callbacks**: Called when save is complete
+        - **on_finished_callbacks**: Called when the experiment is finished
+        - **on_cancelled_callbacks**: Called when the experiment is cancelled
+        - **on_save_callbacks**: Called when a experiment save is made
+        - **on_error_callbacks**: Called when an error is raised
         """
         super().__init__()
         self.locator = BlobLocator()
         self.locator.resource_uri = resource_uri
+        self.cancellation_token = CancellationToken()
+
+        # METADATA
         self.run_idx = 0
         self.experiment_id = experiment_id
         self.seed = seed
@@ -108,34 +100,28 @@ class ExperimentPipeline(Leaf):
 
         self.discovery_saving_keys = discovery_saving_keys
 
-        ### SYSTEM ###
+        # SYSTEM
         self._system = system
 
-        ### OUTPUT PIPELINE ###
-        self._output_pipeline = output_pipeline
-
-        ### INPUT PIPELINE ###
-        self._input_pipeline = input_pipeline
-
-        ### EXPLORER ###
+        # EXPLORER
         self._explorer = explorer
 
-        self._action_policy = action_policy
+        # CALLBACKS
         self._on_discovery_callbacks = on_discovery_callbacks
         self._on_save_finished_callbacks = on_save_finished_callbacks
         self._on_finished_callbacks = on_finished_callbacks
         self._on_cancelled_callbacks = on_cancelled_callbacks
         self._on_error_callbacks = on_error_callbacks
         self._on_save_callbacks = on_save_callbacks
-        self.cancellation_token = CancellationToken()
 
     def _raise_callbacks(self, callbacks: List[Callable], **kwargs) -> None:
         """
-            Raise all callbacks linked to the current event (new discovery, a save, the end of the experiment...)
+        Raise all callbacks linked to the current event
+        (new discovery, a save, the end of the experiment...)
 
-            Args:
-                callbacks: list of all callbacks must be raise
-                kwargs: some usefull parameters like self.run_idx, seed, experiment_id, some modules...
+        Args:
+            callbacks: list of all callbacks must be raise
+            **kwargs: e.g., self.run_idx, seed, experiment_id, some modules...
         """
         for callback in callbacks:
             callback(
@@ -144,7 +130,7 @@ class ExperimentPipeline(Leaf):
 
     def run(self, n_exploration_runs: int):
         '''
-        Launches the experiment for `n_exploration_runs` number of explorations.
+        Launches the experiment for `n_exploration_runs` explorations.
 
         `n_exploration_runs` is specified so more optimized looping routines
         can be chosen in the inner loop if desired. Interfacing with the
@@ -185,7 +171,7 @@ class ExperimentPipeline(Leaf):
                             del discovery_to_save[key]
 
                 # TODO: pass the rendered output more easily
-                # discovery_to_save["rendered_output"] = rendered_output
+                discovery_to_save["rendered_output"] = rendered_output
 
                 self._raise_callbacks(
                     self._on_discovery_callbacks,
@@ -201,8 +187,9 @@ class ExperimentPipeline(Leaf):
                 )
 
                 self.logger.info(
-                    "[DISCOVERY] - New discovery from experiment {} with seed {}" .format(
-                        self.experiment_id, self.seed))
+                    "[DISCOVERY] - New discovery from experiment"
+                    f"{self.experiment_id} with seed {self.seed}"
+                )
 
                 # avoids divide by zero
                 run_idx_start_from_one = self.run_idx + 1
@@ -213,12 +200,17 @@ class ExperimentPipeline(Leaf):
 
                 self.run_idx += 1
 
-        except Exception as _:
-            message = "error in experiment {} self.run_idx {} seed {} = {}".format(
-                self.experiment_id, self.run_idx, self.seed, traceback.format_exc())
+        except Exception:
+            message = \
+                "error in experiment {} self.run_idx {} seed {} = {}".format(
+                    self.experiment_id,
+                    self.run_idx,
+                    self.seed,
+                    traceback.format_exc()
+                )
 
             # TODO: do this in appdb side
-            if len(message) > 8000:  # Cut message to match varchar length of AppDB
+            if len(message) > 8000:  # Cut to match varchar length of AppDB
                 message = message[:7997] + '...'
 
             self.logger.error("[ERROR] - " + message)
@@ -230,7 +222,7 @@ class ExperimentPipeline(Leaf):
             )
             raise
 
-        ## CLEANUP ##
+        # CLEANUP
 
         # log termination of experiment
         if self.cancellation_token.get():
