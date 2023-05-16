@@ -36,9 +36,15 @@ _REGISTRATION = {
             'expe_db': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb.SaveDiscoveryInExpeDB",
             'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
         },
-        'on_cancelled': {},
-        'on_error': {},
-        'on_finished': {},
+        'on_cancelled': {
+            'base': "auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
+        },
+        'on_error': {
+            'base': "auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
+        },
+        'on_finished': {
+            'base': "auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
+        },
         'on_saved': {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback.SaveLeaf",
             'expe_db': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb.SaveLeafExpeDB",
@@ -46,7 +52,12 @@ _REGISTRATION = {
         'on_save_finished': {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback.GenerateReport",
         },
-        'interact': {},
+        'interact': {
+
+            'base': "auto_disc.utils.callbacks.interact_callbacks.BaseInteractCallback",
+            'saveDisk': "auto_disc.utils.callbacks.interact_callbacks.SaveDiskInteractCallback",
+            'readDisk': "auto_disc.utils.callbacks.interact_callbacks.ReadDiskInteractCallback"
+        },
     },
     'logger_handlers': {
         'logFile': "auto_disc.auto_disc.utils.logger.handlers.file_handler.SetFileHandler"
