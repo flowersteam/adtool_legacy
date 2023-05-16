@@ -6,48 +6,44 @@ services:
     extends:
       file: ../base/docker-compose.yml
       service: app
-    image: ${DOCKER_REGISTRY-adtool}/prod-app
+    image: ${DOCKER_REGISTRY-adtool}/prod-app:${RELEASE_TAG-latest}
   ##### GATEWAY #####
   gateway:
     extends:
       file: ../base/docker-compose.yml
       service: gateway
-    image: ${DOCKER_REGISTRY-adtool}/prod-gateway
+    image: ${DOCKER_REGISTRY-adtool}/prod-gateway:${RELEASE_TAG-latest}
   ##### APP DB #####
   app-db:
     extends:
       file: ../base/docker-compose.yml
       service: app-db
-    image: ${DOCKER_REGISTRY-adtool}/prod-app-db
   app-db-api:
     extends:
       file: ../base/docker-compose.yml
       service: app-db-api
-    image: ${DOCKER_REGISTRY-adtool}/prod-app-db-api
   ##### EXPE DB #####
   expe-db:
     extends:
       file: ../base/docker-compose.yml
       service: expe-db
-    image: ${DOCKER_REGISTRY-adtool}/prod-expe-db
   expe-db-api:
     extends:
       file: ../base/docker-compose.yml
       service: expe-db-api
-    image: ${DOCKER_REGISTRY-adtool}/prod-expe-db-api
+    image: ${DOCKER_REGISTRY-adtool}/prod-expe-db-api:${RELEASE_TAG-latest}
   ##### AUTODISC SERVER #####
   autodisc-server:
     extends:
       file: ../base/docker-compose.yml
       service: autodisc-server
-    image: ${DOCKER_REGISTRY-adtool}/prod-autodisc-server
+    image: ${DOCKER_REGISTRY-adtool}/prod-autodisc-server:${RELEASE_TAG-latest}
   ##### JUPYTER LAB #####
   jupyter:
     extends:
       file: ../base/docker-compose.yml
       service: jupyter
-    image: ${DOCKER_REGISTRY-adtool}/prod-jupyter
-
+    image: ${DOCKER_REGISTRY-adtool}/prod-jupyter:${RELEASE_TAG-latest}
   # ##### MONITORING TOOLS #####
   # portainer:
   #   image: portainer/portainer-ce:2.11.1
