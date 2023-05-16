@@ -1,8 +1,11 @@
-from auto_disc.auto_disc.systems.LeniaCPPN import LeniaCPPN
-from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
-import torch
-from copy import deepcopy
 import os
+from copy import deepcopy
+
+import torch
+
+from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
+from auto_disc.auto_disc.systems.LeniaCPPN import LeniaCPPN
+from auto_disc.utils.filetype_converter.filetype_converter import is_mp4
 
 
 def setup_function(function):
@@ -55,5 +58,6 @@ def test_map():
     assert "genome" in out["params"]
     assert "neat_config" in out["params"]
 
-    # # eyeball test the render
-    # system.render(out, mode="human")
+    # eyeball test the render
+    imagebytes = system.render(out)
+    assert is_mp4(imagebytes)

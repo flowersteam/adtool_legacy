@@ -1,9 +1,11 @@
-from auto_disc.auto_disc.systems.Lenia import (Lenia,
-                                               LeniaDynamicalParameters,
-                                               LeniaParameters)
-import torch
 from copy import deepcopy
 from dataclasses import asdict
+
+import torch
+
+from auto_disc.auto_disc.systems.Lenia import (Lenia, LeniaDynamicalParameters,
+                                               LeniaParameters)
+from auto_disc.utils.filetype_converter.filetype_converter import is_mp4
 
 
 def setup_function(function):
@@ -150,12 +152,12 @@ def test_Lenia_map():
     assert system.orbit[-1].size() == (1, 1, 256, 256)
 
 
-# def test_Lenia_render():
-#     # eyeball test this one
-#     system = Lenia()
-#     dummy_params = system._process_dict(dummy_input)
-#
-#     out_dict = system.map(dummy_input)
-#
-#     system.render(out_dict, mode="human")
-#     assert 1
+def test_Lenia_render():
+    # eyeball test this one
+    system = Lenia()
+    dummy_params = system._process_dict(dummy_input)
+
+    out_dict = system.map(dummy_input)
+
+    imagebytes = system.render(out_dict)
+    assert is_mp4(imagebytes)
