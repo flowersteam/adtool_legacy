@@ -1,6 +1,6 @@
 from auto_disc.utils.leafutils.leafstructs.registration import (
-    get_cls_from_path, get_custom_modules, get_default_modules, get_modules,
-    get_path_from_cls)
+    get_cls_from_name, get_cls_from_path, get_custom_modules,
+    get_default_modules, get_modules, get_path_from_cls)
 
 
 def test_get_cls_from_path():
@@ -41,6 +41,31 @@ def test_get_path_from_cls():
     compare_path = get_path_from_cls(compare_cls)
     path = "auto_disc.auto_disc.maps.MeanBehaviorMap.MeanBehaviorMap"
     assert compare_path == path
+
+
+def test_get_cls_from_name():
+    from auto_disc.auto_disc.explorers import IMGEPFactory
+    from auto_disc.auto_disc.maps.lenia import LeniaStatistics
+    from auto_disc.auto_disc.systems.ExponentialMixture import \
+        ExponentialMixture
+
+    cls_name = "IMGEPExplorer"
+    ad_type_name = "explorers"
+    assert get_cls_from_name(
+        cls_name, ad_type_name
+    ) == IMGEPFactory
+
+    cls_name = "LeniaStatistics"
+    ad_type_name = "maps"
+    assert get_cls_from_name(
+        cls_name, ad_type_name
+    ) == LeniaStatistics
+
+    cls_name = "ExponentialMixture"
+    ad_type_name = "systems"
+    assert get_cls_from_name(
+        cls_name, ad_type_name
+    ) == ExponentialMixture
 
 
 def test_get_custom_modules():

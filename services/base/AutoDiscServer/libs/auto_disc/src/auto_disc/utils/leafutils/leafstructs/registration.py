@@ -22,7 +22,7 @@ _REGISTRATION = {
     'maps': {
         'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap",
         'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap",
-        'LeniaStatistics': "auto_disc.auto_disc.maps.lenia.LeniaStatistics.LeniaStatistics",
+        'LeniaStatistics': "auto_disc.auto_disc.maps.lenia.LeniaStatistics",
     },
     'input_wrappers': {
         'generic.CPPN': "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
@@ -80,6 +80,18 @@ def get_cls_from_path(cls_path: str) -> object:
     Returns the class pointed to by a fully qualified class path,
     importing along the way.
     """
+    return locate_cls(cls_path)
+
+
+def get_cls_from_name(cls_name: str, ad_type_name: str) -> object:
+    """
+    Attempts to retrieve the class by solely its name and the "type" of object
+    it is (among `explorers`, `systems`, etc.), looking up the
+    information along the way.
+    """
+    type_lookup_info = get_modules(ad_type_name)
+    cls_path = type_lookup_info[cls_name]
+
     return locate_cls(cls_path)
 
 
