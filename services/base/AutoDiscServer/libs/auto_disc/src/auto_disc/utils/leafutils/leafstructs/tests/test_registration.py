@@ -10,12 +10,36 @@ def test_get_cls_from_path():
         IMGEPExplorer as compare_cls
     assert cls == compare_cls
 
+    path = "auto_disc.auto_disc.maps.lenia.LeniaStatistics"
+    cls = get_cls_from_path(path)
+    from auto_disc.auto_disc.maps.lenia.LeniaStatistics import \
+        LeniaStatistics as compare_cls
+    assert cls == compare_cls
+
+    path = "auto_disc.auto_disc.maps.MeanBehaviorMap"
+    cls = get_cls_from_path(path)
+    from auto_disc.auto_disc.maps import MeanBehaviorMap as compare_cls
+    assert cls == compare_cls
+
 
 def test_get_path_from_cls():
     from auto_disc.legacy.explorers.imgep_explorer import \
         IMGEPExplorer as compare_cls
     compare_path = get_path_from_cls(compare_cls)
     path = "auto_disc.legacy.explorers.imgep_explorer.IMGEPExplorer"
+    assert compare_path == path
+
+    from auto_disc.auto_disc.maps.lenia.LeniaStatistics import \
+        LeniaStatistics as compare_cls
+    compare_path = get_path_from_cls(compare_cls)
+    # here we see that `get_path_from_cls` gives an explicit FQDN
+    # instead of using imports from `__init__.py` files
+    path = "auto_disc.auto_disc.maps.lenia.LeniaStatistics.LeniaStatistics"
+    assert compare_path == path
+
+    from auto_disc.auto_disc.maps import MeanBehaviorMap as compare_cls
+    compare_path = get_path_from_cls(compare_cls)
+    path = "auto_disc.auto_disc.maps.MeanBehaviorMap.MeanBehaviorMap"
     assert compare_path == path
 
 

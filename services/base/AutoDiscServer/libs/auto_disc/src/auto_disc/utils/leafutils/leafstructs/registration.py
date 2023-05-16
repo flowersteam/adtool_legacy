@@ -20,9 +20,9 @@ _REGISTRATION = {
         'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",
     },
     'maps': {
-        'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap.MeanBehaviorMap",
-        'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap.UniformParameterMap",
-        'LeniaStatistics': "auto_disc.auto_disc.maps.LeniaStatistics.LeniaStatistics",
+        'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap",
+        'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap",
+        'LeniaStatistics': "auto_disc.auto_disc.maps.lenia.LeniaStatistics.LeniaStatistics",
     },
     'input_wrappers': {
         'generic.CPPN': "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
@@ -100,7 +100,7 @@ def get_default_modules(submodule: str) -> dict:
     return _REGISTRATION.get(submodule)
 
 
-def get_modules(submodule: str):
+def get_modules(submodule: str) -> dict:
     if submodule == "input_wrappers" or submodule == "output_representations":
         # legacy guard, there is no input_wrappers or output_representations
         # in the new module spec
