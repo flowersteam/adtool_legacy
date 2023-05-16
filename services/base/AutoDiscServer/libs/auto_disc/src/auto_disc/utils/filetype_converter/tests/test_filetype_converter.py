@@ -57,6 +57,7 @@ def test_convert_video():
     # assert that the video is the same as the original
     assert vid == TEST_ARTIFACTS["vid"]
 
+    # FIXME: error with doing the imread for some reason
     mkv = convert_video(TEST_ARTIFACTS["mkv"])
     assert is_mp4(mkv)
     # assert that the video is not the same as the original
