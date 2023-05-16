@@ -1,7 +1,7 @@
-import PIL
+from io import BytesIO
+
 import filetype
 import imageio.v3 as iio
-from io import BytesIO
 
 
 def is_mp4(blob: bytes) -> bool:

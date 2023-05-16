@@ -1,9 +1,8 @@
-from filetype_converter.filetype_converter import (is_mp4,
-                                                   is_png,
-                                                   convert_image,
-                                                   convert_video)
-import pathlib
 import os
+import pathlib
+
+from auto_disc.utils.filetype_converter.filetype_converter import (
+    convert_image, convert_video, is_mp4, is_png)
 
 
 def setup_function(function):
