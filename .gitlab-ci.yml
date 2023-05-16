@@ -6,35 +6,6 @@
 
 # Build a Docker image with CI/CD and push to the GitLab registry.
 # Docker-in-Docker documentation: https://docs.gitlab.com/ee/ci/docker/using_docker_build.html
-#
-# This template uses one generic job with conditional builds
-# for the default branch and all other (MR) branches.
-# docker-build:
-#   # Use the official docker image.
-#   image: docker:latest
-#   stage: build
-#   services:
-#     - docker:dind
-#   before_script:
-#     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#   # Default branch leaves tag empty (= latest tag)
-#   # All other branches are tagged with the escaped branch name (commit ref slug)
-#   script:
-#     - |
-#       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-#         tag=""
-#         echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
-#       else
-#         tag=":$CI_COMMIT_REF_SLUG"
-#         echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
-#       fi
-#     - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
-#     - docker push "$CI_REGISTRY_IMAGE${tag}"
-#   # Run this job in a branch where a Dockerfile exists
-#   rules:
-#     - if: $CI_COMMIT_BRANCH
-#       exists:
-#         - Dockerfile
 ---
 stages: ["build", "test"]
 
@@ -45,9 +16,12 @@ build-auto_disc:
     - medium
   image: docker:stable
   script:
+    # login to docker registry
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
+    # build image
     - export BUILD_CONTEXT=services/base/AutoDiscServer
     - docker build -f "${BUILD_CONTEXT}/Dockerfile" --target library -t "${CI_REGISTRY_IMAGE}/auto_disc" ${BUILD_CONTEXT}
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
+    # push image
     - docker push "${CI_REGISTRY_IMAGE}/auto_disc"
 
 test-auto_disc:
@@ -60,3 +34,43 @@ test-auto_disc:
     - cd /usr/src/libs/auto_disc
     - pip install -e ".[test]"
     - coverage run -m pytest
+
+build-autodisc-server:
+  stage: "build"
+  tags:
+    - ci.inria.fr
+    - medium
+  image: docker:23.0-git
+  script:
+    # load environment variables
+    - cp .gitlab-ci/sample.env services/prod/.env
+    # login to docker registry
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "${CI_REGISTRY}"
+    # build and push image
+    - export BUILD_CONTEXT=services/prod
+    - cd ${BUILD_CONTEXT}
+    - export DOCKER_REGISTRY=${CI_REGISTRY_IMAGE}
+    - export RELEASE_TAG=${CI_COMMIT_SHORT_SHA}
+    - docker-compose build autodisc-server
+    - docker tag ${DOCKER_REGISTRY}/prod-autodisc-server:${RELEASE_TAG} latest
+    - docker compose push ${DOCKER_REGISTRY}/prod-autodisc-server:${RELEASE_TAG}
+
+test-autodisc-server:
+  stage: "test"
+  tags:
+    - ci.inria.fr
+    - small
+  image: docker:23.0-git
+  script:
+    # load environment variables
+    - cp .gitlab-ci/sample.env services/dev/.env
+    # run the server
+    - cd services/dev
+    - docker-compose up -d autodisc-server
+    # FIXME: need to implement healthcheck to see if server is up
+    - sleep 30
+    # run REST endpoint test
+    - apk add npm
+    - npm install -g newman
+    - cd services/base/AutoDiscServer/tests/newman
+    - newman run test_AutoDiscServer.json

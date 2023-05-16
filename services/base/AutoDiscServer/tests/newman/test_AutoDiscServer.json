@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "42ab95de-5f8b-494c-b5c3-fe49a0814b02",
+    "name": "test_AutoDiscServer",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get explorers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/explorers",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["explorers"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get systems",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/systems",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["systems"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get discovery saving keys",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/discovery-saving-keys/IMGEPExplorer",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["discovery-saving-keys", "IMGEPExplorer"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get input wrappers (LEGACY)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/input-wrappers",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["input-wrappers"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get output representations (LEGACY)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{host}}/output-representations",
+          "protocol": "http",
+          "host": ["{{host}}"],
+          "path": ["output-representations"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Status code is 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "127.0.0.1:5002",
+      "type": "default"
+    }
+  ]
+}
