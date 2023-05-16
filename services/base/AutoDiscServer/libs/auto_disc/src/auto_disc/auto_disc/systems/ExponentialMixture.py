@@ -24,7 +24,7 @@ class SystemParams(Defaults):
 
 @SystemParams.expose_config()
 class ExponentialMixture(System):
-    def __init__(self, sequence_max, sequence_density):
+    def __init__(self, sequence_max=100., sequence_density=100):
         super().__init__()
         self.sequence_max = sequence_max
         self.sequence_density = sequence_density
