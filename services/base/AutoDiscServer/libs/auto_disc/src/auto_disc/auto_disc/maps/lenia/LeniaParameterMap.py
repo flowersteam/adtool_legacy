@@ -1,22 +1,18 @@
-from auto_disc.auto_disc.maps import UniformParameterMap, NEATParameterMap
-from auto_disc.auto_disc.systems.Lenia import (LeniaParameters,
-                                               LeniaDynamicalParameters)
-from auto_disc.auto_disc.wrappers.mutators import add_gaussian_noise
-from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.utils.leaf.Leaf import Leaf
-import torch
-from typing import Dict, Tuple, Union
 import dataclasses
-from dataclasses import dataclass, asdict
 from copy import deepcopy
+from dataclasses import asdict, dataclass
 from functools import partial
-from auto_disc.legacy.utils.config_parameters import (
-    DecimalConfigParameter,
-    IntegerConfigParameter,
-    StringConfigParameter,
-    DictConfigParameter
-)
+from io import StringIO
+from typing import Dict, Optional, Tuple
+
+import torch
+
+from auto_disc.auto_disc.maps import NEATParameterMap, UniformParameterMap
+from auto_disc.auto_disc.systems.Lenia import LeniaDynamicalParameters
+from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
+from auto_disc.auto_disc.wrappers.mutators import add_gaussian_noise
+from auto_disc.utils.leaf.Leaf import Leaf
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 @dataclass
@@ -42,6 +38,7 @@ class LeniaParameterMap(Leaf):
                  premap_key: str = "params",
                  param_obj: LeniaHyperParameters = LeniaHyperParameters(),
                  neat_config_path: str = "./maps/cppn/config.cfg",
+                 neat_config_str: Optional[str] = None,
                  **config_decorator_kwargs
                  ):
         super().__init__()
@@ -60,8 +57,12 @@ class LeniaParameterMap(Leaf):
             tensor_bound_low=param_obj.tensor_bound_low,
             tensor_bound_high=param_obj.tensor_bound_high
         )
-        self.neat = NEATParameterMap(premap_key=f"genome_{self.premap_key}",
-                                     config_path=neat_config_path)
+        if not neat_config_str:
+            self.neat = NEATParameterMap(premap_key=f"genome_{self.premap_key}",
+                                         config_path=neat_config_path)
+        else:
+            self.neat = NEATParameterMap(premap_key=f"genome_{self.premap_key}",
+                                         config_str=neat_config_str)
 
         # multi-dimensional "ragged" Gaussian noise
         # based upon the tensor representation of LeniaDynamicalParameters

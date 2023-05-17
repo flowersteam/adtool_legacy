@@ -1,20 +1,23 @@
-from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import (
-    LeniaHyperParameters,
-    LeniaParameterMap)
-from auto_disc.auto_disc.maps import NEATParameterMap
-from auto_disc.auto_disc.systems.Lenia import LeniaDynamicalParameters
-import torch
-from auto_disc.utils.leaf.locators.locators import BlobLocator
 import os
-from dataclasses import asdict
 from copy import deepcopy
+from dataclasses import asdict
+
 import pytest
+import torch
+
+from auto_disc.auto_disc.maps import NEATParameterMap
+from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import (
+    LeniaHyperParameters, LeniaParameterMap)
+from auto_disc.auto_disc.systems.Lenia import LeniaDynamicalParameters
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 def setup_function(function):
-    global CONFIG, CONFIG_PATH
+    global CONFIG, CONFIG_PATH, CONFIG_STR
     path = os.path.dirname(os.path.abspath(__file__))
     CONFIG_PATH = os.path.join(path, "config_test.cfg")
+    with open(CONFIG_PATH, "r") as f:
+        CONFIG_STR = f.read()
 
     CONFIG = LeniaHyperParameters()
 
@@ -41,10 +44,15 @@ def test_LeniaParamaterMap___init__():
         param_obj=CONFIG, neat_config_path=CONFIG_PATH, cppn_n_passes=3)
     assert map.cppn_n_passes == 3
 
+    # initialize with neat_config_path
     map = LeniaParameterMap(
         param_obj=CONFIG, neat_config_path=CONFIG_PATH, init_state_dim=(3, 3))
     assert map.SX == 3
     assert map.SY == 3
+
+    # initialize with neat_config_str
+    map = LeniaParameterMap(
+        param_obj=CONFIG, neat_config_str=CONFIG_STR, init_state_dim=(3, 3))
 
 
 def test_LeniaParameterMap_map():
