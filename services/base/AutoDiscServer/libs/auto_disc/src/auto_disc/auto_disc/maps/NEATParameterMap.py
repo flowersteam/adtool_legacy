@@ -1,38 +1,48 @@
-from typing import Any, Dict, Tuple
-import torch
-from auto_disc.legacy.utils.spaces import DictSpace
-from auto_disc.auto_disc.maps.Map import Map
-from auto_disc.legacy.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
-from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
-from auto_disc.legacy.input_wrappers import BaseInputWrapper
-from auto_disc.legacy.utils.config_parameters import IntegerConfigParameter
-
-from auto_disc.utils.leaf.Leaf import Leaf
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-import os
-import neat
 from copy import deepcopy
+from tempfile import NamedTemporaryFile
+from typing import Any, Dict, Optional
+
+import neat
+
+from auto_disc.auto_disc.maps.Map import Map
+from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 class NEATParameterMap(Map):
-    """ 
-    Base class to map the parameters sent by the explorer to the system's input space
-    """
 
     def __init__(self, premap_key: str = "genome",
-                 config_path: str = "./config.cfg") -> None:
+                 config_path: str = "./config.cfg", config_str: Optional[str] =
+                 None) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
 
-        # set global configuration parameters for NEAT
-        self.neat_config = neat.Config(
-            pytorchneat.selfconnectiongenome.SelfConnectionGenome,
-            neat.DefaultReproduction,
-            neat.DefaultSpeciesSet,
-            neat.DefaultStagnation,
-            config_path
-        )
+        # config argument overrides config_path
+        if not config_str:
+            self.neat_config = neat.Config(
+                pytorchneat.selfconnectiongenome.SelfConnectionGenome,
+                neat.DefaultReproduction,
+                neat.DefaultSpeciesSet,
+                neat.DefaultStagnation,
+                config_path
+            )
+        else:
+            with NamedTemporaryFile() as fp:
+                # write string and then reset stream to beginning
+                config_bytes = config_str.encode()
+                fp.write(config_bytes)
+                fp.seek(0)
+
+                # initialize neat with temp file created
+                config_path = fp.name
+                self.neat_config = neat.Config(
+                    pytorchneat.selfconnectiongenome.SelfConnectionGenome,
+                    neat.DefaultReproduction,
+                    neat.DefaultSpeciesSet,
+                    neat.DefaultStagnation,
+                    config_path
+                )
 
     def map(self, input: Dict, override_existing: bool = True) -> Dict:
         intermed_dict = deepcopy(input)

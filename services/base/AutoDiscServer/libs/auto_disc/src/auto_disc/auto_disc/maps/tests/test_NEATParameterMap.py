@@ -1,21 +1,29 @@
-from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 import os
-import neat.genome
 from copy import deepcopy
+
+import neat.genome
+
+from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 
 
 def setup_function(function):
-    global CONFIG_PATH
+    global CONFIG_PATH, CONFIG_STR
     # get current file path
     tests_path = os.path.dirname(os.path.abspath(__file__))
     maps_path = os.path.dirname(tests_path)
     CONFIG_PATH = os.path.join(maps_path, "cppn/config.cfg")
+    with open(CONFIG_PATH, "r") as f:
+        CONFIG_STR = f.read()
 
     return
 
 
 def test_NEATParameterMap___init__():
-    neat_map = NEATParameterMap(config_path=CONFIG_PATH)
+    # initialize with config path
+    NEATParameterMap(config_path=CONFIG_PATH)
+
+    # initialize with config str
+    NEATParameterMap(config_str=CONFIG_STR)
 
 
 def test_NEATParameterMap_sample():
