@@ -95,51 +95,15 @@ def setup_function(function):
             "callbacks": {},
             "logger_handlers": []
         }
-    # {
-    #     "experiment": {
-    #         "name": "newlenia",
-    #         "config": {
-    #             "host": "local",
-    #             "nb_seeds": 1,
-    #             "nb_iterations": 10,
-    #             "save_location": f"{RESOURCE_URI}",
-    #             "save_frequency": 1,
-    #             "discovery_saving_keys": []
-    #         }
-    #     },
-    #     "system": {
-    #         "name": "auto_disc.systems.Lenia.Lenia",
-    #         "config": {
-    #             "SX": 128,
-    #             "SY": 128,
-    #             "version": "pytorch_fft",
-    #             "final_step": 50,
-    #             "scale_init_state": 1
-    #         }
-    #     },
-    #     "explorer": {
-    #         "name": "auto_disc.explorers.IMGEPFactory",
-    #         "config": {
-    #             "param_dim": 10,
-    #             "equil_time": 2,
-    #             "behavior_map": "Mean",
-    #             "parameter_map": "Uniform",
-    #             "param_init_low": 0.8,
-    #             "param_bound_low": "-inf",
-    #             "param_init_high": 0,
-    #             "param_bound_high": "inf",
-    #             "system_output_dim": 1,
-    #             "mutation_noise_std": 0.1,
-    #             "behavior_map_config": {}
-    #         }
-    #     },
-    #     "input_wrappers": [],
-    #     "output_representations": [],
-    #     "callbacks": {},
-    #     "logger_handlers": []
-    # }
-    config_json = config_json_lenia
 
+    json_requests_dir = os.path.join(file_path, "integration")
+    demo_path = os.path.join(json_requests_dir, "demo.json")
+    with open(demo_path, "r") as f:
+        config_json = json.loads(f.read())
+
+        # override with testing mock
+        config_json["experiment"]["config"]["save_location"] = \
+            f"{RESOURCE_URI}"
     return
 
 

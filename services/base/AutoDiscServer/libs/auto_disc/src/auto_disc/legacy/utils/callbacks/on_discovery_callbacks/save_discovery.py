@@ -47,6 +47,12 @@ class _CustomJSONEncoder(json.JSONEncoder):
 
 
 class SaveDiscovery:
+    def __init__(self, **kwargs) -> None:
+        """
+        Dummy init which accepts any arguments, for backwards compatibility.
+        """
+        pass
+
     def __call__(self,
                  resource_uri: str,
                  experiment_id: int,
