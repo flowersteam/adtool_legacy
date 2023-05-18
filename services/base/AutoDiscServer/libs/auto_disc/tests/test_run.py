@@ -1,9 +1,12 @@
-import pathlib
+import json
 import os
+import pathlib
 import shutil
+
 import auto_disc.run as run
+from auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import \
+    GenerateReport
 from auto_disc.ExperimentPipeline import ExperimentPipeline
-from auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import GenerateReport
 
 
 def setup_function(function):
