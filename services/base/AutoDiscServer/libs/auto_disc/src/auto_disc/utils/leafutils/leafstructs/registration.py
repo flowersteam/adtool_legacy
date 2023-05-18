@@ -5,7 +5,8 @@ NOTE: Will be deprecated later.
 import importlib
 import math
 import pkgutil
-from pydoc import locate as locate_cls
+from pydoc import locate as _locate
+from typing import cast
 
 from mergedeep import merge
 
@@ -65,6 +66,14 @@ _REGISTRATION = {
 }
 
 
+def locate_cls(cls_path: str) -> type:
+    """
+    Wrapper function which allows static type checking by providing the correct
+    function signature.
+    """
+    return cast(type, _locate(cls_path))
+
+
 def get_path_from_cls(cls: type) -> str:
     """
     Returns the fully qualified class path, for use with dynamic imports.
@@ -75,7 +84,7 @@ def get_path_from_cls(cls: type) -> str:
     return class_path
 
 
-def get_cls_from_path(cls_path: str) -> object:
+def get_cls_from_path(cls_path: str) -> type:
     """
     Returns the class pointed to by a fully qualified class path,
     importing along the way.
@@ -83,7 +92,7 @@ def get_cls_from_path(cls_path: str) -> object:
     return locate_cls(cls_path)
 
 
-def get_cls_from_name(cls_name: str, ad_type_name: str) -> object:
+def get_cls_from_name(cls_name: str, ad_type_name: str) -> type:
     """
     Attempts to retrieve the class by solely its name and the "type" of object
     it is (among `explorers`, `systems`, etc.), looking up the
