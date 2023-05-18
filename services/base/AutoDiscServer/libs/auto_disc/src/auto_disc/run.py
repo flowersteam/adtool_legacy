@@ -14,8 +14,8 @@ from mergedeep import merge
 
 from auto_disc.ExperimentPipeline import ExperimentPipeline
 from auto_disc.legacy.utils.logger import AutoDiscLogger
-from auto_disc.utils.leafutils.leafstructs.registration import (
-    get_cls_from_name, get_cls_from_path)
+from auto_disc.utils.leafutils.leafstructs.registration import \
+    get_cls_from_name
 
 
 def create(parameters: Dict, experiment_id: int, seed: int,
