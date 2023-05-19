@@ -98,9 +98,17 @@ def get_cls_from_name(cls_name: str, ad_type_name: str) -> type:
     it is (among `explorers`, `systems`, etc.), looking up the
     information along the way.
     """
-    type_lookup_info = get_modules(ad_type_name)
-    cls_path = type_lookup_info[cls_name]
+    if "." not in ad_type_name:
+        # for all ad_type_name that are not callbacks
+        type_lookup_info = get_modules(ad_type_name)
+    else:
+        # for callbacks
+        callback_type_arr = ad_type_name.split(".")
+        assert callback_type_arr[0] == "callbacks"
+        callback_lookup_dict = get_modules(callback_type_arr[0])
+        type_lookup_info = callback_lookup_dict[callback_type_arr[1]]
 
+    cls_path = type_lookup_info[cls_name]
     return locate_cls(cls_path)
 
 

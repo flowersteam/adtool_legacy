@@ -48,6 +48,8 @@ def test_get_cls_from_name():
     from auto_disc.auto_disc.maps.lenia import LeniaStatistics
     from auto_disc.auto_disc.systems.ExponentialMixture import \
         ExponentialMixture
+    from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import \
+        SaveLeaf
 
     cls_name = "IMGEPExplorer"
     ad_type_name = "explorers"
@@ -66,6 +68,12 @@ def test_get_cls_from_name():
     assert get_cls_from_name(
         cls_name, ad_type_name
     ) == ExponentialMixture
+
+    cls_name = "base"
+    ad_type_name = "callbacks.on_saved"
+    assert get_cls_from_name(
+        cls_name, ad_type_name
+    ) == SaveLeaf
 
 
 def test_get_custom_modules():
