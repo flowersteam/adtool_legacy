@@ -39,13 +39,13 @@ _REGISTRATION = {
             'base': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
         },
         'on_cancelled': {
-            'base': "auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
+            'base': "auto_disc.auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
         },
         'on_error': {
-            'base': "auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
+            'base': "auto_disc.auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
         },
         'on_finished': {
-            'base': "auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
+            'base': "auto_disc.auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
         },
         'on_saved': {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback.SaveLeaf",
