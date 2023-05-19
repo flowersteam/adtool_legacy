@@ -50,6 +50,8 @@ def test_get_cls_from_name():
         ExponentialMixture
     from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import \
         SaveLeaf
+    from auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import \
+        GenerateReport
 
     cls_name = "IMGEPExplorer"
     ad_type_name = "explorers"
@@ -74,6 +76,12 @@ def test_get_cls_from_name():
     assert get_cls_from_name(
         cls_name, ad_type_name
     ) == SaveLeaf
+
+    cls_name = "base"
+    ad_type_name = "callbacks.on_save_finished"
+    assert get_cls_from_name(
+        cls_name, ad_type_name
+    ) == GenerateReport
 
 
 def test_get_custom_modules():
