@@ -308,3 +308,33 @@ def test_save_GenerateReport():
         tmp = r.split(".")[0]
         uid = tmp.split("_")[-1]
         assert uid in data_dirs
+
+
+def test_additional_callback():
+    from auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import \
+        SaveDiscoveryOnDisk
+    additional_callbacks = {"on_discovery": [SaveDiscoveryOnDisk()]}
+    experiment_id = 1
+    seed = 1
+    pipeline = run.create(
+        config_json, experiment_id=experiment_id, seed=seed,
+        additional_callbacks=additional_callbacks)
+
+    run.start(pipeline, 10)
+
+    # rough check of file tree
+    files = os.listdir(RESOURCE_URI)
+    assert len(files) > 0
+    disc_dirs = []
+
+    for f in files:
+        tf = f.split("_")
+        if (len(tf) > 1) and (tf[-2] == "idx"):
+            disc_dirs.append(f)
+        else:
+            pass
+
+        for dir in disc_dirs:
+            each_discovery = os.listdir(os.path.join(RESOURCE_URI, dir))
+            assert "rendered_output" in each_discovery
+            assert "discovery.json" in each_discovery
