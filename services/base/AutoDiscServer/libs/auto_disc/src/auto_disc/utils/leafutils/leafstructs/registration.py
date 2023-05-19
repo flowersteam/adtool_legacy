@@ -35,7 +35,8 @@ _REGISTRATION = {
     'callbacks': {
         'on_discovery': {
             'expe_db': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb.SaveDiscoveryInExpeDB",
-            'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
+            'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk",
+            'base': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
         },
         'on_cancelled': {
             'base': "auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
@@ -54,7 +55,6 @@ _REGISTRATION = {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback.GenerateReport",
         },
         'interact': {
-
             'base': "auto_disc.utils.callbacks.interact_callbacks.BaseInteractCallback",
             'saveDisk': "auto_disc.utils.callbacks.interact_callbacks.SaveDiskInteractCallback",
             'readDisk': "auto_disc.utils.callbacks.interact_callbacks.ReadDiskInteractCallback"
