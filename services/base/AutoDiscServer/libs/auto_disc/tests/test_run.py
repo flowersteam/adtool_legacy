@@ -131,11 +131,7 @@ def test_run():
 
 def test_save_SaveDiscoveryOnDisk():
     config_json["callbacks"] = {
-        "on_discovery": [{"name":
-                          "auto_disc.auto_disc.utils.callbacks."
-                          "on_discovery_callbacks."
-                          "save_discovery_on_disk."
-                          "SaveDiscoveryOnDisk",
+        "on_discovery": [{"name": "disk",
                           "config": {}
                           }]
     }
@@ -165,25 +161,13 @@ def test_save_SaveDiscoveryOnDisk():
 
 def test_save_resume():
     config_json["callbacks"] = {
-        "on_saved": [{"name":
-                     "auto_disc.auto_disc.utils.callbacks."
-                      "on_save_callbacks."
-                      "save_leaf_callback."
-                      "SaveLeaf",
+        "on_saved": [{"name": "base",
                       "config": {}
                       }],
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }],
-        "on_discovery": [{"name":
-                          "auto_disc.auto_disc.utils.callbacks."
-                          "on_discovery_callbacks."
-                          "save_discovery_on_disk."
-                          "SaveDiscoveryOnDisk",
+        "on_discovery": [{"name": "disk",
                           "config": {}
                           }]
     }
@@ -280,11 +264,7 @@ def test_save_GenerateReport():
     primarily tests the GenerateReport callback
     """
     config_json["callbacks"] = {
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }]
     }
@@ -300,18 +280,10 @@ def test_save_GenerateReport():
 
     # provide the savecallback
     config_json["callbacks"] = {
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }],
-        "on_saved": [{"name":
-                     "auto_disc.auto_disc.utils.callbacks."
-                      "on_save_callbacks."
-                      "save_leaf_callback."
-                      "SaveLeaf",
+        "on_saved": [{"name": "base",
                       "config": {}
                       }]
     }

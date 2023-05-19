@@ -75,7 +75,10 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         for cb_key in cb_request.keys():
             for cb in cb_request[cb_key]:
                 cb_config = cb["config"]
-                callback = get_cls_from_path(cb["name"])
+                type_name = "callbacks." + cb_key
+                callback = get_cls_from_name(
+                    cb["name"], ad_type_name=type_name
+                )
                 # initialize callback instance
                 callbacks[cb_key].append(callback(**cb_config))
 
