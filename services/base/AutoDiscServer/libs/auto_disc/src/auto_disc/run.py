@@ -83,8 +83,9 @@ def create(parameters: Dict, experiment_id: int, seed: int,
                 callbacks[cb_key].append(callback(**cb_config))
 
     # add additional callbacks which are already initialized Callables
-    for (cb_key, lst) in additional_callbacks.items():
-        callbacks[cb_key] += lst
+    if additional_callbacks:
+        for (cb_key, lst) in additional_callbacks.items():
+            callbacks[cb_key] += lst
 
     # short circuit if "resume_from_uid" is set
     resume_ckpt = parameters["experiment"]["config"].get("resume_from_uid",
