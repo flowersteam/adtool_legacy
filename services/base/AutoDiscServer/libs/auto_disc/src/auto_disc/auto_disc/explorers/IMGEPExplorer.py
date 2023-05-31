@@ -143,11 +143,11 @@ class IMGEPExplorer(Leaf):
         """Maps the raw output of the system rollout to a subsequent parameter
         configuration to try.
 
-        Args:
+        #### Args:
             system_output: A dictionary where the key `self.premap_key` indexes
                 the raw output given at the end of the previous system rollout.
 
-        Returns:
+        #### Returns:
             A dictionary where the key `self.postmap_key` indexes the
             parameters to try in the next trial.
         """
@@ -189,7 +189,7 @@ class IMGEPExplorer(Leaf):
         """Sample according to the policy a new trial of parameters for the
         system.
 
-        Args:
+        #### Args:
             lookback_length: number of previous trials to consider when choosing
                 the next trial, i.e., it is a batch size based on the save
                 frequency.
@@ -197,7 +197,7 @@ class IMGEPExplorer(Leaf):
                 Note that the default `lookback_length = -1` will retrieve the
                 entire  history.
 
-        Returns:
+        #### Returns:
             A `torch.Tensor` containing the parameters to try.
         """
         goal = self.behavior_map.sample()
@@ -212,10 +212,10 @@ class IMGEPExplorer(Leaf):
         """Read the raw output observed and process it into a discovered
         behavior.
 
-        Args:
+        #### Args:
             system_output: See arguments for `.map`.
 
-        Returns:
+        #### Returns:
             A dictionary of the observed behavior/feature vector associated with
             the raw `system_output`
         """
