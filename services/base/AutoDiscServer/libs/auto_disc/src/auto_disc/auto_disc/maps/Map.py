@@ -5,8 +5,7 @@ from typing import Dict, Any
 
 
 class Map(Leaf, metaclass=ABCMeta):
-    """
-    This is an abstract class that defines the interface for a `Map`, and should
+    """An abstract class that defines the interface for a `Map`, and should
     be inherited from by concrete implementations of `Map`s.
 
     A `Map` is a model for a function (in the mathematical sense, i.e., an 
@@ -33,7 +32,8 @@ class Map(Leaf, metaclass=ABCMeta):
 
     @abstractmethod
     def map(self, input: Dict) -> Dict:
-        """
+        """Maps input to output.
+
         A `Map` operates on regular Python dicts, but it views them as 
         structured. The `premap_key` and `postmap_key` are used to define
         the structured elements that the `Map` operates on. Often, the 
@@ -54,7 +54,9 @@ class Map(Leaf, metaclass=ABCMeta):
 
     @abstractmethod
     def sample(self) -> Any:
-        """
+        """Samples from the state of the map, viewed as a stateful record of
+        data which passes through.
+
         Curiosity exploration requires that the `Map` objects are agents in 
         some sense which have a memory of what data has passed through. The 
         way in which this is implemented in practice is that `Map` objects
