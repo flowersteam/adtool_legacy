@@ -1,5 +1,5 @@
 from auto_disc.utils.leaf.Leaf import Leaf
-from auto_disc.utils.leaf.locators.locators import BlobLocator, LinearLocator
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
@@ -8,15 +8,13 @@ from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import LeniaParameterMap
 from auto_disc.auto_disc.wrappers.mutators import (add_gaussian_noise,
                                                    call_mutate_method)
 from auto_disc.legacy.utils.config_parameters import (
-    DecimalConfigParameter,
     IntegerConfigParameter,
     StringConfigParameter,
     DictConfigParameter
 )
 from auto_disc.auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
-from typing import Dict, Tuple, Callable, List, Any
+from typing import Dict, List, Any
 import torch
-from copy import deepcopy
 from functools import partial
 
 
@@ -43,7 +41,7 @@ class IMGEPFactory:
     # TODO: kind of hard-coded for now, based on constructor defaults
     discovery_spec = ["params", "output", "raw_output", "rendered_output"]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         # never called
         pass
 
@@ -99,6 +97,12 @@ class IMGEPFactory:
 
 
 class IMGEPExplorer(Leaf):
+    """ Basic IMGEP that diffuses in goalspace.
+
+    A class instance of `IMGEPExplorer` has access to a provided
+    `parameter_map`, `behavior_map`, and `mutator` as attributes, whereas it
+    receives data from the system under study through the `.map` method.
+    """
     def __init__(self,
                  premap_key: str = "output",
                  postmap_key: str = "params",
@@ -120,8 +124,7 @@ class IMGEPExplorer(Leaf):
         self._history_saver = SaveWrapper()
 
     def bootstrap(self) -> Dict:
-        """
-        need special initialization logic for the t=0 run of IMGEP
+        """Returns an initial sample needed to bootstrap the exploration loop.
         """
         data_dict = {}
         # initialize sample
@@ -137,10 +140,16 @@ class IMGEPExplorer(Leaf):
         return data_dict
 
     def map(self, system_output: Dict) -> Dict:
-        """
-        The "map" when the `Explorer` is viewed as a function, which takes the
-        feature vector in behavior space and maps it to a (randomly chosen)
-        subsequent parameter configuration to try.
+        """Maps the raw output of the system rollout to a subsequent parameter
+        configuration to try.
+
+        Args:
+            system_output: A dictionary where the key `self.premap_key` indexes
+                the raw output given at the end of the previous system rollout.
+
+        Returns:
+            A dictionary where the key `self.postmap_key` indexes the
+            parameters to try in the next trial.
         """
         # either do nothing, or update dict by changing "output" -> "raw_output"
         # and adding new "output" key which is the result of the behavior map
@@ -177,16 +186,19 @@ class IMGEPExplorer(Leaf):
         return trial_data_reset
 
     def suggest_trial(self, lookback_length: int = -1) -> torch.Tensor:
-        """
-        Samples according to the policy a new trial of parameters for the
+        """Sample according to the policy a new trial of parameters for the
         system.
 
-        The `lookback_length` parameter is the number of previous trials to
-        consider when choosing the next trial, i.e., it is a batch size
-        based on the save frequency. 
+        Args:
+            lookback_length: number of previous trials to consider when choosing
+                the next trial, i.e., it is a batch size based on the save
+                frequency.
 
-        Note that the default `lookback_length = -1` will retrieve the entire 
-        history.
+                Note that the default `lookback_length = -1` will retrieve the
+                entire  history.
+
+        Returns:
+            A `torch.Tensor` containing the parameters to try.
         """
         goal = self.behavior_map.sample()
 
@@ -197,8 +209,15 @@ class IMGEPExplorer(Leaf):
         return params_trial
 
     def observe_results(self, system_output: Dict) -> Dict:
-        """
-        Reads the behavior discovered and processes it.
+        """Read the raw output observed and process it into a discovered
+        behavior.
+
+        Args:
+            system_output: See arguments for `.map`.
+
+        Returns:
+            A dictionary of the observed behavior/feature vector associated with
+            the raw `system_output`
         """
         # check we are not in the initialization case
         if system_output.get(self.premap_key, None) is not None:
@@ -211,20 +230,20 @@ class IMGEPExplorer(Leaf):
         return system_output
 
     def read_last_discovery(self) -> Dict:
+        """Return last observed discovery.
+        """
         return self._history_saver.buffer[-1]
 
     def optimize(self):
-        """
-        Optimization step for online learning of the `Explorer` policy.
+        """Run optimization step for online learning of the `Explorer` policy.
         """
         pass
 
     def _extract_dict_history(self,
                               dict_history: List[Dict],
                               key: str) -> List[Dict]:
-        """
-        Extracts history from an array of dicts with labelled data,
-        with the desired subdict being labelled by key
+        """Extract history from an array of dicts with labelled data,
+        with the desired subdict being labelled by key.
         """
         key_history = []
         for dict in dict_history:
@@ -234,9 +253,8 @@ class IMGEPExplorer(Leaf):
     def _extract_tensor_history(self,
                                 dict_history: List[Dict],
                                 key: str) -> torch.Tensor:
-        """
-        Extracts tensor history from an array of dicts with labelled data,
-        with the tensor being labelled by key 
+        """Extract tensor history from an array of dicts with labelled data,
+        with the tensor being labelled by key.
         """
         # append history of tensors along a new dimension at index 0
         tensor_history = \
