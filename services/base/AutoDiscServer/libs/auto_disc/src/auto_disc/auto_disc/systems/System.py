@@ -5,8 +5,7 @@ from typing import Dict, Any
 
 
 class System(Leaf, metaclass=ABCMeta):
-    """
-    This is an abstract class that defines the interface for a `System`, and should
+    """An abstract class that defines the interface for a `System`, and should
     be inherited from by concrete implementations of `System`s.
 
     A `System` is a model for a dynamical or complex system. In the context
@@ -29,7 +28,8 @@ class System(Leaf, metaclass=ABCMeta):
 
     @abstractmethod
     def map(self, input: Dict) -> Dict:
-        """
+        """Map system inputs to outputs.
+
         A `System` operates on regular Python dicts, but it views them as 
         structured. The `premap_key` and `postmap_key` are used to define
         the structured elements that the `System` operates on. Often, the 
@@ -50,7 +50,8 @@ class System(Leaf, metaclass=ABCMeta):
 
     @abstractmethod
     def render(self, data_dict: dict) -> bytes:
-        """
+        """Render system output as an image or video.
+
         A `System` should be able to render useful information about its
         execution (e.g., a plot, a video, etc.), which may depend on its
         internal state which is not captured by the `map` method. 
