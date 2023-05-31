@@ -1,14 +1,26 @@
-<div>
-  Range of iterations is {{ experiment?.config?.nb_iterations }} Range of seeds
-  is {{ experiment?.config?.nb_seeds }}
-</div>
-<div *ngIf="mediaSrcArray$ | async as mediaSrcArray">
-  <div *ngFor="let mediaSrc of mediaSrcArray">
-    <video autoplay loop>
-      <source type="video/mp4" [src]="mediaSrc.src | safe" />
-    </video>
+<div
+  class="container"
+  *ngIf="mediaSrcArrayFiltered$ | async as mediaSrcArrayFiltered"
+>
+  <div
+    class="w-25 overflow-auto mx-auto"
+    *ngFor="let mediaSrc of mediaSrcArrayFiltered"
+  >
+    <div class="card mt-1">
+      <video class="card-img-top mx-auto" autoplay loop>
+        <source type="video/mp4" [src]="mediaSrc.src | safe" />
+      </video>
+      <div class="card-body">
+        <h5 class="card-title text-center">
+          {{
+            "seed:" + mediaSrc.seed + " | iteration:" + (mediaSrc.iteration + 1)
+          }}
+        </h5>
+      </div>
+    </div>
   </div>
 </div>
+
 <!-- <div class="row mt-2 mx-1" *ngIf="this.experiment">
   <div
     *ngFor="
