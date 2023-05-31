@@ -130,6 +130,10 @@ export class DiscoveryComponent implements OnInit {
     this.getDiscovery();
   }
 
+  /**
+   * Fetches all discoveries associated to an experiment and their content,
+   * storing it in mediaArray$
+   */
   fetchDiscoveries(): void {
     if (!this.experiment) {
       return;
@@ -240,7 +244,7 @@ export class DiscoveryComponent implements OnInit {
       },
       // for debugging only
       complete: () => {
-        console.log('Discovery retrieval complete.');
+        console.log('Discovery get complete.');
       },
     });
     return;
