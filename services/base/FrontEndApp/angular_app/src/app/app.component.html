@@ -1,7 +1,6 @@
 <nb-layout>
-
   <nb-layout-header fixed>
-  <!-- Insert header here -->
+    <!-- Insert header here -->
   </nb-layout-header>
 
   <nb-layout-column>
@@ -38,7 +37,9 @@
             <a
               routerLink="/new-experiment"
               class="nav-link"
-              [ngClass]="path == '/new-experiment' ? 'active' : 'text-secondary'"
+              [ngClass]="
+                path == '/new-experiment' ? 'active' : 'text-secondary'
+              "
               [attr.aria-current]="path == '/new-experiment' ? 'page' : null"
             >
               <i class="bi bi-binoculars me-2" width="16" height="16"></i>
@@ -67,11 +68,9 @@
     <div class="col-10 float-end">
       <router-outlet></router-outlet>
     </div>
-    
   </nb-layout-column>
 
   <nb-layout-footer fixed>
-  <!-- Insert footer here -->
+    <!-- Insert footer here -->
   </nb-layout-footer>
-
 </nb-layout>

@@ -109,7 +109,7 @@ export class JupyterService {
     let response: Observable<any>;
     response = of(
       this.createJupyDir(experiment_name, experiment_id).subscribe((res) => {
-        return this.getAllNoetbooksInDir(path_template_folder).subscribe(
+        return this.getAllNotebooksInDir(path_template_folder).subscribe(
           (res) => {
             return this.copyPastAllNotebook(
               experiment_name,
@@ -144,7 +144,7 @@ export class JupyterService {
     return response;
   }
 
-  getAllNoetbooksInDir(folder_path: string): Observable<JupyterDir> {
+  getAllNotebooksInDir(folder_path: string): Observable<JupyterDir> {
     let response = this.http.get<JupyterDir>(
       this.jupyterUrl + '/api/contents/' + folder_path,
       this.httpOptions
@@ -159,7 +159,7 @@ export class JupyterService {
   ): Observable<any> {
     let response = new Observable<any>();
     for (let notebook of notebooks_dir_content) {
-      response = this.copyPastNotebook(
+      response = this.copyPasteNotebook(
         experiment_name,
         experiment_id,
         notebook.path
@@ -168,7 +168,7 @@ export class JupyterService {
     return response;
   }
 
-  copyPastNotebook(
+  copyPasteNotebook(
     experiment_name: string,
     experiment_id: number,
     notebook_path: string

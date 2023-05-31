@@ -1,9 +1,11 @@
-from typing import Any, Dict, Callable, Type
-import torch
-import numpy as np
-from auto_disc.utils.leaf.Leaf import Leaf
-import pickle
 import json
+import pickle
+from typing import Any, Callable, Dict, Type
+
+import numpy as np
+import torch
+
+from auto_disc.utils.leaf.Leaf import Leaf
 
 
 class _JSONEncoderFactory:
@@ -45,6 +47,12 @@ class _CustomJSONEncoder(json.JSONEncoder):
 
 
 class SaveDiscovery:
+    def __init__(self, **kwargs) -> None:
+        """
+        Dummy init which accepts any arguments, for backwards compatibility.
+        """
+        pass
+
     def __call__(self,
                  resource_uri: str,
                  experiment_id: int,

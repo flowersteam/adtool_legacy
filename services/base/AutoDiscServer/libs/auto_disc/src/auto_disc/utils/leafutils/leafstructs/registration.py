@@ -5,7 +5,8 @@ NOTE: Will be deprecated later.
 import importlib
 import math
 import pkgutil
-from pydoc import locate as locate_cls
+from pydoc import locate as _locate
+from typing import cast
 
 from mergedeep import merge
 
@@ -20,9 +21,9 @@ _REGISTRATION = {
         'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",
     },
     'maps': {
-        'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap.MeanBehaviorMap",
-        'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap.UniformParameterMap",
-        'LeniaStatistics': "auto_disc.auto_disc.maps.LeniaStatistics.LeniaStatistics",
+        'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap",
+        'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap",
+        'LeniaStatistics': "auto_disc.auto_disc.maps.lenia.LeniaStatistics",
     },
     'input_wrappers': {
         'generic.CPPN': "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
@@ -34,11 +35,18 @@ _REGISTRATION = {
     'callbacks': {
         'on_discovery': {
             'expe_db': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb.SaveDiscoveryInExpeDB",
-            'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
+            'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk",
+            'base': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
         },
-        'on_cancelled': {},
-        'on_error': {},
-        'on_finished': {},
+        'on_cancelled': {
+            'base': "auto_disc.auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
+        },
+        'on_error': {
+            'base': "auto_disc.auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
+        },
+        'on_finished': {
+            'base': "auto_disc.auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
+        },
         'on_saved': {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback.SaveLeaf",
             'expe_db': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb.SaveLeafExpeDB",
@@ -46,12 +54,24 @@ _REGISTRATION = {
         'on_save_finished': {
             'base': "auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback.GenerateReport",
         },
-        'interact': {},
+        'interact': {
+            'base': "auto_disc.utils.callbacks.interact_callbacks.BaseInteractCallback",
+            'saveDisk': "auto_disc.utils.callbacks.interact_callbacks.SaveDiskInteractCallback",
+            'readDisk': "auto_disc.utils.callbacks.interact_callbacks.ReadDiskInteractCallback"
+        },
     },
     'logger_handlers': {
         'logFile': "auto_disc.auto_disc.utils.logger.handlers.file_handler.SetFileHandler"
     }
 }
+
+
+def locate_cls(cls_path: str) -> type:
+    """
+    Wrapper function which allows static type checking by providing the correct
+    function signature.
+    """
+    return cast(type, _locate(cls_path))
 
 
 def get_path_from_cls(cls: type) -> str:
@@ -64,11 +84,31 @@ def get_path_from_cls(cls: type) -> str:
     return class_path
 
 
-def get_cls_from_path(cls_path: str) -> object:
+def get_cls_from_path(cls_path: str) -> type:
     """
     Returns the class pointed to by a fully qualified class path,
     importing along the way.
     """
+    return locate_cls(cls_path)
+
+
+def get_cls_from_name(cls_name: str, ad_type_name: str) -> type:
+    """
+    Attempts to retrieve the class by solely its name and the "type" of object
+    it is (among `explorers`, `systems`, etc.), looking up the
+    information along the way.
+    """
+    if "." not in ad_type_name:
+        # for all ad_type_name that are not callbacks
+        type_lookup_info = get_modules(ad_type_name)
+    else:
+        # for callbacks
+        callback_type_arr = ad_type_name.split(".")
+        assert callback_type_arr[0] == "callbacks"
+        callback_lookup_dict = get_modules(callback_type_arr[0])
+        type_lookup_info = callback_lookup_dict[callback_type_arr[1]]
+
+    cls_path = type_lookup_info[cls_name]
     return locate_cls(cls_path)
 
 
@@ -89,7 +129,7 @@ def get_default_modules(submodule: str) -> dict:
     return _REGISTRATION.get(submodule)
 
 
-def get_modules(submodule: str):
+def get_modules(submodule: str) -> dict:
     if submodule == "input_wrappers" or submodule == "output_representations":
         # legacy guard, there is no input_wrappers or output_representations
         # in the new module spec

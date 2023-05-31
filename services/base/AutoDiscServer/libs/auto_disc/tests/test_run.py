@@ -1,9 +1,12 @@
-import pathlib
+import json
 import os
+import pathlib
 import shutil
+
 import auto_disc.run as run
+from auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import \
+    GenerateReport
 from auto_disc.ExperimentPipeline import ExperimentPipeline
-from auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback import GenerateReport
 
 
 def setup_function(function):
@@ -92,51 +95,15 @@ def setup_function(function):
             "callbacks": {},
             "logger_handlers": []
         }
-    # {
-    #     "experiment": {
-    #         "name": "newlenia",
-    #         "config": {
-    #             "host": "local",
-    #             "nb_seeds": 1,
-    #             "nb_iterations": 10,
-    #             "save_location": f"{RESOURCE_URI}",
-    #             "save_frequency": 1,
-    #             "discovery_saving_keys": []
-    #         }
-    #     },
-    #     "system": {
-    #         "name": "auto_disc.systems.Lenia.Lenia",
-    #         "config": {
-    #             "SX": 128,
-    #             "SY": 128,
-    #             "version": "pytorch_fft",
-    #             "final_step": 50,
-    #             "scale_init_state": 1
-    #         }
-    #     },
-    #     "explorer": {
-    #         "name": "auto_disc.explorers.IMGEPFactory",
-    #         "config": {
-    #             "param_dim": 10,
-    #             "equil_time": 2,
-    #             "behavior_map": "Mean",
-    #             "parameter_map": "Uniform",
-    #             "param_init_low": 0.8,
-    #             "param_bound_low": "-inf",
-    #             "param_init_high": 0,
-    #             "param_bound_high": "inf",
-    #             "system_output_dim": 1,
-    #             "mutation_noise_std": 0.1,
-    #             "behavior_map_config": {}
-    #         }
-    #     },
-    #     "input_wrappers": [],
-    #     "output_representations": [],
-    #     "callbacks": {},
-    #     "logger_handlers": []
-    # }
-    config_json = config_json_lenia
 
+    json_requests_dir = os.path.join(file_path, "integration")
+    demo_path = os.path.join(json_requests_dir, "demo.json")
+    with open(demo_path, "r") as f:
+        config_json = json.loads(f.read())
+
+        # override with testing mock
+        config_json["experiment"]["config"]["save_location"] = \
+            f"{RESOURCE_URI}"
     return
 
 
@@ -164,11 +131,7 @@ def test_run():
 
 def test_save_SaveDiscoveryOnDisk():
     config_json["callbacks"] = {
-        "on_discovery": [{"name":
-                          "auto_disc.auto_disc.utils.callbacks."
-                          "on_discovery_callbacks."
-                          "save_discovery_on_disk."
-                          "SaveDiscoveryOnDisk",
+        "on_discovery": [{"name": "disk",
                           "config": {}
                           }]
     }
@@ -198,25 +161,13 @@ def test_save_SaveDiscoveryOnDisk():
 
 def test_save_resume():
     config_json["callbacks"] = {
-        "on_saved": [{"name":
-                     "auto_disc.auto_disc.utils.callbacks."
-                      "on_save_callbacks."
-                      "save_leaf_callback."
-                      "SaveLeaf",
+        "on_saved": [{"name": "base",
                       "config": {}
                       }],
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }],
-        "on_discovery": [{"name":
-                          "auto_disc.auto_disc.utils.callbacks."
-                          "on_discovery_callbacks."
-                          "save_discovery_on_disk."
-                          "SaveDiscoveryOnDisk",
+        "on_discovery": [{"name": "disk",
                           "config": {}
                           }]
     }
@@ -313,11 +264,7 @@ def test_save_GenerateReport():
     primarily tests the GenerateReport callback
     """
     config_json["callbacks"] = {
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }]
     }
@@ -333,18 +280,10 @@ def test_save_GenerateReport():
 
     # provide the savecallback
     config_json["callbacks"] = {
-        "on_save_finished": [{"name":
-                              "auto_disc.auto_disc.utils.callbacks."
-                              "on_save_finished_callbacks."
-                              "generate_report_callback."
-                              "GenerateReport",
+        "on_save_finished": [{"name": "base",
                               "config": {}
                               }],
-        "on_saved": [{"name":
-                     "auto_disc.auto_disc.utils.callbacks."
-                      "on_save_callbacks."
-                      "save_leaf_callback."
-                      "SaveLeaf",
+        "on_saved": [{"name": "base",
                       "config": {}
                       }]
     }
@@ -369,3 +308,33 @@ def test_save_GenerateReport():
         tmp = r.split(".")[0]
         uid = tmp.split("_")[-1]
         assert uid in data_dirs
+
+
+def test_additional_callback():
+    from auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import \
+        SaveDiscoveryOnDisk
+    additional_callbacks = {"on_discovery": [SaveDiscoveryOnDisk()]}
+    experiment_id = 1
+    seed = 1
+    pipeline = run.create(
+        config_json, experiment_id=experiment_id, seed=seed,
+        additional_callbacks=additional_callbacks)
+
+    run.start(pipeline, 10)
+
+    # rough check of file tree
+    files = os.listdir(RESOURCE_URI)
+    assert len(files) > 0
+    disc_dirs = []
+
+    for f in files:
+        tf = f.split("_")
+        if (len(tf) > 1) and (tf[-2] == "idx"):
+            disc_dirs.append(f)
+        else:
+            pass
+
+        for dir in disc_dirs:
+            each_discovery = os.listdir(os.path.join(RESOURCE_URI, dir))
+            assert "rendered_output" in each_discovery
+            assert "discovery.json" in each_discovery

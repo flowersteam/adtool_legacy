@@ -1,25 +1,21 @@
 """
-Helper script which allows creation of `ExperimentPipeline`. 
-This file `run.py` can also be run as `__main__`, for example in remote configurations.
+Helper script which allows creation of `ExperimentPipeline`.
+This file `run.py` can also be run as `__main__`,
+for example in remote configurations.
 """
 import argparse
 import json
-import os
 import random
-import sys
 from typing import Callable, Dict, List
 
 import numpy as np
 import torch
+from mergedeep import merge
 
 from auto_disc.ExperimentPipeline import ExperimentPipeline
-from auto_disc.legacy.utils.callbacks import interact_callbacks
 from auto_disc.legacy.utils.logger import AutoDiscLogger
-from auto_disc.utils.leafutils.leafstructs.registration import \
-    get_cls_from_path
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(dir_path, "../"))
+from auto_disc.utils.leafutils.leafstructs.registration import (
+    get_cls_from_name, get_cls_from_path)
 
 
 def create(parameters: Dict, experiment_id: int, seed: int,
@@ -27,26 +23,31 @@ def create(parameters: Dict, experiment_id: int, seed: int,
            additional_handlers: List[AutoDiscLogger] = None,
            interactMethod: Callable = None) -> ExperimentPipeline:
     """
-        Setup the whole experiment. Set each modules, logger, callbacks and use them to define the experiment pipeline.
+        Setup the whole experiment. Set each modules, logger, callbacks and use
+        them to define the experiment pipeline.
+
+        In addition to callbacks and handlers defined in `parameters`,
+        you can pass extras. as keyword arguments.
 
         #### Args:
-        - parameters: Experiment config (define which systems which explorer which callbacks and all other information needed to set an experiment)
+        - parameters: Experiment config (define which systems which explorer
+        which callbacks and all other information needed to set an experiment)
         - experiment_id: Current experiment id
         - seed: current seed number
-        - additional_callbacks: callbacks we want use in addition to callbacks from parameters arguments
-        - additional_handlers: handlers we want to use in addition to logger_handlers from parameters arguments
+        - additional_callbacks
+        - additional_handlers
 
         #### Returns:
         - experiment: The experiment we have just defined
     """
 
     _set_seed(seed)
-    save_frequency = parameters['experiment']['config']['save_frequency']
-
     # Get logger
+    # FIXME: broken with get_cls_from_name, need to
+    # add handlers to registration
     handlers = []
     for logger_handler in parameters['logger_handlers']:
-        handler_class = get_cls_from_path(logger_handler['name'])
+        handler_class = get_cls_from_name(logger_handler['name'], "handlers")
         handler = handler_class(
             **logger_handler['config'], experiment_id=experiment_id)
         handlers.append(handler)
@@ -63,37 +64,34 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         'on_error': [],
         'on_cancelled': [],
         'on_saved': [],
-        'interact': {}
     }
+    # initialize callbacks which require lookup
+    # NOTE: stateful callbacks are deprecated, and new callbacks simply have a
+    # dummy __init__ to obey this interface
 
-    for callback_key in callbacks:
-        if additional_callbacks is not None:
-            if callback_key != "interact":
-                callbacks[callback_key].extend(
-                    additional_callbacks[callback_key])
-            else:
-                callbacks[callback_key].update(
-                    additional_callbacks[callback_key])
-        for _callback in parameters['callbacks'].get(callback_key, []):
-            callback_class = get_cls_from_path(_callback['name'])
-            # initialize callbacks with appropriate logger and config
-            if callback_key == "interact":
-                callbacks[callback_key].update(
-                    {_callback['name']: callback_class(
-                        interactMethod=interactMethod, **_callback['config'])}
+    # FIXME: null guard
+    if len(parameters["callbacks"]) > 0:
+        cb_request = parameters["callbacks"]
+        for cb_key in cb_request.keys():
+            for cb in cb_request[cb_key]:
+                cb_config = cb["config"]
+                type_name = "callbacks." + cb_key
+                callback = get_cls_from_name(
+                    cb["name"], ad_type_name=type_name
                 )
-            else:
-                callbacks[callback_key].append(
-                    callback_class(**_callback['config'])
-                )
+                # initialize callback instance
+                callbacks[cb_key].append(callback(**cb_config))
+
+    # add additional callbacks which are already initialized Callables
+    for (cb_key, lst) in additional_callbacks.items():
+        callbacks[cb_key] += lst
 
     # short circuit if "resume_from_uid" is set
     resume_ckpt = parameters["experiment"]["config"].get("resume_from_uid",
                                                          None)
     if (resume_ckpt is not None):
         resource_uri = parameters['experiment']['config']['save_location']
-        experiment = \
-            ExperimentPipeline().\
+        experiment = ExperimentPipeline().\
             load_leaf(uid=resume_ckpt,
                       resource_uri=resource_uri)
 
@@ -105,27 +103,29 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         experiment._on_cancelled_callbacks = callbacks['on_cancelled']
         experiment._on_save_callbacks = callbacks['on_saved']
         experiment._on_error_callbacks = callbacks['on_error']
-        experiment._interact_callbacks = callbacks['interact']
+        # experiment._interact_callbacks = callbacks['interact']
 
         return experiment
-    else:
-        pass
 
     # Get explorer factory and generate explorer
-    explorer_factory_class = get_cls_from_path(parameters['explorer']['name'])
+    explorer_factory_class = get_cls_from_name(
+        parameters['explorer']['name'], "explorers"
+    )
     explorer_factory = explorer_factory_class(
         **parameters['explorer']['config'])
     explorer = explorer_factory()
 
     # Get system
-    system_class = get_cls_from_path(parameters['system']['name'])
+    system_class = get_cls_from_name(
+        parameters['system']['name'], "systems"
+    )
     system = system_class(**parameters['system']['config'])
 
     # Create experiment pipeline
     experiment = ExperimentPipeline(
         experiment_id=experiment_id,
         seed=seed,
-        save_frequency=save_frequency,
+        save_frequency=parameters['experiment']['config']['save_frequency'],
         system=system,
         explorer=explorer,
         on_discovery_callbacks=callbacks['on_discovery'],
@@ -134,7 +134,6 @@ def create(parameters: Dict, experiment_id: int, seed: int,
         on_cancelled_callbacks=callbacks['on_cancelled'],
         on_save_callbacks=callbacks['on_saved'],
         on_error_callbacks=callbacks['on_error'],
-        interact_callbacks=callbacks['interact'],
         logger=logger,
         resource_uri=parameters['experiment']['config']['save_location']
     )

@@ -34,7 +34,7 @@ class LocalExperiment(BaseExperiment):
             "on_cancelled": [self.on_cancelled],
             "on_error": [self.on_error],
             "on_saved": [SaveLeafExpeDB()],
-            "interact": {"saveExpeDB": self.save_data_to_expe_db, "readExpeDB": self.read_data_from_exp_db}
+            # "interact": {"saveExpeDB": self.save_data_to_expe_db, "readExpeDB": self.read_data_from_exp_db}
         }
 
         self._additional_handlers = [AppDBLoggerHandler('http://{}:{}'.format(

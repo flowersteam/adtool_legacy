@@ -1,9 +1,11 @@
+import json
 import typing
 from typing import Any, Callable
-import json
-from utils import SeedStatusEnum, ExperimentStatusEnum, CheckpointsStatusEnum
-from utils import clear_dict_config_parameter, AutoDiscServerConfig
-from utils.DB import ExpeDBCaller, AppDBCaller, AppDBMethods
+
+from utils import (AutoDiscServerConfig, CheckpointsStatusEnum,
+                   ExperimentStatusEnum, SeedStatusEnum,
+                   clear_dict_config_parameter)
+from utils.DB import AppDBCaller, AppDBMethods, ExpeDBCaller
 
 
 class BaseExperiment():
@@ -28,54 +30,54 @@ class BaseExperiment():
 
         self.experiment_config['experiment']['id'] = id
 
-        # TODO: Find a way to avoid this
-        self.experiment_config['experiment']['save_frequency'] = self.experiment_config['experiment']['config']['save_frequency']
-        del self.experiment_config['experiment']['config']['save_frequency']
+        # # TODO: Find a way to avoid this
+        # self.experiment_config['experiment']['save_frequency'] = self.experiment_config['experiment']['config']['save_frequency']
+        # del self.experiment_config['experiment']['config']['save_frequency']
 
-        # TODO when the user can choose callbacks delete this
-        if self.experiment_config['callbacks'] == []:
-            self.experiment_config['callbacks'] = {
-                'on_discovery': [
-                    {
-                        'name': 'base',
-                        'config': {
-                            'to_save_outputs': self.experiment_config['experiment']['config']['discovery_saving_keys']
-                        }
-                    }
-                ],
-                'on_save_finished': [
-                    {
-                        'name': 'base',
-                        'config': {}
-                    }
-                ],
-                'on_cancelled': [
-                    {
-                        'name': 'base',
-                        'config': {}
-                    }
-                ],
-                'on_finished': [
-                    {
-                        'name': 'base',
-                        'config': {}
-                    }
-                ],
-                'on_error': [
-                    {
-                        'name': 'base',
-                        'config': {}
-                    }
-                ],
-                'on_saved': [
-                    {
-                        'name': 'base',
-                        'config': {}
-                    }
-                ],
-                'interact': [
-                ]
-            }
+        # # TODO when the user can choose callbacks delete this
+        # if self.experiment_config['callbacks'] == []:
+        #     self.experiment_config['callbacks'] = {
+        #         'on_discovery': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {
+        #                     'to_save_outputs': self.experiment_config['experiment']['config']['discovery_saving_keys']
+        #                 }
+        #             }
+        #         ],
+        #         'on_save_finished': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {}
+        #             }
+        #         ],
+        #         'on_cancelled': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {}
+        #             }
+        #         ],
+        #         'on_finished': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {}
+        #             }
+        #         ],
+        #         'on_error': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {}
+        #             }
+        #         ],
+        #         'on_saved': [
+        #             {
+        #                 'name': 'base',
+        #                 'config': {}
+        #             }
+        #         ],
+        #         'interact': [
+        #         ]
+        #     }
 
         self.cleared_config = self.experiment_config
 
@@ -116,7 +118,7 @@ class BaseExperiment():
                 "seeds_status": {},
                 "parent_id": current_checkpoint_id
             }
-        elif self.progresses[seed] <= self.experiment_config['experiment']['config']["nb_iterations"] - self.experiment_config['experiment']['save_frequency']:
+        elif self.progresses[seed] <= self.experiment_config['experiment']['config']["nb_iterations"] - self.experiment_config['experiment']['config']['save_frequency']:
             list_index = list(self.checkpoints_history)
             checkpoint_id = list_index[list_index.index(
                 current_checkpoint_id)+1]
