@@ -6,8 +6,7 @@ import { ToasterService } from '../../../services/toaster.service';
 // NOTE: this import path is deprecated
 // https://rxjs.dev/guide/importing
 import { from, BehaviorSubject } from 'rxjs';
-import { map, concatMap, catchError, take, tap } from 'rxjs/operators';
-import { RESTResponse } from 'src/app/entities/rest_response';
+import { map, concatMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-discovery',

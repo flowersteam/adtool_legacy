@@ -59,7 +59,7 @@ export class ExperimentCreationComponent implements OnInit {
               this.createNewExperimentService.newExperiment.experiment.name,
               experiment_id,
               path_template_folder
-            ).subscribe(async (res) => {
+            ).subscribe(async () => {
               while (experiment_status == 4) {
                 this.appDBService
                   .getExperimentById(experiment_id)
