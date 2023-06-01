@@ -19,7 +19,7 @@ from utils.DB.expe_db_utils import (is_json_serializable,
 
 class LocalExperiment(BaseExperiment):
     '''
-        Local Python experiment. Pipelines are directly launched from this class with additional callbacks provided to handle DB storage. 
+        Local Python experiment. Pipelines are directly launched from this class with additional callbacks provided to handle DB storage.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -37,8 +37,13 @@ class LocalExperiment(BaseExperiment):
             # "interact": {"saveExpeDB": self.save_data_to_expe_db, "readExpeDB": self.read_data_from_exp_db}
         }
 
-        self._additional_handlers = [AppDBLoggerHandler('http://{}:{}'.format(
-            self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)]
+        self._additional_handlers = [
+            AppDBLoggerHandler(
+                'http://{}:{}'.format(
+                    self.autoDiscServerConfig.APPDB_CALLER_HOST,
+                    self.autoDiscServerConfig.APPDB_CALLER_PORT),
+                self.id,
+                self._get_current_checkpoint_id)]
 
         self._pipelines = []
 
@@ -50,19 +55,27 @@ class LocalExperiment(BaseExperiment):
                                 "message": "experimence in preparation"
                             }
                             )
-        for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
+        for i in range(
+                self.experiment_config['experiment']['config']['nb_seeds']):
             seed = i
             experiment_id = self.experiment_config['experiment']['id']
-            self._pipelines.append(create(self.cleared_config, experiment_id, seed,
-                                   self._additional_callbacks, self._additional_handlers, self.save_data_to_expe_db))
+            self._pipelines.append(
+                create(
+                    self.cleared_config,
+                    experiment_id,
+                    seed,
+                    self._additional_callbacks,
+                    self._additional_handlers,
+                    self.save_data_to_expe_db))
 
     def start(self):
         print("Starting local experiment with id {} and {} seeds".format(
             self.id, self.experiment_config['experiment']['config']['nb_seeds']))
         self._running_tasks = []
-        response = self._app_db_caller("/experiments?id=eq.{}".format(self.id),
-                                       AppDBMethods.PATCH,
-                                       {"exp_status": ExperimentStatusEnum.RUNNING})
+        response = self._app_db_caller(
+            "/experiments?id=eq.{}".format(
+                self.id), AppDBMethods.PATCH, {
+                "exp_status": ExperimentStatusEnum.RUNNING})
         self._app_db_caller("/preparing_logs",
                             AppDBMethods.POST, {
                                 "experiment_id": self.id,
@@ -70,23 +83,30 @@ class LocalExperiment(BaseExperiment):
                             }
                             )
         for pipeline in self._pipelines:
-            task = threading.Thread(target=start_pipeline, args=(
-                pipeline, self.experiment_config['experiment']['config']['nb_iterations'], ))
+            task = threading.Thread(
+                target=start_pipeline,
+                args=(
+                    pipeline,
+                    self.experiment_config['experiment']['config']['nb_iterations'],
+                ))
             task.start()
             self._running_tasks.append(task)
 
     def stop(self):
         print("Stopping {} seeds of local experiment with id {}".format(
             self.experiment_config['experiment']['config']['nb_seeds'], self.id))
-        for i in range(self.experiment_config['experiment']['config']['nb_seeds']):
+        for i in range(
+                self.experiment_config['experiment']['config']['nb_seeds']):
             self._pipelines[i].cancellation_token.trigger()
             self._running_tasks[i].join()
 
     def reload(self):
-        self._app_db_caller("/checkpoints?experiment_id=eq.{}&status=eq.{}".format(self.id, int(CheckpointsStatusEnum.RUNNING)),
-                            AppDBMethods.PATCH,
-                            {"status": int(CheckpointsStatusEnum.CANCELLED)}
-                            )
+        self._app_db_caller(
+            "/checkpoints?experiment_id=eq.{}&status=eq.{}".format(
+                self.id, int(
+                    CheckpointsStatusEnum.RUNNING)), AppDBMethods.PATCH, {
+                "status": int(
+                    CheckpointsStatusEnum.CANCELLED)})
         self._app_db_caller("/experiments?id=eq.{}".format(self.id),
                             AppDBMethods.PATCH,
                             {"exp_status": int(
@@ -140,12 +160,14 @@ class LocalExperiment(BaseExperiment):
 
         for save_item in to_save_outputs:
             if save_item == "raw_output":
-                files_to_save[save_item] = ('{}_{}_{}'.format(
-                    save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
+                files_to_save[save_item] = (
+                    '{}_{}_{}'.format(
+                        save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(
+                        kwargs[save_item]), 'application/json')
             elif save_item == "rendered_output":
                 filename = "exp_{}_idx_{}".format(
                     kwargs["experiment_id"], kwargs["run_idx"])
-                filename = filename+"."+kwargs["rendered_output"][1]
+                filename = filename + "." + kwargs["rendered_output"][1]
                 files_to_save["rendered_output"] = (
                     filename, kwargs["rendered_output"][0].getbuffer())
             else:
@@ -153,8 +175,10 @@ class LocalExperiment(BaseExperiment):
                 if is_json_serializable(serialized_object):
                     saves[save_item] = serialized_object
                 else:
-                    files_to_save[save_item] = ('{}_{}_{}'.format(
-                        save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(kwargs[save_item]), 'application/json')
+                    files_to_save[save_item] = (
+                        '{}_{}_{}'.format(
+                            save_item, kwargs["experiment_id"], kwargs["run_idx"]), pickle.dumps(
+                            kwargs[save_item]), 'application/json')
 
         discovery_id = self._expe_db_caller(
             "/discoveries", request_dict=saves)["ID"]
@@ -177,19 +201,20 @@ class LocalExperiment(BaseExperiment):
             module_to_save = pickle.dumps(to_pickle)
             files_to_save[module] = module_to_save
 
-        module_id = self._expe_db_caller("/checkpoint_saves",
-                                         request_dict={
-                                             "checkpoint_id": self._get_current_checkpoint_id(kwargs["seed"]),
-                                             "run_idx": kwargs["run_idx"],
-                                             "seed": kwargs["seed"]
-                                         }
-                                         )["ID"]
+        module_id = self._expe_db_caller(
+            "/checkpoint_saves",
+            request_dict={
+                "checkpoint_id": self._get_current_checkpoint_id(
+                    kwargs["seed"]),
+                "run_idx": kwargs["run_idx"],
+                "seed": kwargs["seed"]})["ID"]
         self._expe_db_caller("/checkpoint_saves/" +
                              module_id + "/files", files=files_to_save)
 
     def save_data_to_expe_db(self, data, dict_info, **kwargs):
         request_dict = {
-            "checkpoint_id": self._get_current_checkpoint_id(dict_info["seed"])}
+            "checkpoint_id": self._get_current_checkpoint_id(
+                dict_info["seed"])}
         request_dict.update(dict_info)
         data_id = self._expe_db_caller(
             "/data_saves", request_dict=request_dict)["ID"]

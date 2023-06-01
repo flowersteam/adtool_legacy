@@ -23,36 +23,30 @@ class RemoteExperiment(BaseExperiment):
             profile[1] for profile in list_profiles() if profile[0] == host_profile_name))
 
         args[1]["logger_handlers"] = [{"name": "logFile", "config": {
-            "folder_log_path": self.__host_profile["work_path"]+"/logs/"}}]
-        args[1]["callbacks"] = {"on_discovery": [
-                                {"name": "disk",
-                                 "config": {"to_save_outputs": args[1]["experiment"]["config"]["discovery_saving_keys"],
-                                            "folder_path": self.__host_profile["work_path"]+"/outputs/"
-                                            }
-                                 }
-                                ],
+            "folder_log_path": self.__host_profile["work_path"] + "/logs/"}}]
+        args[1]["callbacks"] = {"on_discovery": [{"name": "disk",
+                                                  "config": {"to_save_outputs": args[1]["experiment"]["config"]["discovery_saving_keys"],
+                                                             "folder_path": self.__host_profile["work_path"] + "/outputs/"}}],
                                 "on_save_finished": [],
                                 "on_cancelled": [],
                                 "on_finished": [],
                                 "on_error": [],
-                                "on_saved": [{"name": "disk", "config": {"folder_path": self.__host_profile["work_path"]+"/checkpoints/"}}],
-                                "interact": [
-            {
-                'name': 'saveDisk',
-                'config': {"folder_path": self.__host_profile["work_path"]+"/data_saves/"}
-            },
-            {
-                'name': 'readDisk',
-                'config': {"folder_path": self.__host_profile["work_path"]+"/data_saves/"}
-            }
-        ]
-        }
+                                "on_saved": [{"name": "disk",
+                                              "config": {"folder_path": self.__host_profile["work_path"] + "/checkpoints/"}}],
+                                "interact": [{'name': 'saveDisk',
+                                              'config': {"folder_path": self.__host_profile["work_path"] + "/data_saves/"}},
+                                             {'name': 'readDisk',
+                                              'config': {"folder_path": self.__host_profile["work_path"] + "/data_saves/"}}]}
         super().__init__(*args, **kwargs)
 
         self.nb_seeds_finished = 0
 
-        self.app_db_logger_handler = AppDBLoggerHandler('http://{}:{}'.format(
-            self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT), self.id, self._get_current_checkpoint_id)
+        self.app_db_logger_handler = AppDBLoggerHandler(
+            'http://{}:{}'.format(
+                self.autoDiscServerConfig.APPDB_CALLER_HOST,
+                self.autoDiscServerConfig.APPDB_CALLER_PORT),
+            self.id,
+            self._get_current_checkpoint_id)
 
         self.port = 22
 
@@ -62,10 +56,13 @@ class RemoteExperiment(BaseExperiment):
         self.shell = pxssh.pxssh()
         self.ssh_config_file_path = self.autoDiscServerConfig.SSH_CONFIG_FILE
         self.shell.login(
-            self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+            self.__host_profile["ssh_configuration"],
+            ssh_config=self.ssh_config_file_path)
 
-        self._app_db_caller = AppDBCaller("http://{}:{}".format(
-            self.autoDiscServerConfig.APPDB_CALLER_HOST, self.autoDiscServerConfig.APPDB_CALLER_PORT))
+        self._app_db_caller = AppDBCaller(
+            "http://{}:{}".format(
+                self.autoDiscServerConfig.APPDB_CALLER_HOST,
+                self.autoDiscServerConfig.APPDB_CALLER_PORT))
 
     def __close_ssh(self):
         self._monitor_async.join()
@@ -84,8 +81,9 @@ class RemoteExperiment(BaseExperiment):
         # move to work directory
         self.shell.sendline('cd {}'.format(self.__host_profile["work_path"]))
         # make command we will execute to launch the experiment
-        exec_command = self.__host_profile["execution"].replace("$NB_SEEDS", "{}".format(
-            self.experiment_config["experiment"]["config"]["nb_seeds"]))
+        exec_command = self.__host_profile["execution"].replace(
+            "$NB_SEEDS", "{}".format(
+                self.experiment_config["experiment"]["config"]["nb_seeds"]))
         exec_command = exec_command.replace(
             "$ARGS",
             "--config_file {}/parameters_remote.json --experiment_id {} --nb_iterations {}"
@@ -96,16 +94,16 @@ class RemoteExperiment(BaseExperiment):
             )
         )
         exec_command = exec_command.replace(
-            "$EXPE_ID", self.__host_profile["work_path"]+"/run_ids/"+str(self.id))
+            "$EXPE_ID", self.__host_profile["work_path"] + "/run_ids/" + str(self.id))
 
         # execute command
         self.shell.sendline(exec_command)
-        self._app_db_caller("/preparing_logs",
-                            AppDBMethods.POST, {
-                                "experiment_id": self.id,
-                                "message": "the command to run the experiment on the remote server has been launched"
-                            }
-                            )
+        self._app_db_caller(
+            "/preparing_logs",
+            AppDBMethods.POST,
+            {
+                "experiment_id": self.id,
+                "message": "the command to run the experiment on the remote server has been launched"})
         # get run id of each python who have been launched
         self.__run_id = self.__get_run_id()  # TODO save run_id in db
         self._app_db_caller("/preparing_logs",
@@ -131,7 +129,8 @@ class RemoteExperiment(BaseExperiment):
         # open ssh connection
         self.killer_shell = pxssh.pxssh()
         self.killer_shell.login(
-            self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+            self.__host_profile["ssh_configuration"],
+            ssh_config=self.ssh_config_file_path)
         # create and exec cancellation command
         cancellation_command = self.__host_profile["cancellation"].replace(
             "$RUN_ID", self.__run_id)
@@ -173,13 +172,15 @@ class RemoteExperiment(BaseExperiment):
                             )
         # make path
         lib_path = os.path.dirname(os.path.realpath(
-            __file__))+"/../../../../libs/auto_disc"
-        lib_path_tar = to_push_folder_path+"/libs.tar.gz"
+            __file__)) + "/../../../../libs/auto_disc"
+        lib_path_tar = to_push_folder_path + "/libs.tar.gz"
         # push and untar lib
         self.__tar_local_folder(lib_path, lib_path_tar)
         self.__push_folder(lib_path_tar, self.__host_profile["work_path"])
         self.__untar_folder(
-            self.__host_profile["work_path"]+"/libs.tar.gz", self.__host_profile["work_path"])
+            self.__host_profile["work_path"] +
+            "/libs.tar.gz",
+            self.__host_profile["work_path"])
 
         # push slurm file
         # make path
@@ -191,12 +192,14 @@ class RemoteExperiment(BaseExperiment):
                             )
         additional_file_path = os.path.dirname(os.path.realpath(
             __file__)) + "/../../../../configs/remote_experiments/additional_files"
-        additional_file_path_tar = to_push_folder_path+"/additional_files.tar.gz"
+        additional_file_path_tar = to_push_folder_path + "/additional_files.tar.gz"
         self.__tar_local_folder(additional_file_path, additional_file_path_tar)
         self.__push_folder(additional_file_path_tar,
                            self.__host_profile["work_path"])
         self.__untar_folder(
-            self.__host_profile["work_path"]+"/additional_files.tar.gz", self.__host_profile["work_path"])
+            self.__host_profile["work_path"] +
+            "/additional_files.tar.gz",
+            self.__host_profile["work_path"])
 
         # push parameters file (json)
         # save json on disk
@@ -222,12 +225,12 @@ class RemoteExperiment(BaseExperiment):
         self.shell.sendline(
             "mkdir {}/{}".format(self.__host_profile["work_path"], "data"))
 
-        self._app_db_caller("/preparing_logs",
-                            AppDBMethods.POST, {
-                                "experiment_id": self.id,
-                                "message": "All necessary files have been sent to the remote server and are ready to be used"
-                            }
-                            )
+        self._app_db_caller(
+            "/preparing_logs",
+            AppDBMethods.POST,
+            {
+                "experiment_id": self.id,
+                "message": "All necessary files have been sent to the remote server and are ready to be used"})
 
     def __tar_local_folder(self, folder_src, tar_path):
         folder_src_split = folder_src.split("/")
@@ -243,8 +246,11 @@ class RemoteExperiment(BaseExperiment):
                   self.__host_profile["ssh_configuration"], folder_path_remote))
 
     def __pull_folder(self, folder_path_remote, folder_path_local):
-        os.system('scp -r {}:{} {}'.format(
-            self.__host_profile["ssh_configuration"], folder_path_remote, folder_path_local))
+        os.system(
+            'scp -r {}:{} {}'.format(
+                self.__host_profile["ssh_configuration"],
+                folder_path_remote,
+                folder_path_local))
 
     def __untar_folder(self, tar_path, folder_path_dest):
         self.shell.sendline(
@@ -259,7 +265,7 @@ class RemoteExperiment(BaseExperiment):
                run_idx: string : run_idx
         """
         auto_disc_parent_folder = remote_path.find(remote_path.split('/')[-4])
-        local_folder += remote_path[auto_disc_parent_folder-1:]
+        local_folder += remote_path[auto_disc_parent_folder - 1:]
         for sub_folder in sub_folders:
             if not os.path.exists("{}{}/".format(local_folder, sub_folder)):
                 os.makedirs("{}{}/".format(local_folder, sub_folder))
@@ -272,17 +278,17 @@ class RemoteExperiment(BaseExperiment):
         filter_attribut["experiment_id"] = request_dict["experiment_id"]
         filter_attribut["seed"] = request_dict["seed"]
         filter_attribut["idx"] = request_dict["idx"]
-        while response == [] or response == None or response["type"] == "question":
+        while response == [] or response is None or response["type"] == "question":
             try:
                 response = self._expe_db_caller.read(
                     "/data_saves", filter_attribut)[0]
-            except:
+            except BaseException:
                 print(response)
             sleep(self.__host_profile["check_experiment_launched_every"])
 
         response = self._expe_db_caller.read_file(
             "/data_saves", response, "data")
-        local_path = self.__host_profile["local_tmp_path"]+"/remote_experiment/push_to_server/data_saves/{}/{}".format(
+        local_path = self.__host_profile["local_tmp_path"] + "/remote_experiment/push_to_server/data_saves/{}/{}".format(
             filter_attribut["experiment_id"], filter_attribut["seed"])
 
         to_save = {}
@@ -300,8 +306,9 @@ class RemoteExperiment(BaseExperiment):
                 os.makedirs(folder)
             with open(filename, 'wb') as out_file:
                 pickle.dump(to_save[save_item], out_file)
-        self.__push_folder(local_path, "{}/data_saves/{}".format(
-            self.__host_profile["work_path"], filter_attribut["experiment_id"]))
+        self.__push_folder(local_path,
+                           "{}/data_saves/{}".format(self.__host_profile["work_path"],
+                                                     filter_attribut["experiment_id"]))
         return response
 
 # endregion
@@ -316,7 +323,8 @@ class RemoteExperiment(BaseExperiment):
         if (not os.path.exists(local_folder)):
             os.makedirs(local_folder)
         # listen log file and do the appropriate action
-        while not self.test_file_exist(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id)):
+        while not self.test_file_exist(
+                self.__host_profile["work_path"] + "/logs/exp_{}.log".format(self.id)):
             self._app_db_caller("/preparing_logs",
                                 AppDBMethods.POST, {
                                     "experiment_id": self.id,
@@ -324,14 +332,13 @@ class RemoteExperiment(BaseExperiment):
                                 }
                                 )
             sleep(self.__host_profile["check_experiment_launched_every"])
-        self.shell.sendline(
-            'tail -F -n +1 {}'
-            .format(self.__host_profile["work_path"]+"/logs/exp_{}.log".format(self.id))
-        )
+        self.shell.sendline('tail -F -n +1 {}' .format(
+            self.__host_profile["work_path"] + "/logs/exp_{}.log".format(self.id)))
         # change experiment status from preparing to running in db
-        response = self._app_db_caller("/experiments?id=eq.{}".format(self.id),
-                                       AppDBMethods.PATCH,
-                                       {"exp_status": ExperimentStatusEnum.RUNNING})
+        response = self._app_db_caller(
+            "/experiments?id=eq.{}".format(
+                self.id), AppDBMethods.PATCH, {
+                "exp_status": ExperimentStatusEnum.RUNNING})
         self._app_db_caller("/preparing_logs",
                             AppDBMethods.POST, {
                                 "experiment_id": self.id,
@@ -362,13 +369,25 @@ class RemoteExperiment(BaseExperiment):
                                   run_idx, local_folder)
             if remote_path.split("/")[-4] == "outputs":
                 self.save_discovery_to_expe_db(
-                    sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
+                    sub_folders=sub_folders,
+                    run_idx=run_idx,
+                    folder=local_folder,
+                    seed=seed_number,
+                    experiment_id=self.id)
             elif remote_path.split("/")[-4] == "checkpoints":
                 self.save_modules_to_expe_db(
-                    sub_folders=sub_folders, run_idx=run_idx, folder=local_folder, seed=seed_number, experiment_id=self.id)
+                    sub_folders=sub_folders,
+                    run_idx=run_idx,
+                    folder=local_folder,
+                    seed=seed_number,
+                    experiment_id=self.id)
             elif remote_path.split("/")[-4] == "data_saves":
-                self.save_data_to_expe_db(sub_folders=sub_folders, run_idx=run_idx,
-                                          folder=local_folder, seed=seed_number, experiment_id=self.id)
+                self.save_data_to_expe_db(
+                    sub_folders=sub_folders,
+                    run_idx=run_idx,
+                    folder=local_folder,
+                    seed=seed_number,
+                    experiment_id=self.id)
         elif self.__is_finished(message):
             super().on_finished(seed_number)
             is_current_seed_finished = True
@@ -389,8 +408,10 @@ class RemoteExperiment(BaseExperiment):
 
     def test_file_exist(self, file_path):
         self.shell.prompt(timeout=2)
-        self.shell.sendline('test -f '+file_path +
-                            '&& echo "File exist" || echo "File does not exist"')
+        self.shell.sendline(
+            'test -f ' +
+            file_path +
+            '&& echo "File exist" || echo "File does not exist"')
         self.shell.sendline('echo "test_file_end"')
         self.shell.expect('test_file_end')
         lines = self.shell.before.decode().split("\n")
@@ -460,16 +481,20 @@ class RemoteExperiment(BaseExperiment):
             print("unexpected error occurred. checked the logs of your remote server")
             print(ex)
             self.callback_to_all_running_seeds(
-                lambda seed, current_checkpoint_id: super().on_error(seed, current_checkpoint_id))
+                lambda seed, current_checkpoint_id: super().on_error(
+                    seed, current_checkpoint_id))
 
     def __is_finished(self, log):
-        return match_except_number(log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
+        return match_except_number(
+            log.strip(), "- [FINISHED] - experiment 0 with seed 0 finished")
 
     # def __is_discovery(self, log):
-    #     return match_except_number(log.strip(), "- [DISCOVERY] - New discovery from experiment 0 with seed 0")
+    # return match_except_number(log.strip(), "- [DISCOVERY] - New discovery
+    # from experiment 0 with seed 0")
 
     def __is_saved(self, log):
-        return match_except_number(log.strip(), "- [SAVED] - experiment 0 with seed 0 saved")
+        return match_except_number(
+            log.strip(), "- [SAVED] - experiment 0 with seed 0 saved")
 
     def __is_error(self, log):
         return '[ERROR]' in log
@@ -510,9 +535,11 @@ class RemoteExperiment(BaseExperiment):
     def __get_run_id(self):
         self.shell_to_get_run_id = pxssh.pxssh()
         self.shell_to_get_run_id.login(
-            self.__host_profile["ssh_configuration"], ssh_config=self.ssh_config_file_path)
+            self.__host_profile["ssh_configuration"],
+            ssh_config=self.ssh_config_file_path)
 
-        while not self.test_file_exist(self.__host_profile["work_path"]+"/run_ids/{}".format(self.id)):
+        while not self.test_file_exist(
+                self.__host_profile["work_path"] + "/run_ids/{}".format(self.id)):
             self._app_db_caller("/preparing_logs",
                                 AppDBMethods.POST, {
                                     "experiment_id": self.id,
@@ -524,7 +551,7 @@ class RemoteExperiment(BaseExperiment):
         while not "[RUN_ID_start]" in self.shell_to_get_run_id.before.decode():
             self.shell_to_get_run_id.prompt()
             self.shell_to_get_run_id.sendline(
-                'cat '+self.__host_profile["work_path"]+"/run_ids/{}".format(self.id))
+                'cat ' + self.__host_profile["work_path"] + "/run_ids/{}".format(self.id))
 
         lines = self.shell_to_get_run_id.before.decode().split("\n")
         self.shell_to_get_run_id.close()
@@ -563,28 +590,28 @@ class RemoteExperiment(BaseExperiment):
             else:
                 to_save_outputs = ["run_idx", "experiment_id", "seed"]
             folder = "{}/outputs/{}/{}/".format(
-                kwargs["folder"], self.id,  kwargs["seed"])
+                kwargs["folder"], self.id, kwargs["seed"])
 
             for save_item in to_save_outputs:
                 if kwargs["sub_folders"] is not None and save_item in kwargs["sub_folders"]:
                     if save_item == "raw_output":
                         files_to_save[save_item] = ('{}_{}_{}'.format(
                             save_item, kwargs["experiment_id"], kwargs["run_idx"]),
-                            open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
+                            open(folder + save_item + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
                     elif save_item == "rendered_output":
                         extension = os.listdir(
-                            folder+save_item)[0].split(".")[1]
+                            folder + save_item)[0].split(".")[1]
                         files_to_save[save_item] = open(
-                            folder+save_item+"/idx_{}.{}".format(kwargs["run_idx"], extension), "rb")
+                            folder + save_item + "/idx_{}.{}".format(kwargs["run_idx"], extension), "rb")
                     else:
                         serialized_object = serialize_autodisc_space(pickle.load(
-                            open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb")))
+                            open(folder + save_item + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb")))
                         if is_json_serializable(serialized_object):
                             saves[save_item] = serialized_object
                         else:
                             files_to_save[save_item] = ('{}_{}_{}'.format(
                                 save_item, kwargs["experiment_id"], kwargs["run_idx"]),
-                                open(folder+save_item+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
+                                open(folder + save_item + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
                 else:
                     saves[save_item] = serialize_autodisc_space(
                         kwargs[save_item])
@@ -593,52 +620,62 @@ class RemoteExperiment(BaseExperiment):
             # check dict files_to_saves is empty or not
             if files_to_save:
                 self._expe_db_caller(
-                    "/discoveries/" + discovery_id + "/files", files=files_to_save)
+                    "/discoveries/" + discovery_id + "/files",
+                    files=files_to_save)
         except Exception as ex:
-            print("ERROR : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(
-                self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+            print(
+                "ERROR : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(
+                    self.id,
+                    kwargs["run_idx"],
+                    kwargs["seed"],
+                    traceback.format_exc()))
 
     def save_modules_to_expe_db(self, **kwargs):
         try:
             to_save_modules = kwargs["sub_folders"]
             folder = "{}/checkpoints/{}/{}/".format(
-                kwargs["folder"], self.id,  kwargs["seed"])
+                kwargs["folder"], self.id, kwargs["seed"])
 
             files_to_save = {}
             for module in to_save_modules:
                 files_to_save[module] = open(
-                    folder+module+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb")
+                    folder + module + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb")
 
-            module_id = self._expe_db_caller("/checkpoint_saves",
-                                             request_dict={
-                                                 "checkpoint_id": self._get_current_checkpoint_id(kwargs["seed"]),
-                                                 "run_idx": kwargs["run_idx"],
-                                                 "seed": kwargs["seed"]
-                                             }
-                                             )["ID"]
+            module_id = self._expe_db_caller(
+                "/checkpoint_saves",
+                request_dict={
+                    "checkpoint_id": self._get_current_checkpoint_id(
+                        kwargs["seed"]),
+                    "run_idx": kwargs["run_idx"],
+                    "seed": kwargs["seed"]})["ID"]
             self._expe_db_caller("/checkpoint_saves/" +
                                  module_id + "/files", files=files_to_save)
         except Exception as ex:
-            print("ERROR : error while saving modules in experiment {} run_idx {} seed {} = {}".format(
-                self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+            print(
+                "ERROR : error while saving modules in experiment {} run_idx {} seed {} = {}".format(
+                    self.id,
+                    kwargs["run_idx"],
+                    kwargs["seed"],
+                    traceback.format_exc()))
 
     def save_data_to_expe_db(self, **kwargs):
         try:
             print("oui")
             to_save = kwargs["sub_folders"]
             folder = "{}/data_saves/{}/{}/".format(
-                kwargs["folder"], self.id,  kwargs["seed"])
+                kwargs["folder"], self.id, kwargs["seed"])
             files_to_save = {}
             for module in to_save:
                 if module == "dict_info":
                     dict_info = pickle.load(
-                        open(folder+module+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
+                        open(folder + module + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb"))
                 else:
                     files_to_save[module] = open(
-                        folder+module+"/idx_{}.pickle".format(kwargs["run_idx"]), "rb")
+                        folder + module + "/idx_{}.pickle".format(kwargs["run_idx"]), "rb")
             request_dict = {
                 "experiment_id": self.id,
-                "checkpoint_id": self._get_current_checkpoint_id(kwargs["seed"]),
+                "checkpoint_id": self._get_current_checkpoint_id(
+                    kwargs["seed"]),
                 "seed": kwargs["seed"],
             }
             if isinstance(dict_info, dict):
@@ -647,10 +684,14 @@ class RemoteExperiment(BaseExperiment):
                 "/data_saves", request_dict=request_dict)["ID"]
             self._expe_db_caller("/data_saves/" + data_id +
                                  "/files", files=files_to_save)
-            if request_dict["type"] != None and request_dict["type"] == "question":
+            if request_dict["type"] is not None and request_dict["type"] == "question":
                 self.send_feedback_to_remote_server(request_dict)
         except Exception as ex:
-            print("ERROR : error while saving interact data in experiment {} run_idx {} seed {} = {}".format(
-                self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()))
+            print(
+                "ERROR : error while saving interact data in experiment {} run_idx {} seed {} = {}".format(
+                    self.id,
+                    kwargs["run_idx"],
+                    kwargs["seed"],
+                    traceback.format_exc()))
 
 # endregion
