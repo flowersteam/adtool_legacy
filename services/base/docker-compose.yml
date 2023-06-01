@@ -9,6 +9,8 @@ services:
       args:
         - GATEWAY_HOST=${GATEWAY_HOST-127.0.0.1}
         - GATEWAY_PORT=${GATEWAY_PORT-4201}
+    environment:
+      GATEWAY_HOST: ${GATEWAY_HOST-127.0.0.1}
     ports:
       - "$EXPOSED_APP_PORT:80"
     volumes:
