@@ -2,6 +2,7 @@ FROM --platform=linux/amd64 python:3.9.16-slim as library
 
 # install poetry build tool
 RUN pip install 'poetry==1.5.1'
+RUN poetry config virtualenvs.create false
 
 # auto_disc dependency resolution
 COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
@@ -34,7 +35,7 @@ COPY flask_app/ /usr/src/services/flask_app/
 # stage user custom modules
 COPY libs/custom_modules /usr/src/libs/custom_modules
 WORKDIR /usr/src/libs/custom_modules
-RUN pip install -e .
+RUN poetry install
 
 # start daemons
 WORKDIR /usr/src/services/flask_app

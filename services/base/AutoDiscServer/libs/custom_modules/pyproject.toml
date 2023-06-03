@@ -1,5 +1,16 @@
-[project]
-name = "adtool_custom"
-version = "0.0.1"
-description = "User defined custom modules for adtool"
-requires-python = ">=3.6"
+[tool.poetry]
+name = "adtool-custom"
+version = "0.1.0"
+description = "User defined custom modules for adtool."
+authors = ["LIN Jesse <jesse.lin@inria.fr>"]
+readme = "README.md"
+packages = [{include = "adtool_custom"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+
+[build-system]
+requires = ["poetry-core>=1.5.1"]
+build-backend = "poetry.core.masonry.api"
