@@ -1,9 +1,12 @@
-FROM --platform=linux/amd64 python:3.7.14-slim as library
+FROM --platform=linux/amd64 python:3.9.16-slim as library
+
+# install poetry build tool
+RUN pip install 'poetry==1.5.1'
 
 # auto_disc dependency resolution
 COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
 WORKDIR /usr/src/libs/auto_disc
-RUN pip install -e .
+RUN poetry install
 # install rest of lib
 COPY libs/auto_disc /usr/src/libs/auto_disc
 RUN pip install --no-deps -e .
