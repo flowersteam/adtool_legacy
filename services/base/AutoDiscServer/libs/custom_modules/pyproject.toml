@@ -9,8 +9,6 @@ packages = [{include = "adtool_custom"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 
-
-
 [build-system]
 requires = ["poetry-core>=1.5.1"]
 build-backend = "poetry.core.masonry.api"
