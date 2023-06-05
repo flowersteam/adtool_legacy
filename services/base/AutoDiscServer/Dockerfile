@@ -7,10 +7,10 @@ RUN poetry config virtualenvs.create false
 # auto_disc dependency resolution
 COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
 WORKDIR /usr/src/libs/auto_disc
-RUN poetry install
-# install rest of lib
+RUN poetry install --no-root --no-directory
+# install root package and path dependencies
 COPY libs/auto_disc /usr/src/libs/auto_disc
-RUN pip install --no-deps -e .
+RUN poetry install --no-dev
 
 
 FROM library as server
