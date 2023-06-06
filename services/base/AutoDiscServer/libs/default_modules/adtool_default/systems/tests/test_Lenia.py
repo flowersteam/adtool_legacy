@@ -3,7 +3,7 @@ from dataclasses import asdict
 
 import torch
 
-from auto_disc.auto_disc.systems.Lenia import (Lenia, LeniaDynamicalParameters,
+from adtool_default.systems.Lenia import (Lenia, LeniaDynamicalParameters,
                                                LeniaParameters)
 from auto_disc.utils.filetype_converter.filetype_converter import is_mp4
 

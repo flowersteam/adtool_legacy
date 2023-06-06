@@ -26,7 +26,7 @@ def setup_function(function):
                 }
             },
             "system": {
-                "name": "auto_disc.auto_disc.systems.ExponentialMixture",
+                "name": "adtool_default.systems.ExponentialMixture.ExponentialMixture",
                 "config": {
                     "sequence_max": 1,
                     "sequence_density": 20
@@ -58,7 +58,7 @@ def setup_function(function):
                 }
             },
             "system": {
-                "name": "auto_disc.auto_disc.systems.LeniaCPPN.LeniaCPPN",
+                "name": "adtool_default.systems.LeniaCPPN.LeniaCPPN",
                 "config": {
                     "SX": 64,
                     "SY": 64,

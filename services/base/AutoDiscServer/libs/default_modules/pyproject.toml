@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "adtool-default"
+version = "0.1.0"
+description = "Default modules for adtool."
+authors = ["LIN Jesse <jesse.lin@inria.fr>"]
+readme = "README.md"
+packages = [{include = "adtool_default"}]
+
+[tool.poetry.dependencies]
+addict = "2.4.0"
+filetype = "1.2.0"
+graphviz = "0.20.1"
+imageio = "2.28.0"
+imageio-ffmpeg = "0.4.7"
+matplotlib = "3.5.3"
+mergedeep = "1.3.4"
+neat-python = "0.92"
+numpy = "1.21.6"
+pillow = "9.2.0"
+python = ">=3.9,<3.11"
+requests = "2.28.1"
+sqlalchemy = "2.0.3"
+tinydb = "4.7.0"
+torch = "1.7.1"
+urllib3 = ">=1.21.1,<1.27"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

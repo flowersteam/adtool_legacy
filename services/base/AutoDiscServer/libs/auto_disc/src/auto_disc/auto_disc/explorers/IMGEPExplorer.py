@@ -2,9 +2,9 @@ from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
 from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
-from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import LeniaParameterMap
+from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
+from adtool_default.maps.UniformParameterMap import UniformParameterMap
+from adtool_default.maps.LeniaParameterMap import LeniaParameterMap
 from auto_disc.auto_disc.wrappers.mutators import (add_gaussian_noise,
                                                    call_mutate_method)
 from auto_disc.legacy.utils.config_parameters import (
@@ -12,7 +12,7 @@ from auto_disc.legacy.utils.config_parameters import (
     StringConfigParameter,
     DictConfigParameter
 )
-from auto_disc.auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
+from adtool_default.maps.LeniaStatistics import LeniaStatistics
 from typing import Dict, List, Any
 import torch
 from functools import partial

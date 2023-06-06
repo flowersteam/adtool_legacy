@@ -1,4 +1,4 @@
-from adtool_default.maps.UniformParameterMap import UniformParameterMap
+from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
 import torch
 import pathlib
 import os

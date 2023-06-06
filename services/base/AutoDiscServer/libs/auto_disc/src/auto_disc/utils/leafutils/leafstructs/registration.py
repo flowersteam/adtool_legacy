@@ -13,9 +13,9 @@ from mergedeep import merge
 # legacy compatibility
 _REGISTRATION = {
     'systems': {
-        'PythonLenia': "auto_disc.auto_disc.systems.Lenia.Lenia",
-        'LeniaCPPN': "auto_disc.auto_disc.systems.LeniaCPPN.LeniaCPPN",
-        'ExponentialMixture': "auto_disc.auto_disc.systems.ExponentialMixture.ExponentialMixture",
+        'Lenia': "adtool_default.systems.Lenia.Lenia",
+        'LeniaCPPN': "adtool_default.systems.LeniaCPPN.LeniaCPPN",
+        'ExponentialMixture': "adtool_default.systems.ExponentialMixture.ExponentialMixture",
     },
     'explorers': {
         'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",

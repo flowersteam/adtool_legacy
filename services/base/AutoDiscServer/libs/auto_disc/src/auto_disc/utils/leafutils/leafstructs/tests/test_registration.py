@@ -46,7 +46,7 @@ def test_get_path_from_cls():
 def test_get_cls_from_name():
     from auto_disc.auto_disc.explorers import IMGEPFactory
     from auto_disc.auto_disc.maps.lenia import LeniaStatistics
-    from auto_disc.auto_disc.systems.ExponentialMixture import \
+    from adtool_default.systems.ExponentialMixture import \
         ExponentialMixture
     from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import \
         SaveLeaf
@@ -85,7 +85,10 @@ def test_get_cls_from_name():
 
 
 def test_get_custom_modules():
-    assert get_custom_modules("systems") == {}
+    assert get_custom_modules("systems") == {
+        'ExponentialMixture': 'adtool_default.systems.ExponentialMixture.ExponentialMixture',
+        'Lenia': 'adtool_default.systems.Lenia.Lenia',
+        'LeniaCPPN': 'adtool_default.systems.LeniaCPPN.LeniaCPPN'}
     assert get_custom_modules("explorers") == {}
     assert get_custom_modules("maps") == {}
     assert get_custom_modules("callbacks") == {}
@@ -93,7 +96,7 @@ def test_get_custom_modules():
 
 def test_get_default_modules():
     assert set(get_default_modules("systems").keys()) == \
-        set(["ExponentialMixture", "PythonLenia",
+        set(["ExponentialMixture", "Lenia",
              "LeniaCPPN"])
     assert set(get_default_modules("explorers").keys()) == \
         set(["IMGEPExplorer"])
@@ -111,5 +114,5 @@ def test_get_default_modules():
 
 def test_get_modules():
     assert set(get_modules("systems").keys()) == \
-        set(["ExponentialMixture", "PythonLenia",
+        set(["ExponentialMixture", "Lenia",
              "LeniaCPPN"])
