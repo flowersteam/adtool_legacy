@@ -21,11 +21,13 @@ COPY nginx/nginx.conf /etc/nginx/sites-available/flask
 RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
 
 # AutoDiscServer dependency resolution
+# TODO: convert to poetry package
 COPY flask_app/app.py /usr/src/services/flask_app/app.py
 COPY flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
 RUN pip install -r /usr/src/services/flask_app/requirements.txt
 
 # extra utils needed
+# TODO: convert to poetry package
 COPY libs/auto_disc_db /usr/src/libs/auto_disc_db
 WORKDIR /usr/src/libs/auto_disc_db
 RUN pip install -e .
