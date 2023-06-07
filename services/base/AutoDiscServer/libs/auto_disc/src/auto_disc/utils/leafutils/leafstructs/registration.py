@@ -11,20 +11,12 @@ from typing import cast
 from mergedeep import merge
 
 # legacy compatibility
-_REGISTRATION = {
-    'systems': {
-        'Lenia': "adtool_default.systems.Lenia.Lenia",
-        'LeniaCPPN': "adtool_default.systems.LeniaCPPN.LeniaCPPN",
-        'ExponentialMixture': "adtool_default.systems.ExponentialMixture.ExponentialMixture",
-    },
+_REGISTRATION: dict[str, dict] = {
+    'systems': {},
     'explorers': {
         'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",
     },
-    'maps': {
-        'MeanBehaviorMap': "auto_disc.auto_disc.maps.MeanBehaviorMap",
-        'UniformParameterMap': "auto_disc.auto_disc.maps.UniformParameterMap",
-        'LeniaStatistics': "auto_disc.auto_disc.maps.lenia.LeniaStatistics",
-    },
+    'maps': {},
     'input_wrappers': {
         'generic.CPPN': "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
     },
@@ -114,16 +106,48 @@ def get_cls_from_name(cls_name: str, ad_type_name: str) -> type:
     return locate_cls(cls_path)
 
 
-def get_custom_modules(submodule: str) -> list:
-    lookup_prefix = "adtool_custom." + submodule
+def get_submodules(submodule: str, namespace: str) -> dict[str, str]:
+    """Get dict of submodule fully-qualified names from the submodule type and
+    its namespace.
+
+    NOTE: By our convention, only uppercased Python modules will be walked.
+    This allows us to retrieve classes, as Python has no public/private
+    distinction. The user should name any library functions and other code
+    with lowercased names, and the user shall not uppercase anything except
+    that which they desire to import into the software.
+    """
+
+    # for clarity, `adtool_module` is a module in the context of the software,
+    # to disambiguate from Python modules, which is what `pkgutil` expects
+
+    lookup_prefix = namespace + "." + submodule
     module = importlib.import_module(lookup_prefix)
     path_prefix = lookup_prefix + "."
     it = pkgutil.iter_modules(module.__path__, prefix=path_prefix)
-    module_name_list = {el.name.split(".")[-1]: el.name for el in it}
-    return module_name_list
+
+    adtool_module_dict = {}
+    for el in it:
+        adtool_module_shortname = el.name.split(".")[-1]
+        # filter to only relevant classes
+        if adtool_module_shortname[0].isupper():
+            adtool_module_fqpath = el.name + "." + adtool_module_shortname
+            adtool_module_dict[adtool_module_shortname] = adtool_module_fqpath
+        else:
+            # TODO: logging here
+            pass
+
+    return adtool_module_dict
 
 
-def get_default_modules(submodule: str) -> dict:
+def get_custom_modules(submodule: str) -> dict[str, str]:
+    return get_submodules(submodule, namespace="adtool_custom")
+
+
+def get_default_modules(submodule: str) -> dict[str, str]:
+    return get_submodules(submodule, namespace="adtool_default")
+
+
+def get_legacy_modules(submodule: str) -> dict[str, str]:
     # NOTE: we only return the fully qualified module path instead of
     # module itself to avoid polluting the namespace with imports
 
@@ -131,13 +155,32 @@ def get_default_modules(submodule: str) -> dict:
     return _REGISTRATION.get(submodule)
 
 
-def get_modules(submodule: str) -> dict:
-    if submodule == "input_wrappers" or submodule == "output_representations":
+def get_modules(submodule_type: str) -> dict:
+    """Get dict of submodule fully-qualified names from the submodule type and
+    its namespace.
+
+    #### Args
+    - submodule_type (str): The type of submodule, chosen within
+        {systems, explorers, maps, callbacks}.
+
+    #### Returns
+    A dictionary returning with items such as
+        {"SystemName" : "adtool_default.systems.SystemName.SystemName"}
+
+    """
+    if (submodule_type == "input_wrappers"
+            or submodule_type == "output_representations"):
         # legacy guard, there is no input_wrappers or output_representations
         # in the new module spec
-        return get_default_modules(submodule)
+        return get_legacy_modules(submodule_type)
     else:
-        return merge(get_default_modules(submodule), get_custom_modules(submodule))
+        return dict(
+            merge(
+                # because merge mutates the first arg
+                {},
+                get_legacy_modules(submodule_type),
+                get_default_modules(submodule_type),
+                get_custom_modules(submodule_type)))
 
 
 def _check_jsonify(my_dict):
