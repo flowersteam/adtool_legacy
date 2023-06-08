@@ -1,5 +1,7 @@
 import auto_disc.auto_disc
-from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import SaveDiscoveryOnDisk
+from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import (
+    SaveDiscoveryOnDisk,
+)
 import os
 import shutil
 import pathlib
@@ -46,14 +48,19 @@ def test__save_binary_callback():
 
 def test___call__():
     data = {
-        "params": torch.tensor([1., 2., 3.]),
+        "params": torch.tensor([1.0, 2.0, 3.0]),
         "loss": 0.5,
         "model": object(),
-        "metadata": {"test": b"test"}
+        "metadata": {"test": b"test"},
     }
     cb = SaveDiscoveryOnDisk()
-    cb(resource_uri=RESOURCE_URI, experiment_id="test_id", seed=33,
-       run_idx=777, discovery=data)
+    cb(
+        resource_uri=RESOURCE_URI,
+        experiment_id="test_id",
+        seed=33,
+        run_idx=777,
+        discovery=data,
+    )
 
     # check if the discovery was saved
     dir_path = cb._initialize_save_path(RESOURCE_URI, "test_id", 777, 33)
@@ -66,7 +73,7 @@ def test___call__():
 
     with open(os.path.join(dir_path, "discovery.json"), "r") as f:
         loaded_data = json.load(f)
-    assert loaded_data["params"] == [1., 2., 3.]
+    assert loaded_data["params"] == [1.0, 2.0, 3.0]
     assert loaded_data["loss"] == 0.5
     assert loaded_data["model"] == obj_hash
     assert loaded_data["metadata"] == {"test": byte_hash}

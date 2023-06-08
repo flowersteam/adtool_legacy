@@ -2,18 +2,18 @@ from addict import Dict
 from typing import Any
 
 
-class BaseConfigParameter():
-    '''
+class BaseConfigParameter:
+    """
     Decorator to add a config parameter to a class.
-    '''
+    """
 
     def __init__(self, name: str, default: Any) -> None:
         """
-            Init a config parameter
+        Init a config parameter
 
-            Args:
-                name: name of config parameter
-                default: default value of the config parameter
+        Args:
+            name: name of config parameter
+            default: default value of the config parameter
         """
         assert self.check_value_to_set(default)
         self._default = default
@@ -21,23 +21,23 @@ class BaseConfigParameter():
 
     def check_value_to_set(self, value: Any) -> bool:
         """
-            Check if the value is one of the possible values
+        Check if the value is one of the possible values
 
-            Args:
-                value: current value of the config parameter
-            Returns:
-               The return value is always True. All values are accepted 
+        Args:
+            value: current value of the config parameter
+        Returns:
+           The return value is always True. All values are accepted
         """
         return True
 
     def __call__(self, original_class: type) -> type:
         """
-            Define correctly an autodisc modules considering the (decorator) config parameter
+        Define correctly an autodisc modules considering the (decorator) config parameter
 
-            Args:
-                original_class: The class of the module we want to define
-            Returns: 
-                original_class: The updated class with the config parameter
+        Args:
+            original_class: The class of the module we want to define
+        Returns:
+            original_class: The updated class with the config parameter
 
         """
         original_init = original_class.__init__
@@ -53,7 +53,7 @@ class BaseConfigParameter():
                 value_to_set = kws[name]
                 del kws[name]
 
-            if not hasattr(self, 'config'):  # Initialize config if not done
+            if not hasattr(self, "config"):  # Initialize config if not done
                 self.config = Dict()
 
             self.config[name] = value_to_set  # add entry to config
@@ -64,9 +64,12 @@ class BaseConfigParameter():
         original_class.__init__ = __init__  # Set the class' __init__ to the new one
 
         # Add the parameter to the config definition
-        if not hasattr(original_class, 'CONFIG_DEFINITION'):
+        if not hasattr(original_class, "CONFIG_DEFINITION"):
             raise Exception(
-                "Class {} should define an empty static CONFIG_DEFINITION: `CONFIG_DEFINITION = {}`".format(original_class))
-        original_class.CONFIG_DEFINITION[name] = {'default': default_value}
+                "Class {} should define an empty static CONFIG_DEFINITION: `CONFIG_DEFINITION = {}`".format(
+                    original_class
+                )
+            )
+        original_class.CONFIG_DEFINITION[name] = {"default": default_value}
 
         return original_class

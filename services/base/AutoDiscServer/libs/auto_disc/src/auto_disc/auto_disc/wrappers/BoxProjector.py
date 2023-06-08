@@ -15,13 +15,15 @@ class BoxProjector(Leaf):
     sample from the space.
     """
 
-    def __init__(self,
-                 premap_key: str,
-                 bound_upper: torch.Tensor = torch.tensor([float('inf')]),
-                 bound_lower: torch.Tensor = torch.tensor([-float('inf')]),
-                 init_low: Optional[torch.Tensor] = None,
-                 init_high: Optional[torch.Tensor] = None,
-                 tensor_shape: Optional[Tuple] = None) -> None:
+    def __init__(
+        self,
+        premap_key: str,
+        bound_upper: torch.Tensor = torch.tensor([float("inf")]),
+        bound_lower: torch.Tensor = torch.tensor([-float("inf")]),
+        init_low: Optional[torch.Tensor] = None,
+        init_high: Optional[torch.Tensor] = None,
+        tensor_shape: Optional[Tuple] = None,
+    ) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
@@ -69,8 +71,7 @@ class BoxProjector(Leaf):
     def _clamp_and_truncate(self, data: torch.Tensor) -> torch.Tensor:
         # could use torch.clamp with updated pytorch version,
         # but in our version, torch.clamp doesn't support tensors
-        clamped_data = torch.min(
-            torch.max(data, self.bound_lower), self.bound_upper)
+        clamped_data = torch.min(torch.max(data, self.bound_lower), self.bound_upper)
         # TODO: truncate dimensions
         return clamped_data
 

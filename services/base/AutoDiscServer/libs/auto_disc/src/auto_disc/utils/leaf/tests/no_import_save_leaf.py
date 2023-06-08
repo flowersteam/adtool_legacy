@@ -1,5 +1,6 @@
 from auto_disc.utils.leaf.tests.test_integration_leaf import DiskPipeline, DiskLocator
 import os
+
 if __name__ == "__main__":
     a = DiskPipeline()
     os.mkdir("/tmp/PipelineDir")

@@ -3,32 +3,32 @@ from collections import namedtuple
 
 
 class ExposeConfig:
-
     def __init__(self, *args, **kwargs) -> None:
         self._config_defn = self._generate_config(*args, **kwargs)
 
     @staticmethod
-    def _generate_config(name: str,
-                         default: Any, domain: Optional[List[Any]] = None,
-                         parent: Optional[str] = None
-                         ) -> Dict[str, Any]:
-
+    def _generate_config(
+        name: str,
+        default: Any,
+        domain: Optional[List[Any]] = None,
+        parent: Optional[str] = None,
+    ) -> Dict[str, Any]:
         # convert Python type names to the corresponding config type names
         exposed_type = type(default)
-        exposed_type_name = _python_type_to_config_type[
-            exposed_type.__name__.upper(
-            )]
+        exposed_type_name = _python_type_to_config_type[exposed_type.__name__.upper()]
 
         # convert the domain specification to the proper key-value pairs
         domain_entry = _handle_type(exposed_type, domain)
 
         # construct the config definition
-        config_defn = {name: {
-            "type": exposed_type_name,
-            "default": default,
-            "parent": parent,
-            **domain_entry
-        }}
+        config_defn = {
+            name: {
+                "type": exposed_type_name,
+                "default": default,
+                "parent": parent,
+                **domain_entry,
+            }
+        }
 
         return config_defn
 
@@ -41,19 +41,18 @@ class ExposeConfig:
             # warn of key collision
             key_name = list(self._config_defn.keys())[0]
             if key_name in cls.CONFIG_DEFINITION:
-                raise ValueError(
-                    f"Config option {key_name} already exists."
-                )
+                raise ValueError(f"Config option {key_name} already exists.")
             # update
             cls.CONFIG_DEFINITION.update(self._config_defn)
         return cls
 
 
 class expose_config(ExposeConfig):
-    """ 
-    This is the decorator that should be used to expose config options. 
+    """
+    This is the decorator that should be used to expose config options.
     It's just a factory for ExposeConfig.
     """
+
     pass
 
 
@@ -68,7 +67,8 @@ def _handle_type(type: type, domain: Optional[List[Any]]) -> Dict[str, Any]:
 
 
 class Handlers:
-    """ Namespace for handlers """
+    """Namespace for handlers"""
+
     @staticmethod
     def bool_handler(domain: Optional[List[bool]] = None) -> Dict[str, List[bool]]:
         # ignores domain, as it is always [True, False]
@@ -87,8 +87,7 @@ class Handlers:
         return {"possible_values": domain}
 
     @staticmethod
-    def dict_handler(domain: List[Dict[str, Any]]
-                     ) -> Dict[str, List[Dict[str, Any]]]:
+    def dict_handler(domain: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
         # NOTE: this should never be used due to mutability of dicts
         return {"possible_values": domain}
 

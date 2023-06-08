@@ -22,9 +22,7 @@ def _initialize_checkpoint(entrypoint: str, dict: Dict = {}) -> str:
 def _query_uid(resource_uri: str, uid: LeafUID) -> List[Dict]:
     uid_filter = {"uid": uid}
     uid_filter = _format_filter_from_dict(uid_filter)
-    response = json.loads(
-        requests.get(resource_uri + "?filter=" + uid_filter).content
-    )
+    response = json.loads(requests.get(resource_uri + "?filter=" + uid_filter).content)
     return response
 
 
@@ -37,19 +35,18 @@ def _format_filter_from_dict(filter_dict: Dict) -> str:
         if filter_dict[key] == None:
             pass
         elif isinstance(filter_dict[key], list):
-            filters.append("{{\"{}\":{{\"$in\":[{}]}} }}".format(
-                key), ', '.join(filter_dict[key]))
+            filters.append(
+                '{{"{}":{{"$in":[{}]}} }}'.format(key), ", ".join(filter_dict[key])
+            )
         else:
             if isinstance(filter_dict[key], str):
-                filters.append("{{\"{}\":\"{}\" }}".format(
-                    key, filter_dict[key]))
+                filters.append('{{"{}":"{}" }}'.format(key, filter_dict[key]))
             else:
-                filters.append("{{\"{}\":{} }}".format(
-                    key, filter_dict[key]))
+                filters.append('{{"{}":{} }}'.format(key, filter_dict[key]))
 
     # join array elements of filters to string filter
     if len(filters) > 1:
-        filter = "{\"$and\":["
+        filter = '{"$and":['
         for f in filters:
             filter += f + ","
         filter = filter[:-1]
@@ -67,11 +64,11 @@ class ExpeDBLocator(Locator):
 
     def __init__(self, resource_uri: str = ""):
         # strip trailing /
-        if len(resource_uri) > 0 and resource_uri[-1] == '/':
+        if len(resource_uri) > 0 and resource_uri[-1] == "/":
             resource_uri = resource_uri[:-1]
         self.resource_uri = resource_uri
 
-    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> "LeafUID":
         uid = self.hash(bin)
         # encode in base64 so MongoDB doesn't escape anything
         bin = codecs.encode(bin, encoding="base64")
@@ -91,13 +88,14 @@ class ExpeDBLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
+    def retrieve(self, uid: "LeafUID", *args, **kwargs) -> bytes:
         # extra info past : is for other locators
         uid = uid.split(":")[0]
 
         mongo_id = self._retrieve_mongo_id(uid)
         response_bin = requests.get(
-            self.resource_uri + "/" + mongo_id + "/metadata").content
+            self.resource_uri + "/" + mongo_id + "/metadata"
+        ).content
         bin = codecs.decode(response_bin, encoding="base64")
         return bin
 
@@ -121,12 +119,12 @@ class ExpeDBLinearLocator(Locator):
 
     def __init__(self, resource_uri: str = ""):
         # strip trailing /
-        if len(resource_uri) > 0 and resource_uri[-1] == '/':
+        if len(resource_uri) > 0 and resource_uri[-1] == "/":
             resource_uri = resource_uri[:-1]
         self.resource_uri = resource_uri
         self.parent_id = -1
 
-    def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
+    def store(self, bin: bytes, parent_id: int = -1) -> "LeafUID":
         # default setting if not set at function call
         if (self.parent_id != -1) and (parent_id == -1):
             parent_id = self.parent_id
@@ -138,9 +136,9 @@ class ExpeDBLinearLocator(Locator):
         lineardb_name, data_bin = FileLinearLocator.parse_bin(bin)
 
         # store metadata binary
-        mongo_id = self._retrieve_tree_and_store_metadata(cache_dir,
-                                                          lineardb_name,
-                                                          data_bin)
+        mongo_id = self._retrieve_tree_and_store_metadata(
+            cache_dir, lineardb_name, data_bin
+        )
 
         # store data binary
         row_id = LinearBase.store_data(cache_dir, data_bin, parent_id)
@@ -167,7 +165,7 @@ class ExpeDBLinearLocator(Locator):
 
         return leaf_uid
 
-    def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
+    def retrieve(self, uid: "LeafUID", length: int = 1) -> bytes:
         try:
             lineardb_name, row_id = uid.split(":")
             # set parent_id from retrieval
@@ -183,17 +181,17 @@ class ExpeDBLinearLocator(Locator):
         db_url = os.path.join(cache_dir, "lineardb")
 
         bin = LinearBase.retrieve_trajectory(
-            db_url=db_url, row_id=row_id, length=length)
+            db_url=db_url, row_id=row_id, length=length
+        )
 
         return bin
 
     def _init_cache_dir(self) -> str:
         return tempfile.mkdtemp()
 
-    def _retrieve_tree_and_store_metadata(self,
-                                          cache_dir: str,
-                                          lineardb_name: str,
-                                          data_bin: bytes) -> str:
+    def _retrieve_tree_and_store_metadata(
+        self, cache_dir: str, lineardb_name: str, data_bin: bytes
+    ) -> str:
         """
         Retrieves existing LinearDB from resource_uri, or creating if doesn't
         exist.
@@ -206,8 +204,9 @@ class ExpeDBLinearLocator(Locator):
         if len(response) == 0:
             # first-save logic below
             # make new chkpt and associate the uid
-            mongo_id = _initialize_checkpoint(self.resource_uri,
-                                              dict={"uid": lineardb_name})
+            mongo_id = _initialize_checkpoint(
+                self.resource_uri, dict={"uid": lineardb_name}
+            )
 
             # parse metadata
             loaded_obj = pickle.loads(data_bin)
@@ -229,7 +228,7 @@ class ExpeDBLinearLocator(Locator):
         return mongo_id
 
     def _create_tree(cache_dir: str) -> None:
-        """ 
+        """
         Create SQLite cache.
         """
         db_path = os.path.join(cache_dir, "lineardb")
@@ -238,7 +237,8 @@ class ExpeDBLinearLocator(Locator):
 
     def _load_tree_into_cache_dir(self, cache_dir: str, mongo_id: str) -> None:
         response_bin = requests.get(
-            self.resource_uri + "/" + mongo_id + "/lineardb").content
+            self.resource_uri + "/" + mongo_id + "/lineardb"
+        ).content
         bin = codecs.decode(response_bin, encoding="base64")
         lineardb_path = os.path.join(cache_dir, "lineardb")
         with open(lineardb_path, "wb") as f:

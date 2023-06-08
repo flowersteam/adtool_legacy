@@ -10,24 +10,24 @@ class TransformWrapper(Leaf):
     Usage example:
         ```
             input = {"in" : 1}
-            wrapper = TransformWrapper(premap_keys = ["in"], 
+            wrapper = TransformWrapper(premap_keys = ["in"],
                                   postmap_keys = ["out"])
             output = wrapper.map(input)
             assert output["out"] == 1
         ```
     """
 
-    def __init__(self,
-                 premap_keys: List[str] = [],
-                 postmap_keys: List[str] = [],
-                 ) -> None:
+    def __init__(
+        self,
+        premap_keys: List[str] = [],
+        postmap_keys: List[str] = [],
+    ) -> None:
         super().__init__()
         self.locator = BlobLocator()
 
         # process key wrapping
         if len(premap_keys) != len(postmap_keys):
-            raise ValueError(
-                "premap_keys and transformed_keys must be same length.")
+            raise ValueError("premap_keys and transformed_keys must be same length.")
         else:
             pass
 
@@ -48,9 +48,7 @@ class TransformWrapper(Leaf):
     def _transform_keys(self, old_dict: Dict) -> Dict:
         # initialize empty dict so that key-values will not overwrite
         new_dict = {}
-        for (old_key, new_key) in \
-                zip(self.premap_keys, self.postmap_keys):
-
+        for old_key, new_key in zip(self.premap_keys, self.postmap_keys):
             # allows making conditional transformers that ignore input
             # with no appropriately matching keys
             if old_dict.get(old_key, None) is not None:

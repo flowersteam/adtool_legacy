@@ -1,4 +1,6 @@
-from auto_disc.legacy.utils.callbacks.on_save_finished_callbacks import BaseOnSaveFinishedCallback
+from auto_disc.legacy.utils.callbacks.on_save_finished_callbacks import (
+    BaseOnSaveFinishedCallback,
+)
 from auto_disc.utils.leaf.Leaf import LeafUID
 import os
 import json
@@ -15,25 +17,27 @@ class GenerateReport:
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def __call__(self,
-                 report_dir: str = "",
-                 uid: LeafUID = LeafUID(""),
-                 experiment_id: int = 0,
-                 seed: int = 0,
-                 run_idx: int = 0,
-                 **kwargs) -> None:
-
+    def __call__(
+        self,
+        report_dir: str = "",
+        uid: LeafUID = LeafUID(""),
+        experiment_id: int = 0,
+        seed: int = 0,
+        run_idx: int = 0,
+        **kwargs,
+    ) -> None:
         # construct filename
         dt = datetime.now()
-        date_str = dt.isoformat(timespec='minutes')
+        date_str = dt.isoformat(timespec="minutes")
         filename = f"{date_str}_exp_{experiment_id}_idx_{run_idx}_{uid}"
         file_path = os.path.join(report_dir, f"{filename}.json")
-        report = {"uid": uid,
-                  "experiment_id": experiment_id,
-                  "seed": seed,
-                  "run_idx": run_idx,
-                  "metadata": kwargs.get("metadata", None)
-                  }
+        report = {
+            "uid": uid,
+            "experiment_id": experiment_id,
+            "seed": seed,
+            "run_idx": run_idx,
+            "metadata": kwargs.get("metadata", None),
+        }
 
         with open(file_path, mode="w") as f:
             json.dump(report, f)

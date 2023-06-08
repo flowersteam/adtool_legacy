@@ -7,17 +7,22 @@ from auto_disc.legacy.utils.mutators import BaseMutator
 
 class BaseSpace(object):
     """
-        Defines the init_space, genome_space and intervention_space of a system
+    Defines the init_space, genome_space and intervention_space of a system
     """
 
-    def __init__(self, shape: Tuple[Union[ConfigParameterBinding, Any]] = None, dtype: torch.dtype = None, mutator: BaseMutator = None) -> None:
+    def __init__(
+        self,
+        shape: Tuple[Union[ConfigParameterBinding, Any]] = None,
+        dtype: torch.dtype = None,
+        mutator: BaseMutator = None,
+    ) -> None:
         """
-            Init the elements useful to the spaces
+        Init the elements useful to the spaces
 
-            Args:
-                shape: Space shape
-                dtype: torch type
-                mutator: current mutator method
+        Args:
+            shape: Space shape
+            dtype: torch type
+            mutator: current mutator method
         """
         self.shape = None if shape is None else tuple(shape)
         self.dtype = dtype
@@ -25,29 +30,30 @@ class BaseSpace(object):
 
     def initialize(self, parent_obj: BaseAutoDiscModule) -> None:
         """
-            Initialize the space.
+        Initialize the space.
 
-            Args:
-                parent_obj: The current autodisc module
+        Args:
+            parent_obj: The current autodisc module
         """
         if self.shape is not None:
             new_shape = []
             for elem in self.shape:
-                new_shape.append(
-                    int(self.apply_binding_if_existing(elem, parent_obj)))
+                new_shape.append(int(self.apply_binding_if_existing(elem, parent_obj)))
             self.shape = tuple(new_shape)
             if self.mutator:
                 self.mutator.init_shape(self.shape)
 
-    def apply_binding_if_existing(self, var: Union[ConfigParameterBinding, Any], lookup_obj: object) -> Any:
+    def apply_binding_if_existing(
+        self, var: Union[ConfigParameterBinding, Any], lookup_obj: object
+    ) -> Any:
         """
-            Get result of config parameter binding operation
+        Get result of config parameter binding operation
 
-            Args:
-                var: the current variable processed
-                lookup_obj: current autodisc module in which the binding was made
-            Returns:
-                value: The result of the operation binding
+        Args:
+            var: the current variable processed
+            lookup_obj: current autodisc module in which the binding was made
+        Returns:
+            value: The result of the operation binding
         """
         if isinstance(var, ConfigParameterBinding):
             value = var.__get__(lookup_obj)
@@ -102,10 +108,10 @@ class BaseSpace(object):
 
     def to_json(self) -> Dict:
         """
-            Convert the space into JSON
+        Convert the space into JSON
 
-            Returns:
-                The return value are a json containing a readable shape
+        Returns:
+            The return value are a json containing a readable shape
         """
         shape = []
         if self.shape is not None:
@@ -116,6 +122,4 @@ class BaseSpace(object):
                     shape.append(element)
         else:
             shape = None
-        return {
-            'shape': shape
-        }
+        return {"shape": shape}

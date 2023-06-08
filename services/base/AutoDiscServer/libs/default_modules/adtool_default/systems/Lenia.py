@@ -3,8 +3,16 @@ from auto_disc.utils.leaf.locators.locators import BlobLocator
 from typing import Dict, Any, Callable, Optional, List, Union
 from copy import deepcopy
 
-from auto_disc.legacy.utils.config_parameters import StringConfigParameter, IntegerConfigParameter
-from auto_disc.legacy.utils.misc.torch_utils import SphericPad, roll_n, complex_mult_torch, soft_clip
+from auto_disc.legacy.utils.config_parameters import (
+    StringConfigParameter,
+    IntegerConfigParameter,
+)
+from auto_disc.legacy.utils.misc.torch_utils import (
+    SphericPad,
+    roll_n,
+    complex_mult_torch,
+    soft_clip,
+)
 
 import torch
 import matplotlib
@@ -25,9 +33,9 @@ from dataclasses import dataclass, asdict
 @dataclass
 class LeniaDynamicalParameters:
     R: Union[int, float] = 0
-    T: float = 1.
-    b: torch.Tensor = torch.tensor([0., 0., 0., 0.])
-    m: float = 0.
+    T: float = 1.0
+    b: torch.Tensor = torch.tensor([0.0, 0.0, 0.0, 0.0])
+    m: float = 0.0
     s: float = 0.001
 
     def __post_init__(self):
@@ -47,19 +55,19 @@ class LeniaDynamicalParameters:
         if self.R > 19:
             self.R = 19
 
-        if self.T < 1.:
-            self.T = 1.
-        elif self.T > 10.:
-            self.T = 10.
+        if self.T < 1.0:
+            self.T = 1.0
+        elif self.T > 10.0:
+            self.T = 10.0
 
         if self.b.size() != (4,):
             raise ValueError("b must be a 4-vector.")
-        self.b = torch.clamp(self.b, min=0., max=1.)
+        self.b = torch.clamp(self.b, min=0.0, max=1.0)
 
-        if self.m < 0.:
-            self.m = 0.
-        elif self.m > 1.:
-            self.m = 1.
+        if self.m < 0.0:
+            self.m = 0.0
+        elif self.m > 1.0:
+            self.m = 1.0
 
         if self.s < 0.001:
             self.s = 0.001
@@ -67,9 +75,9 @@ class LeniaDynamicalParameters:
             self.s = 0.3
 
     def to_tensor(self) -> torch.Tensor:
-        return torch.cat((torch.tensor([self.R, self.T]),
-                          torch.tensor([self.m, self.s]),
-                          self.b))
+        return torch.cat(
+            (torch.tensor([self.R, self.T]), torch.tensor([self.m, self.s]), self.b)
+        )
 
     @classmethod
     def from_tensor(cls, tensor: torch.Tensor):
@@ -83,12 +91,17 @@ class LeniaDynamicalParameters:
 
 @dataclass
 class LeniaParameters:
-    """ Holds input parameters for Lenia model."""
+    """Holds input parameters for Lenia model."""
+
     dynamic_params: LeniaDynamicalParameters = LeniaDynamicalParameters()
     init_state: torch.Tensor = torch.rand((10, 10))
 
 
-@StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
+@StringConfigParameter(
+    name="version",
+    possible_values=["pytorch_fft", "pytorch_conv2d"],
+    default="pytorch_fft",
+)
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
@@ -100,8 +113,7 @@ class Lenia(Leaf):
         super().__init__()
         self.locator = BlobLocator()
         self.orbit = torch.empty(
-            (self.config["final_step"],
-             1, 1, self.config["SX"], self.config["SY"])
+            (self.config["final_step"], 1, 1, self.config["SX"], self.config["SY"])
         )
 
     def map(self, input: Dict) -> Dict:
@@ -114,7 +126,7 @@ class Lenia(Leaf):
         automaton = self._generate_automaton(params.dynamic_params)
 
         state = self.orbit[0]
-        for step in range(self.config["final_step"]-1):
+        for step in range(self.config["final_step"] - 1):
             state = self._step(state, automaton)
             self.orbit[step + 1] = state
 
@@ -130,28 +142,47 @@ class Lenia(Leaf):
         # ignores data_dict, as the render is based on self.orbit
         # in which only the last state is stored in data_dict["output"]
 
-        colormap = create_colormap(np.array(
-            [[255, 255, 255], [119, 255, 255], [23, 223, 252], [0, 190, 250], [0, 158, 249], [0, 142, 249],
-             [81, 125, 248], [150, 109, 248], [192, 77, 247], [232, 47, 247], [255, 9, 247], [200, 0, 84]]) / 255 * 8)
+        colormap = create_colormap(
+            np.array(
+                [
+                    [255, 255, 255],
+                    [119, 255, 255],
+                    [23, 223, 252],
+                    [0, 190, 250],
+                    [0, 158, 249],
+                    [0, 142, 249],
+                    [81, 125, 248],
+                    [150, 109, 248],
+                    [192, 77, 247],
+                    [232, 47, 247],
+                    [255, 9, 247],
+                    [200, 0, 84],
+                ]
+            )
+            / 255
+            * 8
+        )
         im_array = []
         for img in self.orbit:
             # need to squeeze leading dimensions
             parsed_img = img.squeeze().cpu().detach().numpy()
             im = im_from_array_with_colormap(parsed_img, colormap)
-            im_array.append(im.convert('RGB'))
+            im_array.append(im.convert("RGB"))
 
         if mode == "human":
             matplotlib.use("TkAgg")
             fig = plt.figure(figsize=(4, 4))
             animation = FuncAnimation(
-                fig, lambda frame: plt.imshow(frame), frames=im_array)
-            plt.axis('off')
+                fig, lambda frame: plt.imshow(frame), frames=im_array
+            )
+            plt.axis("off")
             plt.tight_layout()
             return plt.show()
         elif mode == "PIL_image":
             byte_img = io.BytesIO()
-            imageio.mimwrite(byte_img, im_array, 'mp4',
-                             fps=30, output_params=["-f", "mp4"])
+            imageio.mimwrite(
+                byte_img, im_array, "mp4", fps=30, output_params=["-f", "mp4"]
+            )
             return byte_img.getvalue()
         else:
             raise NotImplementedError
@@ -165,22 +196,22 @@ class Lenia(Leaf):
         if not isinstance(init_params, LeniaParameters):
             dyn_p = LeniaDynamicalParameters(**init_params["dynamic_params"])
             init_state = init_params["init_state"]
-            params = LeniaParameters(dynamic_params=dyn_p,
-                                     init_state=init_state)
+            params = LeniaParameters(dynamic_params=dyn_p, init_state=init_state)
         return params
 
     def _generate_automaton(self, dyn_params: LeniaDynamicalParameters) -> Any:
         tensor_params = dyn_params.to_tensor()
         if self.config["version"].lower() == "pytorch_fft":
             automaton = LeniaStepFFT(
-                SX=self.config["SX"], SY=self.config["SY"],
+                SX=self.config["SX"],
+                SY=self.config["SY"],
                 R=tensor_params[0],
                 T=tensor_params[1],
                 m=tensor_params[2],
                 s=tensor_params[3],
                 b=tensor_params[4:8],
                 kn=0,
-                gn=1
+                gn=1,
             )
         elif self.config["version"].lower() == "pytorch_conv2d":
             automaton = LeniaStepConv2d(
@@ -190,26 +221,31 @@ class Lenia(Leaf):
                 s=tensor_params[3],
                 b=tensor_params[4:8],
                 kn=0,
-                gn=1
+                gn=1,
             )
         else:
             raise ValueError(
-                'Unknown lenia version (config.version = {!r})'.format(
-                    self.config["version"]))
+                "Unknown lenia version (config.version = {!r})".format(
+                    self.config["version"]
+                )
+            )
         return automaton
 
     def _bootstrap(self, params: LeniaParameters):
         init_state = torch.zeros(
-            1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64)
+            1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64
+        )
 
         scaled_SY = self.config["SY"] // self.config["scale_init_state"]
         scaled_SX = self.config["SX"] // self.config["scale_init_state"]
 
         init_state[0, 0][
-            self.config["SY"] // 2 - math.ceil(scaled_SY / 2):
-            self.config["SY"] // 2 + scaled_SY // 2,
-            self.config["SX"] // 2 - math.ceil(scaled_SX / 2):
-            self.config["SX"] // 2 + scaled_SX // 2
+            self.config["SY"] // 2
+            - math.ceil(scaled_SY / 2) : self.config["SY"] // 2
+            + scaled_SY // 2,
+            self.config["SX"] // 2
+            - math.ceil(scaled_SX / 2) : self.config["SX"] // 2
+            + scaled_SX // 2,
         ] = params.init_state
         # state is fixed deterministically by CPPN params,
         # so no need to save it after this point
@@ -218,10 +254,9 @@ class Lenia(Leaf):
 
         return
 
-    def _step(self,
-              state: torch.Tensor,
-              automaton: Callable[[torch.Tensor], torch.Tensor]
-              ) -> torch.Tensor:
+    def _step(
+        self, state: torch.Tensor, automaton: Callable[[torch.Tensor], torch.Tensor]
+    ) -> torch.Tensor:
         return automaton(state)
 
 
@@ -242,18 +277,20 @@ def create_colormap(colors: ndarray, is_marker_w: bool = True) -> List[int]:
     k1 = k.astype(int)
     c1, c2 = colors[k1, i], colors[k1 + 1, i]
     c = (k - k1) * (c2 - c1) + c1  # interpolate between c1 .. c2
-    return np.rint(c / 8 * 255).astype(int).tolist() + (MARKER_COLORS_W if is_marker_w else MARKER_COLORS_B)
+    return np.rint(c / 8 * 255).astype(int).tolist() + (
+        MARKER_COLORS_W if is_marker_w else MARKER_COLORS_B
+    )
 
 
 def im_from_array_with_colormap(np_array: ndarray, colormap: List[int]) -> Image:
-    '''
+    """
     Function that transforms the color palette of a PIL image
 
     input:
         - image: the PIL image to transform
         - colormap: the desired colormap
     output: the transformed PIL image
-    '''
+    """
     image_array = np.uint8(np_array.astype(float) * 252.0)
     transformed_image = Image.fromarray(image_array)
     transformed_image.putpalette(colormap)
@@ -273,29 +310,46 @@ kernel_core = {
     # step (stpz1/4)
     2: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double(),
     # staircase (life)
-    3: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double() + (r < q).double() * 0.5
+    3: lambda r, q=1 / 4: (r >= q).double() * (r <= 1 - q).double()
+    + (r < q).double() * 0.5,
 }
 field_func = {
-    0: lambda n, m, s: torch.max(torch.zeros_like(n), 1 - (n - m) ** 2 / (9 * s ** 2)) ** 4 * 2 - 1,
+    0: lambda n, m, s: torch.max(torch.zeros_like(n), 1 - (n - m) ** 2 / (9 * s**2))
+    ** 4
+    * 2
+    - 1,
     # polynomial (quad4)
     # exponential / gaussian (gaus)
-    1: lambda n, m, s: torch.exp(- (n - m) ** 2 / (2 * s ** 2)) * 2 - 1,
-    2: lambda n, m, s: (torch.abs(n - m) <= s).double() * 2 - 1  # step (stpz)
+    1: lambda n, m, s: torch.exp(-((n - m) ** 2) / (2 * s**2)) * 2 - 1,
+    2: lambda n, m, s: (torch.abs(n - m) <= s).double() * 2 - 1,  # step (stpz)
 }
 
 
 # Lenia Step FFT version (faster)
 class LeniaStepFFT(torch.nn.Module):
-    """ Module pytorch that computes one Lenia Step with the fft version"""
+    """Module pytorch that computes one Lenia Step with the fft version"""
 
-    def __init__(self, R: torch.Tensor, T: torch.Tensor, b: torch.Tensor, m: torch.Tensor, s: torch.Tensor, kn: int, gn: int, is_soft_clip: bool = False, SX: int = 256, SY: int = 256, device: str = 'cpu') -> None:
+    def __init__(
+        self,
+        R: torch.Tensor,
+        T: torch.Tensor,
+        b: torch.Tensor,
+        m: torch.Tensor,
+        s: torch.Tensor,
+        kn: int,
+        gn: int,
+        is_soft_clip: bool = False,
+        SX: int = 256,
+        SY: int = 256,
+        device: str = "cpu",
+    ) -> None:
         torch.nn.Module.__init__(self)
 
-        self.register_buffer('R', R+2)
-        self.register_parameter('T', torch.nn.Parameter(T))
-        self.register_buffer('b', b)
-        self.register_parameter('m', torch.nn.Parameter(m))
-        self.register_parameter('s', torch.nn.Parameter(s))
+        self.register_buffer("R", R + 2)
+        self.register_parameter("T", torch.nn.Parameter(T))
+        self.register_buffer("b", b)
+        self.register_parameter("m", torch.nn.Parameter(m))
+        self.register_parameter("s", torch.nn.Parameter(s))
 
         self.kn = 0
         self.gn = 1
@@ -310,7 +364,6 @@ class LeniaStepFFT(torch.nn.Module):
         self.compute_kernel()
 
     def compute_kernel(self) -> None:
-
         # implementation of meshgrid in torch
         x = torch.arange(self.SX)
         y = torch.arange(self.SY)
@@ -325,25 +378,25 @@ class LeniaStepFFT(torch.nn.Module):
         # Y = (yy - int(self.SY / 2)).double() / float(self.R / 2)
 
         # distance to center in normalized space
-        D = torch.sqrt(X ** 2 + Y ** 2)
+        D = torch.sqrt(X**2 + Y**2)
 
         # kernel
         k = len(self.b)  # modification to allow b always of length 4
         kr = k * D
-        b = self.b[torch.min(torch.floor(kr).long(), (k - 1)
-                             * torch.ones_like(kr).long())]
+        b = self.b[
+            torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())
+        ]
         kfunc = kernel_core[self.kn]
-        kernel = (D < 1).double() * kfunc(torch.min(kr %
-                                                    1, torch.ones_like(kr))) * b
+        kernel = (D < 1).double() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
         kernel_sum = torch.sum(kernel)
         # normalization of the kernel
         self.kernel_norm = (kernel / kernel_sum).unsqueeze(0).unsqueeze(0)
         # fft of the kernel
         self.kernel_FFT = torch.rfft(
-            self.kernel_norm, signal_ndim=2, onesided=False).to(self.device)
+            self.kernel_norm, signal_ndim=2, onesided=False
+        ).to(self.device)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-
         world_FFT = torch.rfft(input, signal_ndim=2, onesided=False)
         potential_FFT = complex_mult_torch(self.kernel_FFT, world_FFT)
         potential = torch.irfft(potential_FFT, signal_ndim=2, onesided=False)
@@ -354,30 +407,28 @@ class LeniaStepFFT(torch.nn.Module):
         field = gfunc(potential, self.m, self.s)
 
         if not self.is_soft_clip:
-            output_img = torch.clamp(
-                input + (1.0 / self.T) * field, min=0., max=1.)
+            output_img = torch.clamp(input + (1.0 / self.T) * field, min=0.0, max=1.0)
         else:
-            output_img = soft_clip(input + (1.0 / self.T)
-                                   * field, 0, 1, self.T)
+            output_img = soft_clip(input + (1.0 / self.T) * field, 0, 1, self.T)
 
         if torch.any(torch.isnan(potential)):
-            print('break')
+            print("break")
 
         return output_img
 
 
 # Lenia Step Conv2D version
 class LeniaStepConv2d(torch.nn.Module):
-    """ Module pytorch that computes one Lenia Step with the conv2d version"""
+    """Module pytorch that computes one Lenia Step with the conv2d version"""
 
-    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, device='cpu'):
+    def __init__(self, R, T, b, m, s, kn, gn, is_soft_clip=False, device="cpu"):
         torch.nn.Module.__init__(self)
 
-        self.register_buffer('R', R+2)
-        self.register_parameter('T', torch.nn.Parameter(T))
-        self.register_buffer('b', b)
-        self.register_parameter('m', torch.nn.Parameter(m))
-        self.register_parameter('s', torch.nn.Parameter(s))
+        self.register_buffer("R", R + 2)
+        self.register_parameter("T", torch.nn.Parameter(T))
+        self.register_buffer("b", b)
+        self.register_parameter("m", torch.nn.Parameter(m))
+        self.register_parameter("s", torch.nn.Parameter(s))
 
         self.kn = 0
         self.gn = 1
@@ -402,32 +453,32 @@ class LeniaStepConv2d(torch.nn.Module):
         Y = (yy - int(SY / 2)).double() / float(self.R)
 
         # distance to center in normalized space
-        D = torch.sqrt(X ** 2 + Y ** 2)
+        D = torch.sqrt(X**2 + Y**2)
 
         # kernel
         k = len(self.b)
         kr = k * D
-        b = self.b[torch.min(torch.floor(kr).long(), (k - 1)
-                             * torch.ones_like(kr).long())]
+        b = self.b[
+            torch.min(torch.floor(kr).long(), (k - 1) * torch.ones_like(kr).long())
+        ]
         kfunc = kernel_core[self.kn]
-        kernel = (D < 1).double() * kfunc(torch.min(kr %
-                                                    1, torch.ones_like(kr))) * b
+        kernel = (D < 1).double() * kfunc(torch.min(kr % 1, torch.ones_like(kr))) * b
         kernel_sum = torch.sum(kernel)
         # normalization of the kernel
         self.kernel_norm = (
-            kernel / kernel_sum).unsqueeze(0).unsqueeze(0).to(self.device)
+            (kernel / kernel_sum).unsqueeze(0).unsqueeze(0).to(self.device)
+        )
 
     def forward(self, input):
         potential = torch.nn.functional.conv2d(
-            self.spheric_pad(input), weight=self.kernel_norm)
+            self.spheric_pad(input), weight=self.kernel_norm
+        )
         gfunc = field_func[self.gn]
         field = gfunc(potential, self.m, self.s)
 
         if not self.is_soft_clip:
-            output_img = torch.clamp(
-                input + (1.0 / self.T) * field, min=0., max=1.)
+            output_img = torch.clamp(input + (1.0 / self.T) * field, min=0.0, max=1.0)
         else:
-            output_img = soft_clip(input + (1.0 / self.T)
-                                   * field, 0, 1, self.T)
+            output_img = soft_clip(input + (1.0 / self.T) * field, 0, 1, self.T)
 
         return output_img

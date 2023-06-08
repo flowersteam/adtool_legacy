@@ -10,7 +10,7 @@ class DiskPipeline(Leaf):
         super().__init__()
         self.l1 = [1, 2, 3, 4]
 
-    def create_locator(self, bin: bytes) -> 'Locator':
+    def create_locator(self, bin: bytes) -> "Locator":
         return DiskLocator(bin)
 
     def store_locator(self, loc):
@@ -19,7 +19,7 @@ class DiskPipeline(Leaf):
         return
 
     @classmethod
-    def retrieve_locator(cls, leaf_uid: str) -> 'Locator':
+    def retrieve_locator(cls, leaf_uid: str) -> "Locator":
         with open(f"/tmp/PipelineDir/{leaf_uid}", "rb") as f:
             loc = Locator.deserialize(f.read())
         return loc

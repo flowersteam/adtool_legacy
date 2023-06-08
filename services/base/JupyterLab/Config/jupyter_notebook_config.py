@@ -80,7 +80,7 @@
 #
 #  Takes precedence over allow_origin_pat.
 #  Default: ''
-c.NotebookApp.allow_origin = '*'
+c.NotebookApp.allow_origin = "*"
 
 # Use a regular expression for the Access-Control-Allow-Origin header
 #
@@ -490,13 +490,14 @@ c.NotebookApp.port = 8887
 #  Setting to an empty string disables authentication altogether, which is NOT
 #  RECOMMENDED.
 #  Default: '<generated>'
-c.NotebookApp.token = ''
+c.NotebookApp.token = ""
 
 # Supply overrides for the tornado.web.Application that the Jupyter notebook
 #  uses.
 #  Default: {}
-c.NotebookApp.tornado_settings = {'headers': {
-    'Content-Security-Policy': "frame-ancestors * 'self' "}}
+c.NotebookApp.tornado_settings = {
+    "headers": {"Content-Security-Policy": "frame-ancestors * 'self' "}
+}
 
 # Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-
 #  For headerssent by the upstream reverse proxy. Necessary if the proxy handles

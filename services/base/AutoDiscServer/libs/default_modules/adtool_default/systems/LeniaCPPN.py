@@ -2,15 +2,21 @@ from adtool_default.systems.Lenia import Lenia
 from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
 from auto_disc.auto_disc.systems.System import System
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.legacy.utils.config_parameters import (StringConfigParameter,
-                                                      IntegerConfigParameter)
+from auto_disc.legacy.utils.config_parameters import (
+    StringConfigParameter,
+    IntegerConfigParameter,
+)
 from typing import Dict, Union, Optional
 from copy import deepcopy
 from dataclasses import dataclass, asdict
 import torch
 
 
-@StringConfigParameter(name="version", possible_values=["pytorch_fft", "pytorch_conv2d"], default="pytorch_fft")
+@StringConfigParameter(
+    name="version",
+    possible_values=["pytorch_fft", "pytorch_conv2d"],
+    default="pytorch_fft",
+)
 @IntegerConfigParameter(name="SX", default=256, min=1)
 @IntegerConfigParameter(name="SY", default=256, min=1)
 @IntegerConfigParameter(name="final_step", default=200, min=1, max=1000)
@@ -23,16 +29,18 @@ class LeniaCPPN(System):
         super().__init__()
         self.locator = BlobLocator()
 
-        self.lenia = Lenia(version=self.config["version"],
-                           SX=self.config["SX"],
-                           SY=self.config["SY"],
-                           final_step=self.config["final_step"],
-                           scale_init_state=self.config["scale_init_state"])
+        self.lenia = Lenia(
+            version=self.config["version"],
+            SX=self.config["SX"],
+            SY=self.config["SY"],
+            final_step=self.config["final_step"],
+            scale_init_state=self.config["scale_init_state"],
+        )
 
-        self.cppn = CPPNWrapper(postmap_shape=(self.lenia.config["SY"],
-                                               self.lenia.config["SX"]),
-                                n_passes=self.config["cppn_n_passes"]
-                                )
+        self.cppn = CPPNWrapper(
+            postmap_shape=(self.lenia.config["SY"], self.lenia.config["SX"]),
+            n_passes=self.config["cppn_n_passes"],
+        )
 
     def map(self, input: Dict) -> Dict:
         intermed_dict = deepcopy(input)

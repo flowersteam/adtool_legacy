@@ -5,16 +5,16 @@ import numbers
 
 class GaussianMutator(BaseMutator):
     """
-        Class to mutate a space with gaussian method
+    Class to mutate a space with gaussian method
     """
 
     def __init__(self, mean: float, std: float) -> None:
         """
-            Init what gaussian method need
+        Init what gaussian method need
 
-            Args: 
-                mean: float
-                std: float
+        Args:
+            mean: float
+            std: float
 
         """
         self._mean = mean
@@ -22,10 +22,10 @@ class GaussianMutator(BaseMutator):
 
     def init_shape(self, shape: tuple = None) -> None:
         """
-            Define the init shape
+        Define the init shape
 
-            Args:
-                shape: tuple
+        Args:
+            shape: tuple
         """
         super().init_shape(shape)
         if shape:
@@ -38,14 +38,14 @@ class GaussianMutator(BaseMutator):
 
     def __call__(self, x: torch.Tensor, mutate_mask: torch.Tensor) -> torch.Tensor:
         """
-            Apply the gaussian mutation data
+        Apply the gaussian mutation data
 
-            Args:
-                x: the data we want mutate
-                mutate_mask: mask of mutation
+        Args:
+            x: the data we want mutate
+            mutate_mask: mask of mutation
 
-            Returns:
-                x: Data after being mutated
+        Returns:
+            x: Data after being mutated
         """
         noise = torch.normal(self.mean, self.std)
         x = x.type(torch.float64) + mutate_mask * noise

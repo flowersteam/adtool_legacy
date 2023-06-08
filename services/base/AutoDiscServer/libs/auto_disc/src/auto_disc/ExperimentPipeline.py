@@ -30,8 +30,8 @@ class CancellationToken:
 
     def trigger(self) -> None:
         """
-            Sets the cancellation token to true
-            (the experiment must be cancelled)
+        Sets the cancellation token to true
+        (the experiment must be cancelled)
         """
         self._token = True
 
@@ -50,20 +50,23 @@ class ExperimentPipeline(Leaf):
     Please see: `auto_disc.legacy.utils.callbacks.base_callback.BaseCallback`.
     """
 
-    def __init__(self, experiment_id: int = 0, seed: int = 0,
-                 system=None,
-                 explorer=None,
-                 save_frequency: int = 100,
-                 on_discovery_callbacks: List[Callable] = [],
-                 on_save_finished_callbacks: List[Callable] = [],
-                 on_finished_callbacks: List[Callable] = [],
-                 on_cancelled_callbacks: List[Callable] = [],
-                 on_save_callbacks: List[Callable] = [],
-                 on_error_callbacks: List[Callable] = [],
-                 logger=None,
-                 resource_uri: str = "",
-                 discovery_saving_keys: List[str] = []
-                 ) -> None:
+    def __init__(
+        self,
+        experiment_id: int = 0,
+        seed: int = 0,
+        system=None,
+        explorer=None,
+        save_frequency: int = 100,
+        on_discovery_callbacks: List[Callable] = [],
+        on_save_finished_callbacks: List[Callable] = [],
+        on_finished_callbacks: List[Callable] = [],
+        on_cancelled_callbacks: List[Callable] = [],
+        on_save_callbacks: List[Callable] = [],
+        on_error_callbacks: List[Callable] = [],
+        logger=None,
+        resource_uri: str = "",
+        discovery_saving_keys: List[str] = [],
+    ) -> None:
         """
         Initializes state of experiment pipeline, setting all necessary
         attributes given by the following arguments.
@@ -124,12 +127,10 @@ class ExperimentPipeline(Leaf):
             **kwargs: e.g., self.run_idx, seed, experiment_id, some modules...
         """
         for callback in callbacks:
-            callback(
-                **kwargs
-            )
+            callback(**kwargs)
 
     def run(self, n_exploration_runs: int):
-        '''
+        """
         Launches the experiment for `n_exploration_runs` explorations.
 
         `n_exploration_runs` is specified so more optimized looping routines
@@ -141,7 +142,7 @@ class ExperimentPipeline(Leaf):
 
         #### Returns:
         - **LeafUID**: returns the UID associated to the experiment
-        '''
+        """
         try:
             data_dict = self._explorer.bootstrap()
 
@@ -194,31 +195,29 @@ class ExperimentPipeline(Leaf):
                 # avoids divide by zero
                 run_idx_start_from_one = self.run_idx + 1
 
-                if (run_idx_start_from_one % self.save_frequency == 0
-                        or run_idx_start_from_one == n_exploration_runs):
+                if (
+                    run_idx_start_from_one % self.save_frequency == 0
+                    or run_idx_start_from_one == n_exploration_runs
+                ):
                     self.save(resource_uri=self.resource_uri)
 
                 self.run_idx += 1
 
         except Exception:
-            message = \
-                "error in experiment {} self.run_idx {} seed {} = {}".format(
-                    self.experiment_id,
-                    self.run_idx,
-                    self.seed,
-                    traceback.format_exc()
-                )
+            message = "error in experiment {} self.run_idx {} seed {} = {}".format(
+                self.experiment_id, self.run_idx, self.seed, traceback.format_exc()
+            )
 
             # TODO: do this in appdb side
             if len(message) > 8000:  # Cut to match varchar length of AppDB
-                message = message[:7997] + '...'
+                message = message[:7997] + "..."
 
             self.logger.error("[ERROR] - " + message)
             self._raise_callbacks(
                 self._on_error_callbacks,
                 run_idx=self.run_idx,
                 seed=self.seed,
-                experiment_id=self.experiment_id
+                experiment_id=self.experiment_id,
             )
             raise
 
@@ -227,27 +226,29 @@ class ExperimentPipeline(Leaf):
         # log termination of experiment
         if self.cancellation_token.get():
             self.logger.info(
-                "[CANCELLED] - experiment {} with seed {} cancelled"
-                .format(self.experiment_id, self.seed)
+                "[CANCELLED] - experiment {} with seed {} cancelled".format(
+                    self.experiment_id, self.seed
+                )
             )
 
             self._raise_callbacks(
                 self._on_cancelled_callbacks,
                 run_idx=self.run_idx,
                 seed=self.seed,
-                experiment_id=self.experiment_id
+                experiment_id=self.experiment_id,
             )
         else:
             self.logger.info(
-                "[FINISHED] - experiment {} with seed {} finished"
-                .format(self.experiment_id, self.seed)
+                "[FINISHED] - experiment {} with seed {} finished".format(
+                    self.experiment_id, self.seed
+                )
             )
 
             self._raise_callbacks(
                 self._on_finished_callbacks,
                 run_idx=self.run_idx,
                 seed=self.seed,
-                experiment_id=self.experiment_id
+                experiment_id=self.experiment_id,
             )
         return
 
@@ -257,7 +258,7 @@ class ExperimentPipeline(Leaf):
             experiment_id=self.experiment_id,
             seed=self.seed,
             module_to_save=self,
-            resource_uri=resource_uri
+            resource_uri=resource_uri,
         )
 
         # only run on_save_finished callbacks if on_save_callbacks
@@ -269,7 +270,7 @@ class ExperimentPipeline(Leaf):
                 report_dir=resource_uri,
                 experiment_id=self.experiment_id,
                 seed=self.seed,
-                run_idx=self.run_idx
+                run_idx=self.run_idx,
             )
 
             # uid is passed by modifying the parent object, to enable
@@ -278,18 +279,21 @@ class ExperimentPipeline(Leaf):
             del self.uid
 
         self.logger.info(
-            "[SAVED] - experiment {} with seed {} saved"
-            .format(self.experiment_id, self.seed)
+            "[SAVED] - experiment {} with seed {} saved".format(
+                self.experiment_id, self.seed
+            )
         )
         return
 
-    @prune_state({
-        "_on_discovery_callbacks": [],
-        "_on_save_finished_callbacks": [],
-        "_on_finished_callbacks": [],
-        "_on_cancelled_callbacks": [],
-        "_on_error_callbacks": [],
-        "_on_save_callbacks": []
-    })
+    @prune_state(
+        {
+            "_on_discovery_callbacks": [],
+            "_on_save_finished_callbacks": [],
+            "_on_finished_callbacks": [],
+            "_on_cancelled_callbacks": [],
+            "_on_error_callbacks": [],
+            "_on_save_callbacks": [],
+        }
+    )
     def serialize(self) -> bytes:
         return super().serialize()

@@ -18,21 +18,19 @@ def setup_function(function):
     neat_map = NEATParameterMap(config_path=config_path)
     genome_dict = neat_map.map(dummy_input)
 
-    dummy_input = \
-        {
-            "params": {
-                "dynamic_params":
-                {
-                    "R": torch.tensor(5.),
-                    "T": torch.tensor(10.),
-                    "b": torch.tensor([0.1, 0.2, 0.3, 0.4]),
-                    "m": torch.tensor(0.5),
-                    "s": torch.tensor(0.1)
-                },
-                "genome": genome_dict["genome"],
-                "neat_config": genome_dict["neat_config"]
-            }
+    dummy_input = {
+        "params": {
+            "dynamic_params": {
+                "R": torch.tensor(5.0),
+                "T": torch.tensor(10.0),
+                "b": torch.tensor([0.1, 0.2, 0.3, 0.4]),
+                "m": torch.tensor(0.5),
+                "s": torch.tensor(0.1),
+            },
+            "genome": genome_dict["genome"],
+            "neat_config": genome_dict["neat_config"],
         }
+    }
 
 
 def teardown_function(function):

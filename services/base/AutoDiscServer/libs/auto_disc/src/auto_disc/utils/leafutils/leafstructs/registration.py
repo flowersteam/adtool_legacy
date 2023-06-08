@@ -12,49 +12,49 @@ from mergedeep import merge
 
 # legacy compatibility
 _REGISTRATION: dict[str, dict] = {
-    'systems': {},
-    'explorers': {
-        'IMGEPExplorer': "auto_disc.auto_disc.explorers.IMGEPFactory",
+    "systems": {},
+    "explorers": {
+        "IMGEPExplorer": "auto_disc.auto_disc.explorers.IMGEPFactory",
     },
-    'maps': {},
-    'input_wrappers': {
-        'generic.CPPN': "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
+    "maps": {},
+    "input_wrappers": {
+        "generic.CPPN": "auto_disc.legacy.input_wrappers.generic.cppn.cppn_input_wrapper.CppnInputWrapper",
     },
-    'output_representations': {
-        'specific.LeniaFlattenImage': "auto_disc.legacy.output_representations.specific.lenia_output_representation.LeniaImageRepresentation",
-        'specific.LeniaStatistics': "auto_disc.legacy.output_representations.specific.lenia_output_representation_hand_defined.LeniaHandDefinedRepresentation",
+    "output_representations": {
+        "specific.LeniaFlattenImage": "auto_disc.legacy.output_representations.specific.lenia_output_representation.LeniaImageRepresentation",
+        "specific.LeniaStatistics": "auto_disc.legacy.output_representations.specific.lenia_output_representation_hand_defined.LeniaHandDefinedRepresentation",
     },
-    'callbacks': {
-        'on_discovery': {
-            'expe_db': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb.SaveDiscoveryInExpeDB",
-            'disk': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk",
-            'base': "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk"
+    "callbacks": {
+        "on_discovery": {
+            "expe_db": "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb.SaveDiscoveryInExpeDB",
+            "disk": "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk",
+            "base": "auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk.SaveDiscoveryOnDisk",
         },
-        'on_cancelled': {
-            'base': "auto_disc.auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
+        "on_cancelled": {
+            "base": "auto_disc.auto_disc.utils.callbacks.on_cancelled_callbacks.BaseOnCancelledCallback"
         },
-        'on_error': {
-            'base': "auto_disc.auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
+        "on_error": {
+            "base": "auto_disc.auto_disc.utils.callbacks.on_error_callbacks.BaseOnErrorCallback"
         },
-        'on_finished': {
-            'base': "auto_disc.auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
+        "on_finished": {
+            "base": "auto_disc.auto_disc.utils.callbacks.on_finished_callbacks.BaseOnFinishedCallback"
         },
-        'on_saved': {
-            'base': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback.SaveLeaf",
-            'expe_db': "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb.SaveLeafExpeDB",
+        "on_saved": {
+            "base": "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback.SaveLeaf",
+            "expe_db": "auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in_expedb.SaveLeafExpeDB",
         },
-        'on_save_finished': {
-            'base': "auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback.GenerateReport",
+        "on_save_finished": {
+            "base": "auto_disc.auto_disc.utils.callbacks.on_save_finished_callbacks.generate_report_callback.GenerateReport",
         },
-        'interact': {
-            'base': "auto_disc.utils.callbacks.interact_callbacks.BaseInteractCallback",
-            'saveDisk': "auto_disc.utils.callbacks.interact_callbacks.SaveDiskInteractCallback",
-            'readDisk': "auto_disc.utils.callbacks.interact_callbacks.ReadDiskInteractCallback"
+        "interact": {
+            "base": "auto_disc.utils.callbacks.interact_callbacks.BaseInteractCallback",
+            "saveDisk": "auto_disc.utils.callbacks.interact_callbacks.SaveDiskInteractCallback",
+            "readDisk": "auto_disc.utils.callbacks.interact_callbacks.ReadDiskInteractCallback",
         },
     },
-    'logger_handlers': {
-        'logFile': "auto_disc.auto_disc.utils.logger.handlers.file_handler.SetFileHandler"
-    }
+    "logger_handlers": {
+        "logFile": "auto_disc.auto_disc.utils.logger.handlers.file_handler.SetFileHandler"
+    },
 }
 
 
@@ -168,8 +168,7 @@ def get_modules(submodule_type: str) -> dict:
         {"SystemName" : "adtool_default.systems.SystemName.SystemName"}
 
     """
-    if (submodule_type == "input_wrappers"
-            or submodule_type == "output_representations"):
+    if submodule_type == "input_wrappers" or submodule_type == "output_representations":
         # legacy guard, there is no input_wrappers or output_representations
         # in the new module spec
         return get_legacy_modules(submodule_type)
@@ -180,7 +179,9 @@ def get_modules(submodule_type: str) -> dict:
                 {},
                 get_legacy_modules(submodule_type),
                 get_default_modules(submodule_type),
-                get_custom_modules(submodule_type)))
+                get_custom_modules(submodule_type),
+            )
+        )
 
 
 def _check_jsonify(my_dict):
@@ -205,8 +206,16 @@ def _check_jsonify(my_dict):
                     else:
                         my_dict[key] = "-inf"
     except Exception as ex:
-        print("my_dict = ", my_dict, "key = ", key,
-              "my_dict[key] = ", my_dict[key], "exception =", ex)
+        print(
+            "my_dict = ",
+            my_dict,
+            "key = ",
+            key,
+            "my_dict[key] = ",
+            my_dict[key],
+            "exception =",
+            ex,
+        )
 
 
 def get_auto_disc_registered_modules_info(registered_modules):
@@ -219,17 +228,14 @@ def get_auto_disc_registered_modules_info(registered_modules):
             info["config"] = module_class.CONFIG_DEFINITION
         except AttributeError:
             raise ValueError(f"Could not load class: {module_class_path}")
-        if hasattr(module_class, 'input_space'):
-            info['input_space'] = \
-                module_class.input_space.to_json()
+        if hasattr(module_class, "input_space"):
+            info["input_space"] = module_class.input_space.to_json()
 
-        if hasattr(module_class, 'output_space'):
-            info['output_space'] = \
-                module_class.output_space.to_json()
+        if hasattr(module_class, "output_space"):
+            info["output_space"] = module_class.output_space.to_json()
 
-        if hasattr(module_class, 'step_output_space'):
-            info['step_output_space'] = \
-                module_class.step_output_space.to_json()
+        if hasattr(module_class, "step_output_space"):
+            info["step_output_space"] = module_class.step_output_space.to_json()
         _check_jsonify(info)
         infos.append(info)
     return infos

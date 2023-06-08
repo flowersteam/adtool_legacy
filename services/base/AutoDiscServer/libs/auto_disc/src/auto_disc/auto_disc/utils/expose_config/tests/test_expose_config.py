@@ -11,6 +11,7 @@ from auto_disc.auto_disc.utils.expose_config.expose_config import expose_config
 class TestPublicExposeConfig:
     def test_key_collision(self):
         with pytest.raises(ValueError):
+
             @expose_config("a", default=False)
             @expose_config("a", default=False)
             class M:
@@ -78,12 +79,9 @@ class TestPublicExposeConfig:
 
         # note that the order of decorators is unimportant
         @expose_config("a", default=5, domain=[4, 5, 6])
-        @expose_config("b", default=2, domain=[1, 2, 3],
-                       parent="S")
-        @expose_config("c", default=8, domain=[7, 8, 9],
-                       parent="S")
-        @expose_config("d", default=2, domain=[1, 2, 3],
-                       parent="S2")
+        @expose_config("b", default=2, domain=[1, 2, 3], parent="S")
+        @expose_config("c", default=8, domain=[7, 8, 9], parent="S")
+        @expose_config("d", default=2, domain=[1, 2, 3], parent="S2")
         class M:
             def __init__(self, a, b, c, d):
                 self.a = a
@@ -130,8 +128,7 @@ class TestComplicatedExposeConfig:
 
         assert System.CONFIG_DEFINITION["version"]["type"] == "STRING"
         assert System.CONFIG_DEFINITION["version"]["default"] == "fft"
-        assert System.CONFIG_DEFINITION["version"]["possible_values"] == [
-            "fft", "conv"]
+        assert System.CONFIG_DEFINITION["version"]["possible_values"] == ["fft", "conv"]
         assert System.CONFIG_DEFINITION["version"]["parent"] == ""
 
         assert System.CONFIG_DEFINITION["SX"]["type"] == "INTEGER"
@@ -183,8 +180,7 @@ class TestComplicatedExposeConfig:
 
         assert System.CONFIG_DEFINITION["version"]["type"] == "STRING"
         assert System.CONFIG_DEFINITION["version"]["default"] == "fft"
-        assert System.CONFIG_DEFINITION["version"]["possible_values"] == [
-            "fft", "conv"]
+        assert System.CONFIG_DEFINITION["version"]["possible_values"] == ["fft", "conv"]
 
         assert System.CONFIG_DEFINITION["SX"]["type"] == "INTEGER"
         assert System.CONFIG_DEFINITION["SX"]["default"] == 256
@@ -248,8 +244,10 @@ class TestComplicatedExposeConfig:
             size: Geometry = Geometry()
 
         with pytest.raises(ValueError) as e:
+
             @SystemParams.expose_config()
             class System:
                 def __init__(self, *args, **kwargs):
                     pass
+
         assert "already exists" in str(e.value)

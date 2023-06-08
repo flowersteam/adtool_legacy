@@ -10,7 +10,7 @@ class DummyModule(Leaf):
         self.internal_state = s
 
     def forward(self, x):
-        return [x+y for y in self.internal_state]
+        return [x + y for y in self.internal_state]
 
 
 class DummyLocator(Locator):
@@ -37,7 +37,7 @@ def setup_function(function):
 def test_leaf_init():
     assert a._modules == {}
     assert isinstance(a.locator, StatelessLocator)
-    assert a.name == ''
+    assert a.name == ""
     assert a.internal_state
 
 

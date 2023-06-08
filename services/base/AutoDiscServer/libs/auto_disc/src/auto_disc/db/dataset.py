@@ -4,12 +4,10 @@ from auto_disc.db.stream import Stream
 
 class Dataset:
     def __init__(self, experiment_id, checkpoint_ids=[]):
-        self._filter = {
-            'experiment_id': experiment_id
-        }
+        self._filter = {"experiment_id": experiment_id}
 
         if len(checkpoint_ids) > 0:
-            self._filter['checkpoint_id'] = {'$in': self.checkpoint_ids}
+            self._filter["checkpoint_id"] = {"$in": self.checkpoint_ids}
 
     def filter(self, _filter):
         _filter.update(self._filter)
@@ -36,13 +34,21 @@ class Dataset:
         else:
             raise NotImplementedError()
 
-        _filter = {
-            'run_idx': index_filter
-        }
+        _filter = {"run_idx": index_filter}
 
         _filter.update(self._filter)
         result = _get_discoveries_with_filter(_filter)
         return result
 
     def __len__(self):
-        return max([element["run_idx"] for element in _get_discoveries_with_filter(self._filter, {"run_idx": 1})]) + 1
+        return (
+            max(
+                [
+                    element["run_idx"]
+                    for element in _get_discoveries_with_filter(
+                        self._filter, {"run_idx": 1}
+                    )
+                ]
+            )
+            + 1
+        )

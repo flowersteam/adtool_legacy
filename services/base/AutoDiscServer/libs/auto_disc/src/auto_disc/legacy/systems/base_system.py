@@ -66,8 +66,7 @@ class BaseSystem(BaseAutoDiscModule):
         raise NotImplementedError
 
     def render(self, **kwargs):
-        """Renders the environment.
-        """
+        """Renders the environment."""
         raise NotImplementedError
 
     def close(self):

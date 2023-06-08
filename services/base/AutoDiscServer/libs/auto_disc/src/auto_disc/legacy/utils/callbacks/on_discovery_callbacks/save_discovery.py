@@ -53,60 +53,59 @@ class SaveDiscovery:
         """
         pass
 
-    def __call__(self,
-                 resource_uri: str,
-                 experiment_id: int,
-                 run_idx: int,
-                 seed: int,
-                 discovery: Dict[str, Any]
-                 ) -> None:
-        dir_path = self._initialize_save_path(resource_uri,
-                                              experiment_id,
-                                              run_idx, seed)
+    def __call__(
+        self,
+        resource_uri: str,
+        experiment_id: int,
+        run_idx: int,
+        seed: int,
+        discovery: Dict[str, Any],
+    ) -> None:
+        dir_path = self._initialize_save_path(
+            resource_uri, experiment_id, run_idx, seed
+        )
 
         # create JSON encoder
         json_encoder = _JSONEncoderFactory()(
-            dir_path=dir_path,
-            custom_callback=self._save_binary_callback)
+            dir_path=dir_path, custom_callback=self._save_binary_callback
+        )
 
         # save dict_data
-        self._dump_json(discovery=discovery,
-                        dir_path=dir_path,
-                        json_encoder=json_encoder,
-                        experiment_id=experiment_id,
-                        run_idx=run_idx,
-                        seed=seed)
+        self._dump_json(
+            discovery=discovery,
+            dir_path=dir_path,
+            json_encoder=json_encoder,
+            experiment_id=experiment_id,
+            run_idx=run_idx,
+            seed=seed,
+        )
 
         return
 
     @staticmethod
-    def _dump_json(discovery: Dict[str, Any],
-                   dir_path: str,
-                   json_encoder: Type[json.JSONEncoder],
-                   **kwargs
-                   ) -> None:
+    def _dump_json(
+        discovery: Dict[str, Any],
+        dir_path: str,
+        json_encoder: Type[json.JSONEncoder],
+        **kwargs
+    ) -> None:
         """
         Method called which dumps a human-readable JSON file.
         """
         raise NotImplementedError
 
     @staticmethod
-    def _initialize_save_path(resource_uri: str,
-                              experiment_id: int,
-                              run_idx: int,
-                              seed: int
-                              ) -> str:
+    def _initialize_save_path(
+        resource_uri: str, experiment_id: int, run_idx: int, seed: int
+    ) -> str:
         """
-        Formats discovery save path under the resource_uri, 
+        Formats discovery save path under the resource_uri,
         creating it if necessary
         """
         raise NotImplementedError
 
     @classmethod
-    def _save_binary_callback(cls: Type,
-                              binary: bytes,
-                              save_dir: str
-                              ) -> str:
+    def _save_binary_callback(cls: Type, binary: bytes, save_dir: str) -> str:
         """
         Callback to call on binary objects when saving discovery. Its return
         value will be the value of the key in the serialized JSON object.

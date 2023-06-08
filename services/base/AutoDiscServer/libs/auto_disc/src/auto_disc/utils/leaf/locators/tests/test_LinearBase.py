@@ -2,7 +2,11 @@ from sqlalchemy import text
 import os
 import pathlib
 import pytest
-from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator, _EngineContext, Stepper
+from auto_disc.utils.leaf.locators.LinearBase import (
+    FileLinearLocator,
+    _EngineContext,
+    Stepper,
+)
 import auto_disc.utils.leaf.locators.LinearBase as LinearBase
 import pickle
 from hashlib import sha1
@@ -11,6 +15,7 @@ import shutil
 
 def setup_function(function):
     import sqlite3
+
     global FILE_PATH, DB_PATH, SCRIPT_PATH, DB_NAME
 
     SCRIPT_PATH = str(pathlib.Path(__file__).parent.resolve())
@@ -41,6 +46,7 @@ def generate_mock_binary() -> bytes:
         sha1_hash = FileLinearLocator.hash(pickle.dumps(stepper))
         output_bin = bytes.fromhex(sha1_hash) + bytes.fromhex("deadbeef") + bin
         return output_bin
+
     s = Stepper()
     query_trajectory = [bytes(1), bytes(2), bytes(4), bytes(9)]
     s.buffer = query_trajectory
@@ -51,6 +57,7 @@ def generate_mock_binary() -> bytes:
 
 def generate_fake_data(db_url: str):
     import sqlite3
+
     con = sqlite3.connect(db_url)
     cur = con.cursor()
     with open(SCRIPT_PATH) as f:
@@ -89,7 +96,8 @@ def test_FileLinearLocator__insert_node():
     def get_newest_insert(engine):
         with engine.connect() as conn:
             result = conn.execute(
-                text("SELECT * FROM trajectories ORDER BY id DESC LIMIT 1"))
+                text("SELECT * FROM trajectories ORDER BY id DESC LIMIT 1")
+            )
             new_row = result.one()
         return new_row
 
@@ -124,8 +132,7 @@ def test_FileLinearLocator__get_trajectory():
         assert len(trajectory) - 1 == depths[0]
         # test retrieving longer trajectory than exists
         # should limit to what is available
-        _, trajectory, depths = LinearBase._get_trajectory_raw(
-            engine, 5, 100)
+        _, trajectory, depths = LinearBase._get_trajectory_raw(engine, 5, 100)
         assert trajectory == [bytes(1), bytes(2), bytes(3), bytes(4), bytes(5)]
         assert len(trajectory) - 1 == depths[0]
 
@@ -163,8 +170,7 @@ def test_FileLinearLocator_store():
     db_url = os.path.join(subdir, "lineardb")
 
     with _EngineContext(db_url) as engine:
-        ids, trajectory, _ = LinearBase._get_trajectory_raw(
-            engine, row_id, -1)
+        ids, trajectory, _ = LinearBase._get_trajectory_raw(engine, row_id, -1)
         assert ids == [1, 2, 6, 8]
         assert trajectory == [bytes(1), bytes(2), bytes(4), data_bin]
     assert len(os.listdir(FILE_PATH)) == 1
@@ -190,8 +196,16 @@ def test_FileLinearLocator_retrieve():
     assert x.parent_id == 2
     loaded_obj = Stepper().deserialize(bin)
 
-    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
-                                 bytes(1), bytes(2), bytes(4), bytes(9)]
+    assert loaded_obj.buffer == [
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+    ]
 
 
 def test_FileLinearLocator_branching():
@@ -223,11 +237,27 @@ def test_FileLinearLocator_branching():
     x = FileLinearLocator(FILE_PATH)
     bin = x.retrieve(third_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
-    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
-                                 bytes(1), bytes(2), bytes(4), bytes(9)]
+    assert loaded_obj.buffer == [
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+    ]
 
     x = FileLinearLocator(FILE_PATH)
     bin = x.retrieve(second_retrieval_key, -1)
     loaded_obj = Stepper().deserialize(bin)
-    assert loaded_obj.buffer == [bytes(1), bytes(2), bytes(4), bytes(9),
-                                 bytes(1), bytes(2), bytes(4), bytes(9)]
+    assert loaded_obj.buffer == [
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+        bytes(1),
+        bytes(2),
+        bytes(4),
+        bytes(9),
+    ]

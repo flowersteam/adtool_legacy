@@ -34,9 +34,11 @@ def test__update_low_high_type_conversion():
     input = torch.rand(dim)
 
     # default init_low and init_high are int tensors
-    box = BoxProjector(premap_key="output",
-                       init_low=torch.tensor([0, 0, 0]),
-                       init_high=torch.tensor([0, 0, 0]))
+    box = BoxProjector(
+        premap_key="output",
+        init_low=torch.tensor([0, 0, 0]),
+        init_high=torch.tensor([0, 0, 0]),
+    )
     box._update_low_high(input)
 
     # low and high should be converted to float for asserts to pass
@@ -48,18 +50,20 @@ def test__clamp_and_truncate():
     dim = 10
     input = torch.rand(dim) + 20
 
-    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([5.]))
+    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([5.0]))
     clamped_output = box._clamp_and_truncate(input)
-    assert torch.all(torch.isclose(clamped_output, torch.tensor([5.])))
+    assert torch.all(torch.isclose(clamped_output, torch.tensor([5.0])))
 
     # clamp to a tensor
-    box = BoxProjector(premap_key="output", bound_upper=torch.tensor(
-        [1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]))
+    box = BoxProjector(
+        premap_key="output",
+        bound_upper=torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
+    )
     clamped_output = box._clamp_and_truncate(input)
     assert torch.all(
         torch.isclose(
             clamped_output,
-            torch.tensor([1., 2., 3., 4., 5., 6., 7., 8., 9., 10.])
+            torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
         )
     )
 
@@ -125,18 +129,18 @@ def test_map_clamped():
     input = torch.rand(dim) + 10
     input_dict = {"output": input, "metadata": 1}
 
-    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([1.]))
+    box = BoxProjector(premap_key="output", bound_upper=torch.tensor([1.0]))
     output_dict = box.map(input_dict)
 
     # will clamp all of these to 1
-    assert torch.allclose(output_dict["output"], torch.tensor([1.]))
+    assert torch.allclose(output_dict["output"], torch.tensor([1.0]))
 
     dim = 10
     input = torch.rand(dim) - 10
     input_dict = {"output": input, "metadata": 1}
 
-    box = BoxProjector(premap_key="output", bound_lower=torch.tensor([-1.]))
+    box = BoxProjector(premap_key="output", bound_lower=torch.tensor([-1.0]))
     output_dict = box.map(input_dict)
 
     # will clamp all of these to -1
-    assert torch.allclose(output_dict["output"], torch.tensor([-1.]))
+    assert torch.allclose(output_dict["output"], torch.tensor([-1.0]))

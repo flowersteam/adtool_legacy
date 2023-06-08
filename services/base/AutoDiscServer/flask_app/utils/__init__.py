@@ -5,5 +5,4 @@ from utils.experiment_status_enum import ExperimentStatusEnum
 from utils.reconstruct_parameters import reconstruct_parameters
 from utils.remote_profile_utils import list_profiles, parse_profile
 from utils.seed_status_enum import SeedStatusEnum
-from utils.string_handling import \
-    match_except_number  # , get_numbers_in_string
+from utils.string_handling import match_except_number  # , get_numbers_in_string

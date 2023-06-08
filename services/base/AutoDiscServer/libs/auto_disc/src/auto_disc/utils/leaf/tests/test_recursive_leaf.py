@@ -18,7 +18,7 @@ class DummyStatefulModule(Leaf):
         self.internal_state = s
 
     def forward(self, x):
-        return [x+y for y in self.internal_state]
+        return [x + y for y in self.internal_state]
 
 
 class DummyPipeline(Leaf):
@@ -48,8 +48,7 @@ class DummyContainer(Leaf):
 
 
 class DummyFileLocator(Locator):
-    def __init__(self, resource_uri: str = "",
-                 data_filename: str = "data"):
+    def __init__(self, resource_uri: str = "", data_filename: str = "data"):
         # set default to relative directory of the caller
         if resource_uri == "":
             self.resource_uri = str(os.getcwd())
@@ -57,7 +56,7 @@ class DummyFileLocator(Locator):
             self.resource_uri = resource_uri
         self.data_filename = data_filename
 
-    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> "LeafUID":
         uid = self.hash(bin)
         save_dir = os.path.join(self.resource_uri, str(uid))
         if not os.path.exists(save_dir):
@@ -77,7 +76,7 @@ class DummyFileLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
+    def retrieve(self, uid: "LeafUID", *args, **kwargs) -> bytes:
         save_dir = os.path.join(self.resource_uri, str(uid))
 
         # retrieve only the data saved, not the metadata
@@ -109,10 +108,8 @@ def setup_function(function):
 
         # override the in-memory locator for file storage
         a.locator = FileLocator(resource_uri=res_uri)
-        a.l1.locator = DummyFileLocator(resource_uri=res_uri,
-                                        data_filename="data")
-        a.l2.locator = DummyFileLocator(resource_uri=res_uri,
-                                        data_filename="data")
+        a.l1.locator = DummyFileLocator(resource_uri=res_uri, data_filename="data")
+        a.l2.locator = DummyFileLocator(resource_uri=res_uri, data_filename="data")
     return
 
 
@@ -209,9 +206,9 @@ def test_mixed_save_leaf():
     assert metadata_ctr == 3
     assert data_ctr == 2
 
-    sample_save_path = os.path.join(res_uri,
-                                    "8d633c07d386681ff8e1637d38934e7a8938a2b9"
-                                    + "/metadata")
+    sample_save_path = os.path.join(
+        res_uri, "8d633c07d386681ff8e1637d38934e7a8938a2b9" + "/metadata"
+    )
     with open(sample_save_path, "rb") as f:
         bin = f.read()
     loaded_obj = pickle.loads(bin)

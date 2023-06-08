@@ -17,12 +17,13 @@ class History:
 
     def append(self, document: Dict) -> None:
         """
-            Append document
+        Append document
 
-            Args:
-                document: dict of database element
+        Args:
+            document: dict of database element
         """
-        assert document.keys() == self._data.keys(
+        assert (
+            document.keys() == self._data.keys()
         ), "Columns of new document do not match history's columns"
         for k, v in document.items():
             self._data[k].append(v)
@@ -43,7 +44,8 @@ class History:
         if isinstance(item, int):
             if item >= self._len:
                 raise IndexError(
-                    f"Index out of range (tried fetching the {item}-th while history has only {self._len} elements).")
+                    f"Index out of range (tried fetching the {item}-th while history has only {self._len} elements)."
+                )
             result = {}
             for k, v in self._data.items():
                 result[k] = v[item]
@@ -53,8 +55,7 @@ class History:
                 raise Exception(f"Unrecognized column name {item}.")
             return self._data[item]
         else:
-            raise TypeError(
-                f"History is not subscriptable with {type(item)} objects.")
+            raise TypeError(f"History is not subscriptable with {type(item)} objects.")
 
     def __len__(self):
         return self._len

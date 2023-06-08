@@ -5,8 +5,7 @@ from copy import deepcopy
 
 
 def provide_leaf_as_service(
-        object: Any, leaf_cls: Leaf,
-        overridden_attr: List['str'] = None
+    object: Any, leaf_cls: Leaf, overridden_attr: List["str"] = None
 ) -> Any:
     if overridden_attr is None:
         overridden_attr = []

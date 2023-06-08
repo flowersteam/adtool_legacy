@@ -6,38 +6,43 @@ from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace
 from auto_disc.legacy import BaseAutoDiscModule
 
 
-class BaseExplorer (BaseAutoDiscModule):
-    '''
+class BaseExplorer(BaseAutoDiscModule):
+    """
     Base class for explorers.
-    '''
+    """
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def initialize(self, input_space: DictSpace, output_space: DictSpace, input_distance_fn: Callable) -> None:
-        '''
+    def initialize(
+        self,
+        input_space: DictSpace,
+        output_space: DictSpace,
+        input_distance_fn: Callable,
+    ) -> None:
+        """
         Defines input and output space for the explorer (as well as a distance function for the input space).
-        '''
+        """
         self.input_space = input_space
         self.output_space = output_space
         self.input_distance_fn = input_distance_fn
 
     def sample(self):
-        '''
+        """
         Emits a new set of parameters to test in the system
-        '''
+        """
         raise NotImplementedError()
 
     def observe(self, parameters: Dict, observations: torch.Tensor):
-        '''
+        """
         Stores parameters and the output the system produced using them
-        '''
+        """
         raise NotImplementedError()
 
     def optimize(self):
-        '''
+        """
         Optimizes the explorer's sample policy given the discoveries arhcived
-        '''
+        """
         raise NotImplementedError()
 
     # def save(self, filepath):

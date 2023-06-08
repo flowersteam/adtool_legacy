@@ -31,11 +31,11 @@ class MultiBinarySpace(BaseSpace):
 
     def __init__(self, n: int, indpb: float = 1.0) -> None:
         """
-            Init the elements useful to the spaces
+        Init the elements useful to the spaces
 
-            Args:
-                n: number of element
-                indpb: Independent probability for each attribute to be exchanged
+        Args:
+            n: number of element
+            indpb: Independent probability for each attribute to be exchanged
         """
         self._indpb = indpb
 
@@ -43,17 +43,16 @@ class MultiBinarySpace(BaseSpace):
 
     def initialize(self, parent_obj: object) -> None:
         """
-            Initialize the space.
+        Initialize the space.
 
-            Args:
-                parent_obj: The current autodisc module
+        Args:
+            parent_obj: The current autodisc module
         """
         # Apply potential binding
         super().initialize(parent_obj)
 
         if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(
-                self.shape, self._indpb, dtype=torch.float64)
+            self._indpb = torch.full(self.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
     def sample(self) -> torch.Tensor:
@@ -67,12 +66,12 @@ class MultiBinarySpace(BaseSpace):
 
     def mutate(self, x: Any) -> torch.Tensor:
         """
-            Apply a mutation on x
+        Apply a mutation on x
 
-            Args:
-                x: The variable to mutate
-            Returns:
-                x: the result of mutation
+        Args:
+            x: The variable to mutate
+        Returns:
+            x: the result of mutation
         """
         # TODO implement mutator?
         mutate_mask = torch.rand(self.shape) < self.indpb
@@ -84,12 +83,12 @@ class MultiBinarySpace(BaseSpace):
 
     def contains(self, x: Any) -> bool:
         """
-            check if x is a tensor of 0 and 1 of a given size
+        check if x is a tensor of 0 and 1 of a given size
 
-            Args:
-                x: The value to check
-            Returns:
-                The return value is True if x is a tensor of 0 and 1 of a given size False otherwise
+        Args:
+            x: The value to check
+        Returns:
+            The return value is True if x is a tensor of 0 and 1 of a given size False otherwise
         """
         if isinstance(x, list) or isinstance(x, tuple):
             x = torch.tensor(x)  # Promote list to array for contains check
@@ -103,31 +102,31 @@ class MultiBinarySpace(BaseSpace):
 
     def __repr__(self):
         """
-            Give a string representation of the class's object
+        Give a string representation of the class's object
 
-            Returns:
-                The return value is a string which represent our object
+        Returns:
+            The return value is a string which represent our object
         """
         return "MultiBinarySpace({})".format(self.shape[0])
 
     def __eq__(self, other: object) -> bool:
         """
-            Check if the other object are equal to the current object
+        Check if the other object are equal to the current object
 
-            Args:
-                other: An object
-            Returns:
-                The return value is True if self and other are equal False otherwise 
+        Args:
+            other: An object
+        Returns:
+            The return value is True if self and other are equal False otherwise
         """
         return isinstance(other, MultiBinarySpace) and self.shape[0] == other.shape[0]
 
     def to_json(self) -> Dict[str, Any]:
         """
-            Convert the object into JSON
+        Convert the object into JSON
 
-            Returns:
-                The JSON of the object
+        Returns:
+            The JSON of the object
         """
         dict = super().to_json()
-        dict['indpb'] = self._indpb
+        dict["indpb"] = self._indpb
         return dict

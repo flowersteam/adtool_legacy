@@ -42,9 +42,11 @@ def test___init__mutually_exclusive():
     b = TestWrapper(offset=2, premap_key="in")
     wrapper_list = [a, b]
     with pytest.raises(ValueError):
-        all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                       locator=DummyLocator(storage_db),
-                                       resource_uri=storage_db)
+        all_wrappers = WrapperPipeline(
+            wrappers=wrapper_list,
+            locator=DummyLocator(storage_db),
+            resource_uri=storage_db,
+        )
 
 
 def test___init__pass_locator():
@@ -53,8 +55,9 @@ def test___init__pass_locator():
     a = TestWrapper(offset=1, premap_key="in")
     b = TestWrapper(offset=2, premap_key="in")
     wrapper_list = [a, b]
-    all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                   locator=DummyLocator(storage_db))
+    all_wrappers = WrapperPipeline(
+        wrappers=wrapper_list, locator=DummyLocator(storage_db)
+    )
     assert all_wrappers.wrappers[0].locator.resource_uri == storage_db
     assert all_wrappers.wrappers[1].locator.resource_uri == storage_db
     assert isinstance(all_wrappers.wrappers[0].locator, DummyLocator)
@@ -70,8 +73,7 @@ def test___init__pass_uri():
     a.locator = DummyLocator("")
     b.locator = DummyLocator("")
     wrapper_list = [a, b]
-    all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                   resource_uri="com.test")
+    all_wrappers = WrapperPipeline(wrappers=wrapper_list, resource_uri="com.test")
     assert all_wrappers.wrappers[0].locator.resource_uri == "com.test"
     assert all_wrappers.wrappers[1].locator.resource_uri == "com.test"
     assert isinstance(all_wrappers.wrappers[0].locator, DummyLocator)
@@ -87,8 +89,9 @@ def test_saveload():
         a = TestWrapper(offset=1, premap_key="in")
         b = TestWrapper(offset=2, premap_key="in")
         wrapper_list = [a, b]
-        all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                       locator=DummyLocator(storage_db))
+        all_wrappers = WrapperPipeline(
+            wrappers=wrapper_list, locator=DummyLocator(storage_db)
+        )
 
         uid = all_wrappers.save_leaf()
         assert len(storage_db) == 3
@@ -97,10 +100,11 @@ def test_saveload():
         loaded_wrappers = loaded_wrappers.load_leaf(uid)
 
         for i in range(2):
-            assert all_wrappers.wrappers[i].offset \
-                == loaded_wrappers.wrappers[i].offset
-            assert all_wrappers.wrappers[i].premap_key \
+            assert all_wrappers.wrappers[i].offset == loaded_wrappers.wrappers[i].offset
+            assert (
+                all_wrappers.wrappers[i].premap_key
                 == loaded_wrappers.wrappers[i].premap_key
+            )
     finally:
         file_dir = str(pathlib.Path(__file__).parent.resolve())
         created_hash = "1921722fc520984398166966f5e4fad458c3e411"
@@ -119,8 +123,7 @@ def test_saveload_linear():
         a = TestWrapper(offset=1, premap_key="in")
         b = SaveWrapper()
         wrapper_list = [a, b]
-        all_wrappers = WrapperPipeline(wrappers=wrapper_list,
-                                       resource_uri=file_path)
+        all_wrappers = WrapperPipeline(wrappers=wrapper_list, resource_uri=file_path)
 
         all_wrappers.locator = FileLocator(file_path)
         # in real usage, you would use LinearLocators for all wrappers
@@ -133,10 +136,11 @@ def test_saveload_linear():
         loaded_wrappers = loaded_wrappers.load_leaf(uid)
 
         for i in range(1):
-            assert all_wrappers.wrappers[i].offset \
-                == loaded_wrappers.wrappers[i].offset
-            assert all_wrappers.wrappers[i].premap_key \
+            assert all_wrappers.wrappers[i].offset == loaded_wrappers.wrappers[i].offset
+            assert (
+                all_wrappers.wrappers[i].premap_key
                 == loaded_wrappers.wrappers[i].premap_key
+            )
 
     finally:
         if os.path.exists(file_path):

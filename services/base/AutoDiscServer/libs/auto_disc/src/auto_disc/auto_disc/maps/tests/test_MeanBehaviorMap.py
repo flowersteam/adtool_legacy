@@ -45,14 +45,16 @@ def test_sample():
 
 
 def test_save():
-    input_dict = {"metadata": 1, "output": torch.tensor([2., 2., 2., 2., 2.])}
+    input_dict = {"metadata": 1, "output": torch.tensor([2.0, 2.0, 2.0, 2.0, 2.0])}
     mean_map = MeanBehaviorMap(premap_key="output")
     output_dict = mean_map.map(input_dict)
     uid = mean_map.save_leaf(resource_uri=RESOURCE_URI)
 
     new_map = MeanBehaviorMap()
     loaded_map = new_map.load_leaf(uid, resource_uri=RESOURCE_URI)
-    assert torch.allclose(loaded_map.projector.low,
-                          torch.tensor([0., 0., 0., 0., 0.]))
-    assert torch.allclose(loaded_map.projector.high,
-                          torch.tensor([2., 2., 2., 2., 2.]))
+    assert torch.allclose(
+        loaded_map.projector.low, torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0])
+    )
+    assert torch.allclose(
+        loaded_map.projector.high, torch.tensor([2.0, 2.0, 2.0, 2.0, 2.0])
+    )

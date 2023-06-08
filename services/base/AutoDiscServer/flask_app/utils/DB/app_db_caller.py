@@ -10,9 +10,11 @@ class AppDBMethods(Enum):
     PATCH = requests.patch
 
 
-class AppDBCaller():
+class AppDBCaller:
     def __init__(self, url: str) -> None:
         self.url = url
 
-    def __call__(self, route: str, http_method: Callable, request_dict: typing.Dict) -> Type[requests.models.Response]:
+    def __call__(
+        self, route: str, http_method: Callable, request_dict: typing.Dict
+    ) -> Type[requests.models.Response]:
         return http_method(self.url + route, json=request_dict)

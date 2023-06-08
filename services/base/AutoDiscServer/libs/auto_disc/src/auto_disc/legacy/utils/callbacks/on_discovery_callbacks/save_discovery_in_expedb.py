@@ -6,31 +6,32 @@ import torch
 from uuid import uuid1
 import requests
 from typing import Dict, Any, Type
-from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import SaveDiscovery
+from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
+    SaveDiscovery,
+)
 from hashlib import sha1
 
 
 class SaveDiscoveryInExpeDB(SaveDiscovery):
-    def __call__(self, resource_uri: str,
-                 experiment_id: int,
-                 run_idx: int,
-                 seed: int,
-                 discovery: Dict[str, Any]
-                 ) -> None:
-        super().__call__(resource_uri,
-                         experiment_id,
-                         run_idx,
-                         seed,
-                         discovery)
+    def __call__(
+        self,
+        resource_uri: str,
+        experiment_id: int,
+        run_idx: int,
+        seed: int,
+        discovery: Dict[str, Any],
+    ) -> None:
+        super().__call__(resource_uri, experiment_id, run_idx, seed, discovery)
 
         return
 
     @staticmethod
-    def _dump_json(discovery: Dict[str, Any],
-                   dir_path: str,
-                   json_encoder: Type[json.JSONEncoder],
-                   **kwargs
-                   ) -> None:
+    def _dump_json(
+        discovery: Dict[str, Any],
+        dir_path: str,
+        json_encoder: Type[json.JSONEncoder],
+        **kwargs
+    ) -> None:
         # converts discovery to JSON blob and calls the _save_binary_callback
         # when needed. Reloads the JSON blob as a dict to push to the DB
         json_blob = json.dumps(discovery, cls=json_encoder)
@@ -50,26 +51,23 @@ class SaveDiscoveryInExpeDB(SaveDiscovery):
         #     parsed_dict_data = json.loads(json_blob)
         #     requests.post(dir_path, json=parsed_dict_data)
         # ````
-        response = requests.post(dir_path, data=json_blob,
-                                 headers={'Content-Type': 'application/json'})
+        response = requests.post(
+            dir_path, data=json_blob, headers={"Content-Type": "application/json"}
+        )
         print(response.text)
 
         return
 
     @staticmethod
-    def _initialize_save_path(resource_uri: str,
-                              experiment_id: int,
-                              run_idx: int,
-                              seed: int
-                              ) -> str:
+    def _initialize_save_path(
+        resource_uri: str, experiment_id: int, run_idx: int, seed: int
+    ) -> str:
         """
         Pushes metadata to the MongoDB discoveries collection,
         and returns the ID of the newly created document.
         """
         # initial payload
-        payload = {"experiment_id": experiment_id,
-                   "run_idx": run_idx,
-                   "seed": seed}
+        payload = {"experiment_id": experiment_id, "run_idx": run_idx, "seed": seed}
         response = requests.post(resource_uri + "/discoveries", json=payload)
         doc_id = json.loads(response.text)["ID"]
 
@@ -85,6 +83,5 @@ class SaveDiscoveryInExpeDB(SaveDiscovery):
         sha1_hash = sha1(binary).hexdigest()
         files_to_save = {sha1_hash: binary}
 
-        requests.post(document_path + "/files",
-                      files=files_to_save)
+        requests.post(document_path + "/files", files=files_to_save)
         return sha1_hash

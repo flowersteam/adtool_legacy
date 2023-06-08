@@ -1,8 +1,10 @@
 import yaml
 import os
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 profiles_path = os.path.join(
-    dir_path, "../../../../configs/remote_experiments/profiles")
+    dir_path, "../../../../configs/remote_experiments/profiles"
+)
 
 
 def parse_profile(path):
@@ -15,7 +17,7 @@ def parse_profile(path):
 
 def list_profiles():
     profiles = []
-    for (dirpath, _, filenames) in os.walk(profiles_path):
+    for dirpath, _, filenames in os.walk(profiles_path):
         for filename in filenames:
             if filename.endswith(".yml"):
                 full_filename = os.path.join(dirpath, filename)
