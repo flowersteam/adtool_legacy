@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import neat.genome
 
-from adtool_default.maps.NEATParameterMap import NEATParameterMap
+from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 
 
 def setup_function(function):

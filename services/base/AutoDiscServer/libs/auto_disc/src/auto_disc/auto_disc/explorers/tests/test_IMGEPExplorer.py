@@ -1,7 +1,7 @@
 from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPExplorer
 from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPFactory
-from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
-from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
+from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
+from adtool_default.maps.UniformParameterMap import UniformParameterMap
 import torch
 import pathlib
 import os

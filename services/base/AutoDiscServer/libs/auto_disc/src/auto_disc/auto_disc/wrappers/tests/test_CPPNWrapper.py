@@ -1,5 +1,5 @@
 from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
-from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
+from adtool_default.maps.NEATParameterMap import NEATParameterMap
 import os
 import neat.genome
 from copy import deepcopy

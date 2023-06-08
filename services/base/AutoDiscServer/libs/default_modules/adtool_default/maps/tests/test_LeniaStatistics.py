@@ -1,4 +1,4 @@
-from adtool_default.maps.LeniaStatistics import LeniaStatistics
+from auto_disc.auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
 import torch
 from copy import deepcopy
 

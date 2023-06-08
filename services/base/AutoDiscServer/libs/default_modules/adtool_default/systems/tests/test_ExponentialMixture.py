@@ -1,6 +1,6 @@
 import torch
 
-from auto_disc.auto_disc.systems.ExponentialMixture import ExponentialMixture
+from adtool_default.systems.ExponentialMixture import ExponentialMixture
 
 
 def test_init():

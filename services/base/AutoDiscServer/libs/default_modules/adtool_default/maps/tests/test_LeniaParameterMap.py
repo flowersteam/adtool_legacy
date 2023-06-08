@@ -5,8 +5,8 @@ from dataclasses import asdict
 import pytest
 import torch
 
-from adtool_default.maps.NEATParameterMap import NEATParameterMap
-from adtool_default.maps.LeniaParameterMap import (
+from auto_disc.auto_disc.maps import NEATParameterMap
+from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import (
     LeniaHyperParameters, LeniaParameterMap)
 from adtool_default.systems.Lenia import LeniaDynamicalParameters
 from auto_disc.utils.leaf.locators.locators import BlobLocator
