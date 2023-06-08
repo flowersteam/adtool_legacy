@@ -97,7 +97,7 @@ def test_LeniaParameters___init__():
 
 def test_Lenia___init__():
     system = Lenia()
-    assert system.orbit.size() == (1, 1, 200, 256, 256)
+    assert system.orbit.size() == (200, 1, 1, 256, 256)
 
 
 def test_Lenia_process_dict():
