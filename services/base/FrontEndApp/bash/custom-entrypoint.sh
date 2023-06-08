@@ -22,7 +22,7 @@ function injectenv {
     local hostname="$2"
 
     # Replace the value of window["env"]["GATEWAY_HOST"] with ${hostname}
-    sed -i -e "s|\(window\[\"env\"\]\[\"GATEWAY_HOST\"\]\) = \"\(.*\)\";|\1 = \"${hostname}\"|" \
+    sed -i -e "s|\(window\[\"env\"\]\[\"GATEWAY_HOST\"\]\) = \"\(.*\)\";|\1 = \"${hostname}\";|" \
         $filename
 }
 
