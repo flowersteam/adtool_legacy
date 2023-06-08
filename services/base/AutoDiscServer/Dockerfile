@@ -1,9 +1,5 @@
 FROM --platform=linux/amd64 ubuntu:20.04 as library
 
-# set to use bash shell
-# needed for python venv compatibility
-SHELL ["/bin/bash", "-c"]
-
 # install pip and virtualenv for the system python environment (python3.8)
 ENV DEBIAN_FRONTEND="noninteractive"
 # TODO: load tz dynamically
