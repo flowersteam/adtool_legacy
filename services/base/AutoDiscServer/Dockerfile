@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ubuntu:20.04 as library
+FROM --platform=linux/amd64 nvidia/cuda:12.1.1-base-ubuntu20.04 as library
 
 # install pip and virtualenv for the system python environment (python3.8)
 ENV DEBIAN_FRONTEND="noninteractive"

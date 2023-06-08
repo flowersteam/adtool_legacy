@@ -1,0 +1,12 @@
+# docker-compose.yml
+# THIS FILE MERGES AN OVERRIDE WHICH ENABLES GPU
+version: "3" # TODO
+services:
+  autodisc-server:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

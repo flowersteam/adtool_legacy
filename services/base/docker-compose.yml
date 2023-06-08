@@ -103,20 +103,6 @@ services:
     links:
       - expe-db-api
       - app-db-api
-  ##### AUTODISC SERVER GPU #####
-  autodisc-server-gpu:
-    hostname: autodisc-server-gpu
-    platform: linux/amd64
-    build:
-      context: ./AutoDiscServer
-      dockerfile: gpu.Dockerfile
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
   ##### JUPYTER LAB #####
   jupyter:
     hostname: jupyter
