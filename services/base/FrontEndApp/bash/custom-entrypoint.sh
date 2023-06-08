@@ -17,7 +17,7 @@ fi
 # Arguments:
 #   filename: path to file to be modified.
 #   hostname: hostname value to inject
-function injectenv {
+injectenv() {
     local filename="$1"
     local hostname="$2"
 
