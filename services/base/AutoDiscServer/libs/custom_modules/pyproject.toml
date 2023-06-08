@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "adtool-custom"
+name = "adtool_custom"
 version = "0.1.0"
 description = "User defined custom modules for adtool."
 authors = ["LIN Jesse <jesse.lin@inria.fr>"]

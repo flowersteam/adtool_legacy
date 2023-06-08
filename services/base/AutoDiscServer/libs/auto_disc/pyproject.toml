@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "auto-disc"
+name = "auto_disc"
 version = "0.1.0"
 description = "Pure Python library for automated, curiosity-based exploration."
 authors = ["LIN Jesse <jesse.lin@inria.fr>", "Clément Romac <cromac@inria.fr>"]
