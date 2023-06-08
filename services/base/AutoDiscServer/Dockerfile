@@ -8,9 +8,18 @@ RUN poetry config virtualenvs.create false
 COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
 WORKDIR /usr/src/libs/auto_disc
 RUN poetry install --no-root --no-directory
-# install root package and path dependencies
+# adtool_default dependency resolution
+COPY libs/default_modules/pyproject.toml /usr/src/libs/default_modules/pyproject.toml
+WORKDIR /usr/src/libs/default_modules
+RUN poetry install --no-root --no-directory
+# install root package and path dependencies for auto_disc
 COPY libs/auto_disc /usr/src/libs/auto_disc
-RUN poetry install --no-dev
+WORKDIR /usr/src/libs/auto_disc
+RUN poetry install --only main
+# install root package and path dependencies for adtool_default
+COPY libs/default_modules /usr/src/libs/default_modules
+WORKDIR /usr/src/libs/default_modules
+RUN poetry install --only main
 
 
 FROM library as server
