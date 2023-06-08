@@ -58,15 +58,11 @@ def test___init__():
                              postmap_key=system_input_key,
                              parameter_map=param_map, behavior_map=mean_map,
                              equil_time=2)
-    input_pipeline = IdentityWrapper()
-    output_pipeline = IdentityWrapper()
 
     pipeline = ExperimentPipeline(experiment_id=experiment_id,
                                   seed=seed,
                                   system=system,
-                                  explorer=explorer,
-                                  input_pipeline=input_pipeline,
-                                  output_pipeline=output_pipeline)
+                                  explorer=explorer)
     uid = pipeline.save_leaf(resource_uri=RESOURCE_URI)
     x = ExperimentPipeline()
     new_pipeline = x.load_leaf(uid, resource_uri=RESOURCE_URI)
@@ -100,8 +96,6 @@ def test_run():
                            mutator_config={"std": 0.0})
     explorer = factory()
     system = ExponentialMixture(sequence_density=10)
-    input_pipeline = IdentityWrapper()
-    output_pipeline = IdentityWrapper()
 
     uid_capture = []
 
@@ -117,8 +111,6 @@ def test_run():
                                   seed=seed,
                                   system=system,
                                   explorer=explorer,
-                                  input_pipeline=input_pipeline,
-                                  output_pipeline=output_pipeline,
                                   on_discovery_callbacks=[callback],
                                   on_save_callbacks=[SaveLeaf()],
                                   on_save_finished_callbacks=[
