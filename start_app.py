@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""Entrypoint for the adtool software, essentially a wrapper around docker-compose.
+
+Typical usage example which will start the software:
+    ./start_app.py --profile prod --gpu
+"""
 import argparse
 import os
 import subprocess
