@@ -1,12 +1,12 @@
+import os
+import pathlib
+import pickle
+import shutil
+from hashlib import sha1
+
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.Locator import Locator
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-import pickle
-from hashlib import sha1
-
-import pathlib
-import os
-import shutil
 
 
 class Node(Leaf):

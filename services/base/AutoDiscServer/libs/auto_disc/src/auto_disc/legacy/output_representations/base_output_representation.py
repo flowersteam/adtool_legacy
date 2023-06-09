@@ -1,6 +1,7 @@
+from copy import deepcopy
+
 from auto_disc.legacy import BaseAutoDiscModule
 from auto_disc.legacy.utils.spaces import DictSpace
-from copy import deepcopy
 
 
 class BaseOutputRepresentation(BaseAutoDiscModule):

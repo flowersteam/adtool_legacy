@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Dict, List
+
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 

@@ -1,9 +1,10 @@
-from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
-from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
-import torch
-import pathlib
 import os
+import pathlib
 import shutil
+
+import torch
+from auto_disc.auto_disc.maps.MeanBehaviorMap import MeanBehaviorMap
+from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
 
 
 def setup_function(function):

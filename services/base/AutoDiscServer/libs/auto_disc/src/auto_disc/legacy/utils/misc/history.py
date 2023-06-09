@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Dict, List, Union
+
 import typing
+from typing import Dict, List, Union
 
 
 class History:

@@ -1,8 +1,8 @@
 from typing import Any, Dict
-import torch
-from auto_disc.legacy.utils.spaces import BaseSpace
 
+import torch
 from auto_disc.legacy.utils.mutators import BaseMutator
+from auto_disc.legacy.utils.spaces import BaseSpace
 
 
 class DiscreteSpace(BaseSpace):

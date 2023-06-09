@@ -1,8 +1,9 @@
-import typing
-from typing import Any, Dict, Union
-import requests
 import json
 import pickle
+import typing
+from typing import Any, Dict, Union
+
+import requests
 
 
 class ExpeDBCaller:

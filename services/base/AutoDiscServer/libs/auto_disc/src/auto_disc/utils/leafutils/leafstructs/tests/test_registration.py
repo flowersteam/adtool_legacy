@@ -65,9 +65,9 @@ def test_get_path_from_cls():
 
 
 def test_get_cls_from_name():
-    from auto_disc.auto_disc.explorers import IMGEPFactory
     from adtool_default.maps.LeniaStatistics import LeniaStatistics
     from adtool_default.systems.ExponentialMixture import ExponentialMixture
+    from auto_disc.auto_disc.explorers import IMGEPFactory
     from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback import (
         SaveLeaf,
     )

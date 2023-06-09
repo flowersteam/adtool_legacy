@@ -1,4 +1,5 @@
 import typing
+
 from auto_disc.legacy.utils.config_parameters import BaseConfigParameter
 
 

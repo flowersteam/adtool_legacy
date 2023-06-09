@@ -1,8 +1,9 @@
-from auto_disc.legacy.utils.spaces import BaseSpace
-from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
-import neat
 import os
 from copy import deepcopy
+
+import neat
+from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
+from auto_disc.legacy.utils.spaces import BaseSpace
 
 
 class CPPNGenomeSpace(BaseSpace):

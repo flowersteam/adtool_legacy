@@ -1,6 +1,7 @@
-from auto_disc.auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
-import torch
 from copy import deepcopy
+
+import torch
+from auto_disc.auto_disc.maps.lenia.LeniaStatistics import LeniaStatistics
 
 
 def test_LeniaStatistics___init__():

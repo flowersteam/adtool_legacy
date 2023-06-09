@@ -3,7 +3,6 @@ from typing import Tuple
 
 import pytest
 import torch
-
 from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
 from auto_disc.auto_disc.utils.expose_config.expose_config import expose_config
 

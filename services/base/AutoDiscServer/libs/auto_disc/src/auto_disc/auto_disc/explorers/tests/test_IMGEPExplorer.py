@@ -1,12 +1,12 @@
-from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPExplorer
-from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPFactory
+import os
+import pathlib
+import shutil
+
+import pytest
+import torch
 from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
 from adtool_default.maps.UniformParameterMap import UniformParameterMap
-import torch
-import pathlib
-import os
-import shutil
-import pytest
+from auto_disc.auto_disc.explorers.IMGEPExplorer import IMGEPExplorer, IMGEPFactory
 
 
 def setup_function(function):

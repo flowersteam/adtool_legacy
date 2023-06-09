@@ -2,8 +2,8 @@
 import argparse
 import os
 import subprocess
-from typing import List
 from enum import Enum
+from typing import List
 
 
 class HasDockerCompose(Enum):

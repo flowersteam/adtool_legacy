@@ -1,22 +1,20 @@
-from auto_disc.legacy.output_representations import BaseOutputRepresentation
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    DecimalConfigParameter,
-    IntegerConfigParameter,
-)
-from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
-from auto_disc.legacy.utils.misc.torch_utils import roll_n
-from auto_disc.legacy.utils.spaces.utils import distance
+import typing
+from copy import deepcopy
 
 import torch
 from addict import Dict
-import typing
-from copy import deepcopy
+from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
+from auto_disc.legacy.output_representations import BaseOutputRepresentation
+from auto_disc.legacy.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.legacy.utils.misc.torch_utils import roll_n
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace, DiscreteSpace
+from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding, distance
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
-
 
 EPS = 0.0001
 DISTANCE_WEIGHT = 2  # 1=linear, 2=quadratic, ...

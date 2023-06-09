@@ -1,11 +1,12 @@
 import typing
 from typing import Any, Dict
+
 import torch
-from auto_disc.legacy.utils.spaces import DictSpace
-from auto_disc.legacy.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
-from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.legacy.input_wrappers import BaseInputWrapper
+from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
+from auto_disc.legacy.input_wrappers.generic.cppn.utils import CPPNGenomeSpace
 from auto_disc.legacy.utils.config_parameters import IntegerConfigParameter
+from auto_disc.legacy.utils.spaces import DictSpace
 
 
 @IntegerConfigParameter(name="n_passes", default=2, min=1)

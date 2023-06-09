@@ -1,6 +1,6 @@
 import json
-import requests
 
+import requests
 from auto_disc_db.utils.config import Config
 
 config = Config()

@@ -2,7 +2,6 @@ import os
 from copy import deepcopy
 
 import neat.genome
-
 from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 
 

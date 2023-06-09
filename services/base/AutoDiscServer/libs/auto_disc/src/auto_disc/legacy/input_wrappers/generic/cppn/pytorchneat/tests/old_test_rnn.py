@@ -1,13 +1,14 @@
+import math
+import os
+import time
 from unittest import TestCase
+
+import matplotlib.pyplot as plt
 import neat
 import pytorchneat
-import os
 import torch
-from pytorchneat import selfconnectiongenome, rnn
+from pytorchneat import rnn, selfconnectiongenome
 from pytorchneat.utils import create_image_cppn_input
-import matplotlib.pyplot as plt
-import math
-import time
 
 
 def delphineat_gauss_activation(z):

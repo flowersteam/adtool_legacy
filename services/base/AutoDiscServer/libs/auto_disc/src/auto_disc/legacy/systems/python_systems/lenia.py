@@ -1,33 +1,30 @@
-from PIL import Image
+import io
+import math
 import typing
-from numpy import ndarray
-from auto_disc.legacy.systems.python_systems import BasePythonSystem
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    DecimalConfigParameter,
-    IntegerConfigParameter,
-)
-from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
-from auto_disc.legacy.utils.mutators import GaussianMutator
 
-from addict import Dict
-from auto_disc.legacy.utils.misc.torch_utils import (
-    SphericPad,
-    roll_n,
-    complex_mult_torch,
-    soft_clip,
-)
-
-import torch
+import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-
-import math
-
+import torch
+from addict import Dict
+from auto_disc.legacy.systems.python_systems import BasePythonSystem
+from auto_disc.legacy.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.legacy.utils.misc.torch_utils import (
+    SphericPad,
+    complex_mult_torch,
+    roll_n,
+    soft_clip,
+)
+from auto_disc.legacy.utils.mutators import GaussianMutator
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace, DiscreteSpace
+from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
 from matplotlib.animation import FuncAnimation
-import io
-import imageio
+from numpy import ndarray
+from PIL import Image
 
 """ =============================================================================================
 System definition

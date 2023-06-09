@@ -1,9 +1,10 @@
-from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
-from adtool_default.maps.NEATParameterMap import NEATParameterMap
 import os
-import neat.genome
 from copy import deepcopy
+
+import neat.genome
 import torch
+from adtool_default.maps.NEATParameterMap import NEATParameterMap
+from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
 
 
 def setup_function(function):

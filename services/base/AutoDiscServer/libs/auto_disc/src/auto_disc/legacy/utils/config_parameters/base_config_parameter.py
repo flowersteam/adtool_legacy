@@ -1,5 +1,6 @@
-from addict import Dict
 from typing import Any
+
+from addict import Dict
 
 
 class BaseConfigParameter:

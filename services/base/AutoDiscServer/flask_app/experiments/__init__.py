@@ -1,4 +1,4 @@
 from experiments.base_experiment import BaseExperiment
+from experiments.experiments_handler import ExperimentsHandler
 from experiments.local_experiment import LocalExperiment
 from experiments.remote_experiment import RemoteExperiment
-from experiments.experiments_handler import ExperimentsHandler

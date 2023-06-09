@@ -1,5 +1,5 @@
-from typing import Any, List, Dict, NamedTuple, Optional
 from collections import namedtuple
+from typing import Any, Dict, List, NamedTuple, Optional
 
 
 class ExposeConfig:

@@ -1,7 +1,6 @@
 import typing
 
 from addict import Dict
-
 from auto_disc.legacy.utils.logger import AutoDiscLogger
 
 

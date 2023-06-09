@@ -4,12 +4,11 @@ from dataclasses import asdict
 
 import pytest
 import torch
-
-from adtool_default.maps.NEATParameterMap import NEATParameterMap
 from adtool_default.maps.LeniaParameterMap import (
     LeniaHyperParameters,
     LeniaParameterMap,
 )
+from adtool_default.maps.NEATParameterMap import NEATParameterMap
 from adtool_default.systems.Lenia import LeniaDynamicalParameters
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 

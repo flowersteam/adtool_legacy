@@ -1,5 +1,6 @@
-import yaml
 import os
+
+import yaml
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 profiles_path = os.path.join(

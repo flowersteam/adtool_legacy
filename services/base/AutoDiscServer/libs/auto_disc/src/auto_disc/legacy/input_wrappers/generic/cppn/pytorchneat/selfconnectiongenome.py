@@ -1,7 +1,8 @@
-import neat.genome
-import neat.genes
-import neat.attributes
 from random import gauss, random, uniform
+
+import neat.attributes
+import neat.genes
+import neat.genome
 
 
 class ConnectionWeightAttribute(neat.attributes.BaseAttribute):

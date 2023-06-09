@@ -1,8 +1,9 @@
-from adtool_default.maps.UniformParameterMap import UniformParameterMap
-import torch
-import pathlib
 import os
+import pathlib
 import shutil
+
+import torch
+from adtool_default.maps.UniformParameterMap import UniformParameterMap
 
 
 def setup_function(function):

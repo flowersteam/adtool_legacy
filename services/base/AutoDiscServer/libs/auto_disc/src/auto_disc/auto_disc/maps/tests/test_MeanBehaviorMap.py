@@ -1,9 +1,10 @@
-from adtool_default.maps.UniformParameterMap import UniformParameterMap
-from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
-import torch
-import pathlib
 import os
+import pathlib
 import shutil
+
+import torch
+from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
+from adtool_default.maps.UniformParameterMap import UniformParameterMap
 
 
 def setup_function(function):

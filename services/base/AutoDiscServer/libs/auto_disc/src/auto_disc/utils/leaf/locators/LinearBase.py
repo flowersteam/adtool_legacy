@@ -1,11 +1,12 @@
-from auto_disc.utils.leaf.Leaf import Leaf, Locator, LeafUID
-from typing import Tuple, List
-from sqlalchemy import create_engine, text, event
-from sqlalchemy.engine import Engine
-from hashlib import sha1
 import codecs
-import pickle
 import os
+import pickle
+from hashlib import sha1
+from typing import List, Tuple
+
+from auto_disc.utils.leaf.Leaf import Leaf, LeafUID, Locator
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.engine import Engine
 
 
 def store_metadata(subdir: str, data_bin: bytes) -> None:

@@ -1,9 +1,9 @@
-from typing import Callable, Type, Any, Dict
 import typing
-import torch
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace
+from typing import Any, Callable, Dict, Type
 
+import torch
 from auto_disc.legacy import BaseAutoDiscModule
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace
 
 
 class BaseExplorer(BaseAutoDiscModule):

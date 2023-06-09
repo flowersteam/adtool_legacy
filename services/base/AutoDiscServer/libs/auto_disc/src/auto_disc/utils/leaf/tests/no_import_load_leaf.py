@@ -1,5 +1,6 @@
-from auto_disc.utils.leaf.tests.test_integration_leaf import DiskPipeline, DiskLocator
 import argparse
+
+from auto_disc.utils.leaf.tests.test_integration_leaf import DiskLocator, DiskPipeline
 
 if __name__ == "__main__":
     hardcoded = "leaf.tests.test_integration_leaf.DiskPipeline|0981a920897058b10c977ddaf90ee7e125b5e3d3"

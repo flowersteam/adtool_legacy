@@ -1,6 +1,7 @@
-from torch import Tensor
-from enum import Enum
 import json
+from enum import Enum
+
+from torch import Tensor
 
 
 def serialize_autodisc_space(space):

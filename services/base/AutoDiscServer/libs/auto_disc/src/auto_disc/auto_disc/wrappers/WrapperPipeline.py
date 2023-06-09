@@ -1,6 +1,7 @@
-from auto_disc.utils.leaf.Leaf import Leaf, Locator, StatelessLocator
-from typing import List, Dict, Union, Any
 from copy import deepcopy
+from typing import Any, Dict, List, Union
+
+from auto_disc.utils.leaf.Leaf import Leaf, Locator, StatelessLocator
 
 
 class WrapperPipeline(Leaf):

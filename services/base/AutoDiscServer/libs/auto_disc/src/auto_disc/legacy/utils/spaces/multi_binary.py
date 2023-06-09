@@ -1,7 +1,7 @@
 import numbers
+from typing import Any, Dict
 
 import torch
-from typing import Dict, Any
 from auto_disc.legacy.utils.spaces import BaseSpace
 
 

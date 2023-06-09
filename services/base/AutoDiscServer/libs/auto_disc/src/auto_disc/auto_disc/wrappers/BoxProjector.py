@@ -1,8 +1,9 @@
+from copy import deepcopy
+from typing import Callable, Dict, Optional, Tuple
+
+import torch
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from typing import Dict, Callable, Tuple, Optional
-import torch
-from copy import deepcopy
 
 
 class BoxProjector(Leaf):

@@ -1,5 +1,5 @@
-from auto_disc.utils.leaf.tests.test_leaf import DummyLocator, DummyModule
 from auto_disc.utils.leaf.Leaf import Leaf
+from auto_disc.utils.leaf.tests.test_leaf import DummyLocator, DummyModule
 from auto_disc.utils.leafutils.leafstructs.service import provide_leaf_as_service
 
 

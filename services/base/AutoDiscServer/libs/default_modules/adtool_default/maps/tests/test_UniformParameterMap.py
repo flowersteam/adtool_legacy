@@ -1,8 +1,9 @@
-from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
-import torch
-import pathlib
 import os
+import pathlib
 import shutil
+
+import torch
+from auto_disc.auto_disc.maps.UniformParameterMap import UniformParameterMap
 
 
 def setup_function(function):

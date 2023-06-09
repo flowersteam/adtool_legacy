@@ -1,8 +1,9 @@
-from typing import Any, Dict, Union, Tuple
+from typing import Any, Dict, Tuple, Union
+
 import torch
 from auto_disc.legacy.base_autodisc_module import BaseAutoDiscModule
-from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
 from auto_disc.legacy.utils.mutators import BaseMutator
+from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
 
 
 class BaseSpace(object):

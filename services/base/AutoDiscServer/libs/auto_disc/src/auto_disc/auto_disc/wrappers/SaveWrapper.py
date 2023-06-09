@@ -1,14 +1,15 @@
+import os
 from copy import deepcopy
-from typing import Dict, List, Iterable
-from auto_disc.utils.leaf.Leaf import Leaf, Locator, LeafUID
+from typing import Dict, Iterable, List
+
+from auto_disc.auto_disc.wrappers.TransformWrapper import TransformWrapper
+from auto_disc.utils.leaf.Leaf import Leaf, LeafUID, Locator
 from auto_disc.utils.leaf.locators.LinearBase import (
     Stepper,
     retrieve_packed_trajectory,
     retrieve_trajectory,
 )
 from auto_disc.utils.leaf.locators.locators import LinearLocator
-from auto_disc.auto_disc.wrappers.TransformWrapper import TransformWrapper
-import os
 
 
 class SaveWrapper(TransformWrapper):

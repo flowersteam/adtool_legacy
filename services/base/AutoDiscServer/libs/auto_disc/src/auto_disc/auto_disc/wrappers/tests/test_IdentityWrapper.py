@@ -1,4 +1,5 @@
 from typing import Tuple
+
 from auto_disc.auto_disc.wrappers.IdentityWrapper import IdentityWrapper
 
 

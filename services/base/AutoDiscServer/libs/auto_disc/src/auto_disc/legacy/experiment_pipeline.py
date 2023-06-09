@@ -4,7 +4,6 @@ from copy import copy
 from typing import Any, Callable, Dict, List, Type
 
 import torch
-
 from auto_disc.legacy import BaseAutoDiscModule, explorers, systems
 from auto_disc.legacy.input_wrappers import BaseInputWrapper
 from auto_disc.legacy.input_wrappers.generic import DummyInputWrapper

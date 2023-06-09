@@ -1,9 +1,9 @@
+import os
+import pickle
+
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks import (
     BaseOnDiscoveryCallback,
 )
-
-import pickle
-import os
 
 
 class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):

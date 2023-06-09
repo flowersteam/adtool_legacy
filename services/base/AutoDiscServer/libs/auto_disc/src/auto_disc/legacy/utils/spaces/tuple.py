@@ -1,6 +1,6 @@
-import torch
 from typing import Tuple
 
+import torch
 from auto_disc.legacy.utils.spaces import BaseSpace
 
 

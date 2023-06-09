@@ -1,5 +1,5 @@
-from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
 import torch
+from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
 
 
 def test__update_low_high():

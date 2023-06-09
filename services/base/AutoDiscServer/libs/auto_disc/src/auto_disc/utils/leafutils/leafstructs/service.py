@@ -1,7 +1,8 @@
-from auto_disc.utils.leaf.Leaf import Leaf
-from typing import List, Any
-from functools import partial
 from copy import deepcopy
+from functools import partial
+from typing import Any, List
+
+from auto_disc.utils.leaf.Leaf import Leaf
 
 
 def provide_leaf_as_service(

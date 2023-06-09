@@ -1,15 +1,16 @@
-from adtool_default.systems.Lenia import Lenia
-from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
-from auto_disc.auto_disc.systems.System import System
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    IntegerConfigParameter,
-)
-from typing import Dict, Union, Optional
 from copy import deepcopy
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from typing import Dict, Optional, Union
+
 import torch
+from adtool_default.systems.Lenia import Lenia
+from auto_disc.auto_disc.systems.System import System
+from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
+from auto_disc.legacy.utils.config_parameters import (
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 @StringConfigParameter(

@@ -1,21 +1,22 @@
-from unittest import TestCase
-import neat
+import math
 import os
+import time
+from unittest import TestCase
+
+import matplotlib.pyplot as plt
+import neat
 import torch
 import torchvision
+from pytorchneat import activations, aggregations, rnn, selfconnectiongenome
 from torchvision import transforms
-from pytorchneat import selfconnectiongenome, rnn, activations, aggregations
 from utils import create_image_cppn_input
-import matplotlib.pyplot as plt
-import math
-import time
 
 use_Minkowski_inputs = False
 if use_Minkowski_inputs:
     import MinkowskiEngine as ME
-    from MinkowskiEngine.MinkowskiFunctional import _wrap_tensor
-    import open3d as o3d
     import numpy as np
+    import open3d as o3d
+    from MinkowskiEngine.MinkowskiFunctional import _wrap_tensor
 
 
 def delphineat_gauss_activation(z):

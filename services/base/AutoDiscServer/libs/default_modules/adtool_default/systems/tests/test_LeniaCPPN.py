@@ -2,9 +2,8 @@ import os
 from copy import deepcopy
 
 import torch
-
-from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 from adtool_default.systems.LeniaCPPN import LeniaCPPN
+from auto_disc.auto_disc.maps.NEATParameterMap import NEATParameterMap
 from auto_disc.utils.filetype_converter.filetype_converter import is_mp4
 
 

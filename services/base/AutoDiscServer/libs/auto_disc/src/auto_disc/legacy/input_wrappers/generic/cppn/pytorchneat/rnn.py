@@ -1,13 +1,14 @@
-import graphviz
 import copy
-from auto_disc.legacy.input_wrappers.generic.cppn.pytorchneat.aggregations import (
-    str_to_aggregation,
-)
+
+import graphviz
+import torch
 from auto_disc.legacy.input_wrappers.generic.cppn.pytorchneat.activations import (
     str_to_activation,
 )
+from auto_disc.legacy.input_wrappers.generic.cppn.pytorchneat.aggregations import (
+    str_to_aggregation,
+)
 from torch import nn
-import torch
 
 torch.set_default_dtype(torch.float64)
 

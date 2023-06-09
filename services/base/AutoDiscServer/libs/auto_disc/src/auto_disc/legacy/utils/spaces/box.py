@@ -2,9 +2,8 @@ import numbers
 from typing import Dict, List, Union
 
 import torch
-from auto_disc.legacy.utils.spaces import BaseSpace
-
 from auto_disc.legacy.utils.mutators import BaseMutator
+from auto_disc.legacy.utils.spaces import BaseSpace
 
 
 class BoxSpace(BaseSpace):

@@ -1,6 +1,7 @@
-from auto_disc.utils.leaf.LeafUID import LeafUID
-from hashlib import sha1
 import os
+from hashlib import sha1
+
+from auto_disc.utils.leaf.LeafUID import LeafUID
 
 
 class Locator:

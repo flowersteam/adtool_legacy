@@ -1,11 +1,12 @@
+import json
+import os
+from datetime import datetime
+from uuid import uuid1
+
 from auto_disc.legacy.utils.callbacks.on_save_finished_callbacks import (
     BaseOnSaveFinishedCallback,
 )
 from auto_disc.utils.leaf.Leaf import LeafUID
-import os
-import json
-from datetime import datetime
-from uuid import uuid1
 
 
 class GenerateReport:

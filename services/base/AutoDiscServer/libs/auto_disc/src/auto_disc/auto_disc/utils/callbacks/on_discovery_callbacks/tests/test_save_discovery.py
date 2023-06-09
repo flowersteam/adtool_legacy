@@ -1,11 +1,10 @@
 import json
 import unittest.mock as mock
 
-import numpy
-import torch
-
 import auto_disc.auto_disc
 import auto_disc.utils.leaf
+import numpy
+import torch
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
     _CustomJSONEncoder,
     _JSONEncoderFactory,

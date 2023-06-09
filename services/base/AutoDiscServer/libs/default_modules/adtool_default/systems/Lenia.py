@@ -1,33 +1,30 @@
-from auto_disc.utils.leaf.Leaf import Leaf
-from auto_disc.utils.leaf.locators.locators import BlobLocator
-from typing import Dict, Any, Callable, Optional, List, Union
+import dataclasses
+import io
+import math
 from copy import deepcopy
+from dataclasses import asdict, dataclass
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    IntegerConfigParameter,
-)
-from auto_disc.legacy.utils.misc.torch_utils import (
-    SphericPad,
-    roll_n,
-    complex_mult_torch,
-    soft_clip,
-)
-
-import torch
+import imageio
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import ndarray
-import math
-
+import torch
+from auto_disc.legacy.utils.config_parameters import (
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.legacy.utils.misc.torch_utils import (
+    SphericPad,
+    complex_mult_torch,
+    roll_n,
+    soft_clip,
+)
+from auto_disc.utils.leaf.Leaf import Leaf
+from auto_disc.utils.leaf.locators.locators import BlobLocator
 from matplotlib.animation import FuncAnimation
-import io
-import imageio
+from numpy import ndarray
 from PIL import Image
-
-import dataclasses
-from dataclasses import dataclass, asdict
 
 
 @dataclass

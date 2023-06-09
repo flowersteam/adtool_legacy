@@ -1,15 +1,16 @@
-import pickle
-import os
-from datetime import datetime
 import json
-import torch
+import os
+import pickle
+from datetime import datetime
+from hashlib import sha1
+from typing import Any, Dict, Type
 from uuid import uuid1
+
 import requests
-from typing import Dict, Any, Type
+import torch
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
     SaveDiscovery,
 )
-from hashlib import sha1
 
 
 class SaveDiscoveryInExpeDB(SaveDiscovery):

@@ -1,7 +1,8 @@
-from typing import Callable, Type
 import typing
-import requests
 from enum import Enum
+from typing import Callable, Type
+
+import requests
 
 
 class AppDBMethods(Enum):

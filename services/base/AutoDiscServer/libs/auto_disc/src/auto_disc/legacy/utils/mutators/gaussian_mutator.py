@@ -1,6 +1,7 @@
+import numbers
+
 import torch
 from auto_disc.legacy.utils.mutators import BaseMutator
-import numbers
 
 
 class GaussianMutator(BaseMutator):

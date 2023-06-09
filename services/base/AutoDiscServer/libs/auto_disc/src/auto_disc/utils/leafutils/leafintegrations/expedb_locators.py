@@ -1,14 +1,15 @@
-from typing import Dict, Tuple, List
-import requests
-import json
 import codecs
-from auto_disc.utils.leaf.Leaf import LeafUID
-from auto_disc.utils.leaf.locators.Locator import Locator
-from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
-import auto_disc.utils.leaf.locators.LinearBase as LinearBase
-import tempfile
+import json
 import os
 import pickle
+import tempfile
+from typing import Dict, List, Tuple
+
+import auto_disc.utils.leaf.locators.LinearBase as LinearBase
+import requests
+from auto_disc.utils.leaf.Leaf import LeafUID
+from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
+from auto_disc.utils.leaf.locators.Locator import Locator
 
 
 def _initialize_checkpoint(entrypoint: str, dict: Dict = {}) -> str:

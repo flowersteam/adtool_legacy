@@ -1,8 +1,9 @@
+import os
+from hashlib import sha1
+from shutil import rmtree
+
 from auto_disc.utils.leaf.Leaf import *
 from auto_disc.utils.leaf.locators.Locator import *
-from hashlib import sha1
-import os
-from shutil import rmtree
 
 
 class DiskPipeline(Leaf):

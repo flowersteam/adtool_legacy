@@ -1,16 +1,17 @@
-from sqlalchemy import text
 import os
 import pathlib
+import pickle
+import shutil
+from hashlib import sha1
+
+import auto_disc.utils.leaf.locators.LinearBase as LinearBase
 import pytest
 from auto_disc.utils.leaf.locators.LinearBase import (
     FileLinearLocator,
-    _EngineContext,
     Stepper,
+    _EngineContext,
 )
-import auto_disc.utils.leaf.locators.LinearBase as LinearBase
-import pickle
-from hashlib import sha1
-import shutil
+from sqlalchemy import text
 
 
 def setup_function(function):

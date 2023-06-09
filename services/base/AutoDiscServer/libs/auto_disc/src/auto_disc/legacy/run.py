@@ -1,15 +1,15 @@
-from auto_disc.legacy.utils.callbacks import interact_callbacks
-import torch
-import random
-import numpy as np
-from auto_disc.legacy.utils.logger import AutoDiscLogger
-from auto_disc.legacy import ExperimentPipeline
-from auto_disc.legacy import REGISTRATION
-import sys
 import argparse
 import json
 import os
+import random
+import sys
 from typing import Callable, Dict, List
+
+import numpy as np
+import torch
+from auto_disc.legacy import REGISTRATION, ExperimentPipeline
+from auto_disc.legacy.utils.callbacks import interact_callbacks
+from auto_disc.legacy.utils.logger import AutoDiscLogger
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../"))

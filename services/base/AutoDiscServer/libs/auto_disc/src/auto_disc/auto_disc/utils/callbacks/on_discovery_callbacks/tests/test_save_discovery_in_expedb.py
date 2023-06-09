@@ -1,8 +1,8 @@
+import pytest_mock
+import torch
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery_in_expedb import (
     SaveDiscoveryInExpeDB,
 )
-import torch
-import pytest_mock
 
 
 def test___call__(mocker):

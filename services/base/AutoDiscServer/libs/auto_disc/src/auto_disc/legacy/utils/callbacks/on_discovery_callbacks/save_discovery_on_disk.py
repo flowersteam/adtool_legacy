@@ -1,15 +1,16 @@
-from typing import Dict, Any, Type
-import pickle
-import os
-from datetime import datetime
 import json
-import torch
-import numpy as np
-from auto_disc.utils.leaf.Leaf import Leaf
+import os
+import pickle
+from datetime import datetime
 from hashlib import sha1
+from typing import Any, Dict, Type
+
+import numpy as np
+import torch
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
     SaveDiscovery,
 )
+from auto_disc.utils.leaf.Leaf import Leaf
 
 
 class SaveDiscoveryOnDisk(SaveDiscovery):

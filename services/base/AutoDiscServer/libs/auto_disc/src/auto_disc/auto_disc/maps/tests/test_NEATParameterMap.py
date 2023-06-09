@@ -2,7 +2,6 @@ import os
 from copy import deepcopy
 
 import neat.genome
-
 from adtool_default.maps.NEATParameterMap import NEATParameterMap
 
 

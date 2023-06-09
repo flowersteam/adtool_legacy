@@ -1,6 +1,6 @@
+import torch
 from auto_disc.legacy.output_representations import BaseOutputRepresentation
 from auto_disc.legacy.utils.spaces.utils import distance
-import torch
 
 
 class DummyOutputRepresentation(BaseOutputRepresentation):

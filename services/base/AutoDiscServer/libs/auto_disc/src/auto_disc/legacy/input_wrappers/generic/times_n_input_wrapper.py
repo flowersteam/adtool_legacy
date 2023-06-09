@@ -1,8 +1,8 @@
-from auto_disc.legacy.input_wrappers import BaseInputWrapper
-from addict import Dict
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace
-from auto_disc.legacy.utils.config_parameters import IntegerConfigParameter
 import numpy as np
+from addict import Dict
+from auto_disc.legacy.input_wrappers import BaseInputWrapper
+from auto_disc.legacy.utils.config_parameters import IntegerConfigParameter
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace
 
 
 @IntegerConfigParameter(name="n", default=1)

@@ -1,11 +1,12 @@
-from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper, BufferStreamer
-from auto_disc.utils.leaf.locators.LinearBase import Stepper
-from auto_disc.utils.leaf.locators.locators import LinearLocator
 import os
 import pathlib
 import shutil
+
 import pytest
 import pytest_mock
+from auto_disc.auto_disc.wrappers.SaveWrapper import BufferStreamer, SaveWrapper
+from auto_disc.utils.leaf.locators.LinearBase import Stepper
+from auto_disc.utils.leaf.locators.locators import LinearLocator
 
 
 def setup_function(function):

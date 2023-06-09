@@ -1,7 +1,8 @@
+from abc import ABCMeta, abstractmethod
+from typing import Any, Dict
+
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from abc import ABCMeta, abstractmethod
-from typing import Dict, Any
 
 
 class System(Leaf, metaclass=ABCMeta):

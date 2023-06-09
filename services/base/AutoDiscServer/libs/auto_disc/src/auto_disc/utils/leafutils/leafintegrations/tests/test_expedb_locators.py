@@ -2,9 +2,8 @@ import codecs
 import json
 import os
 
-import requests
-
 import auto_disc.utils.leafutils.leafintegrations.expedb_locators as expedb_locators
+import requests
 from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator, Stepper
 from auto_disc.utils.leafutils.leafintegrations.expedb_locators import (

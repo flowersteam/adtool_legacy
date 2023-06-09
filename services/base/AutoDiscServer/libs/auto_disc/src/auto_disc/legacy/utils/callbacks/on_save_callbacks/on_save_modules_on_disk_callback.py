@@ -1,11 +1,11 @@
-from auto_disc.legacy.utils.callbacks.on_save_callbacks import BaseOnSaveCallback
-import requests
-
-import pickle
-import matplotlib.pyplot as plt
-from torch import Tensor
 import json
 import os
+import pickle
+
+import matplotlib.pyplot as plt
+import requests
+from auto_disc.legacy.utils.callbacks.on_save_callbacks import BaseOnSaveCallback
+from torch import Tensor
 
 
 class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):

@@ -1,9 +1,10 @@
+from copy import deepcopy
+from typing import Any, Dict, NamedTuple, Tuple
+
+import torch
 from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from typing import Dict, Any, Tuple, NamedTuple
-from copy import deepcopy
-import torch
 
 
 class NEATTuple(NamedTuple):

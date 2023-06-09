@@ -1,6 +1,6 @@
-from auto_disc.utils.leaf.tests.test_leaf import DummyModule
-from auto_disc.utils.depinj.tests.testdeps import hw, logger
 from auto_disc.utils.depinj.injector import inject_callbacks
+from auto_disc.utils.depinj.tests.testdeps import hw, logger
+from auto_disc.utils.leaf.tests.test_leaf import DummyModule
 
 
 def test_inject_callbacks(capsys):

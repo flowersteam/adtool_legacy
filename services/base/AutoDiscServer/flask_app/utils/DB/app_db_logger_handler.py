@@ -1,7 +1,8 @@
-from logging import StreamHandler
 import logging
-import requests
 import re
+from logging import StreamHandler
+
+import requests
 
 
 class AppDBLoggerHandler(StreamHandler):

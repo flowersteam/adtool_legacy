@@ -1,10 +1,12 @@
 from __future__ import annotations
-from typing import Type, Union
+
 import typing
+from typing import Type, Union
+
 from auto_disc.legacy.utils.misc import History
 from tinydb import TinyDB
+from tinydb.queries import Query, where
 from tinydb.storages import JSONStorage, MemoryStorage
-from tinydb.queries import where, Query
 
 
 class DB(TinyDB):

@@ -1,9 +1,10 @@
-from auto_disc.utils.leaf.Leaf import Leaf, LeafUID
-from auto_disc.utils.leaf.locators.Locator import Locator, FileLocator
-from auto_disc.utils.leaf.tests.test_leaf import DummyModule, DummyLocator
-import pickle
 import os
+import pickle
 import shutil
+
+from auto_disc.utils.leaf.Leaf import Leaf, LeafUID
+from auto_disc.utils.leaf.locators.Locator import FileLocator, Locator
+from auto_disc.utils.leaf.tests.test_leaf import DummyLocator, DummyModule
 
 """
 TODO: This test suite is pretty broken, need to revisit it when documenting

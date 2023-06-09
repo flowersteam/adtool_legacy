@@ -6,8 +6,6 @@ from io import StringIO
 from typing import Dict, Optional, Tuple
 
 import torch
-
-
 from adtool_default.maps.NEATParameterMap import NEATParameterMap
 from adtool_default.maps.UniformParameterMap import UniformParameterMap
 from adtool_default.systems.Lenia import LeniaDynamicalParameters

@@ -1,18 +1,19 @@
+import json
+import os
+import pathlib
+import pickle
+import shutil
+from hashlib import sha1
+
 import auto_disc.auto_disc
+import auto_disc.utils.leaf
+import numpy
+import pytest
+import torch
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import (
     SaveDiscoveryOnDisk,
 )
-import os
-import shutil
-import pathlib
-import torch
-import numpy
 from auto_disc.utils.leaf.Leaf import Leaf
-import auto_disc.utils.leaf
-import pytest
-import json
-from hashlib import sha1
-import pickle
 from pytest_mock import mocker
 
 

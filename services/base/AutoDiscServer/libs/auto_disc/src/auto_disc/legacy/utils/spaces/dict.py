@@ -1,7 +1,8 @@
-from typing import Type
 import typing
-from addict import Dict
+from typing import Type
+
 import torch
+from addict import Dict
 from auto_disc.legacy.utils.spaces import BaseSpace
 
 

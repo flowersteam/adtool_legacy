@@ -1,13 +1,14 @@
-from auto_disc.utils.leaf.Leaf import Leaf, StatelessLocator
-from auto_disc.utils.leaf.locators.Locator import FileLocator
-from auto_disc.auto_disc.wrappers import WrapperPipeline, SaveWrapper
-from auto_disc.utils.leaf.tests.test_leaf import DummyLocator
+import os
+import pathlib
+import shutil
 from copy import deepcopy
 from typing import Dict
+
 import pytest
-import pathlib
-import os
-import shutil
+from auto_disc.auto_disc.wrappers import SaveWrapper, WrapperPipeline
+from auto_disc.utils.leaf.Leaf import Leaf, StatelessLocator
+from auto_disc.utils.leaf.locators.Locator import FileLocator
+from auto_disc.utils.leaf.tests.test_leaf import DummyLocator
 
 
 class TestWrapper(Leaf):

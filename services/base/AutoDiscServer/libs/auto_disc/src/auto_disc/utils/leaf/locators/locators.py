@@ -1,13 +1,14 @@
-from auto_disc.utils.leaf.LeafUID import LeafUID
+import os
 from hashlib import sha1
+from typing import Tuple
+
+from auto_disc.utils.leaf.LeafUID import LeafUID
+from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
+from auto_disc.utils.leaf.locators.Locator import FileLocator, Locator
 from auto_disc.utils.leafutils.leafintegrations.expedb_locators import (
     ExpeDBLinearLocator,
     ExpeDBLocator,
 )
-from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
-from auto_disc.utils.leaf.locators.Locator import Locator, FileLocator
-import os
-from typing import Tuple
 
 
 class BlobLocator(Locator):

@@ -1,22 +1,19 @@
 import typing
-from addict import Dict
-from auto_disc.legacy.explorers import BaseExplorer
-
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    DecimalConfigParameter,
-    IntegerConfigParameter,
-    BooleanConfigParameter,
-)
-
-import torch
-from torch import Tensor, nn
+from copy import deepcopy
+from typing import Callable, Type
 
 import numpy as np
-from copy import deepcopy
-
-from typing import Type, Callable
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace
+import torch
+from addict import Dict
+from auto_disc.legacy.explorers import BaseExplorer
+from auto_disc.legacy.utils.config_parameters import (
+    BooleanConfigParameter,
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace
+from torch import Tensor, nn
 
 
 @StringConfigParameter(

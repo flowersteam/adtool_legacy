@@ -3,7 +3,6 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional
 
 import neat
-
 from auto_disc.auto_disc.maps.Map import Map
 from auto_disc.legacy.input_wrappers.generic.cppn import pytorchneat
 from auto_disc.utils.leaf.locators.locators import BlobLocator

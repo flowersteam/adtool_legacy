@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, Type
 
 import numpy as np
 import torch
-
 from auto_disc.utils.leaf.Leaf import Leaf
 
 

@@ -1,7 +1,8 @@
-from auto_disc.utils.leaf.Leaf import Leaf
-from auto_disc.utils.leaf.locators.Locator import Locator, StatelessLocator
 import pickle
 from hashlib import sha1
+
+from auto_disc.utils.leaf.Leaf import Leaf
+from auto_disc.utils.leaf.locators.Locator import Locator, StatelessLocator
 
 
 class DummyModule(Leaf):

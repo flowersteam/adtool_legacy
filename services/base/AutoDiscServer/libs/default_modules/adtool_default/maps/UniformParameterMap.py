@@ -1,11 +1,12 @@
+from copy import deepcopy
+from typing import Dict, List, Tuple, Union
+
 import torch
+from auto_disc.auto_disc.maps.Map import Map
+from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
+from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
-from typing import Dict, Tuple, Union, List
-from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
-from auto_disc.auto_disc.wrappers.BoxProjector import BoxProjector
-from auto_disc.auto_disc.maps.Map import Map
-from copy import deepcopy
 
 
 class UniformParameterMap(Map):

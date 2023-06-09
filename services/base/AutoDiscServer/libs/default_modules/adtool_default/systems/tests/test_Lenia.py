@@ -2,7 +2,6 @@ from copy import deepcopy
 from dataclasses import asdict
 
 import torch
-
 from adtool_default.systems.Lenia import (
     Lenia,
     LeniaDynamicalParameters,

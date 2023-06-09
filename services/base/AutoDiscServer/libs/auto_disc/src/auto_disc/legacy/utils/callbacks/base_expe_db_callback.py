@@ -1,6 +1,6 @@
 import typing
-from auto_disc.legacy.utils.callbacks import BaseCallback
 
+from auto_disc.legacy.utils.callbacks import BaseCallback
 from torch import Tensor
 
 

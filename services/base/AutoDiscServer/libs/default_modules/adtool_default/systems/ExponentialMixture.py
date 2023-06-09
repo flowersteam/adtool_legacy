@@ -6,7 +6,6 @@ from typing import Dict, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
-
 from auto_disc.auto_disc.systems.System import System
 from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
 from auto_disc.legacy.utils.config_parameters import (

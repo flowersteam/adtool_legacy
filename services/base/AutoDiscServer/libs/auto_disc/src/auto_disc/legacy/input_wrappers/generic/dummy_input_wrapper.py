@@ -1,4 +1,5 @@
 from typing import Dict
+
 from auto_disc.legacy.input_wrappers import BaseInputWrapper
 
 

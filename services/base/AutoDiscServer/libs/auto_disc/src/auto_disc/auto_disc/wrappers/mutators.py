@@ -1,5 +1,6 @@
-import torch
 from typing import Any, Dict
+
+import torch
 from auto_disc.utils.leaf.Leaf import Leaf
 
 

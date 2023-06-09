@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import List
+
 import logging
 from random import seed
+from typing import List
 
 
 class AutoDiscLogger(logging.Logger):

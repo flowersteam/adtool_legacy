@@ -1,6 +1,6 @@
 import os
 from os import environ as env
-from typing import get_type_hints, Union
+from typing import Union, get_type_hints
 
 
 def _parse_bool(val: Union[str, bool]) -> bool:  # pylint: disable=E1136

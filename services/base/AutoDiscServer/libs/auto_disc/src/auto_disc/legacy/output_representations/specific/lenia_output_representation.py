@@ -1,16 +1,16 @@
-from auto_disc.legacy.output_representations import BaseOutputRepresentation
-from auto_disc.legacy.utils.config_parameters import (
-    StringConfigParameter,
-    DecimalConfigParameter,
-    IntegerConfigParameter,
-)
-from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding
-from auto_disc.legacy.utils.spaces import DictSpace, BoxSpace, DiscreteSpace
-from auto_disc.legacy.utils.misc.torch_utils import roll_n
-from auto_disc.legacy.utils.spaces.utils import distance
+import typing
+
 import torch
 from addict import Dict
-import typing
+from auto_disc.legacy.output_representations import BaseOutputRepresentation
+from auto_disc.legacy.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+    StringConfigParameter,
+)
+from auto_disc.legacy.utils.misc.torch_utils import roll_n
+from auto_disc.legacy.utils.spaces import BoxSpace, DictSpace, DiscreteSpace
+from auto_disc.legacy.utils.spaces.utils import ConfigParameterBinding, distance
 
 
 @StringConfigParameter(name="distance_function", possible_values=["L2"], default="L2")
