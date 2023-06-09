@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import signal
 import subprocess
 from typing import List
 from enum import Enum
