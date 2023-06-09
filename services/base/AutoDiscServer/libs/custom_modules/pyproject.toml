@@ -8,7 +8,6 @@ packages = [{include = "adtool_custom"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-urllib3 = ">=1.21.1,<1.27"
 
 [build-system]
 requires = ["poetry-core>=1.5.1"]
