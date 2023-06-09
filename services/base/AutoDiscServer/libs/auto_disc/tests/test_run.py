@@ -13,86 +13,75 @@ def setup_function(function):
     RESOURCE_URI = os.path.join(file_path, "tmp")
     neat_config_path = os.path.join(file_path, "neat_config_test.cfg")
     os.mkdir(RESOURCE_URI)
-    config_json_exp_mix = \
-        {
-            "experiment": {
-                "name": "newarch_demo",
-                "config": {
-                    "host": "local",
-                    "save_location": f"{RESOURCE_URI}",
-                    "nb_seeds": 1,
-                    "nb_iterations": 20,
-                    "save_frequency": 1,
-                }
+    config_json_exp_mix = {
+        "experiment": {
+            "name": "newarch_demo",
+            "config": {
+                "host": "local",
+                "save_location": f"{RESOURCE_URI}",
+                "nb_seeds": 1,
+                "nb_iterations": 20,
+                "save_frequency": 1,
             },
-            "system": {
-                "name": "adtool_default.systems.ExponentialMixture.ExponentialMixture",
-                "config": {
-                    "sequence_max": 1,
-                    "sequence_density": 20
-                }
+        },
+        "system": {
+            "name": "adtool_default.systems.ExponentialMixture.ExponentialMixture",
+            "config": {"sequence_max": 1, "sequence_density": 20},
+        },
+        "explorer": {
+            "name": "auto_disc.auto_disc.explorers.IMGEPFactory",
+            "config": {
+                "equil_time": 2,
+                "param_dim": 1,
+                "param_init_low": 0.0,
+                "param_init_high": 1.0,
             },
-            "explorer": {
-                "name": "auto_disc.auto_disc.explorers.IMGEPFactory",
-                "config": {
-                    "equil_time": 2,
-                    "param_dim": 1,
-                    "param_init_low": 0.0,
-                    "param_init_high": 1.0
-                }
+        },
+        "callbacks": {},
+        "logger_handlers": [],
+    }
+    config_json_lenia = {
+        "experiment": {
+            "name": "demo",
+            "config": {
+                "host": "local",
+                "nb_seeds": 1,
+                "nb_iterations": 3,
+                "save_location": f"{RESOURCE_URI}",
+                "save_frequency": 1,
+                "discovery_saving_keys": [],
             },
-            "callbacks": {},
-            "logger_handlers": []
-        }
-    config_json_lenia = \
-        {
-            "experiment": {
-                "name": "demo",
-                "config": {
-                    "host": "local",
-                    "nb_seeds": 1,
-                    "nb_iterations": 3,
-                    "save_location": f"{RESOURCE_URI}",
-                    "save_frequency": 1,
-                    "discovery_saving_keys": []
-                }
+        },
+        "system": {
+            "name": "adtool_default.systems.LeniaCPPN.LeniaCPPN",
+            "config": {
+                "SX": 64,
+                "SY": 64,
+                "version": "pytorch_fft",
+                "final_step": 200,
+                "scale_init_state": 1,
             },
-            "system": {
-                "name": "adtool_default.systems.LeniaCPPN.LeniaCPPN",
-                "config": {
-                    "SX": 64,
-                    "SY": 64,
-                    "version": "pytorch_fft",
-                    "final_step": 200,
-                    "scale_init_state": 1
-                }
+        },
+        "explorer": {
+            "name": "auto_disc.auto_disc.explorers.IMGEPFactory",
+            "config": {
+                "mutator": "specific",
+                "equil_time": 1,
+                "behavior_map": "LeniaStatistics",
+                "parameter_map": "LeniaParameterMap",
+                "mutator_config": {},
+                "behavior_map_config": {"SX": 64, "SY": 64},
+                "parameter_map_config": {
+                    "init_state_dim": [64, 64],
+                    "neat_config_path": f"{neat_config_path}",
+                },
             },
-            "explorer": {
-                "name": "auto_disc.auto_disc.explorers.IMGEPFactory",
-                "config": {
-                    "mutator": "specific",
-                    "equil_time": 1,
-                    "behavior_map": "LeniaStatistics",
-                    "parameter_map": "LeniaParameterMap",
-                    "mutator_config": {},
-                    "behavior_map_config": {
-                        "SX": 64,
-                        "SY": 64
-                    },
-                    "parameter_map_config": {
-                        "init_state_dim": [
-                            64,
-                            64
-                        ],
-                        "neat_config_path": f"{neat_config_path}"
-                    }
-                }
-            },
-            "input_wrappers": [],
-            "output_representations": [],
-            "callbacks": {},
-            "logger_handlers": []
-        }
+        },
+        "input_wrappers": [],
+        "output_representations": [],
+        "callbacks": {},
+        "logger_handlers": [],
+    }
 
     json_requests_dir = os.path.join(file_path, "integration")
     demo_path = os.path.join(json_requests_dir, "demo.json")
@@ -100,8 +89,7 @@ def setup_function(function):
         config_json = json.loads(f.read())
 
         # override with testing mock
-        config_json["experiment"]["config"]["save_location"] = \
-            f"{RESOURCE_URI}"
+        config_json["experiment"]["config"]["save_location"] = f"{RESOURCE_URI}"
     return
 
 
@@ -128,11 +116,7 @@ def test_run():
 
 
 def test_save_SaveDiscoveryOnDisk():
-    config_json["callbacks"] = {
-        "on_discovery": [{"name": "disk",
-                          "config": {}
-                          }]
-    }
+    config_json["callbacks"] = {"on_discovery": [{"name": "disk", "config": {}}]}
     experiment_id = 1
     seed = 1
     pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
@@ -159,15 +143,9 @@ def test_save_SaveDiscoveryOnDisk():
 
 def test_save_resume():
     config_json["callbacks"] = {
-        "on_saved": [{"name": "base",
-                      "config": {}
-                      }],
-        "on_save_finished": [{"name": "base",
-                              "config": {}
-                              }],
-        "on_discovery": [{"name": "disk",
-                          "config": {}
-                          }]
+        "on_saved": [{"name": "base", "config": {}}],
+        "on_save_finished": [{"name": "base", "config": {}}],
+        "on_discovery": [{"name": "disk", "config": {}}],
     }
     config_json["explorer"]["config"]["equil_time"] = 3
     experiment_id = 1
@@ -247,10 +225,8 @@ def test_save_resume():
 
     # check that the tree is properly updated
     import sqlalchemy
-    engine = sqlalchemy.create_engine(
-        "sqlite+pysqlite:///" +
-        db_path
-    )
+
+    engine = sqlalchemy.create_engine("sqlite+pysqlite:///" + db_path)
     with engine.connect() as conn:
         output = conn.execute(sqlalchemy.text("SELECT * FROM tree"))
 
@@ -261,11 +237,7 @@ def test_save_GenerateReport():
     """
     primarily tests the GenerateReport callback
     """
-    config_json["callbacks"] = {
-        "on_save_finished": [{"name": "base",
-                              "config": {}
-                              }]
-    }
+    config_json["callbacks"] = {"on_save_finished": [{"name": "base", "config": {}}]}
     experiment_id = 1
     seed = 1
     pipeline = run.create(config_json, experiment_id=experiment_id, seed=seed)
@@ -278,12 +250,8 @@ def test_save_GenerateReport():
 
     # provide the savecallback
     config_json["callbacks"] = {
-        "on_save_finished": [{"name": "base",
-                              "config": {}
-                              }],
-        "on_saved": [{"name": "base",
-                      "config": {}
-                      }]
+        "on_save_finished": [{"name": "base", "config": {}}],
+        "on_saved": [{"name": "base", "config": {}}],
     }
     experiment_id = 2
     seed = 1
@@ -309,14 +277,19 @@ def test_save_GenerateReport():
 
 
 def test_additional_callback():
-    from auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import \
-        SaveDiscoveryOnDisk
+    from auto_disc.auto_disc.utils.callbacks.on_discovery_callbacks.save_discovery_on_disk import (
+        SaveDiscoveryOnDisk,
+    )
+
     additional_callbacks = {"on_discovery": [SaveDiscoveryOnDisk()]}
     experiment_id = 1
     seed = 1
     pipeline = run.create(
-        config_json, experiment_id=experiment_id, seed=seed,
-        additional_callbacks=additional_callbacks)
+        config_json,
+        experiment_id=experiment_id,
+        seed=seed,
+        additional_callbacks=additional_callbacks,
+    )
 
     run.start(pipeline, 10)
 

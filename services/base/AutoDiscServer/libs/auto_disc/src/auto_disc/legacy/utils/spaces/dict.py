@@ -37,13 +37,14 @@ class DictSpace(BaseSpace):
 
     def __init__(self, spaces=None, **spaces_kwargs) -> None:
         """
-            Init the elements useful to the space. Define spaces as dict of spaces
+        Init the elements useful to the space. Define spaces as dict of spaces
 
-            Args:
-                spaces: All spaces to be used
+        Args:
+            spaces: All spaces to be used
         """
         assert (spaces is None) or (
-            not spaces_kwargs), 'Use either DictSpace(spaces=dict(...)) or DictSpace(foo=x, bar=z)'
+            not spaces_kwargs
+        ), "Use either DictSpace(spaces=dict(...)) or DictSpace(foo=x, bar=z)"
         if spaces is None:
             spaces = spaces_kwargs
         if isinstance(spaces, list):
@@ -51,16 +52,17 @@ class DictSpace(BaseSpace):
         self.spaces = spaces
         for space in spaces.values():
             assert isinstance(
-                space, BaseSpace), 'Values of the attrdict should be instances of gym.Space'
+                space, BaseSpace
+            ), "Values of the attrdict should be instances of gym.Space"
         # None for shape and dtype, since it'll require special handling
         super().__init__(None, None)
 
     def initialize(self, parent_obj: object) -> None:
         """
-            Initialize all spaces in dict.
+        Initialize all spaces in dict.
 
-            Args:
-                parent_obj: The current autodisc module
+        Args:
+            parent_obj: The current autodisc module
         """
         for _, space in self.spaces.items():
             space.initialize(parent_obj)
@@ -85,11 +87,11 @@ class DictSpace(BaseSpace):
 
     def contains(self, x: Dict) -> bool:
         """
-            Check if each value is correctly set in its space
-            Args:
-                x: The dict of spaces
-            Returns:
-                The return value is True if each item in x is included in its space False otherwise
+        Check if each value is correctly set in its space
+        Args:
+            x: The dict of spaces
+        Returns:
+            The return value is True if each item in x is included in its space False otherwise
         """
         if not isinstance(x, dict) or len(x) != len(self.spaces):
             return False
@@ -102,11 +104,11 @@ class DictSpace(BaseSpace):
 
     def clamp(self, x: Dict) -> Dict:
         """
-            For each element in dict set it to an acceptable value of the space
-            Args:
-                x: The dict of value value to set
-            Returns:
-                x: After being set
+        For each element in dict set it to an acceptable value of the space
+        Args:
+            x: The dict of value value to set
+        Returns:
+            x: After being set
         """
         return Dict([(k, space.clamp(x[k])) for k, space in self.spaces.items()])
 
@@ -124,7 +126,11 @@ class DictSpace(BaseSpace):
             yield key
 
     def __repr__(self):
-        return "DictSpace(" + ", ".join([str(k) + ":" + str(s) for k, s in self.spaces.items()]) + ")"
+        return (
+            "DictSpace("
+            + ", ".join([str(k) + ":" + str(s) for k, s in self.spaces.items()])
+            + ")"
+        )
 
     def __eq__(self, other):
         return isinstance(other, DictSpace) and self.spaces == other.spaces
@@ -134,10 +140,10 @@ class DictSpace(BaseSpace):
 
     def to_json(self):
         """
-            Convert the object into JSON
+        Convert the object into JSON
 
-            Returns:
-                The JSON of the object
+        Returns:
+            The JSON of the object
         """
         dict = {}
         for key, space in self.spaces.items():

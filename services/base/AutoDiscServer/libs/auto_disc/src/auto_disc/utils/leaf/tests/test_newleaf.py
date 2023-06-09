@@ -10,7 +10,7 @@ import shutil
 
 
 class Node(Leaf):
-    def __init__(self, data, ptr: 'Node' = None):
+    def __init__(self, data, ptr: "Node" = None):
         super().__init__()
         self.locator = BlobLocator()
         self.data = data
@@ -32,8 +32,7 @@ class TestLinkedList:
         return
 
     def test_Node(self):
-        save_uid = Node(1, Node(2, Node(3))).save_leaf(
-            resource_uri=RESOURCE_URI)
+        save_uid = Node(1, Node(2, Node(3))).save_leaf(resource_uri=RESOURCE_URI)
 
         loaded = Node(0).load_leaf(save_uid, resource_uri=RESOURCE_URI)
         assert loaded.data == 1

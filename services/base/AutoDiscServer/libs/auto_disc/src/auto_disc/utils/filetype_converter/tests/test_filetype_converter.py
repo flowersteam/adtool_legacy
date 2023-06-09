@@ -2,7 +2,11 @@ import os
 import pathlib
 
 from auto_disc.utils.filetype_converter.filetype_converter import (
-    convert_image, convert_video, is_mp4, is_png)
+    convert_image,
+    convert_video,
+    is_mp4,
+    is_png,
+)
 
 
 def setup_function(function):
@@ -22,10 +26,7 @@ def setup_function(function):
         doc = f.read()
     with open(mov_path, "rb") as f:
         mkv = f.read()
-    TEST_ARTIFACTS = {"img": img,
-                      "vid": vid,
-                      "doc": doc,
-                      "mkv": mkv}
+    TEST_ARTIFACTS = {"img": img, "vid": vid, "doc": doc, "mkv": mkv}
 
 
 def teardown_function(function):

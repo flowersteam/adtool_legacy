@@ -3,27 +3,28 @@ from dataclasses import asdict
 
 import torch
 
-from adtool_default.systems.Lenia import (Lenia, LeniaDynamicalParameters,
-                                               LeniaParameters)
+from adtool_default.systems.Lenia import (
+    Lenia,
+    LeniaDynamicalParameters,
+    LeniaParameters,
+)
 from auto_disc.utils.filetype_converter.filetype_converter import is_mp4
 
 
 def setup_function(function):
     global dummy_input
-    dummy_input = \
-        {
-            "params": {
-                "dynamic_params":
-                {
-                    "R": torch.tensor(5.),
-                    "T": torch.tensor(10.),
-                    "b": torch.tensor([0.1, 0.2, 0.3, 0.4]),
-                    "m": torch.tensor(0.5),
-                    "s": torch.tensor(0.1)
-                },
-                "init_state": torch.rand((256, 256))
-            }
+    dummy_input = {
+        "params": {
+            "dynamic_params": {
+                "R": torch.tensor(5.0),
+                "T": torch.tensor(10.0),
+                "b": torch.tensor([0.1, 0.2, 0.3, 0.4]),
+                "m": torch.tensor(0.5),
+                "s": torch.tensor(0.1),
+            },
+            "init_state": torch.rand((256, 256)),
         }
+    }
 
 
 def teardown_function(function):
@@ -33,18 +34,18 @@ def teardown_function(function):
 def test_LeniaDynamicalParamaters___init__():
     p = LeniaDynamicalParameters()
     assert p.R == 0
-    assert p.T == 1.
+    assert p.T == 1.0
     assert p.b.size() == (4,)
     assert isinstance(p.b, torch.Tensor)
-    assert p.m == 0.
+    assert p.m == 0.0
     assert p.s == 0.001
 
     # check custom initialization
-    p = LeniaDynamicalParameters(R=10, T=2.,
-                                 b=torch.tensor([1., 1., 1., 1.]),
-                                 m=0.5, s=0.2)
+    p = LeniaDynamicalParameters(
+        R=10, T=2.0, b=torch.tensor([1.0, 1.0, 1.0, 1.0]), m=0.5, s=0.2
+    )
     assert p.R == 10
-    assert p.T == 2.
+    assert p.T == 2.0
     assert p.b.size() == (4,)
     assert isinstance(p.b, torch.Tensor)
     assert p.m == 0.5
@@ -57,14 +58,15 @@ def test_LeniaDynamicalParamaters___init__():
 
 def test_LeniaDynamicalParamaters___post_init__():
     # assert that all constraints are respected
-    p = LeniaDynamicalParameters(R=20, T=11., b=torch.tensor([2., -1, 1., 1.]),
-                                 m=1.5, s=0.5)
+    p = LeniaDynamicalParameters(
+        R=20, T=11.0, b=torch.tensor([2.0, -1, 1.0, 1.0]), m=1.5, s=0.5
+    )
     assert p.R == 19
-    assert p.T == 10.
-    assert torch.max(p.b) == 1.
-    assert torch.min(p.b) == 0.
-    assert torch.allclose(p.b, torch.tensor([1., 0., 1., 1.]))
-    assert p.m == 1.
+    assert p.T == 10.0
+    assert torch.max(p.b) == 1.0
+    assert torch.min(p.b) == 0.0
+    assert torch.allclose(p.b, torch.tensor([1.0, 0.0, 1.0, 1.0]))
+    assert p.m == 1.0
     assert p.s == 0.3
 
 

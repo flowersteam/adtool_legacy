@@ -1,4 +1,5 @@
 import pickle
+
 # for dynamic discovery and loading of Python classes
 from pydoc import locate
 from typing import Any, Dict, List, Tuple, Union
@@ -6,7 +7,9 @@ from typing import Any, Dict, List, Tuple, Union
 from auto_disc.utils.leaf.LeafUID import LeafUID
 from auto_disc.utils.leaf.locators.Locator import Locator, StatelessLocator
 from auto_disc.utils.leafutils.leafstructs.registration import (
-    get_cls_from_path, get_path_from_cls)
+    get_cls_from_path,
+    get_path_from_cls,
+)
 
 
 def prune_state(state_vars: Dict[str, Any]):
@@ -14,9 +17,9 @@ def prune_state(state_vars: Dict[str, Any]):
     Decorator allowing specification of what instance variables of a Leaf
     to ignore during the serialization call.
     """
+
     def deco(serialize):
         def inner(self, *args, **kwargs) -> bytes:
-
             old_vars = {}
 
             # store old variables
@@ -36,8 +39,7 @@ def prune_state(state_vars: Dict[str, Any]):
             bin = serialize(self, *args, **kwargs)
 
             # restore variables
-            for (name, attr_ptr) in old_vars.items():
-
+            for name, attr_ptr in old_vars.items():
                 # if variable was defined, restore it
                 if attr_ptr is not None:
                     self._set_attr_override(name, attr_ptr)
@@ -50,11 +52,11 @@ def prune_state(state_vars: Dict[str, Any]):
             return bin
 
         return inner
+
     return deco
 
 
 class Leaf:
-
     CONFIG_DEFINITION = {}
 
     def __init__(self) -> None:
@@ -62,7 +64,7 @@ class Leaf:
 
     def _default_leaf_init(self) -> None:
         if getattr(self, "_modules", None) is None:
-            self._modules: Dict[str, Union['Leaf', 'LeafUID']] = {}
+            self._modules: Dict[str, Union["Leaf", "LeafUID"]] = {}
         if getattr(self, "name", None) is None:
             self.name: str = ""
         if getattr(self, "locator", None) is None:
@@ -71,10 +73,10 @@ class Leaf:
             self._container_ptr: Any = None
         return
 
-    def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
-        """ 
-        __getattr__ is called as a fallback in case regular 
-        attribute name resolution fails, which will happen with modules 
+    def __getattr__(self, name: str) -> Union[Any, "Leaf"]:
+        """
+        __getattr__ is called as a fallback in case regular
+        attribute name resolution fails, which will happen with modules
         and global container state
         """
 
@@ -90,14 +92,11 @@ class Leaf:
         # fallback
         raise AttributeError("Could not get attribute.")
 
-    def __setattr__(self, name: str, value: Union[Any, 'Leaf']) -> None:
-
+    def __setattr__(self, name: str, value: Union[Any, "Leaf"]) -> None:
         if isinstance(value, Leaf):
-
             self._bind_submodule_to_self(name, value)
 
         else:
-
             super().__setattr__(name, value)
 
         return
@@ -115,9 +114,9 @@ class Leaf:
 
     @prune_state(state_vars={"_container_ptr": None, "logger": None})
     def serialize(self) -> bytes:
-        """ 
-        Serializes object to pickle, 
-        turning all submodules into uniquely identifiable hashes 
+        """
+        Serializes object to pickle,
+        turning all submodules into uniquely identifiable hashes
         """
 
         # recursively pointerize all submodules
@@ -147,7 +146,7 @@ class Leaf:
         """
         old_modules = self._modules
         modules_by_ref = {}
-        for (k, v) in old_modules.items():
+        for k, v in old_modules.items():
             if isinstance(v, str):
                 modules_by_ref[k] = v
             elif isinstance(v, Leaf):
@@ -155,8 +154,8 @@ class Leaf:
         self._modules: Dict[str, LeafUID] = dict(modules_by_ref)
         return old_modules
 
-    def deserialize(self, bin: bytes) -> 'Leaf':
-        """ 
+    def deserialize(self, bin: bytes) -> "Leaf":
+        """
         Restores object from pickle, without recursively deserializing
         any submodules.
         """
@@ -166,25 +165,22 @@ class Leaf:
 
         return container_leaf
 
-    def save_leaf(self, resource_uri: str = "", *args, **kwargs) -> 'LeafUID':
+    def save_leaf(self, resource_uri: str = "", *args, **kwargs) -> "LeafUID":
         """
-        Save entire structure of object. The suggested way to customize 
+        Save entire structure of object. The suggested way to customize
         behavior is overloading serialize() and the Locator
         """
         # check stateless
         if isinstance(self.locator, StatelessLocator):
-            return LeafUID('')
+            return LeafUID("")
 
         # recursively save contained leaves
         uid_dict = {}
-        for (module_name, module_obj) in self._modules.items():
+        for module_name, module_obj in self._modules.items():
             if isinstance(module_obj, str):
-                raise ValueError(
-                    "The modules are corrupted and are not of type Leaf.")
+                raise ValueError("The modules are corrupted and are not of type Leaf.")
             else:
-                module_uid = module_obj.save_leaf(
-                    resource_uri, *args, **kwargs
-                )
+                module_uid = module_obj.save_leaf(resource_uri, *args, **kwargs)
                 uid_dict[module_name] = module_uid
 
         # replace list of submodules with pointerized list
@@ -195,7 +191,7 @@ class Leaf:
         bin = self.serialize()
 
         # override default initialization in Locator with arg if necessary
-        if resource_uri != '':
+        if resource_uri != "":
             self.locator.resource_uri = resource_uri
         uid = self.locator.store(bin, *args, **kwargs)
 
@@ -204,18 +200,16 @@ class Leaf:
 
         return uid
 
-    def load_leaf(self,
-                  uid: 'LeafUID',
-                  resource_uri: str = '',
-                  *args,
-                  **kwargs) -> 'Leaf':
-        """ Load entire structure of object, not mutating self """
+    def load_leaf(
+        self, uid: "LeafUID", resource_uri: str = "", *args, **kwargs
+    ) -> "Leaf":
+        """Load entire structure of object, not mutating self"""
         # check stateless
         if isinstance(self.locator, StatelessLocator):
             return self
 
         # override default initialization in Locator
-        if resource_uri != '':
+        if resource_uri != "":
             self.locator.resource_uri = resource_uri
 
         bin = self.locator.retrieve(uid, *args, **kwargs)
@@ -240,19 +234,19 @@ class Leaf:
 
         return loaded_obj
 
-    def _load_leaf_submodules_recursively(self,
-                                          container_leaf: 'Leaf',
-                                          resource_uri: str):
+    def _load_leaf_submodules_recursively(
+        self, container_leaf: "Leaf", resource_uri: str
+    ):
         """
-        Dereference submodule unique IDs to their respective objects. 
-        Note that it is impossible to load a contained module and access 
+        Dereference submodule unique IDs to their respective objects.
+        Note that it is impossible to load a contained module and access
         the data of its container, due to the direction of recursion.
 
         TODO: This will break in theory if separate deserialization is needed
         for different classes.
         """
         modules = {}
-        for (submodule_str, submodule_ref) in container_leaf._modules.items():
+        for submodule_str, submodule_ref in container_leaf._modules.items():
             if isinstance(submodule_ref, str):
                 # dereference submodule pointed by submodule_ref
                 submodule = self.load_leaf(submodule_ref, resource_uri)
@@ -264,9 +258,7 @@ class Leaf:
         container_leaf._set_attr_override("_modules", modules)
         return
 
-    def _bind_submodule_to_self(self,
-                                submodule_name: str,
-                                submodule: 'Leaf') -> None:
+    def _bind_submodule_to_self(self, submodule_name: str, submodule: "Leaf") -> None:
         """
         Sets pointers and default locator initialization of declared submodules
         """
@@ -281,14 +273,15 @@ class Leaf:
         # children modules in the entire hierarchy
         # TODO: fix this so it's usable given new locator defaults
         def _set_submodule_resource_uri(module, resource_uri):
-            """ Function to recursively set resource_uri for submodule"""
+            """Function to recursively set resource_uri for submodule"""
             for submodule in module._modules.values():
                 if isinstance(submodule, Leaf):
                     _set_submodule_resource_uri(submodule, resource_uri)
                 else:
                     raise ValueError("Submodule is not of type Leaf.")
-            if (module.locator.resource_uri == "" and
-                    not isinstance(module.locator, StatelessLocator)):
+            if module.locator.resource_uri == "" and not isinstance(
+                module.locator, StatelessLocator
+            ):
                 module.locator.resource_uri = resource_uri
 
         _set_submodule_resource_uri(submodule, self.locator.resource_uri)
@@ -301,7 +294,7 @@ class Leaf:
             module = module._container_ptr
         return module.locator.__class__
 
-    def _get_uid_base_case(self) -> 'LeafUID':
+    def _get_uid_base_case(self) -> "LeafUID":
         """
         Retrieves the UID of the Leaf, which depends on the Locator,
         non-recursively (i.e., the base case)

@@ -24,27 +24,34 @@ def teardown_function(function):
     return
 
 
-def add_gaussian_noise_test(input_tensor: torch.Tensor,
-                            mean: torch.Tensor = torch.tensor([10000.]),
-                            std: torch.Tensor = torch.tensor([1.]),
-                            ) -> torch.Tensor:
+def add_gaussian_noise_test(
+    input_tensor: torch.Tensor,
+    mean: torch.Tensor = torch.tensor([10000.0]),
+    std: torch.Tensor = torch.tensor([1.0]),
+) -> torch.Tensor:
     if not isinstance(mean, torch.Tensor):
         mean = torch.tensor(mean, dtype=float)
     if not isinstance(std, torch.Tensor):
         std = torch.tensor(std, dtype=float)
     noise_unit = torch.randn(input_tensor.size())
-    noise = noise_unit*std + mean
+    noise = noise_unit * std + mean
     return input_tensor + noise
 
 
 def test_IMGEPExplorer___init__():
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([2.0, 2.0, 2.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
     assert explorer.behavior_map == mean_map
     assert explorer.parameter_map == param_map
     assert explorer.equil_time == 2
@@ -52,72 +59,85 @@ def test_IMGEPExplorer___init__():
 
 
 def test_IMGEPExplorer__extract_tensor_history():
-    history_buffer = \
-        [
-            {
-                'params': torch.tensor([0.9623, 0.8531, 0.2911]),
-                'equil': 1,
-                'output': torch.tensor([0.6001]),
-            },
-            {
-                'params': torch.tensor([0.9673, 0.7330, 0.8939]),
-                'equil': 1,
-                'output': torch.tensor([0.6000]),
-            },
-            {
-                'params': torch.tensor([0.0185, 0.4275, 0.6428]),
-                'equil': 1,
-                'output': torch.tensor([0.8872]),
-            }
-        ]
+    history_buffer = [
+        {
+            "params": torch.tensor([0.9623, 0.8531, 0.2911]),
+            "equil": 1,
+            "output": torch.tensor([0.6001]),
+        },
+        {
+            "params": torch.tensor([0.9673, 0.7330, 0.8939]),
+            "equil": 1,
+            "output": torch.tensor([0.6000]),
+        },
+        {
+            "params": torch.tensor([0.0185, 0.4275, 0.6428]),
+            "equil": 1,
+            "output": torch.tensor([0.8872]),
+        },
+    ]
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([2.0, 2.0, 2.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
     param_tensor = explorer._extract_tensor_history(history_buffer, "params")
     param_history = torch.tensor(
-        [[0.9623, 0.8531, 0.2911],
-         [0.9673, 0.7330, 0.8939],
-         [0.0185, 0.4275, 0.6428]])
+        [[0.9623, 0.8531, 0.2911], [0.9673, 0.7330, 0.8939], [0.0185, 0.4275, 0.6428]]
+    )
     assert torch.allclose(param_tensor, param_history)
     output_tensor = explorer._extract_tensor_history(history_buffer, "output")
-    output_history = torch.tensor(
-        [[0.6001], [0.6000], [0.8872]]
-    )
+    output_history = torch.tensor([[0.6001], [0.6000], [0.8872]])
     assert torch.allclose(output_tensor, output_history)
 
 
 def test_IMGEPExplorer__find_closest():
-    goal_history = torch.tensor(
-        [[1, 2, 3], [4, 5, 6], [-1, -1, -1]], dtype=float)
+    goal_history = torch.tensor([[1, 2, 3], [4, 5, 6], [-1, -1, -1]], dtype=float)
     goal = torch.tensor([-0.99, -0.99, -0.99])
 
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([2.0, 2.0, 2.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
 
     idx = explorer._find_closest(goal, goal_history)
     assert idx == torch.tensor([2])
-    assert torch.allclose(goal_history[idx], torch.tensor([-1., -1., -1.]))
+    assert torch.allclose(goal_history[idx], torch.tensor([-1.0, -1.0, -1.0]))
 
 
 def test_IMGEPExplorer_observe_results():
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([2., 2., 2.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([2.0, 2.0, 2.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
 
-    output_tensor = torch.tensor([1., 1., 1.])
+    output_tensor = torch.tensor([1.0, 1.0, 1.0])
     system_output = {"metadata": 1, "output": output_tensor}
     system_output = explorer.observe_results(system_output)
 
@@ -130,12 +150,18 @@ def test_IMGEPExplorer_observe_results():
 
 def test_IMGEPExplorer_bootstrap():
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([6., 6., 6.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([6.0, 6.0, 6.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
     init_dict = explorer.bootstrap()
     assert init_dict.get("params", None) is not None
     assert init_dict["equil"] == 1
@@ -144,19 +170,28 @@ def test_IMGEPExplorer_bootstrap():
 def test_IMGEPExplorer_map():
     # TODO: mock the behavior and parameter maps
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([6., 6., 6.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
-    system_output = {"metadata": 1, "params": torch.tensor(
-        [2., 2., 2.]), "output": torch.tensor([1., 2., 3.])}
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([6.0, 6.0, 6.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
+    system_output = {
+        "metadata": 1,
+        "params": torch.tensor([2.0, 2.0, 2.0]),
+        "output": torch.tensor([1.0, 2.0, 3.0]),
+    }
 
     new_params = explorer.map(system_output)
     assert new_params["params"].size() == torch.Size([3])
-    assert torch.allclose(new_params["raw_output"], torch.tensor([1., 2., 3.]))
-    assert torch.allclose(new_params["output"], torch.tensor([2.]))
+    assert torch.allclose(new_params["raw_output"], torch.tensor([1.0, 2.0, 3.0]))
+    assert torch.allclose(new_params["output"], torch.tensor([2.0]))
     assert explorer.timestep == 1
 
     # check mutability
@@ -171,30 +206,43 @@ def test_IMGEPExplorer_read_last_discovery():
 
 def test_IMGEPExplorer_suggest_trial_behavioral_diffusion():
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([6., 6., 6.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([6.0, 6.0, 6.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
 
     # mock history
-    mock_discovery_history = \
-        [{"metadata": 1,
-          "params": torch.tensor([0., 1., 2.]),
-          "raw_output": torch.tensor([1., 2., 3.]),
-          "output": torch.tensor([2.])},
-         {"metadata": 1,
-          "params": torch.tensor([3., 4., 5.]),
-          "raw_output": torch.tensor([4., 5., 6.]),
-          "output": torch.tensor([5.])},
-         {"metadata": 1,
-          "params": torch.tensor([-1., -1., -1]),
-          "raw_output": torch.tensor([0., 0., 0.]),
-          "output": torch.tensor([0.])}]
+    mock_discovery_history = [
+        {
+            "metadata": 1,
+            "params": torch.tensor([0.0, 1.0, 2.0]),
+            "raw_output": torch.tensor([1.0, 2.0, 3.0]),
+            "output": torch.tensor([2.0]),
+        },
+        {
+            "metadata": 1,
+            "params": torch.tensor([3.0, 4.0, 5.0]),
+            "raw_output": torch.tensor([4.0, 5.0, 6.0]),
+            "output": torch.tensor([5.0]),
+        },
+        {
+            "metadata": 1,
+            "params": torch.tensor([-1.0, -1.0, -1]),
+            "raw_output": torch.tensor([0.0, 0.0, 0.0]),
+            "output": torch.tensor([0.0]),
+        },
+    ]
     explorer._history_saver.buffer = mock_discovery_history
-    explorer.behavior_map.projector.low = torch.tensor([0.])
-    explorer.behavior_map.projector.high = torch.tensor([5.])
+    explorer.behavior_map.projector.low = torch.tensor([0.0])
+    explorer.behavior_map.projector.high = torch.tensor([5.0])
     explorer.behavior_map.projector.tensor_shape = torch.Size([1])
     explorer.timestep = 2
     explorer.mutator = add_gaussian_noise_test
@@ -222,30 +270,43 @@ def test_IMGEPExplorer_suggest_trial_behavioral_diffusion_arbitrary_buf():
     """
 
     mean_map = MeanBehaviorMap(premap_key="output")
-    param_map = UniformParameterMap(premap_key="params",
-                                    tensor_low=torch.tensor([0., 0., 0.]),
-                                    tensor_high=torch.tensor([6., 6., 6.]))
-    explorer = IMGEPExplorer(premap_key="output", postmap_key="params",
-                             parameter_map=param_map, behavior_map=mean_map,
-                             equil_time=2)
+    param_map = UniformParameterMap(
+        premap_key="params",
+        tensor_low=torch.tensor([0.0, 0.0, 0.0]),
+        tensor_high=torch.tensor([6.0, 6.0, 6.0]),
+    )
+    explorer = IMGEPExplorer(
+        premap_key="output",
+        postmap_key="params",
+        parameter_map=param_map,
+        behavior_map=mean_map,
+        equil_time=2,
+    )
 
     # mock history
-    mock_discovery_history = \
-        [{"metadata": 1,
-          "params": torch.tensor([0., 1., 2.]),
-          "raw_output": torch.tensor([1., 2., 3.]),
-          "output": torch.tensor([2.])},
-         {"metadata": 1,
-          "params": torch.tensor([3., 4., 5.]),
-          "raw_output": torch.tensor([4., 5., 6.]),
-          "output": torch.tensor([5.])},
-         {"metadata": 1,
-          "params": torch.tensor([-1., -1., -1]),
-          "raw_output": torch.tensor([0., 0., 0.]),
-          "output": torch.tensor([0.])}]
+    mock_discovery_history = [
+        {
+            "metadata": 1,
+            "params": torch.tensor([0.0, 1.0, 2.0]),
+            "raw_output": torch.tensor([1.0, 2.0, 3.0]),
+            "output": torch.tensor([2.0]),
+        },
+        {
+            "metadata": 1,
+            "params": torch.tensor([3.0, 4.0, 5.0]),
+            "raw_output": torch.tensor([4.0, 5.0, 6.0]),
+            "output": torch.tensor([5.0]),
+        },
+        {
+            "metadata": 1,
+            "params": torch.tensor([-1.0, -1.0, -1]),
+            "raw_output": torch.tensor([0.0, 0.0, 0.0]),
+            "output": torch.tensor([0.0]),
+        },
+    ]
     explorer._history_saver.buffer = mock_discovery_history
-    explorer.behavior_map.projector.low = torch.tensor([0.])
-    explorer.behavior_map.projector.high = torch.tensor([5.])
+    explorer.behavior_map.projector.low = torch.tensor([0.0])
+    explorer.behavior_map.projector.high = torch.tensor([5.0])
     explorer.behavior_map.projector.tensor_shape = torch.Size([1])
     explorer.timestep = 2
     explorer.mutator = add_gaussian_noise_test

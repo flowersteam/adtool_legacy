@@ -7,12 +7,16 @@ import torch
 import auto_disc.auto_disc
 import auto_disc.utils.leaf
 from auto_disc.legacy.utils.callbacks.on_discovery_callbacks.save_discovery import (
-    _CustomJSONEncoder, _JSONEncoderFactory)
+    _CustomJSONEncoder,
+    _JSONEncoderFactory,
+)
 from auto_disc.utils.leaf.Leaf import Leaf
 
 
 def test__JSONEncoderFactory():
-    def dummy_cb(x): return x
+    def dummy_cb(x):
+        return x
+
     fac = _JSONEncoderFactory()
     cls = fac(dir_path="dummy_path", custom_callback=dummy_cb)
     assert cls._dir_path == "dummy_path"
@@ -46,8 +50,7 @@ def test__CustomJSONEncoder(mocker):
 
     # catch Leaf objects
     obj = Leaf()
-    mocker.patch("auto_disc.utils.leaf.Leaf.Leaf.save_leaf",
-                 return_value="dummy_uid")
+    mocker.patch("auto_disc.utils.leaf.Leaf.Leaf.save_leaf", return_value="dummy_uid")
     encoded = encoder.default(obj)
     assert encoded == "dummy_uid"
     assert auto_disc.utils.leaf.Leaf.Leaf.save_leaf.call_count == 1

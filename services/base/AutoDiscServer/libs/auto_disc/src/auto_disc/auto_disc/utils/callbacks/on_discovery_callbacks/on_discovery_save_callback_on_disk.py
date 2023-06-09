@@ -1,13 +1,15 @@
-from auto_disc.legacy.utils.callbacks.on_discovery_callbacks import BaseOnDiscoveryCallback
+from auto_disc.legacy.utils.callbacks.on_discovery_callbacks import (
+    BaseOnDiscoveryCallback,
+)
 
 import pickle
 import os
 
 
 class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
-    '''
+    """
     class for save experiment discovery on disk.
-    '''
+    """
 
     def __init__(self, folder_path, to_save_outputs, **kwargs) -> None:
         """
@@ -35,24 +37,33 @@ class OnDiscoverySaveCallbackOnDisk(BaseOnDiscoveryCallback):
             kwargs: run_idx, experiment_id, seed...
         """
         for save_item in self.to_save_outputs:
-            folder = "{}{}/{}/{}".format(self.folder_path,
-                                         kwargs["experiment_id"], kwargs["seed"], save_item)
+            folder = "{}{}/{}/{}".format(
+                self.folder_path, kwargs["experiment_id"], kwargs["seed"], save_item
+            )
             if save_item != "rendered_output":
                 filename = "{}/idx_{}.pickle".format(folder, kwargs["run_idx"])
             else:
                 filename = "{}/idx_{}.{}".format(
-                    folder, kwargs["run_idx"], kwargs["rendered_output"][1])
+                    folder, kwargs["run_idx"], kwargs["rendered_output"][1]
+                )
 
             if not os.path.isdir(folder):
                 os.makedirs(folder)
-            with open(filename, 'wb') as out_file:
+            with open(filename, "wb") as out_file:
                 if save_item != "rendered_output":
                     pickle.dump(kwargs[save_item], out_file)
                 else:
                     out_file.write(kwargs["rendered_output"][0].getbuffer())
-        print("Saved in '{}' discovery {} for experiment {}".format(
-            self.folder_path, kwargs["run_idx"], kwargs["experiment_id"]))
-        folder = "{}{}/{}/".format(self.folder_path,
-                                   kwargs["experiment_id"], kwargs["seed"])
-        self.logger.info("New discovery saved : {} : {} :{}".format(
-            folder, self.to_save_outputs, kwargs["run_idx"]))
+        print(
+            "Saved in '{}' discovery {} for experiment {}".format(
+                self.folder_path, kwargs["run_idx"], kwargs["experiment_id"]
+            )
+        )
+        folder = "{}{}/{}/".format(
+            self.folder_path, kwargs["experiment_id"], kwargs["seed"]
+        )
+        self.logger.info(
+            "New discovery saved : {} : {} :{}".format(
+                folder, self.to_save_outputs, kwargs["run_idx"]
+            )
+        )

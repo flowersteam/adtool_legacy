@@ -14,19 +14,19 @@ class UniformParameterMap(Map):
     distribution over a box.
     """
 
-    def __init__(self,
-                 premap_key: str = "params",
-                 tensor_low: Union[torch.Tensor,
-                                   List[float]] = torch.tensor([0.]),
-                 tensor_high: Union[torch.Tensor,
-                                    List[float]] = torch.tensor([0.]),
-                 tensor_bound_low: Union[torch.Tensor,
-                                         List[float]] = torch.tensor([float('-inf')]),
-                 tensor_bound_high: Union[torch.Tensor,
-                                          List[float]] = torch.tensor([float('inf')]),
-                 override_existing: bool = True,
-                 ):
-
+    def __init__(
+        self,
+        premap_key: str = "params",
+        tensor_low: Union[torch.Tensor, List[float]] = torch.tensor([0.0]),
+        tensor_high: Union[torch.Tensor, List[float]] = torch.tensor([0.0]),
+        tensor_bound_low: Union[torch.Tensor, List[float]] = torch.tensor(
+            [float("-inf")]
+        ),
+        tensor_bound_high: Union[torch.Tensor, List[float]] = torch.tensor(
+            [float("inf")]
+        ),
+        override_existing: bool = True,
+    ):
         # TODO: put indication that tensor_low and high must be set
         super().__init__()
         self.locator = BlobLocator()
@@ -56,16 +56,18 @@ class UniformParameterMap(Map):
             raise ValueError("tensor_low and tensor_high must be same shape.")
         if tensor_bound_low.size() != tensor_bound_high.size():
             raise ValueError(
-                "tensor_bound_low and tensor_bound_high must be same shape.")
+                "tensor_bound_low and tensor_bound_high must be same shape."
+            )
         self.postmap_shape = tensor_low.size()
         # self.history_saver = SaveWrapper()
 
-        self.projector = BoxProjector(premap_key=premap_key,
-                                      init_high=tensor_high,
-                                      init_low=tensor_low,
-                                      bound_lower=tensor_bound_low,
-                                      bound_upper=tensor_bound_high
-                                      )
+        self.projector = BoxProjector(
+            premap_key=premap_key,
+            init_high=tensor_high,
+            init_low=tensor_low,
+            bound_lower=tensor_bound_low,
+            bound_upper=tensor_bound_high,
+        )
 
     def map(self, input: Dict, override_existing: bool = True) -> Dict:
         """
@@ -75,8 +77,9 @@ class UniformParameterMap(Map):
         intermed_dict = deepcopy(input)
 
         # check if either "params" is not set or if we want to override
-        if ((override_existing and self.premap_key in intermed_dict)
-                or (self.premap_key not in intermed_dict)):
+        if (override_existing and self.premap_key in intermed_dict) or (
+            self.premap_key not in intermed_dict
+        ):
             # overrides "params" with new sample
             intermed_dict[self.premap_key] = self.sample()
         else:

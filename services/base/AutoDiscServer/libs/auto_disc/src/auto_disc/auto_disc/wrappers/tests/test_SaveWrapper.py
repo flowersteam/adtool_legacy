@@ -24,8 +24,7 @@ def generate_data():
     # creates two checkpoints, the first with a buffer of length 2,
     # the second with a buffer of length 3
     input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    wrapper = SaveWrapper(premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = input
 
     for i in range(2):
@@ -43,7 +42,8 @@ def generate_data():
 def generate_data_alot():
     input = {"a": 1, "b": 2}
     wrapper = SaveWrapper(
-        premap_keys=["a", "b", "step"], postmap_keys=["b", "a", "step"])
+        premap_keys=["a", "b", "step"], postmap_keys=["b", "a", "step"]
+    )
     output = input
     output["step"] = 0
 
@@ -58,8 +58,9 @@ def generate_data_alot():
 
 def test_SaveWrapper____init__():
     input = {"in": 1}
-    wrapper = SaveWrapper(premap_keys=["in"], postmap_keys=["out"],
-                          inputs_to_save=["in"])
+    wrapper = SaveWrapper(
+        premap_keys=["in"], postmap_keys=["out"], inputs_to_save=["in"]
+    )
     wrapper_def = SaveWrapper(premap_keys=["in"], postmap_keys=["out"])
     assert isinstance(wrapper.locator, LinearLocator)
     assert isinstance(wrapper_def.locator, LinearLocator)
@@ -99,8 +100,7 @@ def test_SaveWrapper__map_minimal():
 
 def test_SaveWrapper__map_complex():
     input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    wrapper = SaveWrapper(premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = wrapper.map(input)
     assert output["a"] == 2
     assert output["b"] == 1
@@ -112,8 +112,7 @@ def test_SaveWrapper__map_complex():
 
 def test_SaveWrapper__serialize():
     input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    wrapper = SaveWrapper(premap_keys=["a", "b"], postmap_keys=["b", "a"])
     output = wrapper.map(input)
     wrapper.map(output)
     bin = wrapper.serialize()
@@ -130,8 +129,7 @@ def test_SaveWrapper__saveload_basic():
     "map" steps of progress)
     """
     input = {"a": 1, "b": 2}
-    wrapper = SaveWrapper(
-        premap_keys=["a", "b"], postmap_keys=["b", "a"])
+    wrapper = SaveWrapper(premap_keys=["a", "b"], postmap_keys=["b", "a"])
 
     output = wrapper.map(input)
     wrapper.map(output)
@@ -176,8 +174,7 @@ def test_SaveWrapper__saveload_whole_history():
 
     def retrieve_func(length):
         new_wrapper = SaveWrapper()
-        wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI,
-                                               length=length)
+        wrapper_loaded = new_wrapper.load_leaf(leaf_uid, RESOURCE_URI, length=length)
         buffer = wrapper_loaded.buffer
         return buffer
 
@@ -328,7 +325,7 @@ def test_SaveWrapper_generate_dataloader(mocker):
     # try retrieval of entire sequence
     dataloader = wrapper.generate_dataloader(RESOURCE_URI, cachebuf_size=2)
     full_history = []
-    for (i, el) in enumerate(dataloader):
+    for i, el in enumerate(dataloader):
         full_history.append(el)
     assert len(full_history) == 20
     assert full_history[0]["step"] == 10
@@ -344,8 +341,7 @@ def test_SaveWrapper_generate_dataloader(mocker):
 
 def test_BufferStreamer___init__():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
     assert streamer.cachebuf_size == 2
     assert streamer.db_url
     assert streamer._i == 10
@@ -353,8 +349,7 @@ def test_BufferStreamer___init__():
 
 def test_BufferStreamer__get_db_name():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
 
     # saving done in generate_data_alot will create a single folder to check
     file_list = os.listdir(RESOURCE_URI)
@@ -365,25 +360,28 @@ def test_BufferStreamer__get_db_name():
 
 def test_BufferStreamer__next_cachebuf():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
 
     # check that the first cachebuf is correct
     cachebuf = streamer._next_cachebuf()
     assert len(cachebuf) == 4
-    assert cachebuf == [{"a": 1, "b": 2, "step": 9},
-                        {"a": 2, "b": 1, "step": 9},
-                        {"a": 1, "b": 2, "step": 10},
-                        {"a": 2, "b": 1, "step": 10}]
+    assert cachebuf == [
+        {"a": 1, "b": 2, "step": 9},
+        {"a": 2, "b": 1, "step": 9},
+        {"a": 1, "b": 2, "step": 10},
+        {"a": 2, "b": 1, "step": 10},
+    ]
     assert streamer._i == 8
 
     # check that the second cachebuf is correct
     cachebuf = streamer._next_cachebuf()
     assert len(cachebuf) == 4
-    assert cachebuf == [{"a": 1, "b": 2, "step": 7},
-                        {"a": 2, "b": 1, "step": 7},
-                        {"a": 1, "b": 2, "step": 8},
-                        {"a": 2, "b": 1, "step": 8}]
+    assert cachebuf == [
+        {"a": 1, "b": 2, "step": 7},
+        {"a": 2, "b": 1, "step": 7},
+        {"a": 1, "b": 2, "step": 8},
+        {"a": 2, "b": 1, "step": 8},
+    ]
     assert streamer._i == 6
 
     # catch the guard
@@ -395,8 +393,7 @@ def test_BufferStreamer__next_cachebuf():
 
 def test_BufferStreamer___next__():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
     assert streamer.__next__() == {"a": 2, "b": 1, "step": 10}
     assert streamer.__next__() == {"a": 1, "b": 2, "step": 10}
     assert streamer.__next__() == {"a": 2, "b": 1, "step": 9}
@@ -407,38 +404,36 @@ def test_BufferStreamer___iter__():
     # broken for now, see #219
     leaf_uid, wrapper = generate_data_alot()
     streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2,
-        mode="batched")
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2, mode="batched"
+    )
     iterable_streamer = streamer.__iter__()
     streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2,
-        mode="serial")
+        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2, mode="serial"
+    )
     assert isinstance(iterable_streamer, BufferStreamer)
     assert iterable_streamer.__next__ == streamer._next_batched
-    assert iterable_streamer.__next__() == [{"a": 2, "b": 1, "step": 10},
-                                            {"a": 1, "b": 2, "step": 10}]
+    assert iterable_streamer.__next__() == [
+        {"a": 2, "b": 1, "step": 10},
+        {"a": 1, "b": 2, "step": 10},
+    ]
 
 
 def test_BufferStreamer_iterating():
     leaf_uid, wrapper = generate_data_alot()
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=2)
     step_array = []
     for output_dict in streamer:
         step_array.append(output_dict["step"])
 
-    assert step_array == [10, 10, 9, 9, 8, 8, 7,
-                          7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
+    assert step_array == [10, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
 
 
 def test_BufferStreamer_iterating_misaligned():
     leaf_uid, wrapper = generate_data_alot()
     # cachebuf size is not a divisor of the total tree depth
-    streamer = BufferStreamer(
-        wrapper, resource_uri=RESOURCE_URI, cachebuf_size=3)
+    streamer = BufferStreamer(wrapper, resource_uri=RESOURCE_URI, cachebuf_size=3)
     step_array = []
     for output_dict in streamer:
         step_array.append(output_dict["step"])
 
-    assert step_array == [10, 10, 9, 9, 8, 8, 7,
-                          7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
+    assert step_array == [10, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1]

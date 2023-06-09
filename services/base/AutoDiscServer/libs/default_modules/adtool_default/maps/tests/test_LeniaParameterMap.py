@@ -7,7 +7,9 @@ import torch
 
 from auto_disc.auto_disc.maps import NEATParameterMap
 from auto_disc.auto_disc.maps.lenia.LeniaParameterMap import (
-    LeniaHyperParameters, LeniaParameterMap)
+    LeniaHyperParameters,
+    LeniaParameterMap,
+)
 from adtool_default.systems.Lenia import LeniaDynamicalParameters
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 
@@ -41,18 +43,21 @@ def test_LeniaParamaterMap___init__():
         map = LeniaParameterMap(param_obj=CONFIG, neat_config_path="test")
         assert "No such config" in ex
     map = LeniaParameterMap(
-        param_obj=CONFIG, neat_config_path=CONFIG_PATH, cppn_n_passes=3)
+        param_obj=CONFIG, neat_config_path=CONFIG_PATH, cppn_n_passes=3
+    )
     assert map.cppn_n_passes == 3
 
     # initialize with neat_config_path
     map = LeniaParameterMap(
-        param_obj=CONFIG, neat_config_path=CONFIG_PATH, init_state_dim=(3, 3))
+        param_obj=CONFIG, neat_config_path=CONFIG_PATH, init_state_dim=(3, 3)
+    )
     assert map.SX == 3
     assert map.SY == 3
 
     # initialize with neat_config_str
     map = LeniaParameterMap(
-        param_obj=CONFIG, neat_config_str=CONFIG_STR, init_state_dim=(3, 3))
+        param_obj=CONFIG, neat_config_str=CONFIG_STR, init_state_dim=(3, 3)
+    )
 
 
 def test_LeniaParameterMap_map():
@@ -79,12 +84,11 @@ def test_LeniaParameterMap_mutate():
     # NOTE: not deterministic
     map = LeniaParameterMap(param_obj=CONFIG, neat_config_path=CONFIG_PATH)
     params_dict = map.sample()
-    orig_dyn_p = LeniaDynamicalParameters(
-        **params_dict["dynamic_params"]
-    ).to_tensor()
+    orig_dyn_p = LeniaDynamicalParameters(**params_dict["dynamic_params"]).to_tensor()
     genome = params_dict["genome"]
-    orig_init_state = map._cppn_map_genome(
-        genome, map.neat.neat_config).detach().clone()
+    orig_init_state = (
+        map._cppn_map_genome(genome, map.neat.neat_config).detach().clone()
+    )
 
     # mutation
     params_dict = map.mutate(params_dict)
@@ -93,9 +97,7 @@ def test_LeniaParameterMap_mutate():
     assert "dynamic_params" in params_dict
 
     # check that the dynamic params have been mutated
-    new_dyn_p = LeniaDynamicalParameters(
-        **params_dict["dynamic_params"]
-    ).to_tensor()
+    new_dyn_p = LeniaDynamicalParameters(**params_dict["dynamic_params"]).to_tensor()
     assert not torch.allclose(orig_dyn_p, new_dyn_p)
 
     # check that the genome has been mutated, leading to a new init_state

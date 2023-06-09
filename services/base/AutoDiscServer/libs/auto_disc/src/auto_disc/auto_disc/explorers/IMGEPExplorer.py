@@ -5,12 +5,11 @@ from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
 from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
 from adtool_default.maps.UniformParameterMap import UniformParameterMap
 from adtool_default.maps.LeniaParameterMap import LeniaParameterMap
-from auto_disc.auto_disc.wrappers.mutators import (add_gaussian_noise,
-                                                   call_mutate_method)
+from auto_disc.auto_disc.wrappers.mutators import add_gaussian_noise, call_mutate_method
 from auto_disc.legacy.utils.config_parameters import (
     IntegerConfigParameter,
     StringConfigParameter,
-    DictConfigParameter
+    DictConfigParameter,
 )
 from adtool_default.maps.LeniaStatistics import LeniaStatistics
 from typing import Dict, List, Any
@@ -19,22 +18,24 @@ from functools import partial
 
 
 @IntegerConfigParameter("equil_time", default=1, min=1)
-@StringConfigParameter("behavior_map",
-                       possible_values=["Mean", "LeniaStatistics"],
-                       default="Mean")
+@StringConfigParameter(
+    "behavior_map", possible_values=["Mean", "LeniaStatistics"], default="Mean"
+)
 @DictConfigParameter("behavior_map_config", default={})
-@StringConfigParameter("parameter_map",
-                       possible_values=["Uniform", "LeniaParameterMap"],
-                       default="Uniform")
+@StringConfigParameter(
+    "parameter_map", possible_values=["Uniform", "LeniaParameterMap"], default="Uniform"
+)
 @DictConfigParameter("parameter_map_config", default={})
-@StringConfigParameter("mutator", possible_values=["gaussian", "specific"],
-                       default="specific")
+@StringConfigParameter(
+    "mutator", possible_values=["gaussian", "specific"], default="specific"
+)
 @DictConfigParameter("mutator_config", default={})
 class IMGEPFactory:
     """
     Factory class providing interface with config parameters and therefore the
     frontend
     """
+
     CONFIG_DEFINITION = {}
 
     # create specification for discovery attributes
@@ -50,10 +51,12 @@ class IMGEPFactory:
         param_map = self.make_parameter_map()
         mutator = self.make_mutator(param_map)
         equil_time = self.config["equil_time"]
-        explorer = IMGEPExplorer(parameter_map=param_map,
-                                 behavior_map=behavior_map,
-                                 equil_time=equil_time,
-                                 mutator=mutator)
+        explorer = IMGEPExplorer(
+            parameter_map=param_map,
+            behavior_map=behavior_map,
+            equil_time=equil_time,
+            mutator=mutator,
+        )
 
         return explorer
 
@@ -85,11 +88,11 @@ class IMGEPFactory:
 
     def make_mutator(self, param_map: Any = None):
         if self.config["mutator"] == "specific":
-            mutator = partial(call_mutate_method,
-                              param_map=param_map)
+            mutator = partial(call_mutate_method, param_map=param_map)
         elif self.config["mutator"] == "gaussian":
-            mutator = partial(add_gaussian_noise,
-                              std=self.config["mutator_config"]["std"])
+            mutator = partial(
+                add_gaussian_noise, std=self.config["mutator_config"]["std"]
+            )
         else:
             mutator = torch.nn.Identity()
 
@@ -97,19 +100,22 @@ class IMGEPFactory:
 
 
 class IMGEPExplorer(Leaf):
-    """ Basic IMGEP that diffuses in goalspace.
+    """Basic IMGEP that diffuses in goalspace.
 
     A class instance of `IMGEPExplorer` has access to a provided
     `parameter_map`, `behavior_map`, and `mutator` as attributes, whereas it
     receives data from the system under study through the `.map` method.
     """
-    def __init__(self,
-                 premap_key: str = "output",
-                 postmap_key: str = "params",
-                 parameter_map: Leaf = IdentityWrapper(),
-                 behavior_map: Leaf = IdentityWrapper(),
-                 mutator: Leaf = torch.nn.Identity(),
-                 equil_time: int = 0) -> None:
+
+    def __init__(
+        self,
+        premap_key: str = "output",
+        postmap_key: str = "params",
+        parameter_map: Leaf = IdentityWrapper(),
+        behavior_map: Leaf = IdentityWrapper(),
+        mutator: Leaf = torch.nn.Identity(),
+        equil_time: int = 0,
+    ) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
@@ -124,8 +130,7 @@ class IMGEPExplorer(Leaf):
         self._history_saver = SaveWrapper()
 
     def bootstrap(self) -> Dict:
-        """Returns an initial sample needed to bootstrap the exploration loop.
-        """
+        """Returns an initial sample needed to bootstrap the exploration loop."""
         data_dict = {}
         # initialize sample
         params_init = self.parameter_map.sample()
@@ -161,8 +166,9 @@ class IMGEPExplorer(Leaf):
         # TODO: check gradients here
         if self.timestep < self.equil_time:
             # sets "params" key
-            trial_data_reset = self.parameter_map.map(trial_data_reset,
-                                                      override_existing=True)
+            trial_data_reset = self.parameter_map.map(
+                trial_data_reset, override_existing=True
+            )
 
             # label which trials were from random initialization
             trial_data_reset["equil"] = 1
@@ -175,8 +181,9 @@ class IMGEPExplorer(Leaf):
             # the "params" data, but only so that parameter_map can update
             # its own state from reading the new parameters
             trial_data_reset[self.postmap_key] = params_trial
-            trial_data_reset = self.parameter_map.map(trial_data_reset,
-                                                      override_existing=False)
+            trial_data_reset = self.parameter_map.map(
+                trial_data_reset, override_existing=False
+            )
 
             # label that trials are now from the usual IMGEP procedure
             trial_data_reset["equil"] = 0
@@ -230,18 +237,14 @@ class IMGEPExplorer(Leaf):
         return system_output
 
     def read_last_discovery(self) -> Dict:
-        """Return last observed discovery.
-        """
+        """Return last observed discovery."""
         return self._history_saver.buffer[-1]
 
     def optimize(self):
-        """Run optimization step for online learning of the `Explorer` policy.
-        """
+        """Run optimization step for online learning of the `Explorer` policy."""
         pass
 
-    def _extract_dict_history(self,
-                              dict_history: List[Dict],
-                              key: str) -> List[Dict]:
+    def _extract_dict_history(self, dict_history: List[Dict], key: str) -> List[Dict]:
         """Extract history from an array of dicts with labelled data,
         with the desired subdict being labelled by key.
         """
@@ -250,37 +253,32 @@ class IMGEPExplorer(Leaf):
             key_history.append(dict[key])
         return key_history
 
-    def _extract_tensor_history(self,
-                                dict_history: List[Dict],
-                                key: str) -> torch.Tensor:
+    def _extract_tensor_history(
+        self, dict_history: List[Dict], key: str
+    ) -> torch.Tensor:
         """Extract tensor history from an array of dicts with labelled data,
         with the tensor being labelled by key.
         """
         # append history of tensors along a new dimension at index 0
-        tensor_history = \
-            dict_history[0][key].unsqueeze(0)
+        tensor_history = dict_history[0][key].unsqueeze(0)
         for dict in dict_history[1:]:
-            tensor_history = torch.cat(
-                (tensor_history, dict[key].unsqueeze(0)), dim=0)
+            tensor_history = torch.cat((tensor_history, dict[key].unsqueeze(0)), dim=0)
 
         return tensor_history
 
     def _find_closest(self, goal: torch.Tensor, goal_history: torch.Tensor):
         # TODO: simple L2 distance right now
-        return torch.argmin((goal_history-goal).pow(2).sum(-1))
+        return torch.argmin((goal_history - goal).pow(2).sum(-1))
 
-    def _vector_search_for_goal(self, goal: torch.Tensor,
-                                lookback_length: int) -> Dict:
-
+    def _vector_search_for_goal(self, goal: torch.Tensor, lookback_length: int) -> Dict:
         history_buffer = self._history_saver.get_history(
-            lookback_length=lookback_length)
+            lookback_length=lookback_length
+        )
 
-        goal_history = self._extract_tensor_history(history_buffer,
-                                                    self.premap_key)
+        goal_history = self._extract_tensor_history(history_buffer, self.premap_key)
         source_policy_idx = self._find_closest(goal, goal_history)
 
-        param_history = self._extract_dict_history(history_buffer,
-                                                   self.postmap_key)
+        param_history = self._extract_dict_history(history_buffer, self.postmap_key)
         source_policy = param_history[source_policy_idx]
 
         return source_policy

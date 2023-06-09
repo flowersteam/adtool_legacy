@@ -3,7 +3,9 @@ import os
 import json
 from datetime import datetime
 from uuid import uuid1
-from auto_disc.legacy.utils.callbacks.on_save_callbacks.save_leaf_callback import SaveLeaf
+from auto_disc.legacy.utils.callbacks.on_save_callbacks.save_leaf_callback import (
+    SaveLeaf,
+)
 
 
 class SaveLeafExpeDB(SaveLeaf):
@@ -14,7 +16,9 @@ class SaveLeafExpeDB(SaveLeaf):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def __call__(self, experiment_id: int, seed: int, module_to_save: Leaf, resource_uri: str) -> None:
+    def __call__(
+        self, experiment_id: int, seed: int, module_to_save: Leaf, resource_uri: str
+    ) -> None:
         # add ExpeDB entry point
         resource_uri = resource_uri + "/checkpoint_saves"
         return super().__call__(experiment_id, seed, module_to_save, resource_uri)

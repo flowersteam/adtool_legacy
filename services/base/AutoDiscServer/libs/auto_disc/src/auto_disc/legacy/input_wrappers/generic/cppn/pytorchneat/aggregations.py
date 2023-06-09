@@ -10,6 +10,6 @@ def product_aggregation(inputs):
 
 
 str_to_aggregation = {
-    'sum': sum_aggregation,
-    'product': product_aggregation,
+    "sum": sum_aggregation,
+    "product": product_aggregation,
 }

@@ -9,9 +9,9 @@ import os
 
 
 class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
-    '''
+    """
     class for save autodisc modules on disk.
-    '''
+    """
 
     def __init__(self, folder_path: str, **kwargs) -> None:
         """
@@ -31,8 +31,13 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
             kwargs: run_idx, experiment_id, seed, system, input_wrappers...
         """
         # TODO convert to_save_modules --> self.to_save_modules (like on_discovery_*_callback)
-        to_save_modules = ["system", "explorer", "input_wrappers",
-                           "output_representations", "in_memory_db"]
+        to_save_modules = [
+            "system",
+            "explorer",
+            "input_wrappers",
+            "output_representations",
+            "in_memory_db",
+        ]
 
         for save_module in to_save_modules:
             if isinstance(kwargs[save_module], list):
@@ -42,17 +47,22 @@ class OnSaveModulesOnDiskCallback(BaseOnSaveCallback):
             else:
                 to_pickle = kwargs[save_module].save()
 
-            folder = "{}{}/{}/{}".format(self.folder_path,
-                                         kwargs["experiment_id"], kwargs["seed"], save_module)
+            folder = "{}{}/{}/{}".format(
+                self.folder_path, kwargs["experiment_id"], kwargs["seed"], save_module
+            )
             filename = "{}/idx_{}.pickle".format(folder, kwargs["run_idx"])
 
             if not os.path.isdir(folder):
                 print(folder)
                 os.makedirs(folder)
-            with open(filename, 'wb') as out_file:
+            with open(filename, "wb") as out_file:
                 pickle.dump(to_pickle, out_file)
 
-        folder = "{}{}/{}/".format(self.folder_path,
-                                   kwargs["experiment_id"], kwargs["seed"])
-        self.logger.info("New modules saved : {} : {} :{}".format(
-            folder, to_save_modules, kwargs["run_idx"]))
+        folder = "{}{}/{}/".format(
+            self.folder_path, kwargs["experiment_id"], kwargs["seed"]
+        )
+        self.logger.info(
+            "New modules saved : {} : {} :{}".format(
+                folder, to_save_modules, kwargs["run_idx"]
+            )
+        )

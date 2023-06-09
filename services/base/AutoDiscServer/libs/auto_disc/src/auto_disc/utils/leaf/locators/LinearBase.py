@@ -17,10 +17,7 @@ def store_metadata(subdir: str, data_bin: bytes) -> None:
     return
 
 
-def store_data(subdir: str,
-               data_bin: bytes,
-               parent_id: int
-               ) -> str:
+def store_data(subdir: str, data_bin: bytes, parent_id: int) -> str:
     """
     Store the unpadded binary data (i.e., without tag).
     """
@@ -37,20 +34,18 @@ def store_data(subdir: str,
 
 
 def init_db(db_url: str) -> None:
-    create_traj_statement = \
-        '''
+    create_traj_statement = """
     CREATE TABLE trajectories (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         content BLOB NOT NULL
         );
-        '''
-    create_tree_statement = \
-        '''
+        """
+    create_tree_statement = """
     CREATE TABLE tree (
         id INTEGER NOT NULL REFERENCES trajectories(id),
         child_id INTEGER REFERENCES trajectories(id)
         );
-        '''
+        """
     if os.path.exists(db_url):
         return
     else:
@@ -64,7 +59,7 @@ def init_db(db_url: str) -> None:
 def convert_bytes_to_base64_str(bin: bytes) -> str:
     tmp = codecs.encode(bin, encoding="base64").decode()
     # prune newline
-    if tmp[-1] == '\n':
+    if tmp[-1] == "\n":
         out_str = tmp[:-1]
     return out_str
 
@@ -76,8 +71,8 @@ def convert_base64_str_to_bytes(b64_str: str) -> bytes:
 def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
     with engine.begin() as conn:
         conn.execute(
-            text("INSERT INTO trajectories (content) VALUES (:z)"),
-            {"z": delta})
+            text("INSERT INTO trajectories (content) VALUES (:z)"), {"z": delta}
+        )
 
         # SQLite exclusive function call to get ID of just inserted row
         res = conn.execute(text("SELECT last_insert_rowid()"))
@@ -86,7 +81,8 @@ def insert_node(engine: Engine, delta: str, parent_id: int = -1) -> int:
         if parent_id != -1:
             conn.execute(
                 text("INSERT INTO tree (id, child_id) VALUES (:y, :z)"),
-                {"y": parent_id, "z": id})
+                {"y": parent_id, "z": id},
+            )
     return id
 
 
@@ -108,7 +104,7 @@ def retrieve_trajectory(db_url: str, row_id: int = 1, length: int = 1) -> bytes:
 
 
 def retrieve_packed_trajectory(
-        db_url: str, row_id: int = 1, length: int = 1
+    db_url: str, row_id: int = 1, length: int = 1
 ) -> Tuple[List[int], List[bytes], List[int]]:
     """
     Simple wrapper which retrieves the raw packed trajectory data
@@ -119,8 +115,9 @@ def retrieve_packed_trajectory(
     return ids, packed_traj, depths
 
 
-def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
-                        ) -> Tuple[List[int], List[bytes], List[int]]:
+def _get_trajectory_raw(
+    engine, id: int, trajectory_length: int = 1
+) -> Tuple[List[int], List[bytes], List[int]]:
     """
     Retrieves trajectory of packed binaries along with DB metadata
     which has HEAD at id and returns the last trajectory_length elements.
@@ -128,8 +125,7 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
 
     # some ugly casework because I don't know SQLAlchemy
     # but also it's more efficient to do it DB-side and not ORM-side
-    query_depth_limited = \
-        '''
+    query_depth_limited = """
         WITH tree_inheritance AS (
                 WITH RECURSIVE cte (id, child_id, depth) AS (
                     SELECT :z, NULL, 0
@@ -153,10 +149,9 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                 tree_inheritance AS x INNER JOIN trajectories AS y
                     ON x.id = y.id
             ORDER BY depth DESC
-        '''
+        """
     # same as above, but remove the subquery which limits depth
-    query_unlimited = \
-        '''
+    query_unlimited = """
         WITH tree_inheritance AS (
                 WITH RECURSIVE cte (id, child_id, depth) AS (
                     SELECT :z, NULL, 0
@@ -174,10 +169,9 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                 tree_inheritance AS x INNER JOIN trajectories AS y
                     ON x.id = y.id
             ORDER BY depth DESC
-        '''
+        """
     # same as above, but don't do the inductive step
-    query_singleton = \
-        '''
+    query_singleton = """
         WITH tree_inheritance AS (
                 WITH cte (id, child_id, depth) AS (
                     SELECT :z, NULL, 0
@@ -189,7 +183,7 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
                 tree_inheritance AS x INNER JOIN trajectories AS y
                     ON x.id = y.id
             ORDER BY depth DESC
-        '''
+        """
     with engine.connect() as conn:
         if trajectory_length == 0:
             return [], [], []
@@ -206,8 +200,7 @@ def _get_trajectory_raw(engine, id: int, trajectory_length: int = 1
         # persist the result into Python list
         result = result.all()
         ids: List[int] = [w for (w, _, _) in result]
-        trajectory = [convert_base64_str_to_bytes(
-            w) for (_, w, _) in result]
+        trajectory = [convert_base64_str_to_bytes(w) for (_, w, _) in result]
         depths: List[int] = [w for (_, _, w) in result]
 
     return ids, trajectory, depths
@@ -244,11 +237,11 @@ class FileLinearLocator(Locator):
         self.resource_uri = resource_uri
         self.parent_id = -1
 
-    def store(self, bin: bytes, parent_id: int = -1) -> 'LeafUID':
+    def store(self, bin: bytes, parent_id: int = -1) -> "LeafUID":
         """
         Stores the bin as a child node of the node given by parent_id.
         #### Returns:
-        - leaf_uid (LeafUID): formatted path indicating the DB UID and the 
+        - leaf_uid (LeafUID): formatted path indicating the DB UID and the
                               SQLite unique key corresponding
                               to the inserted node
         """
@@ -269,9 +262,7 @@ class FileLinearLocator(Locator):
         store_metadata(subdir=subdir, data_bin=data_bin)
 
         # store data binary
-        row_id = store_data(subdir=subdir,
-                            data_bin=data_bin,
-                            parent_id=parent_id)
+        row_id = store_data(subdir=subdir, data_bin=data_bin, parent_id=parent_id)
         # update parent_uid in instance
         self.parent_id = int(row_id)
 
@@ -280,7 +271,7 @@ class FileLinearLocator(Locator):
 
         return leaf_uid
 
-    def retrieve(self, uid: 'LeafUID', length: int = 1) -> bytes:
+    def retrieve(self, uid: "LeafUID", length: int = 1) -> bytes:
         """
         Retrieve trajectory of given length of saved data starting from
         the leaf node given by uid, then traversing backwards towards the root.
@@ -299,9 +290,7 @@ class FileLinearLocator(Locator):
             raise ValueError("leaf_uid is not properly formatted.")
 
         db_url = self._db_name_to_db_url(db_name)
-        bin = retrieve_trajectory(db_url=db_url,
-                                  row_id=self.parent_id,
-                                  length=length)
+        bin = retrieve_trajectory(db_url=db_url, row_id=self.parent_id, length=length)
 
         return bin
 
@@ -322,8 +311,8 @@ class FileLinearLocator(Locator):
         return db_name, int(node_id)
 
     @staticmethod
-    def hash(bin: bytes) -> 'LeafUID':
-        """ LinearLocator must use SHA1 hashes """
+    def hash(bin: bytes) -> "LeafUID":
+        """LinearLocator must use SHA1 hashes"""
         return LeafUID(sha1(bin).hexdigest())
 
     @event.listens_for(Engine, "connect")
@@ -338,9 +327,7 @@ class _EngineContext:
         self.db_url = db_url
 
     def __enter__(self):
-        self.engine = create_engine(
-            f"sqlite+pysqlite:///{self.db_url}", echo=True
-        )
+        self.engine = create_engine(f"sqlite+pysqlite:///{self.db_url}", echo=True)
         return self.engine
 
     def __exit__(self, *args):

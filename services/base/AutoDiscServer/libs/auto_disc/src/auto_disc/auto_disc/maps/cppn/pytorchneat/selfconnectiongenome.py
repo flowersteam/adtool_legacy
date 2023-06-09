@@ -8,26 +8,27 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
     """
     Class for connection weight attributes. Is introduced to allow a differentiation between self connections of a node and connections to other nodes.
     """
-    _config_items = {"other_init_mean": [float, None],
-                     "other_init_stdev": [float, None],
-                     "other_init_type": [str, 'gaussian'],
-                     "other_replace_rate": [float, None],
-                     "other_mutate_rate": [float, None],
-                     "other_mutate_power": [float, None],
-                     "other_max_value": [float, None],
-                     "other_min_value": [float, None],
-                     "self_init_mean": [float, None],
-                     "self_init_stdev": [float, None],
-                     "self_init_type": [str, 'gaussian'],
-                     "self_replace_rate": [float, None],
-                     "self_mutate_rate": [float, None],
-                     "self_mutate_power": [float, None],
-                     "self_max_value": [float, None],
-                     "self_min_value": [float, None]
-                     }
+
+    _config_items = {
+        "other_init_mean": [float, None],
+        "other_init_stdev": [float, None],
+        "other_init_type": [str, "gaussian"],
+        "other_replace_rate": [float, None],
+        "other_mutate_rate": [float, None],
+        "other_mutate_power": [float, None],
+        "other_max_value": [float, None],
+        "other_min_value": [float, None],
+        "self_init_mean": [float, None],
+        "self_init_stdev": [float, None],
+        "self_init_type": [str, "gaussian"],
+        "self_replace_rate": [float, None],
+        "self_mutate_rate": [float, None],
+        "self_mutate_power": [float, None],
+        "self_max_value": [float, None],
+        "self_min_value": [float, None],
+    }
 
     def clamp(self, value, is_other_connect, config):
-
         if is_other_connect:
             min_value = getattr(config, self.other_min_value_name)
             max_value = getattr(config, self.other_max_value_name)
@@ -38,7 +39,6 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
         return max(min(value, max_value), min_value)
 
     def init_value(self, is_other_connect, config):
-
         if is_other_connect:
             mean = getattr(config, self.other_init_mean_name)
             stdev = getattr(config, self.other_init_stdev_name)
@@ -48,11 +48,10 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
             stdev = getattr(config, self.self_init_stdev_name)
             init_type = getattr(config, self.self_init_type_name).lower()
 
-        if ('gauss' in init_type) or ('normal' in init_type):
+        if ("gauss" in init_type) or ("normal" in init_type):
             return self.clamp(gauss(mean, stdev), is_other_connect, config)
 
-        if 'uniform' in init_type:
-
+        if "uniform" in init_type:
             if is_other_connect:
                 min_value = getattr(config, self.other_min_value_name)
                 max_value = getattr(config, self.other_max_value_name)
@@ -78,13 +77,14 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
         r = random()
         if r < mutate_rate:
-
             if is_other_connect:
                 mutate_power = getattr(config, self.other_mutate_power_name)
             else:
                 mutate_power = getattr(config, self.self_mutate_power_name)
 
-            return self.clamp(value + gauss(0.0, mutate_power), is_other_connect, config)
+            return self.clamp(
+                value + gauss(0.0, mutate_power), is_other_connect, config
+            )
 
         if is_other_connect:
             replace_rate = getattr(config, self.other_replace_rate_name)
@@ -101,12 +101,15 @@ class ConnectionWeightAttribute(neat.attributes.BaseAttribute):
 
 
 class SelfConnectionGene(neat.genes.BaseGene):
-    _gene_attributes = [ConnectionWeightAttribute('weight'),
-                        neat.attributes.BoolAttribute('enabled')]
+    _gene_attributes = [
+        ConnectionWeightAttribute("weight"),
+        neat.attributes.BoolAttribute("enabled"),
+    ]
 
     def __init__(self, key):
         assert isinstance(
-            key, tuple), "SelfConnectionGene key must be a tuple, not {!r}".format(key)
+            key, tuple
+        ), "SelfConnectionGene key must be a tuple, not {!r}".format(key)
         neat.genes.BaseGene.__init__(self, key)
 
     def distance(self, other, config):
@@ -129,7 +132,6 @@ class SelfConnectionGene(neat.genes.BaseGene):
 
     def mutate(self, config):
         for a in self._gene_attributes:
-
             old_val = getattr(self, a.name)
 
             if isinstance(a, ConnectionWeightAttribute):
@@ -170,6 +172,6 @@ class SelfConnectionGenome(neat.genome.DefaultGenome):
 
     @classmethod
     def parse_config(cls, param_dict):
-        param_dict['node_gene_type'] = neat.genes.DefaultNodeGene
-        param_dict['connection_gene_type'] = SelfConnectionGene
+        param_dict["node_gene_type"] = neat.genes.DefaultNodeGene
+        param_dict["connection_gene_type"] = SelfConnectionGene
         return neat.genome.DefaultGenomeConfig(param_dict)

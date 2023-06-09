@@ -6,34 +6,44 @@ from auto_disc.legacy.utils.callbacks.interact_callbacks import BaseInteractCall
 
 
 class ReadDiskInteractCallback(BaseInteractCallback):
-    '''
+    """
     Base class for cancelled callbacks used by the experiment pipelines when the experiment was cancelled.
-    '''
+    """
 
     def __init__(self, **kwargs) -> None:
         """
-            initialize attributes common to all cancelled callbacks
+        initialize attributes common to all cancelled callbacks
 
-            Args:
-                kwargs: some usefull args (e.g. experiment_id...)
+        Args:
+            kwargs: some usefull args (e.g. experiment_id...)
         """
         super().__init__(**kwargs)
         self.folder_path = kwargs["folder_path"]
 
     def __call__(self, filter_attribut=None, **kwargs) -> None:
         """
-            The function to call to effectively raise cancelled callback.
-            Inform the user that the experience is in canceled status
-            Args:
-                experiment_id: current experiment id
-                seed: current seed number
-                kwargs: somme usefull parameters
+        The function to call to effectively raise cancelled callback.
+        Inform the user that the experience is in canceled status
+        Args:
+            experiment_id: current experiment id
+            seed: current seed number
+            kwargs: somme usefull parameters
         """
         self.logger.info("start read data files")
         data_path = "{}{}/{}/{}/idx_{}.pickle".format(
-            self.folder_path, filter_attribut["experiment_id"], filter_attribut["seed"], "data", filter_attribut["idx"])
+            self.folder_path,
+            filter_attribut["experiment_id"],
+            filter_attribut["seed"],
+            "data",
+            filter_attribut["idx"],
+        )
         dict_info_path = "{}{}/{}/{}/idx_{}.pickle".format(
-            self.folder_path, filter_attribut["experiment_id"], filter_attribut["seed"], "dict_info", filter_attribut["idx"])
+            self.folder_path,
+            filter_attribut["experiment_id"],
+            filter_attribut["seed"],
+            "dict_info",
+            filter_attribut["idx"],
+        )
         self.logger.info(data_path)
         self.logger.info(dict_info_path)
         timer = 1

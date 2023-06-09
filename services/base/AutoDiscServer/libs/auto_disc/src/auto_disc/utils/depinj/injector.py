@@ -1,5 +1,5 @@
 def inject(instance, function, overwrite: bool = True) -> None:
-    """ Runtime method overrider """
+    """Runtime method overrider"""
 
     # check if should overwrite method
     if getattr(instance, function.__name__, None) and (not overwrite):
@@ -7,7 +7,8 @@ def inject(instance, function, overwrite: bool = True) -> None:
             f"""Object {instance.__name__} 
                 already has method {function.__name__}.
                 Pass overwrite=True in order to 
-                overwrite existing methods.""")
+                overwrite existing methods."""
+        )
 
     # need __get__ here to bound the method from the class to the right object
     setattr(instance, function.__name__, function.__get__(instance))
@@ -16,7 +17,7 @@ def inject(instance, function, overwrite: bool = True) -> None:
 
 
 def inject_callbacks(cls, callbacks=[], overwrite=True):
-    """ Runtime dependency injector, takes a class and an array of callables """
+    """Runtime dependency injector, takes a class and an array of callables"""
 
     def raise_callbacks(self, *args, **kwargs):
         for f in callbacks:

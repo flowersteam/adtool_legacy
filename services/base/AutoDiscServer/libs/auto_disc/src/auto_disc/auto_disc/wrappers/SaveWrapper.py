@@ -1,9 +1,11 @@
 from copy import deepcopy
 from typing import Dict, List, Iterable
 from auto_disc.utils.leaf.Leaf import Leaf, Locator, LeafUID
-from auto_disc.utils.leaf.locators.LinearBase import (Stepper,
-                                                      retrieve_packed_trajectory,
-                                                      retrieve_trajectory)
+from auto_disc.utils.leaf.locators.LinearBase import (
+    Stepper,
+    retrieve_packed_trajectory,
+    retrieve_trajectory,
+)
 from auto_disc.utils.leaf.locators.locators import LinearLocator
 from auto_disc.auto_disc.wrappers.TransformWrapper import TransformWrapper
 import os
@@ -17,20 +19,20 @@ class SaveWrapper(TransformWrapper):
         ```
             input = {"in" : 1}
             # default setting saves all specified `premap_keys`
-            wrapper = SaveWrapper(premap_keys = ["in"], 
+            wrapper = SaveWrapper(premap_keys = ["in"],
                                   postmap_keys = ["out"])
             output = wrapper.map(input)
             assert output["out"] == 1
         ```
     """
 
-    def __init__(self,
-                 premap_keys: List[str] = [],
-                 postmap_keys: List[str] = [],
-                 inputs_to_save: List[str] = [],
-                 ) -> None:
-        super().__init__(premap_keys=premap_keys,
-                         postmap_keys=postmap_keys)
+    def __init__(
+        self,
+        premap_keys: List[str] = [],
+        postmap_keys: List[str] = [],
+        inputs_to_save: List[str] = [],
+    ) -> None:
+        super().__init__(premap_keys=premap_keys, postmap_keys=postmap_keys)
 
         # resource_uri should be defined when SaveWrapper is bound to a
         # container, or manually initialized
@@ -64,7 +66,7 @@ class SaveWrapper(TransformWrapper):
 
         return output
 
-    def save_leaf(self, resource_uri: str, parent_uid: int = -1) -> 'LeafUID':
+    def save_leaf(self, resource_uri: str, parent_uid: int = -1) -> "LeafUID":
         # parent_uid is passed for specifying the parent node,
         # when passed to LinearLocator.store() by super().save_leaf()
         uid = super().save_leaf(resource_uri, parent_uid)
@@ -85,14 +87,10 @@ class SaveWrapper(TransformWrapper):
         del self.buffer
 
         # create metadata hash which defines the name of the SQLite db
-        metadata_bytehash = bytes.fromhex(
-            self.locator.hash(super().serialize())
-        )
+        metadata_bytehash = bytes.fromhex(self.locator.hash(super().serialize()))
 
         # pad to create output_bin
-        output_bin = metadata_bytehash \
-            + bytes.fromhex("deadbeef") \
-            + data_bin
+        output_bin = metadata_bytehash + bytes.fromhex("deadbeef") + data_bin
 
         # restore buffer
         self.buffer = old_buffer
@@ -117,12 +115,14 @@ class SaveWrapper(TransformWrapper):
                 retrieval_length = lookback_length
 
             try:
-                retrieved_buffer = self\
-                    ._retrieve_buffer(self.locator.resource_uri,
-                                      retrieval_length)
+                retrieved_buffer = self._retrieve_buffer(
+                    self.locator.resource_uri, retrieval_length
+                )
             except Exception as e:
-                if ("unable to open database file" in str(e) and
-                        self.locator.resource_uri != ""):
+                if (
+                    "unable to open database file" in str(e)
+                    and self.locator.resource_uri != ""
+                ):
                     # in this branch we assume that if the resource_uri is
                     # set and the db is not found, then the db has not been
                     # created yet, and the entire history is in memory,
@@ -170,13 +170,15 @@ class SaveWrapper(TransformWrapper):
 
         return stepper.buffer
 
-    def generate_dataloader(self, buffer_src_uri: str, cachebuf_size: int = 1
-                            ) -> Iterable[Dict]:
+    def generate_dataloader(
+        self, buffer_src_uri: str, cachebuf_size: int = 1
+    ) -> Iterable[Dict]:
         """
         Query SQLite DB to retrieve an iterable which lazy loads the DB tree.
         """
-        return BufferStreamer(wrapper=self, resource_uri=buffer_src_uri,
-                              cachebuf_size=cachebuf_size)
+        return BufferStreamer(
+            wrapper=self, resource_uri=buffer_src_uri, cachebuf_size=cachebuf_size
+        )
 
     def _store_saved_inputs_in_buffer(self, intermed_dict: Dict) -> None:
         saved_input = {}
@@ -212,11 +214,13 @@ class BufferStreamer:
 
     """
 
-    def __init__(self, wrapper: SaveWrapper,
-                 resource_uri: str,
-                 cachebuf_size: int = 1,
-                 mode: str = "serial") -> None:
-
+    def __init__(
+        self,
+        wrapper: SaveWrapper,
+        resource_uri: str,
+        cachebuf_size: int = 1,
+        mode: str = "serial",
+    ) -> None:
         self.cachebuf_size = cachebuf_size
         self.mode = mode
 
@@ -281,7 +285,8 @@ class BufferStreamer:
         """
         # retrieve next cachebuf and one extra to set _i
         ids, packed_trajectory, _ = retrieve_packed_trajectory(
-            self.db_url, self._i, self.cachebuf_size + 1)
+            self.db_url, self._i, self.cachebuf_size + 1
+        )
 
         # set to the next id to be retrieved
         self._i = ids[0]

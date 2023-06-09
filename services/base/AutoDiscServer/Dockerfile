@@ -1,8 +1,27 @@
-FROM --platform=linux/amd64 python:3.9.16-slim as library
+FROM --platform=linux/amd64 nvidia/cuda:12.1.1-base-ubuntu20.04 as library
 
-# install poetry build tool
-RUN pip install 'poetry==1.5.1'
-RUN poetry config virtualenvs.create false
+# install pip and virtualenv for the system python environment (python3.8)
+ENV DEBIAN_FRONTEND="noninteractive"
+# TODO: load tz dynamically
+# also fixes the issue #210
+ENV TZ="Etc/UTC"
+RUN apt-get update -y
+RUN apt-get install -y python3-pip virtualenv python-is-python3
+
+# bootstrap a virtual env in python3.9 for poetry
+RUN apt-get install -y python3.9
+ENV POETRY_HOME=/opt/poetry
+ENV VIRTUAL_ENV=$POETRY_HOME
+RUN virtualenv -p /usr/bin/python3.9 $VIRTUAL_ENV
+# activate virtual environment and install poetry
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN pip install poetry==1.5.1
+
+# create and activate the autodisc-env virtualenv for the server
+ENV VIRTUAL_ENV=/autodisc-env
+RUN virtualenv -p /usr/bin/python3.9 /autodisc-env
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# at this point, the $PATH prefers /autodisc-env, then /opt/poetry, then system
 
 # auto_disc dependency resolution
 COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
@@ -20,7 +39,6 @@ RUN poetry install --only main
 COPY libs/default_modules /usr/src/libs/default_modules
 WORKDIR /usr/src/libs/default_modules
 RUN poetry install --only main
-
 
 FROM library as server
 # nginx setup

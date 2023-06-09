@@ -4,7 +4,7 @@ from auto_disc.utils.depinj.injector import inject_callbacks
 
 
 def test_inject_callbacks(capsys):
-    """ NOTE: pytest is used to capture stderr """
+    """NOTE: pytest is used to capture stderr"""
     a = DummyModule("hello")
     inject_callbacks(a, callbacks=[logger, hw])
     assert a.logger

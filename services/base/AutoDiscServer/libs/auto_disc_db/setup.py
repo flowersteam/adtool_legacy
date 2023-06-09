@@ -6,11 +6,11 @@ import sys
 #     + "Please install it before proceeding."
 
 setup(
-    name='auto_disc_db',
-    py_modules=['auto_disc_db'],
+    name="auto_disc_db",
+    py_modules=["auto_disc_db"],
     version="1.0",
     install_requires=[
-        'requests==2.28.1',
+        "requests==2.28.1",
         # 'json'
     ],
     description="auto_disc_db Python lib",

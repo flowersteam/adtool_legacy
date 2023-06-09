@@ -1,6 +1,9 @@
 from auto_disc.utils.leaf.LeafUID import LeafUID
 from hashlib import sha1
-from auto_disc.utils.leafutils.leafintegrations.expedb_locators import ExpeDBLinearLocator, ExpeDBLocator
+from auto_disc.utils.leafutils.leafintegrations.expedb_locators import (
+    ExpeDBLinearLocator,
+    ExpeDBLocator,
+)
 from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
 from auto_disc.utils.leaf.locators.Locator import Locator, FileLocator
 import os
@@ -16,16 +19,16 @@ class BlobLocator(Locator):
     keywords.
     """
 
-    def __init__(self, resource_uri: str = '', *args, **kwargs):
+    def __init__(self, resource_uri: str = "", *args, **kwargs):
         self.resource_uri = resource_uri
 
-    def store(self, bin: bytes, *args, **kwargs) -> 'LeafUID':
+    def store(self, bin: bytes, *args, **kwargs) -> "LeafUID":
         cls_to_init = self._parse_uri(self.resource_uri)
         locator = cls_to_init(resource_uri=self.resource_uri)
 
         return locator.store(bin, *args, **kwargs)
 
-    def retrieve(self, uid: 'LeafUID', *args, **kwargs) -> bytes:
+    def retrieve(self, uid: "LeafUID", *args, **kwargs) -> bytes:
         cls_to_init = self._parse_uri(self.resource_uri)
         locator = cls_to_init(resource_uri=self.resource_uri)
 
@@ -48,12 +51,11 @@ class LinearLocator(Locator):
     Also a factory.
     """
 
-    def __init__(self, resource_uri: str = '', *args, **kwargs):
+    def __init__(self, resource_uri: str = "", *args, **kwargs):
         self.resource_uri = resource_uri
         self.parent_id = -1
 
-    def store(self, bin: bytes, parent_id: int = -1,
-              *args, **kwargs) -> 'LeafUID':
+    def store(self, bin: bytes, parent_id: int = -1, *args, **kwargs) -> "LeafUID":
         # default setting if not set at function call
         if (self.parent_id != -1) and (parent_id == -1):
             parent_id = self.parent_id
@@ -70,8 +72,7 @@ class LinearLocator(Locator):
 
         return uid
 
-    def retrieve(self, uid: 'LeafUID', length: int = 1,
-                 *args, **kwargs) -> bytes:
+    def retrieve(self, uid: "LeafUID", length: int = 1, *args, **kwargs) -> bytes:
         cls_to_init = self._parse_uri(self.resource_uri)
         locator = cls_to_init(resource_uri=self.resource_uri)
 
@@ -100,5 +101,5 @@ class LinearLocator(Locator):
         return FileLinearLocator.parse_leaf_uid(LeafUID(db_name), node_id)
 
     @staticmethod
-    def hash(bin: bytes) -> 'LeafUID':
+    def hash(bin: bytes) -> "LeafUID":
         return FileLinearLocator.hash(bin)

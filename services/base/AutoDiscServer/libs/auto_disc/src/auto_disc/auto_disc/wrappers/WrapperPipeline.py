@@ -13,23 +13,23 @@ class WrapperPipeline(Leaf):
             a = alpha_wrapper()
             b = beta_wrapper()
             wrapper_list = [a, b]
-            all_wrappers = WrapperPipeline(wrappers=wrapper_list, 
+            all_wrappers = WrapperPipeline(wrappers=wrapper_list,
                             inputs_to_save=["in"], outputs_to_save=["out"])
             assert all_wrappers.map(input) == b.map(a.map(input))
         ```
     """
 
-    def __init__(self, wrappers: List['Leaf'] = [],
-                 resource_uri: str = "",
-                 locator: 'Locator' = StatelessLocator()):
+    def __init__(
+        self,
+        wrappers: List["Leaf"] = [],
+        resource_uri: str = "",
+        locator: "Locator" = StatelessLocator(),
+    ):
         super().__init__()
 
         # ensure mutual exclusivity of resource_uri and locator kwargs
-        if \
-            (resource_uri != "") and \
-                (not isinstance(locator, StatelessLocator)):
-            raise ValueError(
-                "Do not provide both `resource_uri` and `locator`.")
+        if (resource_uri != "") and (not isinstance(locator, StatelessLocator)):
+            raise ValueError("Do not provide both `resource_uri` and `locator`.")
         elif resource_uri != "":
             self.locator.resource_uri = resource_uri
         elif not isinstance(locator, StatelessLocator):
@@ -40,7 +40,7 @@ class WrapperPipeline(Leaf):
         # bind wrappers as submodules
         # NOTE: wrappers are therefore not individually
         # accessible by public methods
-        for (i, el) in enumerate(wrappers):
+        for i, el in enumerate(wrappers):
             # do not need _set_attr_override as dicts are mutable
             self._modules[i] = el
             el.name = str(i)
@@ -49,21 +49,21 @@ class WrapperPipeline(Leaf):
         # # makes the dicts point to the same object, as dicts are mutable
         # self.wrappers = self._modules
 
-    def __getattr__(self, name: str) -> Union[Any, 'Leaf']:
+    def __getattr__(self, name: str) -> Union[Any, "Leaf"]:
         if name == "wrappers":
             return self._modules
         else:
             return super().__getattr__(name)
 
-    def _bind_submodule_to_self(self,
-                                submodule_name: str,
-                                submodule: 'Leaf') -> None:
-        raise Exception('''
+    def _bind_submodule_to_self(self, submodule_name: str, submodule: "Leaf") -> None:
+        raise Exception(
+            """
                         Forbidden to bind submodules to WrapperPipeline
                         outside of initialization.
-                        ''')
+                        """
+        )
 
-    def _bind_wrapper_to_self(self, wrapper: 'Leaf') -> None:
+    def _bind_wrapper_to_self(self, wrapper: "Leaf") -> None:
         # store pointer to parent container
         wrapper._set_attr_override("_container_ptr", self)
 

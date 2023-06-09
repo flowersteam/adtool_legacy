@@ -16,8 +16,6 @@
 #         numbers_dict[key] = get_number_after_substring(txt, key)
 #     return numbers_dict
 
+
 def match_except_number(txt1, txt2):
-    return (
-        [i for i in txt1 if not i.isdigit()]
-        == [i for i in txt2 if not i.isdigit()]
-    )
+    return [i for i in txt1 if not i.isdigit()] == [i for i in txt2 if not i.isdigit()]

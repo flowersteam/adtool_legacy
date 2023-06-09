@@ -1,5 +1,5 @@
-class BaseMutator():
-    """ 
+class BaseMutator:
+    """
     Base class to mute space var
     """
 

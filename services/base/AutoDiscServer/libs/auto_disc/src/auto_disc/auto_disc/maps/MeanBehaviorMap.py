@@ -13,10 +13,12 @@ class MeanBehaviorMap(Map):
     A simple `BehaviorMap` which merely extracts the mean.
     """
 
-    def __init__(self,
-                 premap_key: str = "output",
-                 postmap_key: str = "output",
-                 input_shape: Tuple[int] = (1)) -> None:
+    def __init__(
+        self,
+        premap_key: str = "output",
+        postmap_key: str = "output",
+        input_shape: Tuple[int] = (1),
+    ) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key

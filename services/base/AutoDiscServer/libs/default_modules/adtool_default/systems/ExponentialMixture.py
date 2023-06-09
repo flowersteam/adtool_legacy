@@ -9,22 +9,24 @@ import torch
 
 from auto_disc.auto_disc.systems.System import System
 from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
-from auto_disc.legacy.utils.config_parameters import (DecimalConfigParameter,
-                                                      IntegerConfigParameter)
+from auto_disc.legacy.utils.config_parameters import (
+    DecimalConfigParameter,
+    IntegerConfigParameter,
+)
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 
-matplotlib.use('Agg')
+matplotlib.use("Agg")
 
 
 @dataclass
 class SystemParams(Defaults):
-    sequence_max = defaults(100., min=1., max=1000.)
+    sequence_max = defaults(100.0, min=1.0, max=1000.0)
     sequence_density = defaults(100, min=1, max=1000)
 
 
 @SystemParams.expose_config()
 class ExponentialMixture(System):
-    def __init__(self, sequence_max=100., sequence_density=100):
+    def __init__(self, sequence_max=100.0, sequence_density=100):
         super().__init__()
         self.sequence_max = sequence_max
         self.sequence_density = sequence_density
@@ -37,10 +39,9 @@ class ExponentialMixture(System):
 
         param_tensor = self._process_dict(input)
 
-        _, y_tensor = \
-            self._tensor_map(
-                param_tensor, self.sequence_max,
-                self.sequence_density)
+        _, y_tensor = self._tensor_map(
+            param_tensor, self.sequence_max, self.sequence_density
+        )
 
         intermed_dict["output"] = y_tensor
 
@@ -50,9 +51,9 @@ class ExponentialMixture(System):
         """
         Renders an image given a dict with the `output` key and relevant config
         """
-        x_tensor = \
-            torch.linspace(start=0., end=self.sequence_max,
-                           steps=self.sequence_density)
+        x_tensor = torch.linspace(
+            start=0.0, end=self.sequence_max, steps=self.sequence_density
+        )
         y_tensor = input_dict["output"]
 
         output_binary = io.BytesIO()
@@ -62,22 +63,19 @@ class ExponentialMixture(System):
 
         return output_binary.getvalue()
 
-    def _process_dict(self,
-                      input_dict: Dict) -> torch.Tensor:
+    def _process_dict(self, input_dict: Dict) -> torch.Tensor:
         # extract param tensor
         param_tensor = input_dict["params"]
         assert len(param_tensor.size()) == 1
 
         return param_tensor
 
-    def _tensor_map(self, param_tensor: torch.Tensor,
-                    sequence_max: float,
-                    sequence_density: int
-                    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        x_tensor = torch.linspace(
-            start=0., end=sequence_max, steps=sequence_density)
+    def _tensor_map(
+        self, param_tensor: torch.Tensor, sequence_max: float, sequence_density: int
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        x_tensor = torch.linspace(start=0.0, end=sequence_max, steps=sequence_density)
 
-        mixture_tensor = torch.exp(torch.outer(param_tensor, -1*x_tensor))
+        mixture_tensor = torch.exp(torch.outer(param_tensor, -1 * x_tensor))
 
         y_tensor = torch.sum(mixture_tensor, dim=0)
 

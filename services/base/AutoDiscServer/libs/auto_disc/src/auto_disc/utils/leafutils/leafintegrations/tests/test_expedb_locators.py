@@ -8,8 +8,11 @@ import auto_disc.utils.leafutils.leafintegrations.expedb_locators as expedb_loca
 from auto_disc.auto_disc.wrappers.SaveWrapper import SaveWrapper
 from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator, Stepper
 from auto_disc.utils.leafutils.leafintegrations.expedb_locators import (
-    ExpeDBLinearLocator, ExpeDBLocator, _format_filter_from_dict,
-    _initialize_checkpoint)
+    ExpeDBLinearLocator,
+    ExpeDBLocator,
+    _format_filter_from_dict,
+    _initialize_checkpoint,
+)
 
 
 def setup_function(function):
@@ -42,11 +45,14 @@ def test_ExpeDBLocator__initialize_checkpoint():
 def test_ExpeDBLocator__retrieve_mongo_id():
     def mock_checkpoint():
         from uuid import uuid1
+
         entrypoint = RESOURCE_URI
         uid = str(uuid1())
-        response = json.loads(requests.post(
-            entrypoint, json={"uid": uid, "metadata": "123"}).content)
+        response = json.loads(
+            requests.post(entrypoint, json={"uid": uid, "metadata": "123"}).content
+        )
         return response["ID"], uid
+
     mongo_id, uid = mock_checkpoint()
     loc = ExpeDBLocator(resource_uri=RESOURCE_URI)
     retrieved_id = loc._retrieve_mongo_id(uid=uid)
@@ -54,14 +60,13 @@ def test_ExpeDBLocator__retrieve_mongo_id():
 
 
 def test_ExpeDBLocator_store():
-    bin = b'123'
+    bin = b"123"
     loc = ExpeDBLocator(resource_uri=RESOURCE_URI)
     uid = loc.store(bin)
 
     # test by making a manual API call
     mongo_id = loc._retrieve_mongo_id(uid)
-    response_bin = requests.get(
-        RESOURCE_URI + "/" + mongo_id + "/metadata").content
+    response_bin = requests.get(RESOURCE_URI + "/" + mongo_id + "/metadata").content
     response_bin = codecs.decode(response_bin, encoding="base64")
     assert response_bin == bin
 
@@ -69,7 +74,7 @@ def test_ExpeDBLocator_store():
 
 
 def test_ExpeDBLocator_retrieve():
-    bin = b'a23[9tg[s9guusehf[v08g[8g\]]]]'
+    bin = b"a23[9tg[s9guusehf[v08g[8g\]]]]"
     loc = ExpeDBLocator(resource_uri=RESOURCE_URI)
     uid = loc.store(bin)
 

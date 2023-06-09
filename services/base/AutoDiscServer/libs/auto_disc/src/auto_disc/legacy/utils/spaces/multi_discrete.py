@@ -29,23 +29,21 @@ class MultiDiscreteSpace(BaseSpace):
 
     def initialize(self, parent_obj):
         """
-            Initialize the space.
+        Initialize the space.
 
-            Args:
-                parent_obj: The current autodisc module
+        Args:
+            parent_obj: The current autodisc module
         """
         # Apply potential binding
         super().initialize(parent_obj)
         self._nvec = self.apply_binding_if_existing(self._nvec, parent_obj)
         self.shape = self._nvec
-        assert (torch.tensor(self._nvec) > 0).all(
-        ), 'nvec (counts) have to be positive'
+        assert (torch.tensor(self._nvec) > 0).all(), "nvec (counts) have to be positive"
         self.nvec = torch.as_tensor(self._nvec, dtype=torch.int64)
 
         # indpb – independent probability for each attribute to be mutated.
         if isinstance(self._indpb, numbers.Number):
-            self._indpb = torch.full(
-                self.nvec.shape, self._indpb, dtype=torch.float64)
+            self._indpb = torch.full(self.nvec.shape, self._indpb, dtype=torch.float64)
         self.indpb = torch.as_tensor(self._indpb, dtype=torch.float64)
 
     def sample(self) -> torch.Tensor:
@@ -59,12 +57,12 @@ class MultiDiscreteSpace(BaseSpace):
 
     def mutate(self, x):
         """
-            Apply the mutation of the mutator on x
+        Apply the mutation of the mutator on x
 
-            Args:
-                x: The variable to mutate
-            Returns:
-                x: the result of mutation
+        Args:
+            x: The variable to mutate
+        Returns:
+            x: the result of mutation
         """
         if self.mutator:
             mutate_mask = torch.rand(self.shape) < self.indpb
@@ -79,12 +77,12 @@ class MultiDiscreteSpace(BaseSpace):
 
     def contains(self, x) -> bool:
         """
-            Check if x is bounded between 0 and n
+        Check if x is bounded between 0 and n
 
-            Args:
-                x: The value to check
-            Returns:
-                The return value is True if x is bounded by 0 and n False otherwise
+        Args:
+            x: The value to check
+        Returns:
+            The return value is True if x is bounded by 0 and n False otherwise
         """
         if isinstance(x, list):
             x = torch.tensor(x)  # Promote list to array for contains check
@@ -94,45 +92,48 @@ class MultiDiscreteSpace(BaseSpace):
 
     def clamp(self, x) -> torch.Tensor:
         """
-            Set x to an acceptable value of the space
-            Args:
-                x: The value to set
-            Returns:
-                x: After being set
+        Set x to an acceptable value of the space
+        Args:
+            x: The value to set
+        Returns:
+            x: After being set
         """
         x = torch.max(x, torch.as_tensor(0, dtype=self.dtype, device=x.device))
-        x = torch.min(x, torch.as_tensor(
-            self.nvec - 1, dtype=self.dtype, device=x.device))
+        x = torch.min(
+            x, torch.as_tensor(self.nvec - 1, dtype=self.dtype, device=x.device)
+        )
         return x
 
     def __repr__(self):
         """
-            Give a string representation of the class's object
+        Give a string representation of the class's object
 
-            Returns:
-                The return value is a string which represent our object
+        Returns:
+            The return value is a string which represent our object
         """
         return "MultiDiscreteSpace({})".format(self.nvec)
 
     def __eq__(self, other):
         """
-            Check if the other object are equal to the current object
+        Check if the other object are equal to the current object
 
-            Args:
-                other: An object
-            Returns:
-                The return value is True if self and other are equal False otherwise 
+        Args:
+            other: An object
+        Returns:
+            The return value is True if self and other are equal False otherwise
         """
-        return isinstance(other, MultiDiscreteSpace) and torch.all(self.nvec == other.nvec)
+        return isinstance(other, MultiDiscreteSpace) and torch.all(
+            self.nvec == other.nvec
+        )
 
     def to_json(self):
         """
-            Convert the object into JSON
+        Convert the object into JSON
 
-            Returns:
-                The JSON of the object
+        Returns:
+            The JSON of the object
         """
         dict = super().to_json()
-        dict['nvec'] = self._nvec
-        dict['indpb'] = self._indpb
+        dict["nvec"] = self._nvec
+        dict["indpb"] = self._indpb
         return dict

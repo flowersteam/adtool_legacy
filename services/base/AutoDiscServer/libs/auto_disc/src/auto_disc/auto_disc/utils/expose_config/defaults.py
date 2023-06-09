@@ -2,7 +2,9 @@ from dataclasses import asdict, dataclass, is_dataclass
 from typing import Any, Callable, List
 
 from auto_disc.auto_disc.utils.expose_config.expose_config import (
-    ExposeConfig, _handlers)
+    ExposeConfig,
+    _handlers,
+)
 
 
 def defaults(default: Any, domain: List[Any] = None, min: Any = None, max: Any = None):
@@ -15,7 +17,8 @@ def defaults(default: Any, domain: List[Any] = None, min: Any = None, max: Any =
 
 
 class Defaults:
-    """ This class is only here for namespacing purposes. """
+    """This class is only here for namespacing purposes."""
+
     @classmethod
     def expose_config(cls) -> Callable:
         """
@@ -36,11 +39,11 @@ class Defaults:
     @classmethod
     def _wrap_config_defns(cls, config_dict, decoration_chain):
         """
-        Takes dict of config definitions (i.e., the dict form of 
+        Takes dict of config definitions (i.e., the dict form of
         a _DefaultSetting) and converts it into a list of ExposeConfig objects
         """
         # iterate over the dict and create expose_config classes to chain
-        for (k, v) in config_dict.items():
+        for k, v in config_dict.items():
             # handle both styles of providing domain
             # this checks either the domain is not set or set to the default
             # value of None by not being constructed in _DefaultSetting
@@ -48,24 +51,25 @@ class Defaults:
                 try:
                     v["domain"] = [v["min"], v["max"]]
                 except KeyError:
-                    raise ValueError("To expose a config, "
-                                     "you must provide either "
-                                     "a domain or min/max.")
+                    raise ValueError(
+                        "To expose a config, "
+                        "you must provide either "
+                        "a domain or min/max."
+                    )
 
             # setting up the big function composition but
             # NOTE : it doesn't actually matter what order they're called in,
             # unless the config itself is malformed
             decoration_chain.append(
                 ExposeConfig(
-                    name=k, default=v["default"],
-                    domain=v["domain"], parent=v["parent"]
+                    name=k, default=v["default"], domain=v["domain"], parent=v["parent"]
                 )
             )
         return decoration_chain
 
     @classmethod
     def _dataclass_to_config_dict(cls):
-        """ 
+        """
         This function takes a (possible recursive) Defaults dataclass and
         converts it to a (flat) dict of config definitions. It's therefore
         the caller's responsibility to avoid key collisions.
@@ -74,7 +78,7 @@ class Defaults:
 
         # inner function to recurse through the dataclass
         def recurse(dc: type, parent: str):
-            for (k, v) in dc.__dataclass_fields__.items():
+            for k, v in dc.__dataclass_fields__.items():
                 # unwrap from the Field object
                 unwrap_v = v.default
 
@@ -87,8 +91,7 @@ class Defaults:
                 else:
                     # base case, simply load the config dict from Defaults obj
                     if k in config_dict:
-                        raise ValueError(
-                            f"Config option {k} already exists.")
+                        raise ValueError(f"Config option {k} already exists.")
                     else:
                         config_dict[k] = asdict(unwrap_v)
 
@@ -112,9 +115,11 @@ class _DefaultSetting:
 
 
 def _compose(*functions):
-    """ Small helper function to compose functions à la pipes in FP. """
+    """Small helper function to compose functions à la pipes in FP."""
+
     def inner(arg):
         for f in reversed(functions):
             arg = f(arg)
         return arg
+
     return inner

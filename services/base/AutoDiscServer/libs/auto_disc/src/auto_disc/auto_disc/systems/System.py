@@ -9,12 +9,12 @@ class System(Leaf, metaclass=ABCMeta):
     be inherited from by concrete implementations of `System`s.
 
     A `System` is a model for a dynamical or complex system. In the context
-    of the experimental pipeline, it should be stateless and therefore a pure 
+    of the experimental pipeline, it should be stateless and therefore a pure
     function. Therefore, while the system parameters may need to be set,
-    these are in fact _hyperparameters_ set by the web interface, and not 
+    these are in fact _hyperparameters_ set by the web interface, and not
     parameters which are explored by the curiosity algorithm.
 
-    As a pure function, it takes a payload of data as input and returns an 
+    As a pure function, it takes a payload of data as input and returns an
     new payload of data as output, without mutating the input.
     """
 
@@ -30,9 +30,9 @@ class System(Leaf, metaclass=ABCMeta):
     def map(self, input: Dict) -> Dict:
         """Map system inputs to outputs.
 
-        A `System` operates on regular Python dicts, but it views them as 
+        A `System` operates on regular Python dicts, but it views them as
         structured. The `premap_key` and `postmap_key` are used to define
-        the structured elements that the `System` operates on. Often, the 
+        the structured elements that the `System` operates on. Often, the
         `postmap_key` does not exist in the input dict, and is added by the
         `Map` as output.
 
@@ -40,7 +40,7 @@ class System(Leaf, metaclass=ABCMeta):
         implementation of the specific `System`. We recommend preserving it.
 
         #### Args
-        - input (dict): generic dict containing input data to the map at 
+        - input (dict): generic dict containing input data to the map at
             `premap_key`
         #### Returns
         - output (dict): generic dict containing output data from the map at
@@ -54,7 +54,7 @@ class System(Leaf, metaclass=ABCMeta):
 
         A `System` should be able to render useful information about its
         execution (e.g., a plot, a video, etc.), which may depend on its
-        internal state which is not captured by the `map` method. 
+        internal state which is not captured by the `map` method.
 
         #### Args
         - self (System): If the `System` can render a graphical output without

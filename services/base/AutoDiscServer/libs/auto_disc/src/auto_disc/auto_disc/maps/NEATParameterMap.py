@@ -10,10 +10,12 @@ from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
 class NEATParameterMap(Map):
-
-    def __init__(self, premap_key: str = "genome",
-                 config_path: str = "./config.cfg", config_str: Optional[str] =
-                 None) -> None:
+    def __init__(
+        self,
+        premap_key: str = "genome",
+        config_path: str = "./config.cfg",
+        config_str: Optional[str] = None,
+    ) -> None:
         super().__init__()
         self.locator = BlobLocator()
         self.premap_key = premap_key
@@ -25,7 +27,7 @@ class NEATParameterMap(Map):
                 neat.DefaultReproduction,
                 neat.DefaultSpeciesSet,
                 neat.DefaultStagnation,
-                config_path
+                config_path,
             )
         else:
             with NamedTemporaryFile() as fp:
@@ -41,15 +43,16 @@ class NEATParameterMap(Map):
                     neat.DefaultReproduction,
                     neat.DefaultSpeciesSet,
                     neat.DefaultStagnation,
-                    config_path
+                    config_path,
                 )
 
     def map(self, input: Dict, override_existing: bool = True) -> Dict:
         intermed_dict = deepcopy(input)
 
         # check if either "genome" is not set or if we want to override
-        if ((override_existing and self.premap_key in intermed_dict)
-                or (self.premap_key not in intermed_dict)):
+        if (override_existing and self.premap_key in intermed_dict) or (
+            self.premap_key not in intermed_dict
+        ):
             # overrides "genome" with new sample
             intermed_dict[self.premap_key] = self.sample()
         else:
