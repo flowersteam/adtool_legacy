@@ -119,7 +119,7 @@ def main() -> None:
         default="up",
         help="specify the command for docker-compose",
     )
-    args = parser.parse_args()
+    args, compose_args = parser.parse_known_args()
 
     # run checks
     if not is_git_repository() or not is_correct_git_repository(repo_name):
@@ -163,7 +163,9 @@ def main() -> None:
     elif has_docker_compose == HasDockerCompose.HAS_DOCKER_HYPHEN_COMPOSE:
         executable = ["docker-compose"]
 
-    command: List[str] = executable + passed_args + compose_files + [args.command]
+    command: List[str] = (
+        executable + passed_args + compose_files + [args.command] + compose_args
+    )
 
     # spawn child process that takes over the python process
     # to handle keyboard interrupts like Ctrl-C
