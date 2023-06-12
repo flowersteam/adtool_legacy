@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 from typing import Type, Union
 
-from auto_disc.legacy.utils.misc import History
+from auto_disc.legacy.utils.misc.history import History
 from tinydb import TinyDB
 from tinydb.queries import Query, where
 from tinydb.storages import JSONStorage, MemoryStorage
