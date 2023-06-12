@@ -12,7 +12,7 @@ from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in
 )
 from auto_disc.run import create
 from auto_disc.run import start as start_pipeline
-from experiments import BaseExperiment
+from experiments.base_experiment import BaseExperiment
 from utils import CheckpointsStatusEnum, ExperimentStatusEnum
 from utils.DB import AppDBLoggerHandler, AppDBMethods
 from utils.DB.expe_db_utils import is_json_serializable, serialize_autodisc_space

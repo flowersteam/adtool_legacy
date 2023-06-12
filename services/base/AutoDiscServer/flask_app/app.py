@@ -8,7 +8,7 @@ from auto_disc.utils.leafutils.leafstructs.registration import (
     get_cls_from_path,
     get_modules,
 )
-from experiments import ExperimentsHandler
+from experiments.experiments_handler import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
 from utils import AutoDiscServerConfig, list_profiles

@@ -6,7 +6,7 @@ import traceback
 from copy import copy
 from time import sleep
 
-from experiments import BaseExperiment
+from experiments.base_experiment import BaseExperiment
 from pexpect import pxssh
 from utils import (
     ExperimentStatusEnum,
