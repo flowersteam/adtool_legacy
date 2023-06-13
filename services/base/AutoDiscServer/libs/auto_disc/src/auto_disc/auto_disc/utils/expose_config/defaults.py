@@ -172,7 +172,7 @@ class _DefaultSetting:
 
 
 def _compose(*functions):
-    """Small helper function to compose functions à la pipes in FP."""
+    """Compose functions à la pipes in FP."""
 
     def inner(arg):
         for f in reversed(functions):
