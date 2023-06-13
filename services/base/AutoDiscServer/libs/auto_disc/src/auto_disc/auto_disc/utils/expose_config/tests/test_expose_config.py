@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 import pytest
-import torch
-from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
+from auto_disc.auto_disc.utils.expose_config.defaults import (
+    Defaults,
+    deconstruct_recursive_dataclass_instance,
+    defaults,
+)
 from auto_disc.auto_disc.utils.expose_config.expose_config import expose_config
 
 
@@ -250,3 +252,111 @@ class TestComplicatedExposeConfig:
                     pass
 
         assert "already exists" in str(e.value)
+
+
+class TestInitDecoratedObject:
+    def test_no_magic(self):
+        @dataclass
+        class Scalar(Defaults):
+            scalar: float = defaults(1.0, domain=[1.0, 100.0])
+
+        @dataclass
+        class Geometry(Defaults):
+            SX: int = defaults(256, min=1, max=2048)
+            SY: int = defaults(256, min=1, max=2048)
+            scale_init_state: Scalar = Scalar()
+
+        @dataclass
+        class SystemParams(Defaults):
+            version: str = defaults("fft", domain=["fft", "conv"])
+            size: Geometry = Geometry()
+
+        @SystemParams.expose_config()
+        class System:
+            def __init__(self):
+                pass
+
+        # unlike the old ConfigParameter decorators, this one does not magically
+        # change the __init__ function
+        with pytest.raises(TypeError) as e:
+            System(version="conv", scalar=1)
+        assert "argument" in str(e.value)
+        assert not System.__dict__.get("config", None)
+        assert System.CONFIG_DEFINITION
+
+    def test_init_structured(self):
+        @dataclass
+        class Scalar(Defaults):
+            scalar: float = defaults(1.0, domain=[1.0, 100.0])
+
+        @dataclass
+        class Geometry(Defaults):
+            SX: int = defaults(256, min=1, max=2048)
+            SY: int = defaults(256, min=1, max=2048)
+            scale_init_state: Scalar = Scalar()
+
+        @dataclass
+        class SystemParams(Defaults):
+            version: str = defaults("fft", domain=["fft", "conv"])
+            size: Geometry = Geometry()
+
+        @SystemParams.expose_config()
+        class System:
+            def __init__(self, params: SystemParams):
+                self.version = params.version
+
+        p = SystemParams(
+            version="conv", size=Geometry(SX=100, SY=100, scale_init_state=Scalar(1))
+        )
+        s = System(params=p)
+        assert s.version == "conv"
+
+    def test_init_destructured(self):
+        # this is the default way to initialize, which is supported by
+        # ExperimentalPipeline
+
+        @dataclass
+        class Scalar(Defaults):
+            scalar: float = defaults(1.0, domain=[1.0, 100.0])
+
+        @dataclass
+        class Geometry(Defaults):
+            SX: int = defaults(256, min=1, max=2048)
+            SY: int = defaults(256, min=1, max=2048)
+            scale_init_state: Scalar = Scalar()
+
+        @dataclass
+        class SystemParams(Defaults):
+            version: str = defaults("fft", domain=["fft", "conv"])
+            size: Geometry = Geometry()
+
+        @SystemParams.expose_config()
+        class System:
+            def __init__(self, version: str, SX: int, SY: int, scalar: float):
+                self.version = version
+                self.SX = SX
+                self.SY = SY
+                self.scalar = scalar
+
+        p = SystemParams()
+        p_dict = deconstruct_recursive_dataclass_instance(p)
+        assert System(**p_dict).SX == 256
+        assert System(**p_dict).SY == 256
+        assert System(**p_dict).version == "fft"
+        assert System(**p_dict).scalar == 1.0
+
+        # similar test
+        @SystemParams.expose_config()
+        class System:
+            def __init__(self, **params):
+                self.version = params["version"]
+                self.SX = params["SX"]
+                self.SY = params["SY"]
+                self.scalar = params["scalar"]
+
+        p = SystemParams()
+        p_dict = deconstruct_recursive_dataclass_instance(p)
+        assert System(**p_dict).SX == 256
+        assert System(**p_dict).SY == 256
+        assert System(**p_dict).version == "fft"
+        assert System(**p_dict).scalar == 1.0
