@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import asdict, dataclass, fields, is_dataclass
 from typing import Any, Callable, List, Optional
 
@@ -108,6 +109,61 @@ class Defaults:
         return config_dict
 
 
+def deconstruct_recursive_dataclass_instance(params: Defaults):
+    """Deconstruct a dataclass instance of type Defaults into a flat dictionary
+    of simple key-value pairs."""
+
+    p_dict = {}
+
+    dicts_to_merge = []
+
+    def set_nondestructively(d: dict, k: str, v: Any):
+        # NOTE: I think in theory this is redundant, as key name clobbering
+        # should only occur during the merging of the nested dataclass into the
+        # top-level
+        if d.get(k, None) is not None:
+            raise KeyError(
+                f"Key {k} exists multiple times in the dataclass {params}, cannot flatten."
+            )
+        else:
+            d[k] = v
+
+    def recurse(dc: Defaults):
+        for field in fields(dc):
+            if isinstance(getattr(dc, field.name), _DefaultSetting):
+                # if it's a _DefaultSetting, set by the defined default
+                val = field.default.default
+                set_nondestructively(p_dict, field.name, val)
+            elif not is_dataclass(field.type):
+                # if it's a primitive type, set by runtime value
+                val = getattr(dc, field.name)
+                set_nondestructively(p_dict, field.name, val)
+            elif issubclass(field.type, Defaults) and _is_default_dataclass(dc):
+                # if it's a nested dataclass which is default initialized,
+                # set by this defined value
+                nested_dict = deconstruct_recursive_dataclass_instance(field.default)
+                dicts_to_merge.append(nested_dict)
+            elif issubclass(field.type, Defaults) and not _is_default_dataclass(dc):
+                # if it's a nested dataclass which is user initialized, recurse
+                child_dc = getattr(dc, field.name)
+                recurse(child_dc)
+            else:
+                raise Exception("This branch should be unreachable.")
+
+    # called for side effects which modify p_dict
+    recurse(params)
+
+    # merge top-level p_dict with the nested dataclass dicts parsed,
+    # raising exceptions if there are key conflicts
+    for nd in dicts_to_merge:
+        try:
+            p_dict = {**p_dict, **nd}
+        except KeyError as e:
+            raise e
+
+    return p_dict
+
+
 def _is_default_dataclass(dc: Any):
     """Test if a dataclass instance is default-initialized.
 
@@ -118,6 +174,7 @@ def _is_default_dataclass(dc: Any):
     return dc == dc.__class__()
 
 
+# NOTE: I think this is useless
 def _is_default_field(params: Defaults, field_name: str) -> bool:
     """Test if the dataclass field is initialized or left as
     default.
@@ -142,6 +199,7 @@ def _is_default_field(params: Defaults, field_name: str) -> bool:
         return False
 
 
+# NOTE: I think this is useless
 def _is_default_field_r(params: Defaults, field_name: str) -> bool:
     """Recursively test if the dataclass field is initialized or left as
     default."""
