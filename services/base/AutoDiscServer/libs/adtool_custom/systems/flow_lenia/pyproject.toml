@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "flow_lenia"
+version = "0.1.0"
+description = ""
+authors = ["Jesse Y Lin <jesseyounglin@gmail.com>"]
+readme = "README.md"
+packages = [{include = "flow_lenia"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+jax = "^0.4.9"
+chex = "^0.1.7"
+matplotlib = "^3.7.1"
+moviepy = "^1.0.3"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+debugpy = "*"
+
+[build-system]
+requires = ["poetry-core>=1.5.1"]
+build-backend = "poetry.core.masonry.api"

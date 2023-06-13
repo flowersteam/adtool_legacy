@@ -22,22 +22,16 @@ RUN virtualenv -p /usr/bin/python3.9 /autodisc-env
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # at this point, the $PATH prefers /autodisc-env, then /opt/poetry, then system
 
-# auto_disc dependency resolution
-COPY libs/auto_disc/pyproject.toml /usr/src/libs/auto_disc/pyproject.toml
-WORKDIR /usr/src/libs/auto_disc
+# autodisc-server-libs dependency resolution
+COPY libs/pyproject.toml /usr/src/libs/pyproject.toml
+WORKDIR /usr/src/libs
 RUN poetry install --no-root --no-directory
-# adtool_default dependency resolution
-COPY libs/default_modules/pyproject.toml /usr/src/libs/default_modules/pyproject.toml
-WORKDIR /usr/src/libs/default_modules
-RUN poetry install --no-root --no-directory
-# install root package and path dependencies for auto_disc
-COPY libs/auto_disc /usr/src/libs/auto_disc
-WORKDIR /usr/src/libs/auto_disc
-RUN poetry install --only main
-# install root package and path dependencies for adtool_default
-COPY libs/default_modules /usr/src/libs/default_modules
-WORKDIR /usr/src/libs/default_modules
-RUN poetry install --only main
+# install root package and path dependencies for autodisc-server-libs
+# except for custom modules
+COPY libs /usr/src/libs
+WORKDIR /usr/src/libs
+RUN rm -rf adtool_custom
+RUN poetry lock; poetry install --only main
 
 FROM library as server
 # nginx setup
@@ -52,18 +46,13 @@ COPY flask_app/app.py /usr/src/services/flask_app/app.py
 COPY flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
 RUN pip install -r /usr/src/services/flask_app/requirements.txt
 
-# extra utils needed
-# TODO: convert to poetry package
-COPY libs/auto_disc_db /usr/src/libs/auto_disc_db
-WORKDIR /usr/src/libs/auto_disc_db
-RUN pip install -e .
-
 # stage app
 COPY flask_app/ /usr/src/services/flask_app/
-# stage user custom modules
-COPY libs/custom_modules /usr/src/libs/custom_modules
-WORKDIR /usr/src/libs/custom_modules
-RUN poetry install
+# stage user custom modules in adtool_custom
+COPY libs/adtool_custom /usr/src/libs/adtool_custom
+WORKDIR /usr/src/libs
+RUN python build.py
+RUN poetry lock; poetry install
 
 # start daemons
 WORKDIR /usr/src/services/flask_app
