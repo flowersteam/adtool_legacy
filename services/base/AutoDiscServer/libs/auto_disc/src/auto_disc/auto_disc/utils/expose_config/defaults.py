@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass, fields, is_dataclass
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 
 from auto_disc.auto_disc.utils.expose_config.expose_config import (
     ExposeConfig,
@@ -7,7 +7,9 @@ from auto_disc.auto_disc.utils.expose_config.expose_config import (
 )
 
 
-def defaults(default: Any, domain: List[Any] = None, min: Any = None, max: Any = None):
+def defaults(
+    default: Any, domain: Optional[List[Any]] = None, min: Any = None, max: Any = None
+):
     """
     The canonical constructor for the _DefaultSetting dataclass,
     means that we don't accidentally expose the expose_config method except
@@ -166,7 +168,7 @@ def _is_default_field_r(params: Defaults, field_name: str) -> bool:
 @dataclass
 class _DefaultSetting:
     default: Any
-    domain: List[Any]
+    domain: Optional[List[Any]]
     min: Any
     max: Any
 
