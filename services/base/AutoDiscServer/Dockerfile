@@ -2,8 +2,7 @@ FROM --platform=linux/amd64 nvidia/cuda:12.1.1-base-ubuntu20.04 as library
 
 # install pip and virtualenv for the system python environment (python3.8)
 ENV DEBIAN_FRONTEND="noninteractive"
-# TODO: load tz dynamically
-# also fixes the issue #210
+# TODO: load tz dynamically, would also fix the issue #210
 ENV TZ="Etc/UTC"
 RUN apt-get update -y
 RUN apt-get install -y python3-pip virtualenv python-is-python3
