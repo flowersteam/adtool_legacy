@@ -13,24 +13,24 @@ class Map(Leaf, metaclass=ABCMeta):
     input-output relation) that is also stateful. It takes a payload of data as
     input and returns an new payload of data as output, without mutating
     the input.
+
+    Attributes:
+        premap_key: key in the input dict for the input (i.e., "params")
+        postmap_key: key in the output dict for the output (i.e., "output")
     """
 
     @abstractmethod
     def __init__(self, premap_key: str = "input", postmap_key: str = "output") -> None:
-        """
-        A `Map` minimally sets the premap and postmap keys.
+        """Initialize the `Map`.
 
-        #### Args
-        - premap_key (str): key in the input dict for the input (i.e., "params")
-        - postmap_key (str): key in the output dict for the output (i.e., "output")
-        """
+        A `Map` minimally sets the premap and postmap keys."""
         super().__init__()
         # TODO: make this default, maybe use @property
         self.locator = BlobLocator()
 
     @abstractmethod
     def map(self, input: Dict) -> Dict:
-        """Maps input to output.
+        """Map input to output.
 
         A `Map` operates on regular Python dicts, but it views them as
         structured. The `premap_key` and `postmap_key` are used to define
@@ -41,12 +41,11 @@ class Map(Leaf, metaclass=ABCMeta):
         Whether or not the `premap_key` exists in the output dict is up to the
         implementation of the specific `Map`. We recommend preserving it.
 
-        #### Args
-        - input (dict): generic dict containing input data to the map at
-            `premap_key`
-        #### Returns
-        - output (dict): generic dict containing output data from the map at
-            `postmap_key`
+        Args:
+            input:
+                generic dict containing input data to the map at `premap_key`
+        Returns:
+            A  dict containing output data from the map at `postmap_key`
         """
         raise NotImplementedError
 
@@ -62,8 +61,8 @@ class Map(Leaf, metaclass=ABCMeta):
         passes through. Then, they implement a `sample` method which returns
         a random sample of the latent representation they have encoded.
 
-        #### Returns
-        - sample (Any): a random sample of the latent representation, in
-            whatever format depending on the implementation of the `Map`
+        Returns:
+            A random sample of the latent representation, in whatever format
+            depending on the implementation of the `Map`
         """
         raise NotImplementedError
