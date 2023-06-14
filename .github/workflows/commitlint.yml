@@ -1,9 +1,5 @@
 name: commitlint
-on:
-  workflow_dispatch
-  # push:
-  #   branches:
-  #     - prod
+on: [pull_request]
 jobs:
   deploy:
     runs-on: ubuntu-20.04
