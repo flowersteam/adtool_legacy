@@ -87,7 +87,20 @@ for your setup. A sample is provided at `services/prod/sample.env`
 Running `start_app.py --mode prod` will launch the Docker containers, from which
 the UI can be accessed by default at `http://localhost:4200`
 
-### Usage and Technical Documentation
+### Developer's Documentation
+
+For development work on the Python libraries, we recommend starting a new conda
+environment with
+
+```bash
+conda create -n adtool python=3.9 poetry=1.5.1
+```
+
+or, if you are running on the new Macbooks with M1 processors
+
+```bash
+CONDA_SUBDIR=osx-64 conda create -n adtool python=3.9 poetry=1.5.1
+```
 
 Please see the online documentation at https://developmentalsystems.org/adtool/.
 
