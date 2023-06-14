@@ -21,7 +21,7 @@ jobs:
 
       - name: Install autodisc-server-libs dependencies
         working-directory: ./services/base/AutoDiscServer/libs
-        run: poetry install
+        run: poetry install --with docs
 
       - name: Generate doc
         run: pdoc --output-dir ./docs/adtool ./services/base/AutoDiscServer/libs/auto_disc
