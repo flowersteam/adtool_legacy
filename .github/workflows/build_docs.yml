@@ -17,7 +17,9 @@ jobs:
           python-version: "3.9"
 
       - name: Install Poetry
-        run: pip install poetry==1.5.1
+        run: |
+          pip install poetry==1.5.1
+          poetry config virtualenvs.create false
 
       - name: Install autodisc-server-libs dependencies
         working-directory: ./services/base/AutoDiscServer/libs
