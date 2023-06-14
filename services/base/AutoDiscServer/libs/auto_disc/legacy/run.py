@@ -7,7 +7,8 @@ from typing import Callable, Dict, List
 
 import numpy as np
 import torch
-from auto_disc.legacy import REGISTRATION, ExperimentPipeline
+from auto_disc.legacy import ExperimentPipeline
+from auto_disc.legacy.registration import REGISTRATION
 from auto_disc.legacy.utils.callbacks import interact_callbacks
 from auto_disc.legacy.utils.logger import AutoDiscLogger
 
