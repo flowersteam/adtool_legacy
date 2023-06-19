@@ -1,8 +1,7 @@
 on:
-  workflow_dispatch
-  # push:
-  #   branches:
-  #     - dev
+  push:
+    branches:
+      - dev
 
 permissions:
   contents: write
@@ -19,4 +18,3 @@ jobs:
           release-type: simple
           default-branch: prod
           package-name: adtool
-          release-as: 0.2.1
