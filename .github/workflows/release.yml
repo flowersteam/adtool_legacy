@@ -18,3 +18,4 @@ jobs:
           release-type: simple
           default-branch: prod
           package-name: adtool
+          release-as: 0.2.1
