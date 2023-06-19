@@ -78,6 +78,13 @@ instructions](https://docs.docker.com/engine/install/). The application has been
 Linux)](https://learn.microsoft.com/fr-fr/windows/wsl/install) should be
 preferred.
 
+To install, simply clone the `prod` branch of the repository, which is where the
+stable version is kept, via e.g.,
+
+```bash
+git clone https://github.com/flowersteam/adtool.git --branch prod
+```
+
 After installation, the appropriate environment variables should be set by
 creating a file `services/prod/.env` with the environment variables appropriate
 for your setup. A sample is provided at `services/prod/sample.env`
