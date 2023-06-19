@@ -14,12 +14,14 @@ to format commit messages. This allows the Github Actions workflow to
 automatically push release tags to the `dev` branch. Merges to the `prod` branch
 are done manually on sufficiently stable releases.
 
-## Code
+## Code, Pullreqs, Merging
 
 All submissions will require review. We
 use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
+
+We prefer doing a squash merge.
 
 ## Documentation
 
