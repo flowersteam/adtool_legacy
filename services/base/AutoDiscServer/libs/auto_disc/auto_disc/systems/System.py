@@ -40,12 +40,11 @@ class System(Leaf, metaclass=ABCMeta):
         Whether or not the `premap_key` exists in the output dict is up to the
         implementation of the specific `System`. We recommend preserving it.
 
-        #### Args
-        - input (dict): generic dict containing input data to the map at
-            `premap_key`
-        #### Returns
-        - output (dict): generic dict containing output data from the map at
-            `postmap_key`
+        Args:
+            input (dict):
+                generic dict containing input data to the map at `premap_key`
+        Returns:
+            A generic dict containing output data from the map at `postmap_key`
         """
         raise NotImplementedError
 
@@ -57,12 +56,14 @@ class System(Leaf, metaclass=ABCMeta):
         execution (e.g., a plot, a video, etc.), which may depend on its
         internal state which is not captured by the `map` method.
 
-        #### Args
-        - self (System): If the `System` can render a graphical output without
-            needing access to its internal state (i.e., only from the
-            output), then it can also be `@classmethod`.
-        - data_dict (dict): this is a dict containing the output of the `map`
-            method. Depending on implementation, this may be sufficient to
-            render the output or one may need stateful data from `self`.
+        Args:
+            self (System):
+                If the `System` can render a graphical output without
+                needing access to its internal state (i.e., only from the
+                output), then it can also be `@classmethod`.
+            data_dict (dict):
+                A dict containing the output of the `map`
+                method. Depending on implementation, this may be sufficient to
+                render the output or one may need stateful data from `self`.
         """
         raise NotImplementedError

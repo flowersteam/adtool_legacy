@@ -1,3 +1,5 @@
+"""The simplest possible algorithm of Intrinsically Motivated Goal Exploration Processes
+"""
 from functools import partial
 from typing import Any, Dict, List
 
@@ -32,8 +34,7 @@ from auto_disc.utils.leaf.locators.locators import BlobLocator
 )
 @DictConfigParameter("mutator_config", default={})
 class IMGEPFactory:
-    """
-    Factory class providing interface with config parameters and therefore the
+    """Factory class providing interface with config parameters and therefore the
     frontend
     """
 
@@ -131,7 +132,7 @@ class IMGEPExplorer(Leaf):
         self._history_saver = SaveWrapper()
 
     def bootstrap(self) -> Dict:
-        """Returns an initial sample needed to bootstrap the exploration loop."""
+        """Return an initial sample needed to bootstrap the exploration loop."""
         data_dict = {}
         # initialize sample
         params_init = self.parameter_map.sample()
@@ -146,16 +147,16 @@ class IMGEPExplorer(Leaf):
         return data_dict
 
     def map(self, system_output: Dict) -> Dict:
-        """Maps the raw output of the system rollout to a subsequent parameter
+        """Map the raw output of the system rollout to a subsequent parameter
         configuration to try.
 
-        #### Args:
-            system_output: A dictionary where the key `self.premap_key` indexes
-                the raw output given at the end of the previous system rollout.
+        Args:
+            system_output:
+                A dictionary where the key `self.premap_key` indexes the raw
+                output given at the end of the previous system rollout.
 
-        #### Returns:
-            A dictionary where the key `self.postmap_key` indexes the
-            parameters to try in the next trial.
+        Returns:
+            A dictionary where the key `self.postmap_key` indexes the parameters to try in the next trial.
         """
         # either do nothing, or update dict by changing "output" -> "raw_output"
         # and adding new "output" key which is the result of the behavior map
@@ -197,15 +198,15 @@ class IMGEPExplorer(Leaf):
         """Sample according to the policy a new trial of parameters for the
         system.
 
-        #### Args:
-            lookback_length: number of previous trials to consider when choosing
-                the next trial, i.e., it is a batch size based on the save
-                frequency.
+        Args:
+            lookback_length:
+                number of previous trials to consider when choosing the next
+                trial, i.e., it is a batch size based on the save frequency.
 
                 Note that the default `lookback_length = -1` will retrieve the
                 entire  history.
 
-        #### Returns:
+        Returns:
             A `torch.Tensor` containing the parameters to try.
         """
         goal = self.behavior_map.sample()
@@ -220,10 +221,10 @@ class IMGEPExplorer(Leaf):
         """Read the raw output observed and process it into a discovered
         behavior.
 
-        #### Args:
+        Args:
             system_output: See arguments for `.map`.
 
-        #### Returns:
+        Returns:
             A dictionary of the observed behavior/feature vector associated with
             the raw `system_output`
         """
