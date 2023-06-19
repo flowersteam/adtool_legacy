@@ -1,9 +1,9 @@
-# Automated Discovery Tool: Assisted and Automated Discovery for Complex Systems
+# adtool: Assisted and Automated Discovery for Complex Systems
 
-We're pleased to introduce Automated Discovery Tool, a software for assisted and
+We're pleased to introduce adtool (formerly, Automated Discovery Tool), a software for assisted and
 automated discovery of patterns in the exploration of complex systems.
 
-Automated Discovery Tool is a software package developed in the [Inria
+adtool is a software package developed in the [Inria
 FLOWERS](https://flowers.inria.fr) research team which provides an integrated
 solution for studying complex systems through curiosity-search methods,
 consisting of a user-friendly Web UI and an extensible Python library for
@@ -11,7 +11,7 @@ user-defined experimentation systems and search algorithms.
 
 Searching the configuration space of complex systems is often done manually,
 i.e., by a human who individually identifies interesting patterns or behaviors
-of the system. Automated Discovery Tool thus assists in automating this
+of the system. adtool thus assists in automating this
 _exploratory phase_ of researching a new system which is theorized to be capable
 of interesting, yet unknown behavior. This is the case for many projects in the
 natural sciences and elsewhere. For example, physicists and chemists may use the
@@ -23,7 +23,7 @@ Please note that this software is currently in an **alpha stage** of
 development: it is functional and has been used internally at Inria FLOWERS to
 study cellular automata since 2021, but may not have features which are
 convenient for different workflows. For more details on the development of
-Automated Discovery Tool, see the following [usage and technical
+adtool, see the following [usage and technical
 section](#usage-and-technical-documentation).
 
 ![Short demo](demo.gif)
@@ -55,7 +55,7 @@ learning to interact with their environment in an unsupervised manner, as in
 [Oudeyer et al., 2007](https://ieeexplore.ieee.org/document/4141061).
 
 In practice, dealing with such ill-posed and/or subjective search tasks requires
-significant human oversight. For this reason, our Automated Discovery Tool
+significant human oversight. For this reason, our adtool
 proposes a software package for both :
 
 - the implementation of such experimental pipelines for arbitrary systems and

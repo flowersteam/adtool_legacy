@@ -97,7 +97,7 @@ def is_at_root_folder() -> bool:
 
 def main() -> None:
     """Entry point for the Dockerized application."""
-    repo_name = "AutomatedDiscoveryTool"
+    repo_name = "adtool"
 
     # parse arguments
     parser = argparse.ArgumentParser(description="Entry point for adtool")
