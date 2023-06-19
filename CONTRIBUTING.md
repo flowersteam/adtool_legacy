@@ -10,7 +10,9 @@ where short-lived feature branches are used which are frequently merged into the
 `dev` branch. The `dev` branch is then merged to `prod` at release milestones.
 
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) is used
-to format commit messages.
+to format commit messages. This allows the Github Actions workflow to
+automatically push release tags to the `dev` branch. Merges to the `prod` branch
+are done manually on sufficiently stable releases.
 
 ## Code
 
