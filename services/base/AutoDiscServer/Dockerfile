@@ -4,8 +4,7 @@ FROM --platform=linux/amd64 nvidia/cuda:12.1.1-base-ubuntu20.04 as library
 ENV DEBIAN_FRONTEND="noninteractive"
 # TODO: load tz dynamically, would also fix the issue #210
 ENV TZ="Etc/UTC"
-RUN apt-get update -y
-RUN apt-get install -y python3-pip virtualenv python-is-python3
+RUN apt-get update -y && apt-get install -y python3-pip virtualenv python-is-python3
 
 # bootstrap a virtual env in python3.9 for poetry
 RUN apt-get install -y python3.9
