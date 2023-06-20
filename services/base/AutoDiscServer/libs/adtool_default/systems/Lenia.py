@@ -26,6 +26,53 @@ from matplotlib.animation import FuncAnimation
 from numpy import ndarray
 from PIL import Image
 
+# backwards compatiblity for torch.rfft deprecation after PyTorch 1.7
+# https://github.com/pytorch/pytorch/wiki/The-torch.fft-module-in-PyTorch-1.7
+split_version = torch.__version__.split(".")
+major_version = int(split_version[0])
+minor_version = int(split_version[1])
+
+
+def patched_rfft(input, signal_ndim: int = 1, onesided: bool = True):
+    dim = tuple(range(-3, 0))[-signal_ndim:]
+
+    def partial_application(x, f):
+        """Applies f and returns complex tensor encoded as a real-valued tensor
+        with an extra dimension of size 2."""
+        return torch.view_as_real(f(x, dim=dim))
+
+    if onesided:
+        return partial_application(input, torch.fft.rfftn)
+    else:
+        # non-onesided FFT is equivalent to the normal one
+        return partial_application(input, torch.fft.fftn)
+
+
+def patched_irfft(input, signal_ndim: int = 1, onesided: bool = True):
+    dim = tuple(range(-3, 0))[-signal_ndim:]
+
+    def partial_application(x, f):
+        """Applies f and returns complex tensor encoded as a real-valued tensor
+        with an extra dimension of size 2."""
+        # take only the real part, as this is what we expect by the inverse
+        # FFT to a real-valued signal (numerically, it will only be real within
+        # machine epsilon, so we explicitly cast)
+        return torch.real(f(x, dim=dim))
+
+    # because the torch.fft functions expect a complex Tensor
+    input = torch.view_as_complex(input)
+
+    if onesided:
+        return partial_application(input, torch.fft.irfftn)
+    else:
+        # non-onesided FFT is equivalent to the normal one
+        return partial_application(input, torch.fft.ifftn)
+
+
+if major_version > 1 or (major_version == 1 and minor_version > 7):
+    torch.rfft = patched_rfft
+    torch.irfft = patched_irfft
+
 
 @dataclass
 class LeniaDynamicalParameters:
@@ -110,7 +157,8 @@ class Lenia(Leaf):
         super().__init__()
         self.locator = BlobLocator()
         self.orbit = torch.empty(
-            (self.config["final_step"], 1, 1, self.config["SX"], self.config["SY"])
+            (self.config["final_step"], 1, 1, self.config["SX"], self.config["SY"]),
+            requires_grad=False,
         )
 
     def map(self, input: Dict) -> Dict:
@@ -125,7 +173,8 @@ class Lenia(Leaf):
         state = self.orbit[0]
         for step in range(self.config["final_step"] - 1):
             state = self._step(state, automaton)
-            self.orbit[step + 1] = state
+            with torch.no_grad():
+                self.orbit[step + 1] = state
 
         output_dict = deepcopy(input)
         # must detach here as gradients are not used
@@ -230,7 +279,12 @@ class Lenia(Leaf):
 
     def _bootstrap(self, params: LeniaParameters):
         init_state = torch.zeros(
-            1, 1, self.config["SY"], self.config["SX"], dtype=torch.float64
+            1,
+            1,
+            self.config["SY"],
+            self.config["SX"],
+            dtype=torch.float64,
+            requires_grad=False,
         )
 
         scaled_SY = self.config["SY"] // self.config["scale_init_state"]
@@ -247,7 +301,8 @@ class Lenia(Leaf):
         # state is fixed deterministically by CPPN params,
         # so no need to save it after this point
         del params.init_state
-        self.orbit[0] = init_state
+        with torch.no_grad():
+            self.orbit[0] = init_state
 
         return
 
