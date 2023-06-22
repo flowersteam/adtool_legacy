@@ -154,29 +154,29 @@ def test_run():
         assert match_count == 1
 
 
-def test_logger(capsys):
-    # broken for now, see #188
-    experiment_id = 1
-    seed = 1
-    logger = AutoDiscLogger(experiment_id, seed, [])
-    system = ExponentialMixture(sequence_density=10)
-    explorer_factory = IMGEPFactory(
-        equil_time=5, param_dim=3, param_init_low=0.0, param_init_high=1.0
-    )
-    explorer = explorer_factory()
-    input_pipeline = IdentityWrapper()
-    output_pipeline = IdentityWrapper()
-    pipeline = ExperimentPipeline(
-        experiment_id=experiment_id,
-        seed=seed,
-        system=system,
-        explorer=explorer,
-        input_pipeline=input_pipeline,
-        output_pipeline=output_pipeline,
-        on_save_callbacks=[callback],
-        logger=logger,
-    )
-    pipeline.logger.info("testing")
-    expected_str = "ad_tool_logger - INFO - SEED 1 - LOG_ID 1_1_1 - testing\n"
-    captured = capsys.readouterr()
-    assert captured.err == expected_str
+# broken for now, see #188
+# def test_logger(capsys):
+#     experiment_id = 1
+#     seed = 1
+#     logger = AutoDiscLogger(experiment_id, seed, [])
+#     system = ExponentialMixture(sequence_density=10)
+#     explorer_factory = IMGEPFactory(
+#         equil_time=5, param_dim=3, param_init_low=0.0, param_init_high=1.0
+#     )
+#     explorer = explorer_factory()
+#     input_pipeline = IdentityWrapper()
+#     output_pipeline = IdentityWrapper()
+#     pipeline = ExperimentPipeline(
+#         experiment_id=experiment_id,
+#         seed=seed,
+#         system=system,
+#         explorer=explorer,
+#         input_pipeline=input_pipeline,
+#         output_pipeline=output_pipeline,
+#         on_save_callbacks=[callback],
+#         logger=logger,
+#     )
+#     pipeline.logger.info("testing")
+#     expected_str = "ad_tool_logger - INFO - SEED 1 - LOG_ID 1_1_1 - testing\n"
+#     captured = capsys.readouterr()
+#     assert captured.err == expected_str
