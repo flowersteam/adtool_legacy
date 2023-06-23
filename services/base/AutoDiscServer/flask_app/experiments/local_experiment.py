@@ -12,10 +12,10 @@ from auto_disc.auto_disc.utils.callbacks.on_save_callbacks.save_leaf_callback_in
 )
 from auto_disc.run import create
 from auto_disc.run import start as start_pipeline
-from experiments.base_experiment import BaseExperiment
 from utils import CheckpointsStatusEnum, ExperimentStatusEnum
 from utils.DB import AppDBLoggerHandler, AppDBMethods
-from utils.DB.expe_db_utils import is_json_serializable, serialize_autodisc_space
+
+from experiments.base_experiment import BaseExperiment
 
 
 class LocalExperiment(BaseExperiment):
@@ -155,60 +155,63 @@ class LocalExperiment(BaseExperiment):
     # endregion
 
     # region saving
-    def save_discovery_to_expe_db(self, **kwargs):
-        """
-        brief:      callback saves the discoveries outputs we want to save on database.
-        comment:    always saved : run_idx(json), experiment_id(json)
-                    saved if key in self.to_save_outputs: raw_run_parameters(json)
-                                                        run_parameters,(json)
-                                                        raw_output(file),
-                                                        output(json),
-                                                        rendered_output(file)
-        """
-        saves = {}
-        files_to_save = {}
-        to_save_outputs = copy(
-            self.cleared_config["callbacks"]["on_discovery"][0]["config"][
-                "to_save_outputs"
-            ]
-        )
-        to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+    # DEPRECATED: Leafs do this now, or you can do it properly with a custom
+    # callback.
 
-        for save_item in to_save_outputs:
-            if save_item == "raw_output":
-                files_to_save[save_item] = (
-                    "{}_{}_{}".format(
-                        save_item, kwargs["experiment_id"], kwargs["run_idx"]
-                    ),
-                    pickle.dumps(kwargs[save_item]),
-                    "application/json",
-                )
-            elif save_item == "rendered_output":
-                filename = "exp_{}_idx_{}".format(
-                    kwargs["experiment_id"], kwargs["run_idx"]
-                )
-                filename = filename + "." + kwargs["rendered_output"][1]
-                files_to_save["rendered_output"] = (
-                    filename,
-                    kwargs["rendered_output"][0].getbuffer(),
-                )
-            else:
-                serialized_object = serialize_autodisc_space(kwargs[save_item])
-                if is_json_serializable(serialized_object):
-                    saves[save_item] = serialized_object
-                else:
-                    files_to_save[save_item] = (
-                        "{}_{}_{}".format(
-                            save_item, kwargs["experiment_id"], kwargs["run_idx"]
-                        ),
-                        pickle.dumps(kwargs[save_item]),
-                        "application/json",
-                    )
+    # def save_discovery_to_expe_db(self, **kwargs):
+    #     """
+    #     brief:      callback saves the discoveries outputs we want to save on database.
+    #     comment:    always saved : run_idx(json), experiment_id(json)
+    #                 saved if key in self.to_save_outputs: raw_run_parameters(json)
+    #                                                     run_parameters,(json)
+    #                                                     raw_output(file),
+    #                                                     output(json),
+    #                                                     rendered_output(file)
+    #     """
+    #     saves = {}
+    #     files_to_save = {}
+    #     to_save_outputs = copy(
+    #         self.cleared_config["callbacks"]["on_discovery"][0]["config"][
+    #             "to_save_outputs"
+    #         ]
+    #     )
+    #     to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
 
-        discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]
-        self._expe_db_caller(
-            "/discoveries/" + discovery_id + "/files", files=files_to_save
-        )
+    #     for save_item in to_save_outputs:
+    #         if save_item == "raw_output":
+    #             files_to_save[save_item] = (
+    #                 "{}_{}_{}".format(
+    #                     save_item, kwargs["experiment_id"], kwargs["run_idx"]
+    #                 ),
+    #                 pickle.dumps(kwargs[save_item]),
+    #                 "application/json",
+    #             )
+    #         elif save_item == "rendered_output":
+    #             filename = "exp_{}_idx_{}".format(
+    #                 kwargs["experiment_id"], kwargs["run_idx"]
+    #             )
+    #             filename = filename + "." + kwargs["rendered_output"][1]
+    #             files_to_save["rendered_output"] = (
+    #                 filename,
+    #                 kwargs["rendered_output"][0].getbuffer(),
+    #             )
+    #         else:
+    #             serialized_object = serialize_autodisc_space(kwargs[save_item])
+    #             if is_json_serializable(serialized_object):
+    #                 saves[save_item] = serialized_object
+    #             else:
+    #                 files_to_save[save_item] = (
+    #                     "{}_{}_{}".format(
+    #                         save_item, kwargs["experiment_id"], kwargs["run_idx"]
+    #                     ),
+    #                     pickle.dumps(kwargs[save_item]),
+    #                     "application/json",
+    #                 )
+
+    #     discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)["ID"]
+    #     self._expe_db_caller(
+    #         "/discoveries/" + discovery_id + "/files", files=files_to_save
+    #     )
 
     def save_modules_to_expe_db(self, **kwargs):
         to_save_modules = [

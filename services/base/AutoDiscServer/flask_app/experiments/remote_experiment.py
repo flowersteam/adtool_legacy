@@ -6,7 +6,6 @@ import traceback
 from copy import copy
 from time import sleep
 
-from experiments.base_experiment import BaseExperiment
 from pexpect import pxssh
 from utils import (
     ExperimentStatusEnum,
@@ -15,7 +14,8 @@ from utils import (
     parse_profile,
 )
 from utils.DB import AppDBCaller, AppDBLoggerHandler, AppDBMethods
-from utils.DB.expe_db_utils import is_json_serializable, serialize_autodisc_space
+
+from experiments.base_experiment import BaseExperiment
 
 
 class RemoteExperiment(BaseExperiment):
@@ -690,96 +690,97 @@ class RemoteExperiment(BaseExperiment):
     # endregion
 
     # region save to db
-    def save_discovery_to_expe_db(self, **kwargs):
-        """
-        brief:      callback saves the discoveries outputs we want to save on database.
-        comment:    always saved : run_idx(json), experiment_id(json)
-                    saved if key in self.to_save_outputs: raw_run_parameters(json)
-                                                        run_parameters,(json)
-                                                        raw_output(file),
-                                                        output(json),
-                                                        rendered_output(file)
-        """
-        try:
-            saves = {}
-            files_to_save = {}
-            to_save_outputs = copy(kwargs["sub_folders"])
-            if to_save_outputs is not None:
-                to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
-            else:
-                to_save_outputs = ["run_idx", "experiment_id", "seed"]
-            folder = "{}/outputs/{}/{}/".format(
-                kwargs["folder"], self.id, kwargs["seed"]
-            )
+    # DEPRECATED
+    # def save_discovery_to_expe_db(self, **kwargs):
+    #     """
+    #     brief:      callback saves the discoveries outputs we want to save on database.
+    #     comment:    always saved : run_idx(json), experiment_id(json)
+    #                 saved if key in self.to_save_outputs: raw_run_parameters(json)
+    #                                                     run_parameters,(json)
+    #                                                     raw_output(file),
+    #                                                     output(json),
+    #                                                     rendered_output(file)
+    #     """
+    #     try:
+    #         saves = {}
+    #         files_to_save = {}
+    #         to_save_outputs = copy(kwargs["sub_folders"])
+    #         if to_save_outputs is not none:
+    #             to_save_outputs.extend(["run_idx", "experiment_id", "seed"])
+    #         else:
+    #             to_save_outputs = ["run_idx", "experiment_id", "seed"]
+    #         folder = "{}/outputs/{}/{}/".format(
+    #             kwargs["folder"], self.id, kwargs["seed"]
+    #         )
 
-            for save_item in to_save_outputs:
-                if (
-                    kwargs["sub_folders"] is not None
-                    and save_item in kwargs["sub_folders"]
-                ):
-                    if save_item == "raw_output":
-                        files_to_save[save_item] = (
-                            "{}_{}_{}".format(
-                                save_item, kwargs["experiment_id"], kwargs["run_idx"]
-                            ),
-                            open(
-                                folder
-                                + save_item
-                                + "/idx_{}.pickle".format(kwargs["run_idx"]),
-                                "rb",
-                            ),
-                        )
-                    elif save_item == "rendered_output":
-                        extension = os.listdir(folder + save_item)[0].split(".")[1]
-                        files_to_save[save_item] = open(
-                            folder
-                            + save_item
-                            + "/idx_{}.{}".format(kwargs["run_idx"], extension),
-                            "rb",
-                        )
-                    else:
-                        serialized_object = serialize_autodisc_space(
-                            pickle.load(
-                                open(
-                                    folder
-                                    + save_item
-                                    + "/idx_{}.pickle".format(kwargs["run_idx"]),
-                                    "rb",
-                                )
-                            )
-                        )
-                        if is_json_serializable(serialized_object):
-                            saves[save_item] = serialized_object
-                        else:
-                            files_to_save[save_item] = (
-                                "{}_{}_{}".format(
-                                    save_item,
-                                    kwargs["experiment_id"],
-                                    kwargs["run_idx"],
-                                ),
-                                open(
-                                    folder
-                                    + save_item
-                                    + "/idx_{}.pickle".format(kwargs["run_idx"]),
-                                    "rb",
-                                ),
-                            )
-                else:
-                    saves[save_item] = serialize_autodisc_space(kwargs[save_item])
-            discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)[
-                "ID"
-            ]
-            # check dict files_to_saves is empty or not
-            if files_to_save:
-                self._expe_db_caller(
-                    "/discoveries/" + discovery_id + "/files", files=files_to_save
-                )
-        except Exception as ex:
-            print(
-                "ERROR : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(
-                    self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()
-                )
-            )
+    #         for save_item in to_save_outputs:
+    #             if (
+    #                 kwargs["sub_folders"] is not none
+    #                 and save_item in kwargs["sub_folders"]
+    #             ):
+    #                 if save_item == "raw_output":
+    #                     files_to_save[save_item] = (
+    #                         "{}_{}_{}".format(
+    #                             save_item, kwargs["experiment_id"], kwargs["run_idx"]
+    #                         ),
+    #                         open(
+    #                             folder
+    #                             + save_item
+    #                             + "/idx_{}.pickle".format(kwargs["run_idx"]),
+    #                             "rb",
+    #                         ),
+    #                     )
+    #                 elif save_item == "rendered_output":
+    #                     extension = os.listdir(folder + save_item)[0].split(".")[1]
+    #                     files_to_save[save_item] = open(
+    #                         folder
+    #                         + save_item
+    #                         + "/idx_{}.{}".format(kwargs["run_idx"], extension),
+    #                         "rb",
+    #                     )
+    #                 else:
+    #                     serialized_object = serialize_autodisc_space(
+    #                         pickle.load(
+    #                             open(
+    #                                 folder
+    #                                 + save_item
+    #                                 + "/idx_{}.pickle".format(kwargs["run_idx"]),
+    #                                 "rb",
+    #                             )
+    #                         )
+    #                     )
+    #                     if is_json_serializable(serialized_object):
+    #                         saves[save_item] = serialized_object
+    #                     else:
+    #                         files_to_save[save_item] = (
+    #                             "{}_{}_{}".format(
+    #                                 save_item,
+    #                                 kwargs["experiment_id"],
+    #                                 kwargs["run_idx"],
+    #                             ),
+    #                             open(
+    #                                 folder
+    #                                 + save_item
+    #                                 + "/idx_{}.pickle".format(kwargs["run_idx"]),
+    #                                 "rb",
+    #                             ),
+    #                         )
+    #             else:
+    #                 saves[save_item] = serialize_autodisc_space(kwargs[save_item])
+    #         discovery_id = self._expe_db_caller("/discoveries", request_dict=saves)[
+    #             "id"
+    #         ]
+    #         # check dict files_to_saves is empty or not
+    #         if files_to_save:
+    #             self._expe_db_caller(
+    #                 "/discoveries/" + discovery_id + "/files", files=files_to_save
+    #             )
+    #     except exception as ex:
+    #         print(
+    #             "error : error while saving discoveries in experiment {} run_idx {} seed {} = {}".format(
+    #                 self.id, kwargs["run_idx"], kwargs["seed"], traceback.format_exc()
+    #             )
+    #         )
 
     def save_modules_to_expe_db(self, **kwargs):
         try:
