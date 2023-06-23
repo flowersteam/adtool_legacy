@@ -50,7 +50,7 @@ COPY flask_app/ /usr/src/services/flask_app/
 # stage user custom modules in adtool_custom
 COPY libs/adtool_custom /usr/src/libs/adtool_custom
 WORKDIR /usr/src/libs
-RUN python build.py
+RUN python build.py # injects custom modules into pyproject.toml
 RUN poetry lock; poetry install
 
 # start daemons
