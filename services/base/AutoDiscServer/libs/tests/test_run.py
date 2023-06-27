@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import shutil
+import subprocess
 
 import auto_disc.run as run
 from auto_disc.ExperimentPipeline import ExperimentPipeline
@@ -115,6 +116,33 @@ def test_run():
     run.start(pipeline, 10)
 
 
+def test_save_SaveDiscoveryOnDisk_cli_entrypoint():
+    """Same test as above but tested by calling the script from a shell
+    subprocess, mimicking what a user might do."""
+    experiment_id = 1
+    seed = 1
+    config_path = os.path.join(RESOURCE_URI, "config.json")
+    with open(config_path, "w") as f:
+        config_json["callbacks"] = {"on_discovery": [{"name": "disk", "config": {}}]}
+        json.dump(config_json, f)
+    proc = subprocess.run(
+        [
+            "python",
+            "run.py",
+            "--config_file",
+            str(config_path),
+            "--experiment_id",
+            str(experiment_id),
+            "--seed",
+            str(seed),
+            "--nb_iterations",
+            str(10),
+        ],
+        shell=True,
+    )
+    assert proc.returncode == 0
+
+
 def test_save_SaveDiscoveryOnDisk():
     config_json["callbacks"] = {"on_discovery": [{"name": "disk", "config": {}}]}
     experiment_id = 1
@@ -139,6 +167,48 @@ def test_save_SaveDiscoveryOnDisk():
         each_discovery = os.listdir(os.path.join(RESOURCE_URI, dir))
         assert "rendered_output" in each_discovery
         assert "discovery.json" in each_discovery
+
+
+def test_save_SaveDiscoveryOnDisk_cli_entrypoint():
+    """Same test as above but tested by calling the script from a shell
+    subprocess, mimicking what a user might do."""
+    experiment_id = 1
+    seed = 1
+    config_path = os.path.join(RESOURCE_URI, "config.json")
+    with open(config_path, "w") as f:
+        config_json["callbacks"] = {"on_discovery": [{"name": "disk", "config": {}}]}
+        json.dump(config_json, f)
+    proc = subprocess.run(
+        [
+            "python",
+            "run.py",
+            "--config_file",
+            str(config_path),
+            "--experiment_id",
+            str(experiment_id),
+            "--seed",
+            str(seed),
+            "--nb_iterations",
+            str(10),
+        ],
+        shell=True,
+    )
+    files = os.listdir(RESOURCE_URI)
+    assert len(files) > 0
+    disc_dirs = []
+
+    for f in files:
+        tf = f.split("_")
+        if (len(tf) > 1) and (tf[-2] == "idx"):
+            disc_dirs.append(f)
+        else:
+            pass
+
+    for dir in disc_dirs:
+        each_discovery = os.listdir(os.path.join(RESOURCE_URI, dir))
+        assert "rendered_output" in each_discovery
+        assert "discovery.json" in each_discovery
+    assert proc.returncode == 0
 
 
 def test_save_resume():
