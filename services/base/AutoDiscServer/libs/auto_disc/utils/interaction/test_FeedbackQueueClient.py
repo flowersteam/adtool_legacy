@@ -8,7 +8,10 @@ from time import sleep
 from uuid import uuid4
 
 import pytest
-from auto_disc.auto_disc.wrappers.MessageQClient import Feedback, FeedbackQueueClient
+from auto_disc.utils.interaction.FeedbackQueueClient import (
+    Feedback,
+    FeedbackQueueClient,
+)
 
 global PERSIST_PATH
 PERSIST_PATH = os.path.join("/tmp", uuid4().hex)
@@ -56,8 +59,6 @@ def test_listener():
     # need to spin a subprocess due to GIL
     def delayed_put():
         import logging
-
-        from auto_disc.auto_disc.wrappers.MessageQClient import FeedbackQueueClient
 
         client = FeedbackQueueClient(persist_path=PERSIST_PATH)
         for i in range(5):

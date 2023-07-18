@@ -18,7 +18,12 @@ class Feedback:
 
 
 class FeedbackQueueClient:
-    """Class whose instances are connection clients to a file-based message queue allowing two-way communication about feedbacks."""
+    """Class whose instances are connection clients to a file-based message
+    queue allowing two-way communication about feedbacks.
+
+    NOTE: this class does not inherit from `Leaf` because the persistence of its
+    state is already guaranteed by the existence of the file-based message queue.
+    """
 
     def __init__(self, persist_path: str = "/tmp/messageq") -> None:
         # setup directories for the queue
