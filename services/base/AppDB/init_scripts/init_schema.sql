@@ -1,3 +1,4 @@
+-- experiment tracking data
 CREATE TABLE experiments (
 	id serial PRIMARY KEY,
 	name VARCHAR (255) NOT NULL,
@@ -53,12 +54,17 @@ CREATE TABLE checkpoints (
 	FOREIGN KEY (experiment_id)
     	REFERENCES experiments (id)
 );
-
+-- logging
 CREATE TABLE log_levels(
 	id serial PRIMARY KEY,
 	name VARCHAR (255) NOT NULL
 );
-
+INSERT INTO log_levels(name) VALUES('NOTSET');
+INSERT INTO log_levels(name) VALUES('DEBUG');
+INSERT INTO log_levels(name) VALUES('INFO');
+INSERT INTO log_levels(name) VALUES('WARNING');
+INSERT INTO log_levels(name) VALUES('ERROR');
+INSERT INTO log_levels(name) VALUES('CRITICAL');
 CREATE TABLE logs (
 	id serial PRIMARY KEY,
 	experiment_id INT NOT NULL,
@@ -83,9 +89,3 @@ CREATE TABLE preparing_logs(
     	REFERENCES experiments (id)
 );
 
-INSERT INTO log_levels(name) VALUES('NOTSET');
-INSERT INTO log_levels(name) VALUES('DEBUG');
-INSERT INTO log_levels(name) VALUES('INFO');
-INSERT INTO log_levels(name) VALUES('WARNING');
-INSERT INTO log_levels(name) VALUES('ERROR');
-INSERT INTO log_levels(name) VALUES('CRITICAL');
