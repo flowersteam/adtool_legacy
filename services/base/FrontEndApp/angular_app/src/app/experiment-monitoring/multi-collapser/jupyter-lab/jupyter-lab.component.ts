@@ -71,6 +71,7 @@ export class JupyterLabComponent implements OnInit {
     this.kernelInfoSet = true;
   }
 
+  // TODO: move this to the app/services/jupyter.service.ts
   makeKernelMessageToCreateDataset() {
     if (this.experiment) {
       console.log('Creating dataset');
