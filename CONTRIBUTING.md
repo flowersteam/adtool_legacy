@@ -1,6 +1,7 @@
 # How to Contribute
 
-We are happy to accept contributions to this project. Please follow the instructions below.
+We are happy to accept contributions to this project. Please follow the
+instructions below.
 
 ## Branching and Commits
 
@@ -25,7 +26,10 @@ We prefer doing a squash merge.
 
 ## Documentation
 
-Our documentation is automatically generated using pdoc and deployed on the `gh-pages` branch of this repository (see [`build_docs.yml`](.github/workflows/build_docs.yml)).
-You can modify the README's in the documentation by modifying the Markdown files in `docs`.
-You can modify the docstrings for individual classes and methods in the corresponding source files.
-Create a pull request as usual with your modifications.
+Our documentation is automatically generated using pdoc and deployed on the
+`gh-pages` branch of this repository (see
+[`build_docs.yml`](.github/workflows/build_docs.yml)). You can modify the
+README's in the documentation by modifying the Markdown files in `docs`. You
+can modify the docstrings for individual classes and methods in the
+corresponding source files. Create a pull request as usual with your
+modifications.
