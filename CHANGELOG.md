@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/flowersteam/adtool/compare/v1.0.0...v1.0.1) (2023-07-18)
+
+
+### Bug Fixes
+
+* **autodisc-server-libs:** remove dead code ([4c7bb0c](https://github.com/flowersteam/adtool/commit/4c7bb0c75d193d292dafa4c3cdcb4d2d0487a351))
+* **autodisc-server:** fix docker caching ([9c89cd5](https://github.com/flowersteam/adtool/commit/9c89cd5ab71f014f69961e0c3df82e55db1cba56))
+* **lenia:** patch lenia to work with Pytorch &gt;1.7 ([fbd5822](https://github.com/flowersteam/adtool/commit/fbd582280c41e2aa22475da151ca99d4807bc9b0))
+
 ## [1.0.0](https://github.com/flowersteam/adtool/compare/v0.3.0...v1.0.0) (2023-06-19)
 
 
