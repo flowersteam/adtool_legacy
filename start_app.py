@@ -2,7 +2,7 @@
 """Entrypoint for the adtool software, essentially a wrapper around docker-compose.
 
 Typical usage example which will start the software:
-    ./start_app.py --profile prod --gpu
+    ./start_app.py --mode prod --gpu
 """
 import argparse
 import os
