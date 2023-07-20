@@ -10,7 +10,10 @@ from uuid import uuid4
 import pytest
 from auto_disc.utils.interaction.FeedbackQueueClient import (
     Feedback,
-    FeedbackQueueClient,
+    LocalQueueClient,
+    RemoteQueueClient,
+    _get_protocol,
+    make_FeedbackQueueClient,
 )
 
 global PERSIST_PATH
@@ -25,15 +28,52 @@ def teardown_function(function):
     shutil.rmtree(PERSIST_PATH)
 
 
-def test___init__():
-    client = FeedbackQueueClient(persist_path=PERSIST_PATH)
+def test__get_protocol():
+    test_paths = [
+        "/tmp/messageq",
+        "file:///tmp/messageq",
+        "ssh:///tmp/messageq",
+        "sftp:///tmp/messageq",
+        "ftp:///tmp/messageq",
+        "ssh://me@example.com/tmp/messageq",
+    ]
+
+    answers = [
+        ("/tmp/messageq", "file"),
+        ("/tmp/messageq", "file"),
+        ("/tmp/messageq", "ssh"),
+        ("/tmp/messageq", "sftp"),
+        ("/tmp/messageq", "ftp"),
+        ("me@example.com/tmp/messageq", "ssh"),
+    ]
+
+    for a, p in zip(answers, test_paths):
+        assert a == _get_protocol(p)
+
+
+def test_make_FeedbackQueueClient():
+    # exception branch
+    test_path = "ftp:///tmp/messageq"
+    with pytest.raises(ValueError):
+        make_FeedbackQueueClient(test_path)
+
+    # dispatches
+    test_path = "ssh:///tmp/messageq"
+    assert type(make_FeedbackQueueClient(test_path)) == RemoteQueueClient
+
+    test_path = "file:///tmp/messageq"
+    assert type(make_FeedbackQueueClient(test_path)) == LocalQueueClient
+
+
+def test_LocalQueueClient___init__():
+    client = make_FeedbackQueueClient(PERSIST_PATH)
     assert os.path.exists(os.path.join(PERSIST_PATH, "questions"))
     assert os.path.exists(os.path.join(PERSIST_PATH, "responses"))
 
 
-def test_queue_operations():
-    client = FeedbackQueueClient(persist_path=PERSIST_PATH)
+def test_LocalQueueClient_queue_operations():
     f = [Feedback({"a": 1}), Feedback({"a": 2})]
+    client = make_FeedbackQueueClient(PERSIST_PATH)
     client.put_question(f[0])
     client.put_question(f[1])
     client.put_response(f[1])
@@ -44,14 +84,14 @@ def test_queue_operations():
     assert client.get_response() == f[0]
 
 
-def test_queue_operations_empty():
-    client = FeedbackQueueClient(persist_path=PERSIST_PATH)
+def test_LocalQueueClient_queue_operations_empty():
+    client = make_FeedbackQueueClient(PERSIST_PATH)
     with pytest.raises(queue.Empty):
         client.get_question(timeout=1)
 
 
-def test_listener():
-    client = FeedbackQueueClient(persist_path=PERSIST_PATH)
+def test_LocalQueueClient_listener():
+    client = make_FeedbackQueueClient(PERSIST_PATH)
     handler = client.listen_for_questions()
 
     put_results = []
@@ -60,7 +100,7 @@ def test_listener():
     def delayed_put():
         import logging
 
-        client = FeedbackQueueClient(persist_path=PERSIST_PATH)
+        client = make_FeedbackQueueClient(PERSIST_PATH)
         for i in range(5):
             sleep(2)
             logging.info(f"Pushing {i}")
