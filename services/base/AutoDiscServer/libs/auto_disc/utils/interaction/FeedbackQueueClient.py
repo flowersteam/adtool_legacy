@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
+import concurrent.futures
 import os
 import pickle
+import re
 import stat
+import tempfile
+import time
 from dataclasses import dataclass, field
 from queue import Queue
 from typing import Dict, Optional, Tuple
 from uuid import uuid4 as generate_uuid
 
+from pexpect import pxssh
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -94,9 +99,6 @@ class LocalQueueClient(_FeedbackQueueClient):
     clients connected to a queue stored locally.
     """
 
-    def __init__(self, persist_path: str = "/tmp/messageq") -> None:
-        super().__init__(persist_path)
-
     def put_question(self, question: Feedback):
         # persist feedback to disk
         file_to_write = os.path.join(self.question_path, str(question.id))
@@ -155,8 +157,79 @@ class RemoteQueueClient(_FeedbackQueueClient):
     clients connected to a queue stored on a remote host accessible by SSH.
     """
 
-    def __init__(self, persist_path: str = "ssh:///tmp/messageq") -> None:
-        super().__init__(persist_path)
+    def __init__(
+        self,
+        persist_path: str = "me@example.com/tmp/messageq",
+        ssh_config_path: str = "./config",
+    ) -> None:
+        # parse ssh info
+        self.user, self.host, self.persist_path = _parse_ssh_url(persist_path)
+
+        # create SSH connection
+        self.shell = pxssh.pxssh()
+        self.shell.login(
+            self.host,
+            ssh_config=ssh_config_path,
+        )
+
+        # setup directories for the queue
+        self.question_path = os.path.join(persist_path, "questions")
+        self.response_path = os.path.join(persist_path, "responses")
+        self.shell.sendline(f"mkdir -p {self.question_path} {self.response_path}")
+
+        # create in-memory queues
+        self.questions = Queue()
+        self.responses = Queue()
+
+    def put_question(self, question: Feedback):
+        # persist feedback to disk on remote
+        file_to_write = os.path.join(self.question_path, str(question.id))
+        with tempfile.NamedTemporaryFile() as f:
+            pickle.dump(question, f)
+            os.system(
+                "scp -r {} {}:{}".format(
+                    f.name,
+                    f"{self.user}@{self.host}",
+                    file_to_write,
+                )
+            )
+        # set read-only
+        self.shell.sendline(f"chmod 444 {file_to_write}")
+
+        # put into the in-memory queue
+        self.questions.put(question)
+
+        return
+
+    def put_response(self, response: Feedback):
+        # persist feedback to disk on remote
+        file_to_write = os.path.join(self.response_path, str(response.id))
+        with tempfile.NamedTemporaryFile() as f:
+            pickle.dump(response, f)
+            os.system(
+                "scp -r {} {}:{}".format(
+                    f.name,
+                    f"{self.user}@{self.host}",
+                    file_to_write,
+                )
+            )
+        # set read-only
+        self.shell.sendline(f"chmod 444 {file_to_write}")
+
+        # put into the in-memory queue
+        self.responses.put(response)
+
+        return
+
+    @staticmethod
+    def watch_directory(dir: str, queue: Queue, poll_interval: int = 1):
+        executor = concurrent.futures.ThreadPoolExecutor()
+
+        def poll():
+            while True:
+                time.sleep(poll_interval)
+
+        return executor
 
 
 def make_FeedbackQueueClient(persist_url: str) -> _FeedbackQueueClient:
@@ -185,15 +258,26 @@ def make_FeedbackQueueClient(persist_url: str) -> _FeedbackQueueClient:
         return RemoteQueueClient(path)
 
 
-def _get_protocol(path: str) -> Tuple[str, str]:
-    if path.find(":") == -1:
+def _get_protocol(url: str) -> Tuple[str, str]:
+    if url.find(":") == -1:
         protocol_name = "file"
-        output_path = path
+        output_path = url
     else:
-        protocol_name = path[: path.find(":")]
-        output_path = path[path.find(":") + 3 :]
+        protocol_name = url[: url.find(":")]
+        output_path = url[url.find(":") + 3 :]
 
     return output_path, protocol_name
+
+
+def _parse_ssh_url(url: str) -> Tuple[str, str, str]:
+    stripped_url, protocol_name = _get_protocol(url)
+    if protocol_name not in ["ssh", "sftp"]:
+        raise ValueError("Must call this function on a valid SSH url.")
+    res = re.match(r"^(?:(?P<user>\w*)@)?(?P<host>.*?)(?P<path>\/.*)", stripped_url)
+    if res is None:
+        raise Exception("Error parsing SSH url.")
+    user, host, path = res.group("user", "host", "path")
+    return user, host, path
 
 
 def main():
