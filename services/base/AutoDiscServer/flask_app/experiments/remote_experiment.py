@@ -20,8 +20,10 @@ from experiments.base_experiment import BaseExperiment
 
 class RemoteExperiment(BaseExperiment):
     """
-    Remote experiment that packages the auto_disc lib along with configuration files and sends it to remote server.
-    Pipelines are run locally on remote server (everything is stored on disk). This class monitors progress and downloads produced files.
+    Remote experiment that packages the auto_disc lib along with configuration
+    files and sends it to remote server.  Pipelines are run locally on remote
+    server (everything is stored on disk). This class monitors progress and
+    downloads produced files.
     """
 
     def __init__(self, host_profile_name, *args, **kwargs):
@@ -516,7 +518,8 @@ class RemoteExperiment(BaseExperiment):
 
     def __listen_log_file(self, local_folder):
         """
-        Brief: As long as the seeds have not finished read log file and do appropriate action
+        Brief: As long as the seeds have not finished read log file and do
+        appropriate action
         """
         try:
             current_log_line = previous_log = None
