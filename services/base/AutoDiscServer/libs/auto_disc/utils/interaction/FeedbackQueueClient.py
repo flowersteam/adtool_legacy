@@ -47,7 +47,8 @@ class _FeedbackQueueClient:
         self.responses = Queue()
 
     def get_question(self, timeout: int = 5, block: bool = True):
-        """Get a question from the in-memory cache."""
+        """Get a question from the in-memory cache.
+        NOTE: synchronization with the disk is not handled."""
 
         return self.questions.get(block=block, timeout=timeout)
 
@@ -56,7 +57,8 @@ class _FeedbackQueueClient:
         raise NotImplementedError
 
     def get_response(self, timeout: int = 5, block: bool = True):
-        """Get a response from the in-memory cache."""
+        """Get a response from the in-memory cache.
+        NOTE: synchronization with the disk is not handled."""
         return self.responses.get(block=block, timeout=timeout)
 
     def put_response(self, response: Feedback):
