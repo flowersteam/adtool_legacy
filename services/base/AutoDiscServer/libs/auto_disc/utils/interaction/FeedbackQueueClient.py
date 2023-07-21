@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import concurrent.futures
+import asyncio
 import os
 import pickle
 import re
 import stat
 import tempfile
-import time
+import traceback
 from dataclasses import dataclass, field
 from queue import Queue
 from typing import Dict, Optional, Tuple
@@ -168,39 +168,66 @@ class RemoteQueueClient(_FeedbackQueueClient):
     def __init__(
         self,
         persist_path: str = "me@example.com/tmp/messageq",
-        ssh_config_path: str = "./config",
+        ssh_config: str = "./config",
     ) -> None:
         # parse ssh info
         self.user, self.host, self.persist_path = _parse_ssh_url(persist_path)
 
+        # TODO: make this lazy evaluate when needed on method calls instead of
+        # at init
         # create SSH connection
         self.shell = pxssh.pxssh()
         self.shell.login(
             self.host,
-            ssh_config=ssh_config_path,
+            ssh_config=ssh_config,
         )
 
         # setup directories for the queue
-        self.question_path = os.path.join(persist_path, "questions")
-        self.response_path = os.path.join(persist_path, "responses")
+        self.question_path = os.path.join(self.persist_path, "questions")
+        self.response_path = os.path.join(self.persist_path, "responses")
         self.shell.sendline(f"mkdir -p {self.question_path} {self.response_path}")
+        self.shell.prompt()
 
         # create in-memory queues
         self.questions = Queue()
         self.responses = Queue()
 
+    def _push_file(self, local_file: str, remote_file: str):
+        if self.user is None:
+            connection_str = f"{self.host}"
+        else:
+            connection_str = f"{self.user}@{self.host}"
+
+        os.system(
+            "scp -r {} {}:{}".format(
+                local_file,
+                connection_str,
+                remote_file,
+            )
+        )
+
+    def _pull_file(self, remote_file: str, local_file: str):
+        if self.user is None:
+            connection_str = f"{self.host}"
+        else:
+            connection_str = f"{self.user}@{self.host}"
+        os.system(
+            "scp -r {}:{} {}".format(
+                connection_str,
+                remote_file,
+                local_file,
+            )
+        )
+
     def put_question(self, question: Feedback):
         # persist feedback to disk on remote
         file_to_write = os.path.join(self.question_path, str(question.id))
-        with tempfile.NamedTemporaryFile() as f:
-            pickle.dump(question, f)
-            os.system(
-                "scp -r {} {}:{}".format(
-                    f.name,
-                    f"{self.user}@{self.host}",
-                    file_to_write,
-                )
-            )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfile = os.path.join(tmpdir, "pkl")
+            with open(tmpfile, "wb") as f:
+                pickle.dump(question, f)
+            self._push_file(tmpfile, file_to_write)
+
         # set read-only
         self.shell.sendline(f"chmod 444 {file_to_write}")
 
@@ -214,13 +241,7 @@ class RemoteQueueClient(_FeedbackQueueClient):
         file_to_write = os.path.join(self.response_path, str(response.id))
         with tempfile.NamedTemporaryFile() as f:
             pickle.dump(response, f)
-            os.system(
-                "scp -r {} {}:{}".format(
-                    f.name,
-                    f"{self.user}@{self.host}",
-                    file_to_write,
-                )
-            )
+            self._push_file(f.name, file_to_write)
         # set read-only
         self.shell.sendline(f"chmod 444 {file_to_write}")
 
@@ -229,18 +250,52 @@ class RemoteQueueClient(_FeedbackQueueClient):
 
         return
 
-    @staticmethod
-    def watch_directory(dir: str, queue: Queue, poll_interval: int = 1):
-        executor = concurrent.futures.ThreadPoolExecutor()
+    def watch_directory(self, dir: str, queue: Queue, poll_interval: int = 1):
+        def poll_newest_filename(dir):
+            self.shell.sendline(f"ls -c {dir} | head -n 1")
+            self.shell.prompt()
+            if self.shell.before is None:
+                raise Exception("Could not parse result of SSH command.")
+            else:
+                return os.path.join(dir, self.shell.before.decode().split("\r\n")[1])
 
-        def poll():
+        async def retry_coroutine(coro, *args, **kwargs):
             while True:
-                time.sleep(poll_interval)
+                try:
+                    await coro(*args, **kwargs)
+                except asyncio.CancelledError:
+                    # pass through legitimate cancellations
+                    raise
+                except Exception:
+                    print("Caught exception in task")
+                    traceback.print_exc()
 
-        return executor
+        async def poll():
+            buffered_file = ""
+            while True:
+                await asyncio.sleep(poll_interval)
+                # get the name of the newest created file
+                polled_file = poll_newest_filename(dir)
+                print(f"Polled file {polled_file}")
+                if buffered_file != polled_file:
+                    buffered_file = polled_file
+                    print(f"Buffered file is now {buffered_file}")
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        self._pull_file(polled_file, tmpdir)
+                        tmpfile = os.path.join(tmpdir, os.path.basename(polled_file))
+                        with open(tmpfile, "rb") as f:
+                            feedback = pickle.load(f)
+                            queue.put(feedback)
+
+        task = asyncio.create_task(retry_coroutine(poll))
+
+        # alias the .cancel() method to obey the interface
+        task.shutdown = task.cancel
+
+        return task
 
 
-def make_FeedbackQueueClient(persist_url: str) -> _FeedbackQueueClient:
+def make_FeedbackQueueClient(persist_url: str, *args, **kwargs) -> _FeedbackQueueClient:
     """Make connection client object.
 
     Args
@@ -263,7 +318,7 @@ def make_FeedbackQueueClient(persist_url: str) -> _FeedbackQueueClient:
     if protocol_name == "file":
         return LocalQueueClient(path)
     elif protocol_name in ["ssh", "sftp"]:
-        return RemoteQueueClient(path)
+        return RemoteQueueClient(path, *args, **kwargs)
 
 
 def _get_protocol(url: str) -> Tuple[str, str]:
@@ -277,10 +332,7 @@ def _get_protocol(url: str) -> Tuple[str, str]:
     return output_path, protocol_name
 
 
-def _parse_ssh_url(url: str) -> Tuple[str, str, str]:
-    stripped_url, protocol_name = _get_protocol(url)
-    if protocol_name not in ["ssh", "sftp"]:
-        raise ValueError("Must call this function on a valid SSH url.")
+def _parse_ssh_url(stripped_url: str) -> Tuple[str, str, str]:
     res = re.match(r"^(?:(?P<user>\w*)@)?(?P<host>.*?)(?P<path>\/.*)", stripped_url)
     if res is None:
         raise Exception("Error parsing SSH url.")
