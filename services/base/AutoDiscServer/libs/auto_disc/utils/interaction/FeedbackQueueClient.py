@@ -21,6 +21,11 @@ class Feedback:
     content: Dict
     id: Optional[int] = field(default_factory=lambda: generate_uuid().int)
 
+    def __hash__(self):
+        # NOTE: that defining the hash function in this way asserts that
+        # no two Feedback objects are ever equal
+        return self.id
+
 
 class _FeedbackQueueClient:
     """Abstract class whose instances are connection clients to a file-based message
@@ -142,7 +147,8 @@ class LocalQueueClient(_FeedbackQueueClient):
             def on_created(self, event):
                 # only act on file creations
                 if event.is_directory == False:
-                    self.queue.put(event.src_path)
+                    with open(event.src_path, "rb") as f:
+                        self.queue.put(pickle.load(f))
 
         observer = Observer()
         queue_handler = QueueHandler(queue)

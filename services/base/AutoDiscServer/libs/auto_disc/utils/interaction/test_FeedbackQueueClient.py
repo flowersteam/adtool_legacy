@@ -106,7 +106,8 @@ def test_LocalQueueClient_listener():
             logging.info(f"Pushing {i}")
             fb = Feedback(content={"index": i})
             client.put_question(fb)
-            put_results.append(fb.id)
+            put_results.append(fb)
+            logging.info(f"Pushed {fb}")
 
     # single background provider
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -115,7 +116,8 @@ def test_LocalQueueClient_listener():
         # compare results which are polled asynchronously
         poll_results = []
         while len(poll_results) < 5:
-            poll_results.append(int(os.path.basename(client.get_question(timeout=10))))
+            logging.info("Polling results.")
+            poll_results.append(client.get_question(timeout=10))
             logging.info(f"Have polled {len(poll_results)} results.")
 
         assert poll_results == put_results
@@ -132,7 +134,7 @@ def test_LocalQueueClient_listener():
         # compare results which are polled asynchronously
         poll_results = []
         while len(poll_results) < 15:
-            poll_results.append(int(os.path.basename(client.get_question(timeout=10))))
+            poll_results.append(client.get_question(timeout=10))
             logging.info(f"Have polled {len(poll_results)} results.")
 
         assert set(poll_results) == set(put_results)
