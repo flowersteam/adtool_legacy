@@ -51,7 +51,7 @@ def test__get_protocol():
         assert a == _get_protocol(p)
 
 
-def test_make_FeedbackQueueClient():
+def test_make_FeedbackQueueClient(mocker):
     # exception branch
     test_path = "ftp:///tmp/messageq"
     with pytest.raises(ValueError):
@@ -59,6 +59,7 @@ def test_make_FeedbackQueueClient():
 
     # dispatches
     test_path = "ssh:///tmp/messageq"
+    mocker.patch("pexpect.pxssh.pxssh")
     assert type(make_FeedbackQueueClient(test_path)) == RemoteQueueClient
 
     test_path = "file:///tmp/messageq"
