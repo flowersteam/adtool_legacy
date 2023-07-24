@@ -1,7 +1,8 @@
 on:
+  workflow_dispatch:
   push:
     branches:
-      - dev
+      - prod
 
 permissions:
   contents: write
