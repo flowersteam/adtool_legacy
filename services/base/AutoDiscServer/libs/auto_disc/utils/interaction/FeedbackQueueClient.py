@@ -195,6 +195,11 @@ class RemoteQueueClient(_FeedbackQueueClient):
         self.shell.sendline(f"mkdir -p {self.question_path} {self.response_path}")
         self.shell.prompt()
 
+        # create a dummy file so that the watcher will never poll an empty
+        # directory
+        self.shell.sendline(
+            f"touch {self.question_path.rstrip('/')}/queue {self.response_path.rstrip('/')}/queue"
+        )
 
     def _push_file(self, local_file: str, remote_file: str):
         if self.user is None:
@@ -281,7 +286,17 @@ class RemoteQueueClient(_FeedbackQueueClient):
                 # get the name of the newest created file
                 polled_file = poll_newest_filename(dir)
                 print(f"Polled file {polled_file}")
-                if buffered_file != polled_file:
+                # check if
+                # 1. file is updated
+                # 2. file is not the root dir (pxssh parsing bug), trailing
+                #   slash stripped due to conflicting conventions about dir path
+                #   names
+                # 3. file is not the default placeholder file
+                if (
+                    (polled_file != buffered_file)
+                    and (polled_file.rstrip("/") != dir.rstrip("/"))
+                    and (os.path.basename(polled_file) != "queue")
+                ):
                     buffered_file = polled_file
                     print(f"Buffered file is now {buffered_file}")
                     with tempfile.TemporaryDirectory() as tmpdir:
