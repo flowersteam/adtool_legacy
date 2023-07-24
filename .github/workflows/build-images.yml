@@ -3,8 +3,6 @@ name: build-images
 on:
   workflow_dispatch:
   push:
-    branches:
-      - prod
     tags:
       - "v*"
 
