@@ -185,12 +185,16 @@ class RemoteQueueClient(_FeedbackQueueClient):
         # setup directories for the queue
         self.question_path = os.path.join(self.persist_path, "questions")
         self.response_path = os.path.join(self.persist_path, "responses")
-        self.shell.sendline(f"mkdir -p {self.question_path} {self.response_path}")
-        self.shell.prompt()
+        self._initialize_directories(self.question_path, self.response_path)
 
         # create in-memory queues
         self.questions = Queue()
         self.responses = Queue()
+
+    def _initialize_directories(self, question_path: str, response_path: str):
+        self.shell.sendline(f"mkdir -p {self.question_path} {self.response_path}")
+        self.shell.prompt()
+
 
     def _push_file(self, local_file: str, remote_file: str):
         if self.user is None:
