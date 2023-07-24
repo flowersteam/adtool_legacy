@@ -1,0 +1,24 @@
+name: format code
+
+on:
+  - workflow_dispatch
+  - push
+  - pull_request
+
+jobs:
+  format-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Run Black python formatter
+        uses: psf/black@stable
+      - name: Run isort import sorter
+        uses: isort/isort-action@v1
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Run Prettier formatter for JS/HTML/CSS/etc.
+        uses: creyD/prettier_action@v4.3
