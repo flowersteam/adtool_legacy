@@ -296,6 +296,7 @@ class RemoteQueueClient(_FeedbackQueueClient):
         # alias the .cancel() method to obey the interface
         task.shutdown = task.cancel
 
+        # TODO: make it handle keyboard interrupts
         return task
 
 
