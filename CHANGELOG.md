@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/flowersteam/adtool/compare/v1.1.0...v1.1.1) (2023-07-24)
+
+
+### Miscellaneous Chores
+
+* bump 1.1.1 ([7110b78](https://github.com/flowersteam/adtool/commit/7110b78543ab6e66e9a8a132e01590feca00904b))
+
 ## [1.1.0](https://github.com/flowersteam/adtool/compare/v1.0.1...v1.1.0) (2023-07-24)
 
 
