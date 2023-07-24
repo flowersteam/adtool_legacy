@@ -3,9 +3,6 @@ name: build-images
 on:
   workflow_dispatch:
   push:
-    branches:
-      - "dev"
-      - "prod"
     tags:
       - "v*"
   pull_request:
@@ -45,10 +42,8 @@ jobs:
           images: |
             registry.gitlab.inria.fr/cromac/automateddiscoverytool/${{ matrix.image }}
           tags: |
-            type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            prefix=${{ github.head_ref || github.ref_name }}
+            type=semver,event=tag,pattern={{version}},prefix=${{ github.head_ref || github.ref_name }}
       - name: Login to Gitlab registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
