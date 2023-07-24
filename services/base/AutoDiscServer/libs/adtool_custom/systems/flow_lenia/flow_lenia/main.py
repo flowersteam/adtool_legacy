@@ -12,7 +12,7 @@ import numpy as np
 from moviepy.video.io.ffmpeg_writer import FFMPEG_VideoWriter
 
 
-os.environ['FFMPEG_BINARY'] = 'ffmpeg'
+os.environ["FFMPEG_BINARY"] = "ffmpeg"
 
 
 class VideoWriter:
@@ -43,7 +43,7 @@ class VideoWriter:
 
     def show(self, **kw):
         self.close()
-        fn = self.params['filename']
+        fn = self.params["filename"]
         display(mvp.ipython_display(fn, **kw))
 
 
@@ -51,22 +51,19 @@ def sigmoid(x):
     return 0.5 * (jnp.tanh(x / 2) + 1)
 
 
-def ker_f(x, a, w, b): return (
-    b * jnp.exp(- (x[..., None] - a)**2 / w)).sum(-1)
+def ker_f(x, a, w, b):
+    return (b * jnp.exp(-((x[..., None] - a) ** 2) / w)).sum(-1)
 
 
-def bell(x, m, s): return jnp.exp(-((x - m) / s)**2 / 2)
+def bell(x, m, s):
+    return jnp.exp(-(((x - m) / s) ** 2) / 2)
 
 
 def growth(U, m, s):
     return bell(U, m, s) * 2 - 1
 
 
-kx = jnp.array([
-    [1., 0., -1.],
-    [2., 0., -2.],
-    [1., 0., -1.]
-])
+kx = jnp.array([[1.0, 0.0, -1.0], [2.0, 0.0, -2.0], [1.0, 0.0, -1.0]])
 ky = jnp.transpose(kx)
 
 
@@ -75,29 +72,38 @@ def sobel_x(A):
     A : (x, y, c)
     ret : (x, y, c)
     """
-    return jnp.dstack([jsp.signal.convolve2d(A[:, :, c], kx, mode='same')
-                       for c in range(A.shape[-1])])
+    return jnp.dstack(
+        [jsp.signal.convolve2d(A[:, :, c], kx, mode="same") for c in range(A.shape[-1])]
+    )
 
 
 def sobel_y(A):
-    return jnp.dstack([jsp.signal.convolve2d(A[:, :, c], ky, mode='same')
-                       for c in range(A.shape[-1])])
+    return jnp.dstack(
+        [jsp.signal.convolve2d(A[:, :, c], ky, mode="same") for c in range(A.shape[-1])]
+    )
 
 
 @jax.jit
 def sobel(A):
     return jnp.concatenate(
-        (sobel_y(A)[
-            :, :, None, :], sobel_x(A)[
-            :, :, None, :]), axis=2)
+        (sobel_y(A)[:, :, None, :], sobel_x(A)[:, :, None, :]), axis=2
+    )
 
 
 def get_kernels(SX: int, SY: int, nb_k: int, params):
     mid = SX // 2
-    Ds = [np.linalg.norm(np.mgrid[-mid:mid, -mid:mid], axis=0) /
-          ((params['R'] + 15) * params['r'][k]) for k in range(nb_k)]  # (x,y,k)
-    K = jnp.dstack([sigmoid(-(D - 1) * 10) * ker_f(D, params["a"][k],
-                   params["w"][k], params["b"][k]) for k, D in zip(range(nb_k), Ds)])
+    Ds = [
+        np.linalg.norm(np.mgrid[-mid:mid, -mid:mid], axis=0)
+        / ((params["R"] + 15) * params["r"][k])
+        for k in range(nb_k)
+    ]  # (x,y,k)
+    K = jnp.dstack(
+        [
+            sigmoid(-(D - 1) * 10)
+            * ker_f(D, params["a"][k], params["w"][k], params["b"][k])
+            for k, D in zip(range(nb_k), Ds)
+        ]
+    )
     nK = K / jnp.sum(K, axis=(0, 1), keepdims=True)
     return nK
 
@@ -122,18 +128,18 @@ def conn_from_lists(c0, c1, C):
 
 
 class ReintegrationTracking:
-
     def __init__(
-            self,
-            SX=256,
-            SY=256,
-            dt=.2,
-            dd=5,
-            sigma=.65,
-            border="wall",
-            has_hidden=False,
-            hidden_dims=None,
-            mix="softmax"):
+        self,
+        SX=256,
+        SY=256,
+        dt=0.2,
+        dd=5,
+        sigma=0.65,
+        border="wall",
+        has_hidden=False,
+        hidden_dims=None,
+        mix="softmax",
+    ):
         self.SX = SX
         self.SY = SY
         self.dt = dt
@@ -141,7 +147,7 @@ class ReintegrationTracking:
         self.sigma = sigma
         self.has_hidden = has_hidden
         self.hidden_dims = hidden_dims
-        self.border = border if border in ['wall', 'torus'] else 'wall'
+        self.border = border if border in ["wall", "torus"] else "wall"
         self.mix = mix
 
         self.apply = self._build_apply()
@@ -150,10 +156,9 @@ class ReintegrationTracking:
         return self.apply(*args)
 
     def _build_apply(self):
-
         x, y = jnp.arange(self.SX), jnp.arange(self.SY)
         X, Y = jnp.meshgrid(x, y)
-        pos = jnp.dstack((Y, X)) + .5  # (SX, SY, 2)
+        pos = jnp.dstack((Y, X)) + 0.5  # (SX, SY, 2)
         dxs = []
         dys = []
         dd = self.dd
@@ -170,21 +175,30 @@ class ReintegrationTracking:
             def step(X, mu, dx, dy):
                 Xr = jnp.roll(X, (dx, dy), axis=(0, 1))
                 mur = jnp.roll(mu, (dx, dy), axis=(0, 1))
-                if self.border == 'torus':
-                    dpmu = jnp.min(jnp.stack(
-                        [jnp.absolute(pos[..., None] - (mur + jnp.array([di, dj])[None, None, :, None]))
-                         for di in (-self.SX, 0, self.SX) for dj in (-self.SY, 0, self.SY)]
-                    ), axis=0)
+                if self.border == "torus":
+                    dpmu = jnp.min(
+                        jnp.stack(
+                            [
+                                jnp.absolute(
+                                    pos[..., None]
+                                    - (mur + jnp.array([di, dj])[None, None, :, None])
+                                )
+                                for di in (-self.SX, 0, self.SX)
+                                for dj in (-self.SY, 0, self.SY)
+                            ]
+                        ),
+                        axis=0,
+                    )
                 else:
                     dpmu = jnp.absolute(pos[..., None] - mur)
-                sz = .5 - dpmu + self.sigma
-                area = jnp.prod(jnp.clip(sz, 0, min(
-                    1, 2 * self.sigma)), axis=2) / (4 * self.sigma**2)
+                sz = 0.5 - dpmu + self.sigma
+                area = jnp.prod(jnp.clip(sz, 0, min(1, 2 * self.sigma)), axis=2) / (
+                    4 * self.sigma**2
+                )
                 nX = Xr * area
                 return nX
 
             def apply(X, F):
-
                 ma = self.dd - self.sigma  # upper bound of the flow maggnitude
                 # (x, y, 2, c) : target positions (distribution centers)
                 mu = pos[..., None] + jnp.clip(self.dt * F, -ma, ma)
@@ -193,33 +207,42 @@ class ReintegrationTracking:
                 nX = step(X, mu, dxs, dys).sum(axis=0)
 
                 return nX
+
         # -----------------------------------------------------------------------------------------------
         else:
 
             @partial(jax.vmap, in_axes=(None, None, None, 0, 0))
             def step_flow(X, H, mu, dx, dy):
-                """Summary
-                """
+                """Summary"""
                 Xr = jnp.roll(X, (dx, dy), axis=(0, 1))
                 Hr = jnp.roll(H, (dx, dy), axis=(0, 1))  # (x, y, k)
                 mur = jnp.roll(mu, (dx, dy), axis=(0, 1))
 
-                if self.border == 'torus':
-                    dpmu = jnp.min(jnp.stack(
-                        [jnp.absolute(pos[..., None] - (mur + jnp.array([di, dj])[None, None, :, None]))
-                         for di in (-self.SX, 0, self.SX) for dj in (-self.SY, 0, self.SY)]
-                    ), axis=0)
+                if self.border == "torus":
+                    dpmu = jnp.min(
+                        jnp.stack(
+                            [
+                                jnp.absolute(
+                                    pos[..., None]
+                                    - (mur + jnp.array([di, dj])[None, None, :, None])
+                                )
+                                for di in (-self.SX, 0, self.SX)
+                                for dj in (-self.SY, 0, self.SY)
+                            ]
+                        ),
+                        axis=0,
+                    )
                 else:
                     dpmu = jnp.absolute(pos[..., None] - mur)
 
-                sz = .5 - dpmu + self.sigma
-                area = jnp.prod(jnp.clip(sz, 0, min(
-                    1, 2 * self.sigma)), axis=2) / (4 * self.sigma**2)
+                sz = 0.5 - dpmu + self.sigma
+                area = jnp.prod(jnp.clip(sz, 0, min(1, 2 * self.sigma)), axis=2) / (
+                    4 * self.sigma**2
+                )
                 nX = Xr * area
                 return nX, Hr
 
             def apply(X, H, F):
-
                 ma = self.dd - self.sigma  # upper bound of the flow maggnitude
                 # (x, y, 2, c) : target positions (distribution centers)
                 mu = pos[..., None] + jnp.clip(self.dt * F, -ma, ma)
@@ -227,7 +250,7 @@ class ReintegrationTracking:
                     mu = jnp.clip(mu, self.sigma, self.SX - self.sigma)
                 nX, nH = step_flow(X, H, mu, dxs, dys)
 
-                if self.mix == 'avg':
+                if self.mix == "avg":
                     nH = jnp.sum(nH * nX.sum(axis=-1, keepdims=True), axis=0)
                     nX = jnp.sum(nH, axis=0)
                     nH = nH / (nX.sum(axis=-1, keepdims=True) + 1e-10)
@@ -235,29 +258,39 @@ class ReintegrationTracking:
                 elif self.mix == "softmax":
                     expnX = jnp.exp(nX.sum(axis=-1, keepdims=True)) - 1
                     nX = jnp.sum(nX, axis=0)
-                    nH = jnp.sum(nH * expnX, axis=0) / \
-                        (expnX.sum(axis=0) + 1e-10)  # avg rule
+                    nH = jnp.sum(nH * expnX, axis=0) / (
+                        expnX.sum(axis=0) + 1e-10
+                    )  # avg rule
 
                 elif self.mix == "stoch":
                     categorical = jax.random.categorical(
                         jax.random.PRNGKey(42),
                         jnp.log(nX.sum(axis=-1, keepdims=True)),
-                        axis=0)
+                        axis=0,
+                    )
                     mask = jax.nn.one_hot(
-                        categorical, num_classes=(2 * self.dd + 1)**2, axis=-1)
+                        categorical, num_classes=(2 * self.dd + 1) ** 2, axis=-1
+                    )
                     mask = jnp.transpose(mask, (3, 0, 1, 2))
                     nH = jnp.sum(nH * mask, axis=0)
                     nX = jnp.sum(nX, axis=0)
 
                 elif self.mix == "stoch_gene_wise":
                     mask = jnp.concatenate(
-                        [jax.nn.one_hot(jax.random.categorical(
-                            jax.random.PRNGKey(42),
-                            jnp.log(nX.sum(axis=-1, keepdims=True)),
-                            axis=0),
-                            num_classes=(2 * dd + 1)**2, axis=-1)
-                         for _ in range(self.hidden_dims)],
-                        axis=2)
+                        [
+                            jax.nn.one_hot(
+                                jax.random.categorical(
+                                    jax.random.PRNGKey(42),
+                                    jnp.log(nX.sum(axis=-1, keepdims=True)),
+                                    axis=0,
+                                ),
+                                num_classes=(2 * dd + 1) ** 2,
+                                axis=-1,
+                            )
+                            for _ in range(self.hidden_dims)
+                        ],
+                        axis=2,
+                    )
                     # (2dd+1**2, x, y, nb_k)
                     mask = jnp.transpose(mask, (3, 0, 1, 2))
                     nH = jnp.sum(nH * mask, axis=0)
@@ -270,8 +303,8 @@ class ReintegrationTracking:
 
 @chex.dataclass
 class Params:
-    """Flow Lenia update rule parameters
-    """
+    """Flow Lenia update rule parameters"""
+
     r: jnp.ndarray
     b: jnp.ndarray
     w: jnp.ndarray
@@ -284,8 +317,8 @@ class Params:
 
 @chex.dataclass
 class CompiledParams:
-    """Flow Lenia compiled parameters
-    """
+    """Flow Lenia compiled parameters"""
+
     fK: jnp.ndarray
     m: jnp.ndarray
     s: jnp.ndarray
@@ -309,17 +342,18 @@ class RuleSpace:
             nb_k (int): number of kernels in the update rule
         """
         self.nb_k = nb_k
-        self.kernel_keys = 'r b w a m s h'.split()
+        self.kernel_keys = "r b w a m s h".split()
         self.spaces = {
-            "r": {'low': .2, 'high': 1., 'mut_std': .2, 'shape': None},
-            "b": {'low': .001, 'high': 1., 'mut_std': .2, 'shape': (3,)},
-            "w": {'low': .01, 'high': .5, 'mut_std': .2, 'shape': (3,)},
-            "a": {'low': .0, 'high': 1., 'mut_std': .2, 'shape': (3,)},
-            "m": {'low': .05, 'high': .5, 'mut_std': .2, 'shape': None},
-            "s": {'low': .001, 'high': .18, 'mut_std': .01, 'shape': None},
-            "h": {'low': .01, 'high': 1., 'mut_std': .2, 'shape': None},
-            'R': {'low': 2., 'high': 25., 'mut_std': .2, 'shape': None},
+            "r": {"low": 0.2, "high": 1.0, "mut_std": 0.2, "shape": None},
+            "b": {"low": 0.001, "high": 1.0, "mut_std": 0.2, "shape": (3,)},
+            "w": {"low": 0.01, "high": 0.5, "mut_std": 0.2, "shape": (3,)},
+            "a": {"low": 0.0, "high": 1.0, "mut_std": 0.2, "shape": (3,)},
+            "m": {"low": 0.05, "high": 0.5, "mut_std": 0.2, "shape": None},
+            "s": {"low": 0.001, "high": 0.18, "mut_std": 0.01, "shape": None},
+            "h": {"low": 0.01, "high": 1.0, "mut_std": 0.2, "shape": None},
+            "R": {"low": 2.0, "high": 25.0, "mut_std": 0.2, "shape": None},
         }
+
     # -----------------------------------------------------------------------------
 
     def sample(self, key: jnp.ndarray) -> Params:
@@ -332,28 +366,25 @@ class RuleSpace:
             key (jnp.ndarray): random generation key
         """
         kernels = {}
-        for k in 'rmsh':
+        for k in "rmsh":
             key, subkey = jax.random.split(key)
             kernels[k] = jax.random.uniform(
                 key=subkey,
-                minval=self.spaces[k]['low'],
-                maxval=self.spaces[k]['high'],
-                shape=(
-                    self.nb_k,
-                ))
+                minval=self.spaces[k]["low"],
+                maxval=self.spaces[k]["high"],
+                shape=(self.nb_k,),
+            )
         for k in "awb":
             key, subkey = jax.random.split(key)
             kernels[k] = jax.random.uniform(
                 key=subkey,
-                minval=self.spaces[k]['low'],
-                maxval=self.spaces[k]['high'],
-                shape=(
-                    self.nb_k,
-                    3))
+                minval=self.spaces[k]["low"],
+                maxval=self.spaces[k]["high"],
+                shape=(self.nb_k, 3),
+            )
         R = jax.random.uniform(
-            key=key,
-            minval=self.spaces['R']['low'],
-            maxval=self.spaces['R']['high'])
+            key=key, minval=self.spaces["R"]["low"], maxval=self.spaces["R"]["high"]
+        )
         return Params(R=R, **kernels)
 
 
@@ -390,22 +421,30 @@ class KernelComputer:
                 CompiledParams: compiled params which can be used as update rule
             """
 
-            Ds = [np.linalg.norm(np.mgrid[-mid:mid, -mid:mid], axis=0) /
-                  ((params.R + 15) * params.r[k]) for k in range(nb_k)]  # (x,y,k)
-            K = jnp.dstack([sigmoid(-(D - 1) * 10) * ker_f(D, params.a[k],
-                           params.w[k], params.b[k]) for k, D in zip(range(nb_k), Ds)])
+            Ds = [
+                np.linalg.norm(np.mgrid[-mid:mid, -mid:mid], axis=0)
+                / ((params.R + 15) * params.r[k])
+                for k in range(nb_k)
+            ]  # (x,y,k)
+            K = jnp.dstack(
+                [
+                    sigmoid(-(D - 1) * 10)
+                    * ker_f(D, params.a[k], params.w[k], params.b[k])
+                    for k, D in zip(range(nb_k), Ds)
+                ]
+            )
             # Normalize kernels
             nK = K / jnp.sum(K, axis=(0, 1), keepdims=True)
-            fK = jnp.fft.fft2(jnp.fft.fftshift(nK, axes=(0, 1)),
-                              axes=(0, 1))  # Get kernels fft
+            fK = jnp.fft.fft2(
+                jnp.fft.fftshift(nK, axes=(0, 1)), axes=(0, 1)
+            )  # Get kernels fft
 
             return CompiledParams(fK=fK, m=params.m, s=params.s, h=params.h)
 
         self.apply = jax.jit(compute_kernels)
 
     def __call__(self, params: Params):
-        """callback to apply
-        """
+        """callback to apply"""
         return self.apply(params)
 
 
@@ -413,11 +452,12 @@ class KernelComputer:
 # ==================================================FLOW LENIA============
 # ==================================================================================================================
 
+
 @chex.dataclass
 class Config:
 
-    """Configuration of Flow Lenia system
-    """
+    """Configuration of Flow Lenia system"""
+
     SX: int
     SY: int
     nb_k: int
@@ -426,17 +466,17 @@ class Config:
     c1: t.Iterable
     dt: float
     dd: int = 5
-    sigma: float = .65
+    sigma: float = 0.65
     n: int = 2
-    theta_A: float = 1.
-    border: str = 'wall'
+    theta_A: float = 1.0
+    border: str = "wall"
 
 
 @chex.dataclass
 class State:
 
-    """State of the system
-    """
+    """State of the system"""
+
     A: jnp.ndarray
 
 
@@ -465,7 +505,8 @@ class FlowLenia:
         self.rule_space = RuleSpace(config.nb_k)
 
         self.kernel_computer = KernelComputer(
-            self.config.SX, self.config.SY, self.config.nb_k)
+            self.config.SX, self.config.SY, self.config.nb_k
+        )
 
         self.RT = ReintegrationTracking(
             self.config.SX,
@@ -473,7 +514,8 @@ class FlowLenia:
             self.config.dt,
             self.config.dd,
             self.config.sigma,
-            self.config.border)
+            self.config.border,
+        )
 
         self.step_fn = self._build_step_fn()
 
@@ -522,13 +564,13 @@ class FlowLenia:
 
             fAk = fA[:, :, self.config.c0]  # (x,y,k)
 
-            U = jnp.real(jnp.fft.ifft2(
-                params.fK * fAk, axes=(0, 1)))  # (x,y,k)
+            U = jnp.real(jnp.fft.ifft2(params.fK * fAk, axes=(0, 1)))  # (x,y,k)
 
             U = growth(U, params.m, params.s) * params.h  # (x,y,k)
 
-            U = jnp.dstack([U[:, :, self.config.c1[c]].sum(axis=-1)
-                           for c in range(self.config.C)])  # (x,y,c)
+            U = jnp.dstack(
+                [U[:, :, self.config.c1[c]].sum(axis=-1) for c in range(self.config.C)]
+            )  # (x,y,c)
 
             # -------------------------------FLOW------------------------------------------
 
@@ -536,8 +578,9 @@ class FlowLenia:
 
             nabla_A = sobel(A.sum(axis=-1, keepdims=True))  # (x, y, 2, 1)
 
-            alpha = jnp.clip((A[:, :, None, :] /
-                              self.config.theta_A)**self.config.n, .0, 1.)
+            alpha = jnp.clip(
+                (A[:, :, None, :] / self.config.theta_A) ** self.config.n, 0.0, 1.0
+            )
 
             F = nabla_U * (1 - alpha) - nabla_A * alpha
 
@@ -550,14 +593,17 @@ class FlowLenia:
     # ------------------------------------------------------------------------------
 
     def _build_rollout(
-            self) -> t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]:
+        self,
+    ) -> t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]:
         """build rollout function
 
         Returns:
             t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]: Description
         """
-        def scan_step(carry: t.Tuple[State, CompiledParams],
-                      x) -> t.Tuple[t.Tuple[State, CompiledParams], State]:
+
+        def scan_step(
+            carry: t.Tuple[State, CompiledParams], x
+        ) -> t.Tuple[t.Tuple[State, CompiledParams], State]:
             """Summary
 
             Args:
@@ -571,8 +617,9 @@ class FlowLenia:
             nstate = jax.jit(self.step_fn)(state, params)
             return (nstate, params), nstate
 
-        def rollout(params: CompiledParams, init_state: State,
-                    steps: int) -> t.Tuple[State, State]:
+        def rollout(
+            params: CompiledParams, init_state: State, steps: int
+        ) -> t.Tuple[State, State]:
             """Summary
 
             Args:
@@ -583,8 +630,7 @@ class FlowLenia:
             Returns:
                 t.Tuple[State, State]: Description
             """
-            return jax.lax.scan(
-                scan_step, (init_state, params), None, length=steps)
+            return jax.lax.scan(scan_step, (init_state, params), None, length=steps)
 
         return rollout
 
@@ -614,7 +660,8 @@ class Lenia:
         self.rule_space = RuleSpace(config.nb_k)
 
         self.kernel_computer = KernelComputer(
-            self.config.SX, self.config.SY, self.config.nb_k)
+            self.config.SX, self.config.SY, self.config.nb_k
+        )
 
         self.RT = ReintegrationTracking(
             self.config.SX,
@@ -622,7 +669,8 @@ class Lenia:
             self.config.dt,
             self.config.dd,
             self.config.sigma,
-            self.config.border)
+            self.config.border,
+        )
 
         self.step_fn = self._build_step_fn()
 
@@ -671,17 +719,17 @@ class Lenia:
 
             fAk = fA[:, :, self.config.c0]  # (x,y,k)
 
-            U = jnp.real(jnp.fft.ifft2(
-                params.fK * fAk, axes=(0, 1)))  # (x,y,k)
+            U = jnp.real(jnp.fft.ifft2(params.fK * fAk, axes=(0, 1)))  # (x,y,k)
 
             U = growth(U, params.m, params.s) * params.h  # (x,y,k)
 
-            U = jnp.dstack([U[:, :, self.config.c1[c]].sum(axis=-1)
-                           for c in range(self.config.C)])  # (x,y,c)
+            U = jnp.dstack(
+                [U[:, :, self.config.c1[c]].sum(axis=-1) for c in range(self.config.C)]
+            )  # (x,y,c)
 
             # -------------------------------FLOW------------------------------------------
 
-            nA = jnp.clip(A + self.config.dt * U, 0., 1.)
+            nA = jnp.clip(A + self.config.dt * U, 0.0, 1.0)
 
             return State(A=nA)
 
@@ -690,14 +738,17 @@ class Lenia:
     # ------------------------------------------------------------------------------
 
     def _build_rollout(
-            self) -> t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]:
+        self,
+    ) -> t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]:
         """build rollout function
 
         Returns:
             t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]: Description
         """
-        def scan_step(carry: t.Tuple[State, CompiledParams],
-                      x) -> t.Tuple[t.Tuple[State, CompiledParams], State]:
+
+        def scan_step(
+            carry: t.Tuple[State, CompiledParams], x
+        ) -> t.Tuple[t.Tuple[State, CompiledParams], State]:
             """Summary
 
             Args:
@@ -711,8 +762,9 @@ class Lenia:
             nstate = jax.jit(self.step_fn)(state, params)
             return (nstate, params), nstate
 
-        def rollout(params: CompiledParams, init_state: State,
-                    steps: int) -> t.Tuple[State, State]:
+        def rollout(
+            params: CompiledParams, init_state: State, steps: int
+        ) -> t.Tuple[State, State]:
             """Summary
 
             Args:
@@ -723,10 +775,11 @@ class Lenia:
             Returns:
                 t.Tuple[State, State]: Description
             """
-            return jax.lax.scan(
-                scan_step, (init_state, params), None, length=steps)
+            return jax.lax.scan(scan_step, (init_state, params), None, length=steps)
 
         return rollout
+
+
 # @title Utils
 
 
@@ -752,8 +805,18 @@ def main():
     M = np.ones((C, C), dtype=int) * nb_k
     nb_k = int(M.sum())
     c0, c1 = conn_from_matrix(M)
-    config = Config(SX=SX, SY=SY, nb_k=nb_k, C=C, c0=c0, c1=c1,
-                    dt=dt, theta_A=theta_A, dd=5, sigma=sigma)
+    config = Config(
+        SX=SX,
+        SY=SY,
+        nb_k=nb_k,
+        C=C,
+        c0=c0,
+        c1=c1,
+        dt=dt,
+        theta_A=theta_A,
+        dd=5,
+        sigma=sigma,
+    )
     fl = FlowLenia(config)
     roll_fn = jax.jit(fl.rollout_fn, static_argnums=(2,))
 
@@ -765,8 +828,10 @@ def main():
     c_params = fl.kernel_computer(params)  # Process params
 
     mx, my = SX // 2, SY // 2  # center coordinated
-    A0 = jnp.zeros((SX, SY, C)).at[mx - 20:mx + 20, my - 20:my + 20, :].set(
-        jax.random.uniform(state_seed, (40, 40, C))
+    A0 = (
+        jnp.zeros((SX, SY, C))
+        .at[mx - 20 : mx + 20, my - 20 : my + 20, :]
+        .set(jax.random.uniform(state_seed, (40, 40, C)))
     )
     state = State(A=A0)
 
