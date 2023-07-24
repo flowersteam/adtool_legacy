@@ -2,12 +2,11 @@ import datetime
 import threading
 import traceback
 
+from experiments.local_experiment import LocalExperiment
+from experiments.remote_experiment import RemoteExperiment
 from utils import AutoDiscServerConfig, CheckpointsStatusEnum, reconstruct_parameters
 from utils.DB import AppDBCaller, AppDBMethods
 from utils.experiment_status_enum import ExperimentStatusEnum
-
-from experiments.local_experiment import LocalExperiment
-from experiments.remote_experiment import RemoteExperiment
 
 
 class ExperimentsHandler:

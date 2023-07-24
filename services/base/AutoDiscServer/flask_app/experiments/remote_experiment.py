@@ -6,6 +6,7 @@ import traceback
 from copy import copy
 from time import sleep
 
+from experiments.base_experiment import BaseExperiment
 from pexpect import pxssh
 from utils import (
     ExperimentStatusEnum,
@@ -14,8 +15,6 @@ from utils import (
     parse_profile,
 )
 from utils.DB import AppDBCaller, AppDBLoggerHandler, AppDBMethods
-
-from experiments.base_experiment import BaseExperiment
 
 
 class RemoteExperiment(BaseExperiment):

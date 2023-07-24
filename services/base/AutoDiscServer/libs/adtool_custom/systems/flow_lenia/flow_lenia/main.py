@@ -11,7 +11,6 @@ import moviepy.editor as mvp
 import numpy as np
 from moviepy.video.io.ffmpeg_writer import FFMPEG_VideoWriter
 
-
 os.environ["FFMPEG_BINARY"] = "ffmpeg"
 
 

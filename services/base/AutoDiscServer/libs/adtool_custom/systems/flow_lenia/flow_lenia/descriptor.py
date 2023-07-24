@@ -1,8 +1,8 @@
-import torch
-from addict import Dict
 import typing
 from copy import deepcopy
 
+import torch
+from addict import Dict
 
 EPS = 0.0001
 DISTANCE_WEIGHT = 2  # 1=linear, 2=quadratic, ...

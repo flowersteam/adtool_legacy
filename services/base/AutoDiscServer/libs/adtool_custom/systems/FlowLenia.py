@@ -7,7 +7,6 @@ import jax.numpy as jnp
 import numpy as np
 from auto_disc.auto_disc.systems.System import System
 from auto_disc.auto_disc.utils.expose_config.defaults import Defaults, defaults
-
 from flow_lenia.main import Config, FlowLenia, State, conn_from_matrix
 
 
