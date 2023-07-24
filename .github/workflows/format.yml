@@ -15,10 +15,12 @@ jobs:
         # NOTE: isort should run before black as black formats the sort results
       - name: Run isort import sorter
         uses: isort/isort-action@v1
+        with:
+          configuration: "--check-only --profile black"
       - name: Run Black python formatter
         uses: psf/black@stable
         with:
-          options: "--check --verbose"
+          options: "--check"
   prettier:
     runs-on: ubuntu-latest
     steps:
