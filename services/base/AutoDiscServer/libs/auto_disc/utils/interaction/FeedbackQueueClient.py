@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""Module containing clients for interacting with a file-based message queue
+used to broker communication with the user who can provide feedback to the
+exploration loop via ansewring questions asynchronously."""
 import asyncio
 import os
 import pickle
@@ -18,6 +21,9 @@ from watchdog.observers import Observer
 
 @dataclass
 class Feedback:
+    """Class whose objects are instances of human feedback to the exploration
+    loop."""
+
     content: Dict
     id: Optional[int] = field(default_factory=lambda: generate_uuid().int)
 
@@ -46,19 +52,36 @@ class _FeedbackQueueClient:
         self.questions = Queue()
         self.responses = Queue()
 
-    def get_question(self, timeout: int = 5, block: bool = True):
+    def get_question(self, timeout: int = 5, block: bool = True) -> Feedback:
         """Get a question from the in-memory cache.
-        NOTE: synchronization with the disk is not handled."""
+
+        NOTE: synchronization with the disk is not handled.
+
+        Args
+            timeout: Timeout length in seconds.
+            block: Whether or not to block the thread when getting.
+
+        Returns
+            Feedback object retrieved from the queue.
+        """
 
         return self.questions.get(block=block, timeout=timeout)
 
-    def put_question(self, question: Feedback):
+    def put_question(self, question: Feedback) -> None:
         """Put a question to disk and synchronize with in-memory cache."""
         raise NotImplementedError
 
     def get_response(self, timeout: int = 5, block: bool = True):
         """Get a response from the in-memory cache.
-        NOTE: synchronization with the disk is not handled."""
+        NOTE: synchronization with the disk is not handled.
+
+        Args
+            timeout: Timeout length in seconds.
+            block: Whether or not to block the thread when getting.
+
+        Returns
+            Feedback object retrieved from the queue.
+        """
         return self.responses.get(block=block, timeout=timeout)
 
     def put_response(self, response: Feedback):
@@ -66,7 +89,11 @@ class _FeedbackQueueClient:
         raise NotImplementedError
 
     def listen_for_questions(self):
-        """Asynchronously watch a directory and add new file paths to in-memory queue.
+        """Asynchronously watch the questions queue and add new `Feedback`s to
+        in-memory queue.
+
+        NOTE: that it will only listen for new `Feedback`s
+        added after being called and does not examine what is persisted on disk.
 
         Return
             A handle which can be used to terminate the watch by calling its
@@ -77,7 +104,18 @@ class _FeedbackQueueClient:
         return self.watch_directory(dir=self.question_path, queue=self.questions)
 
     def listen_for_responses(self):
-        """Asynchronously watch a directory and add new file paths to in-memory queue."""
+        """Asynchronously watch the questions queue and add new `Feedback`s to
+        in-memory queue.
+
+        NOTE: that it will only listen for new `Feedback`s
+        added after being called and does not examine what is persisted on disk.
+
+        Return
+            A handle which can be used to terminate the watch by calling its
+                shutdown() method
+        Raises
+            FileNotFoundError: Could not find directory dir.
+        """
         return self.watch_directory(dir=self.response_path, queue=self.responses)
 
     @staticmethod
@@ -358,11 +396,3 @@ def _parse_ssh_url(stripped_url: str) -> Tuple[str, str, str]:
         raise Exception("Error parsing SSH url.")
     user, host, path = res.group("user", "host", "path")
     return user, host, path
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
