@@ -1349,7 +1349,7 @@ import torch.nn.functional as F
 
 class Model(nn.Module):
     def __init__(self):
-        super(Model, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(1, 20, 5)
         self.conv2 = nn.Conv2d(20, 20, 5)
 
@@ -1360,6 +1360,13 @@ class Model(nn.Module):
 
 <p>Submodules assigned in this way will be registered, and will have their
 parameters converted too when you call <code><a href="#RecurrentNetwork.to">to()</a></code>, etc.</p>
+
+<div class="pdoc-alert pdoc-alert-note">
+
+<p>As per the example above, an <code><a href="#RecurrentNetwork.__init__">__init__()</a></code> call to the parent class
+must be made before assignment on the child.</p>
+
+</div>
 
 <p>:ivar training: Boolean represents whether this module is in training or
                 evaluation mode.
@@ -1938,23 +1945,33 @@ returns: (..., n_outputs)</li>
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt>torch.nn.modules.module.Module</dt>
-                                <dd id="RecurrentNetwork.dump_patches" class="variable">dump_patches</dd>
-                <dd id="RecurrentNetwork.register_buffer" class="function">register_buffer</dd>
+                                <dd id="RecurrentNetwork.register_buffer" class="function">register_buffer</dd>
                 <dd id="RecurrentNetwork.register_parameter" class="function">register_parameter</dd>
                 <dd id="RecurrentNetwork.add_module" class="function">add_module</dd>
+                <dd id="RecurrentNetwork.register_module" class="function">register_module</dd>
+                <dd id="RecurrentNetwork.get_submodule" class="function">get_submodule</dd>
+                <dd id="RecurrentNetwork.get_parameter" class="function">get_parameter</dd>
+                <dd id="RecurrentNetwork.get_buffer" class="function">get_buffer</dd>
+                <dd id="RecurrentNetwork.get_extra_state" class="function">get_extra_state</dd>
+                <dd id="RecurrentNetwork.set_extra_state" class="function">set_extra_state</dd>
                 <dd id="RecurrentNetwork.apply" class="function">apply</dd>
                 <dd id="RecurrentNetwork.cuda" class="function">cuda</dd>
+                <dd id="RecurrentNetwork.ipu" class="function">ipu</dd>
+                <dd id="RecurrentNetwork.xpu" class="function">xpu</dd>
                 <dd id="RecurrentNetwork.cpu" class="function">cpu</dd>
                 <dd id="RecurrentNetwork.type" class="function">type</dd>
                 <dd id="RecurrentNetwork.float" class="function">float</dd>
                 <dd id="RecurrentNetwork.double" class="function">double</dd>
                 <dd id="RecurrentNetwork.half" class="function">half</dd>
                 <dd id="RecurrentNetwork.bfloat16" class="function">bfloat16</dd>
+                <dd id="RecurrentNetwork.to_empty" class="function">to_empty</dd>
                 <dd id="RecurrentNetwork.to" class="function">to</dd>
                 <dd id="RecurrentNetwork.register_backward_hook" class="function">register_backward_hook</dd>
+                <dd id="RecurrentNetwork.register_full_backward_hook" class="function">register_full_backward_hook</dd>
                 <dd id="RecurrentNetwork.register_forward_pre_hook" class="function">register_forward_pre_hook</dd>
                 <dd id="RecurrentNetwork.register_forward_hook" class="function">register_forward_hook</dd>
                 <dd id="RecurrentNetwork.state_dict" class="function">state_dict</dd>
+                <dd id="RecurrentNetwork.register_load_state_dict_post_hook" class="function">register_load_state_dict_post_hook</dd>
                 <dd id="RecurrentNetwork.load_state_dict" class="function">load_state_dict</dd>
                 <dd id="RecurrentNetwork.parameters" class="function">parameters</dd>
                 <dd id="RecurrentNetwork.named_parameters" class="function">named_parameters</dd>
@@ -2332,7 +2349,7 @@ import torch.nn.functional as F
 
 class Model(nn.Module):
     def __init__(self):
-        super(Model, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(1, 20, 5)
         self.conv2 = nn.Conv2d(20, 20, 5)
 
@@ -2343,6 +2360,13 @@ class Model(nn.Module):
 
 <p>Submodules assigned in this way will be registered, and will have their
 parameters converted too when you call <code><a href="#RecurrentNetworkAgg.to">to()</a></code>, etc.</p>
+
+<div class="pdoc-alert pdoc-alert-note">
+
+<p>As per the example above, an <code><a href="#RecurrentNetworkAgg.__init__">__init__()</a></code> call to the parent class
+must be made before assignment on the child.</p>
+
+</div>
 
 <p>:ivar training: Boolean represents whether this module is in training or
                 evaluation mode.
@@ -2771,23 +2795,33 @@ returns: (..., n_outputs)</li>
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt>torch.nn.modules.module.Module</dt>
-                                <dd id="RecurrentNetworkAgg.dump_patches" class="variable">dump_patches</dd>
-                <dd id="RecurrentNetworkAgg.register_buffer" class="function">register_buffer</dd>
+                                <dd id="RecurrentNetworkAgg.register_buffer" class="function">register_buffer</dd>
                 <dd id="RecurrentNetworkAgg.register_parameter" class="function">register_parameter</dd>
                 <dd id="RecurrentNetworkAgg.add_module" class="function">add_module</dd>
+                <dd id="RecurrentNetworkAgg.register_module" class="function">register_module</dd>
+                <dd id="RecurrentNetworkAgg.get_submodule" class="function">get_submodule</dd>
+                <dd id="RecurrentNetworkAgg.get_parameter" class="function">get_parameter</dd>
+                <dd id="RecurrentNetworkAgg.get_buffer" class="function">get_buffer</dd>
+                <dd id="RecurrentNetworkAgg.get_extra_state" class="function">get_extra_state</dd>
+                <dd id="RecurrentNetworkAgg.set_extra_state" class="function">set_extra_state</dd>
                 <dd id="RecurrentNetworkAgg.apply" class="function">apply</dd>
                 <dd id="RecurrentNetworkAgg.cuda" class="function">cuda</dd>
+                <dd id="RecurrentNetworkAgg.ipu" class="function">ipu</dd>
+                <dd id="RecurrentNetworkAgg.xpu" class="function">xpu</dd>
                 <dd id="RecurrentNetworkAgg.cpu" class="function">cpu</dd>
                 <dd id="RecurrentNetworkAgg.type" class="function">type</dd>
                 <dd id="RecurrentNetworkAgg.float" class="function">float</dd>
                 <dd id="RecurrentNetworkAgg.double" class="function">double</dd>
                 <dd id="RecurrentNetworkAgg.half" class="function">half</dd>
                 <dd id="RecurrentNetworkAgg.bfloat16" class="function">bfloat16</dd>
+                <dd id="RecurrentNetworkAgg.to_empty" class="function">to_empty</dd>
                 <dd id="RecurrentNetworkAgg.to" class="function">to</dd>
                 <dd id="RecurrentNetworkAgg.register_backward_hook" class="function">register_backward_hook</dd>
+                <dd id="RecurrentNetworkAgg.register_full_backward_hook" class="function">register_full_backward_hook</dd>
                 <dd id="RecurrentNetworkAgg.register_forward_pre_hook" class="function">register_forward_pre_hook</dd>
                 <dd id="RecurrentNetworkAgg.register_forward_hook" class="function">register_forward_hook</dd>
                 <dd id="RecurrentNetworkAgg.state_dict" class="function">state_dict</dd>
+                <dd id="RecurrentNetworkAgg.register_load_state_dict_post_hook" class="function">register_load_state_dict_post_hook</dd>
                 <dd id="RecurrentNetworkAgg.load_state_dict" class="function">load_state_dict</dd>
                 <dd id="RecurrentNetworkAgg.parameters" class="function">parameters</dd>
                 <dd id="RecurrentNetworkAgg.named_parameters" class="function">named_parameters</dd>

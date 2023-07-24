@@ -69,13 +69,15 @@ auto_disc    </h1>
 
                         <div class="docstring"><h1 id="automated-discovery-tool">Automated Discovery Tool</h1>
 
+<p>NOTE: this README is deprecated</p>
+
 <p>We're pleased to introduce Automated Discovery Tool, a software for assisted automated discovery and exploration of complex systems.</p>
 
 <h2 id="installation">Installation</h2>
 
 <h3 id="docker-installation">Docker installation</h3>
 
-<p>Our software leverages docker to avoid you installing multiple packages. 
+<p>Our software leverages docker to avoid you installing multiple packages.
 To install docker:</p>
 
 <ol>
@@ -88,15 +90,15 @@ To install docker:</p>
 <p>Our software consists of two primary parts:</p>
 
 <ul>
-<li>a Python library called <a href="libs/auto_disc"><code>auto_disc</code></a> where you can 
+<li>a Python library called <a href="libs/auto_disc"><code>auto_disc</code></a> where you can
 use/download/implement systems to explore as well as exploration algorithms.</li>
-<li>a web application allowing you to perform assisted automated discovery 
+<li>a web application allowing you to perform assisted automated discovery
 experiments using a user-friendly interface.</li>
 </ul>
 
 <p>The <code><a href="">auto_disc</a></code> library can be used independently of the rest of
 Automated Discovery Tool, for example to implement some bespoke remote computing
-solutions, but its main purpose is to present a standardized interface for 
+solutions, but its main purpose is to present a standardized interface for
 managing experimental data and configurational metadata which is
 modified and displayed by the GUI.</p>
 
@@ -150,28 +152,40 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 
 <ol>
 <li>If you do not already have it, please install <a href="https://www.anaconda.com/">Conda</a></li>
-<li>Create <em>autoDiscTool</em> conda environment: <code>conda env create --name autoDiscTool python=3.7</code></li>
-<li>Activate <em>autoDiscTool</em> conda environment: <code>conda activate autoDiscTool</code></li>
+<li>Create _autoDiscTool_ conda environment: <code>conda env create --name autoDiscTool python=3.7</code></li>
+<li>Activate _autoDiscTool_ conda environment: <code>conda activate autoDiscTool</code></li>
 <li>Go to package: <code>cd libs/auto_disc</code></li>
-<li><p>Install package: <code>pip install -e .</code></p>
+<li>Install package: <code>pip install -e .</code></li>
+</ol>
 
-<h4 id="autodiscserver">AutoDiscServer</h4></li>
-<li><p>Install flask: <code>pip install -r services/AutoDiscServer/flask_app/requirements.txt</code></p>
+<h4 id="autodiscserver">AutoDiscServer</h4>
 
-<h3 id="frontendapp">FrontEndApp</h3></li>
-<li><p>Install Angular: <a href="https://angular.io/guide/setup-local"><code>LINK</code></a></p></li>
+<ol>
+<li>Install flask: <code>pip install -r services/AutoDiscServer/flask_app/requirements.txt</code></li>
+</ol>
+
+<h3 id="frontendapp">FrontEndApp</h3>
+
+<ol>
+<li>Install Angular: <a href="https://angular.io/guide/setup-local"><code>LINK</code></a></li>
 <li>Enter the front-end app folder: <code>cd services/FrontEndApp/angular_app/</code>.</li>
-<li><p>Install required packages: <code>npm install</code></p>
+<li>Install required packages: <code>npm install</code></li>
+</ol>
 
-<h3 id="appdb-expedb">AppDB &amp; ExpeDB</h3></li>
-<li><p>Install Docker: <a href="https://docs.docker.com/engine/install/"><code>LINK</code></a></p></li>
+<h3 id="appdb-expedb">AppDB &amp; ExpeDB</h3>
+
+<ol>
+<li>Install Docker: <a href="https://docs.docker.com/engine/install/"><code>LINK</code></a></li>
 <li>Install Docker-compose: <a href="https://docs.docker.com/compose/install/"><code>LINK</code></a></li>
 <li>Go to the service folder: <code>cd services</code>.</li>
 <li>Generate containers <code>sudo docker-compose -f services/docker-compose.yml create</code></li>
-<li><p>Install the Expe DB REST API requirements: <code>pip install -r ExpeDB/API/flask_app/requirements.txt</code></p>
+<li>Install the Expe DB REST API requirements: <code>pip install -r ExpeDB/API/flask_app/requirements.txt</code></li>
+</ol>
 
-<h4 id="jupyterlab">JupyterLab</h4></li>
-<li><p>Install jupyter: <code>pip install -r JupyterLab/requirements.txt</code></p></li>
+<h4 id="jupyterlab">JupyterLab</h4>
+
+<ol>
+<li>Install jupyter: <code>pip install -r JupyterLab/requirements.txt</code></li>
 </ol>
 
 <h3 id="testing-the-auto_disc-library-alone">Testing the auto_disc library alone</h3>
@@ -213,7 +227,7 @@ Launch flask server for the REST API: <code>python ExpeDB/app.py</code></p>
 <h5 id="front-end-app">Front-end app</h5>
 
 <p>Enter the front-end app folder: <code>cd FrontEndApp</code>.
-Start the angular app: <code>ng serve</code>. </p>
+Start the angular app: <code>ng serve</code>.</p>
 
 <h5 id="jupyter-lab">Jupyter Lab</h5>
 
@@ -229,11 +243,11 @@ You can start then by going in <code>services</code>: <code>cd services</code> a
 <pre><code>sudo docker-compose --profile monitoring up
 </code></pre>
 
-<p><em>Warning</em>: This command will start all the docker services or attach the already launched ones otherwise.</p>
+<p>_Warning_: This command will start all the docker services or attach the already launched ones otherwise.</p>
 
 <h4 id="portainer">Portainer</h4>
 
-<p>Portainer is a web application allowing to monitor Docker environments. 
+<p>Portainer is a web application allowing to monitor Docker environments.
 You can access it at: <a href="https://localhost:9443">https://localhost:9443</a>.</p>
 
 <p>At first startup you'll be asked to create a password for your admin account. Then, you should see your local environment with all the running containers. You can for instance easily see the logs of each container.</p>
@@ -461,7 +475,7 @@ To add a new callback create the file in the associated folder</p>
 
 <p>A full example:</p>
 
-<pre><code>    from auto_disc.utils.callbacks.on_discovery_callbacks import BaseOnDiscoveryCallback
+<pre><code>    from <a href="auto_disc/legacy/utils/callbacks/on_discovery_callbacks.html">auto_disc.legacy.utils.callbacks.on_discovery_callbacks</a> import BaseOnDiscoveryCallback
 
     class MyBeautifullNewOnDiscoveryCallback(BaseOnDiscoveryCallback):
 

@@ -268,6 +268,13 @@ be inherited from by concrete implementations of <code>Map</code>s.</p>
 input-output relation) that is also stateful. It takes a payload of data as
 input and returns an new payload of data as output, without mutating
 the input.</p>
+
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>premap_key:</strong>  key in the input dict for the input (i.e., "params")</li>
+<li><strong>postmap_key:</strong>  key in the output dict for the output (i.e., "output")</li>
+</ul>
 </div>
 
 
@@ -319,14 +326,9 @@ the input.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>A <code>Map</code> minimally sets the premap and postmap keys.</p>
+            <div class="docstring"><p>Initialize the <code>Map</code>.</p>
 
-<h4 id="args">Args</h4>
-
-<ul>
-<li>premap_key (str): key in the input dict for the input (i.e., "params")</li>
-<li>postmap_key (str): key in the output dict for the output (i.e., "output")</li>
-</ul>
+<p>A <code>Map</code> minimally sets the premap and postmap keys.</p>
 </div>
 
 
@@ -363,7 +365,7 @@ the input.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Maps input to output.</p>
+            <div class="docstring"><p>Map input to output.</p>
 
 <p>A <code>Map</code> operates on regular Python dicts, but it views them as
 structured. The <code>premap_key</code> and <code>postmap_key</code> are used to define
@@ -374,16 +376,17 @@ the structured elements that the <code>Map</code> operates on. Often, the
 <p>Whether or not the <code>premap_key</code> exists in the output dict is up to the
 implementation of the specific <code>Map</code>. We recommend preserving it.</p>
 
-<h4 id="args">Args</h4>
+<h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><p>input (dict): generic dict containing input data to the map at
-<code>premap_key</code></p>
-
-<h4 id="returns">Returns</h4></li>
-<li><p>output (dict): generic dict containing output data from the map at
-<code>postmap_key</code></p></li>
+<li><strong>input:</strong>  generic dict containing input data to the map at <code>premap_key</code></li>
 </ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A  dict containing output data from the map at <code>postmap_key</code></p>
+</blockquote>
 </div>
 
 

@@ -361,14 +361,9 @@ distribution over a box.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>A <code>Map</code> minimally sets the premap and postmap keys.</p>
+            <div class="docstring"><p>Initialize the <code>Map</code>.</p>
 
-<h4 id="args">Args</h4>
-
-<ul>
-<li>premap_key (str): key in the input dict for the input (i.e., "params")</li>
-<li>postmap_key (str): key in the output dict for the output (i.e., "output")</li>
-</ul>
+<p>A <code>Map</code> minimally sets the premap and postmap keys.</p>
 </div>
 
 
@@ -443,12 +438,12 @@ may generally be stateful, often by tracking the history of data that
 passes through. Then, they implement a <code><a href="#UniformParameterMap.sample">sample</a></code> method which returns
 a random sample of the latent representation they have encoded.</p>
 
-<h4 id="returns">Returns</h4>
+<h6 id="returns">Returns:</h6>
 
-<ul>
-<li>sample (Any): a random sample of the latent representation, in
-whatever format depending on the implementation of the <code>Map</code></li>
-</ul>
+<blockquote>
+  <p>A random sample of the latent representation, in whatever format
+  depending on the implementation of the <code>Map</code></p>
+</blockquote>
 </div>
 
 

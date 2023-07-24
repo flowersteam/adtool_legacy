@@ -110,32 +110,33 @@
 </span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">        Whether or not the `premap_key` exists in the output dict is up to the</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">        implementation of the specific `System`. We recommend preserving it.</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        #### Args</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        - input (dict): generic dict containing input data to the map at</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">            `premap_key`</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        #### Returns</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">        - output (dict): generic dict containing output data from the map at</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">            `postmap_key`</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="nd">@abstractmethod</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="sd">        #### Args</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="sd">        - self (System): If the `System` can render a graphical output without</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="sd">            needing access to its internal state (i.e., only from the</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">            output), then it can also be `@classmethod`.</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">        - data_dict (dict): this is a dict containing the output of the `map`</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">            method. Depending on implementation, this may be sufficient to</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">            render the output or one may need stateful data from `self`.</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        Args:</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">            input (dict):</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">                generic dict containing input data to the map at `premap_key`</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        Returns:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">            A generic dict containing output data from the map at `postmap_key`</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">        Args:</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="sd">            self (System):</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="sd">                If the `System` can render a graphical output without</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="sd">                needing access to its internal state (i.e., only from the</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">                output), then it can also be `@classmethod`.</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">            data_dict (dict):</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">                A dict containing the output of the `map`</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">                method. Depending on implementation, this may be sufficient to</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">                render the output or one may need stateful data from `self`.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </span></pre></div>
 
 
@@ -186,32 +187,33 @@
 </span><span id="System-41"><a href="#System-41"><span class="linenos">41</span></a><span class="sd">        Whether or not the `premap_key` exists in the output dict is up to the</span>
 </span><span id="System-42"><a href="#System-42"><span class="linenos">42</span></a><span class="sd">        implementation of the specific `System`. We recommend preserving it.</span>
 </span><span id="System-43"><a href="#System-43"><span class="linenos">43</span></a>
-</span><span id="System-44"><a href="#System-44"><span class="linenos">44</span></a><span class="sd">        #### Args</span>
-</span><span id="System-45"><a href="#System-45"><span class="linenos">45</span></a><span class="sd">        - input (dict): generic dict containing input data to the map at</span>
-</span><span id="System-46"><a href="#System-46"><span class="linenos">46</span></a><span class="sd">            `premap_key`</span>
-</span><span id="System-47"><a href="#System-47"><span class="linenos">47</span></a><span class="sd">        #### Returns</span>
-</span><span id="System-48"><a href="#System-48"><span class="linenos">48</span></a><span class="sd">        - output (dict): generic dict containing output data from the map at</span>
-</span><span id="System-49"><a href="#System-49"><span class="linenos">49</span></a><span class="sd">            `postmap_key`</span>
-</span><span id="System-50"><a href="#System-50"><span class="linenos">50</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="System-51"><a href="#System-51"><span class="linenos">51</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="System-52"><a href="#System-52"><span class="linenos">52</span></a>
-</span><span id="System-53"><a href="#System-53"><span class="linenos">53</span></a>    <span class="nd">@abstractmethod</span>
-</span><span id="System-54"><a href="#System-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-</span><span id="System-55"><a href="#System-55"><span class="linenos">55</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
-</span><span id="System-56"><a href="#System-56"><span class="linenos">56</span></a>
-</span><span id="System-57"><a href="#System-57"><span class="linenos">57</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
-</span><span id="System-58"><a href="#System-58"><span class="linenos">58</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
-</span><span id="System-59"><a href="#System-59"><span class="linenos">59</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
-</span><span id="System-60"><a href="#System-60"><span class="linenos">60</span></a>
-</span><span id="System-61"><a href="#System-61"><span class="linenos">61</span></a><span class="sd">        #### Args</span>
-</span><span id="System-62"><a href="#System-62"><span class="linenos">62</span></a><span class="sd">        - self (System): If the `System` can render a graphical output without</span>
-</span><span id="System-63"><a href="#System-63"><span class="linenos">63</span></a><span class="sd">            needing access to its internal state (i.e., only from the</span>
-</span><span id="System-64"><a href="#System-64"><span class="linenos">64</span></a><span class="sd">            output), then it can also be `@classmethod`.</span>
-</span><span id="System-65"><a href="#System-65"><span class="linenos">65</span></a><span class="sd">        - data_dict (dict): this is a dict containing the output of the `map`</span>
-</span><span id="System-66"><a href="#System-66"><span class="linenos">66</span></a><span class="sd">            method. Depending on implementation, this may be sufficient to</span>
-</span><span id="System-67"><a href="#System-67"><span class="linenos">67</span></a><span class="sd">            render the output or one may need stateful data from `self`.</span>
-</span><span id="System-68"><a href="#System-68"><span class="linenos">68</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="System-69"><a href="#System-69"><span class="linenos">69</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="System-44"><a href="#System-44"><span class="linenos">44</span></a><span class="sd">        Args:</span>
+</span><span id="System-45"><a href="#System-45"><span class="linenos">45</span></a><span class="sd">            input (dict):</span>
+</span><span id="System-46"><a href="#System-46"><span class="linenos">46</span></a><span class="sd">                generic dict containing input data to the map at `premap_key`</span>
+</span><span id="System-47"><a href="#System-47"><span class="linenos">47</span></a><span class="sd">        Returns:</span>
+</span><span id="System-48"><a href="#System-48"><span class="linenos">48</span></a><span class="sd">            A generic dict containing output data from the map at `postmap_key`</span>
+</span><span id="System-49"><a href="#System-49"><span class="linenos">49</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="System-50"><a href="#System-50"><span class="linenos">50</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="System-51"><a href="#System-51"><span class="linenos">51</span></a>
+</span><span id="System-52"><a href="#System-52"><span class="linenos">52</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="System-53"><a href="#System-53"><span class="linenos">53</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+</span><span id="System-54"><a href="#System-54"><span class="linenos">54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
+</span><span id="System-55"><a href="#System-55"><span class="linenos">55</span></a>
+</span><span id="System-56"><a href="#System-56"><span class="linenos">56</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
+</span><span id="System-57"><a href="#System-57"><span class="linenos">57</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
+</span><span id="System-58"><a href="#System-58"><span class="linenos">58</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
+</span><span id="System-59"><a href="#System-59"><span class="linenos">59</span></a>
+</span><span id="System-60"><a href="#System-60"><span class="linenos">60</span></a><span class="sd">        Args:</span>
+</span><span id="System-61"><a href="#System-61"><span class="linenos">61</span></a><span class="sd">            self (System):</span>
+</span><span id="System-62"><a href="#System-62"><span class="linenos">62</span></a><span class="sd">                If the `System` can render a graphical output without</span>
+</span><span id="System-63"><a href="#System-63"><span class="linenos">63</span></a><span class="sd">                needing access to its internal state (i.e., only from the</span>
+</span><span id="System-64"><a href="#System-64"><span class="linenos">64</span></a><span class="sd">                output), then it can also be `@classmethod`.</span>
+</span><span id="System-65"><a href="#System-65"><span class="linenos">65</span></a><span class="sd">            data_dict (dict):</span>
+</span><span id="System-66"><a href="#System-66"><span class="linenos">66</span></a><span class="sd">                A dict containing the output of the `map`</span>
+</span><span id="System-67"><a href="#System-67"><span class="linenos">67</span></a><span class="sd">                method. Depending on implementation, this may be sufficient to</span>
+</span><span id="System-68"><a href="#System-68"><span class="linenos">68</span></a><span class="sd">                render the output or one may need stateful data from `self`.</span>
+</span><span id="System-69"><a href="#System-69"><span class="linenos">69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="System-70"><a href="#System-70"><span class="linenos">70</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </span></pre></div>
 
 
@@ -280,14 +282,13 @@ new payload of data as output, without mutating the input.</p>
 </span><span id="System.map-41"><a href="#System.map-41"><span class="linenos">41</span></a><span class="sd">        Whether or not the `premap_key` exists in the output dict is up to the</span>
 </span><span id="System.map-42"><a href="#System.map-42"><span class="linenos">42</span></a><span class="sd">        implementation of the specific `System`. We recommend preserving it.</span>
 </span><span id="System.map-43"><a href="#System.map-43"><span class="linenos">43</span></a>
-</span><span id="System.map-44"><a href="#System.map-44"><span class="linenos">44</span></a><span class="sd">        #### Args</span>
-</span><span id="System.map-45"><a href="#System.map-45"><span class="linenos">45</span></a><span class="sd">        - input (dict): generic dict containing input data to the map at</span>
-</span><span id="System.map-46"><a href="#System.map-46"><span class="linenos">46</span></a><span class="sd">            `premap_key`</span>
-</span><span id="System.map-47"><a href="#System.map-47"><span class="linenos">47</span></a><span class="sd">        #### Returns</span>
-</span><span id="System.map-48"><a href="#System.map-48"><span class="linenos">48</span></a><span class="sd">        - output (dict): generic dict containing output data from the map at</span>
-</span><span id="System.map-49"><a href="#System.map-49"><span class="linenos">49</span></a><span class="sd">            `postmap_key`</span>
-</span><span id="System.map-50"><a href="#System.map-50"><span class="linenos">50</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="System.map-51"><a href="#System.map-51"><span class="linenos">51</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="System.map-44"><a href="#System.map-44"><span class="linenos">44</span></a><span class="sd">        Args:</span>
+</span><span id="System.map-45"><a href="#System.map-45"><span class="linenos">45</span></a><span class="sd">            input (dict):</span>
+</span><span id="System.map-46"><a href="#System.map-46"><span class="linenos">46</span></a><span class="sd">                generic dict containing input data to the map at `premap_key`</span>
+</span><span id="System.map-47"><a href="#System.map-47"><span class="linenos">47</span></a><span class="sd">        Returns:</span>
+</span><span id="System.map-48"><a href="#System.map-48"><span class="linenos">48</span></a><span class="sd">            A generic dict containing output data from the map at `postmap_key`</span>
+</span><span id="System.map-49"><a href="#System.map-49"><span class="linenos">49</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="System.map-50"><a href="#System.map-50"><span class="linenos">50</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </span></pre></div>
 
 
@@ -302,16 +303,17 @@ the structured elements that the <code><a href="#System">System</a></code> opera
 <p>Whether or not the <code>premap_key</code> exists in the output dict is up to the
 implementation of the specific <code><a href="#System">System</a></code>. We recommend preserving it.</p>
 
-<h4 id="args">Args</h4>
+<h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><p>input (dict): generic dict containing input data to the map at
-<code>premap_key</code></p>
-
-<h4 id="returns">Returns</h4></li>
-<li><p>output (dict): generic dict containing output data from the map at
-<code>postmap_key</code></p></li>
+<li><strong>input (dict):</strong>  generic dict containing input data to the map at <code>premap_key</code></li>
 </ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A generic dict containing output data from the map at <code>postmap_key</code></p>
+</blockquote>
 </div>
 
 
@@ -328,23 +330,25 @@ implementation of the specific <code><a href="#System">System</a></code>. We rec
 
     </div>
     <a class="headerlink" href="#System.render"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="System.render-53"><a href="#System.render-53"><span class="linenos">53</span></a>    <span class="nd">@abstractmethod</span>
-</span><span id="System.render-54"><a href="#System.render-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-</span><span id="System.render-55"><a href="#System.render-55"><span class="linenos">55</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
-</span><span id="System.render-56"><a href="#System.render-56"><span class="linenos">56</span></a>
-</span><span id="System.render-57"><a href="#System.render-57"><span class="linenos">57</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
-</span><span id="System.render-58"><a href="#System.render-58"><span class="linenos">58</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
-</span><span id="System.render-59"><a href="#System.render-59"><span class="linenos">59</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
-</span><span id="System.render-60"><a href="#System.render-60"><span class="linenos">60</span></a>
-</span><span id="System.render-61"><a href="#System.render-61"><span class="linenos">61</span></a><span class="sd">        #### Args</span>
-</span><span id="System.render-62"><a href="#System.render-62"><span class="linenos">62</span></a><span class="sd">        - self (System): If the `System` can render a graphical output without</span>
-</span><span id="System.render-63"><a href="#System.render-63"><span class="linenos">63</span></a><span class="sd">            needing access to its internal state (i.e., only from the</span>
-</span><span id="System.render-64"><a href="#System.render-64"><span class="linenos">64</span></a><span class="sd">            output), then it can also be `@classmethod`.</span>
-</span><span id="System.render-65"><a href="#System.render-65"><span class="linenos">65</span></a><span class="sd">        - data_dict (dict): this is a dict containing the output of the `map`</span>
-</span><span id="System.render-66"><a href="#System.render-66"><span class="linenos">66</span></a><span class="sd">            method. Depending on implementation, this may be sufficient to</span>
-</span><span id="System.render-67"><a href="#System.render-67"><span class="linenos">67</span></a><span class="sd">            render the output or one may need stateful data from `self`.</span>
-</span><span id="System.render-68"><a href="#System.render-68"><span class="linenos">68</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="System.render-69"><a href="#System.render-69"><span class="linenos">69</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="System.render-52"><a href="#System.render-52"><span class="linenos">52</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="System.render-53"><a href="#System.render-53"><span class="linenos">53</span></a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+</span><span id="System.render-54"><a href="#System.render-54"><span class="linenos">54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Render system output as an image or video.</span>
+</span><span id="System.render-55"><a href="#System.render-55"><span class="linenos">55</span></a>
+</span><span id="System.render-56"><a href="#System.render-56"><span class="linenos">56</span></a><span class="sd">        A `System` should be able to render useful information about its</span>
+</span><span id="System.render-57"><a href="#System.render-57"><span class="linenos">57</span></a><span class="sd">        execution (e.g., a plot, a video, etc.), which may depend on its</span>
+</span><span id="System.render-58"><a href="#System.render-58"><span class="linenos">58</span></a><span class="sd">        internal state which is not captured by the `map` method.</span>
+</span><span id="System.render-59"><a href="#System.render-59"><span class="linenos">59</span></a>
+</span><span id="System.render-60"><a href="#System.render-60"><span class="linenos">60</span></a><span class="sd">        Args:</span>
+</span><span id="System.render-61"><a href="#System.render-61"><span class="linenos">61</span></a><span class="sd">            self (System):</span>
+</span><span id="System.render-62"><a href="#System.render-62"><span class="linenos">62</span></a><span class="sd">                If the `System` can render a graphical output without</span>
+</span><span id="System.render-63"><a href="#System.render-63"><span class="linenos">63</span></a><span class="sd">                needing access to its internal state (i.e., only from the</span>
+</span><span id="System.render-64"><a href="#System.render-64"><span class="linenos">64</span></a><span class="sd">                output), then it can also be `@classmethod`.</span>
+</span><span id="System.render-65"><a href="#System.render-65"><span class="linenos">65</span></a><span class="sd">            data_dict (dict):</span>
+</span><span id="System.render-66"><a href="#System.render-66"><span class="linenos">66</span></a><span class="sd">                A dict containing the output of the `map`</span>
+</span><span id="System.render-67"><a href="#System.render-67"><span class="linenos">67</span></a><span class="sd">                method. Depending on implementation, this may be sufficient to</span>
+</span><span id="System.render-68"><a href="#System.render-68"><span class="linenos">68</span></a><span class="sd">                render the output or one may need stateful data from `self`.</span>
+</span><span id="System.render-69"><a href="#System.render-69"><span class="linenos">69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="System.render-70"><a href="#System.render-70"><span class="linenos">70</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </span></pre></div>
 
 
@@ -354,13 +358,13 @@ implementation of the specific <code><a href="#System">System</a></code>. We rec
 execution (e.g., a plot, a video, etc.), which may depend on its
 internal state which is not captured by the <code><a href="#System.map">map</a></code> method.</p>
 
-<h4 id="args">Args</h4>
+<h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li>self (System): If the <code><a href="#System">System</a></code> can render a graphical output without
+<li><strong>self (System):</strong>  If the <code><a href="#System">System</a></code> can render a graphical output without
 needing access to its internal state (i.e., only from the
 output), then it can also be <code>@classmethod</code>.</li>
-<li>data_dict (dict): this is a dict containing the output of the <code><a href="#System.map">map</a></code>
+<li><strong>data_dict (dict):</strong>  A dict containing the output of the <code><a href="#System.map">map</a></code>
 method. Depending on implementation, this may be sufficient to
 render the output or one may need stateful data from <code>self</code>.</li>
 </ul>

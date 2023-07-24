@@ -31,9 +31,6 @@
 
             <h2>Submodules</h2>
             <ul>
-                    <li><a href="callbacks/base_callback.html">base_callback</a></li>
-                    <li><a href="callbacks/base_expe_db_callback.html">base_expe_db_callback</a></li>
-                    <li><a href="callbacks/custom_print_callback.html">custom_print_callback</a></li>
                     <li><a href="callbacks/interact_callbacks.html">interact_callbacks</a></li>
                     <li><a href="callbacks/on_cancelled_callbacks.html">on_cancelled_callbacks</a></li>
                     <li><a href="callbacks/on_discovery_callbacks.html">on_discovery_callbacks</a></li>
@@ -57,14 +54,25 @@
                     <h1 class="modulename">
 <a href="./../../../auto_disc.html">auto_disc</a><wbr>.<a href="./../../auto_disc.html">auto_disc</a><wbr>.<a href="./../utils.html">utils</a><wbr>.callbacks    </h1>
 
-                
+                        <div class="docstring"><p>At certain defined points in the exploration loop, the software executes
+callbacks which may be user defined. Such callbacks are mostly used for doing
+environment setup and teardown, for saving output, or for accepting user input.</p>
+
+<p>For details on when each callback is called, look in the source for
+<code><a href="../../ExperimentPipeline.html">auto_disc.ExperimentPipeline</a></code></p>
+</div>
+
                         <input id="mod-callbacks-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-callbacks-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="kn">from</span> <span class="nn">auto_disc.legacy.utils.callbacks.base_callback</span> <span class="kn">import</span> <span class="n">BaseCallback</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="kn">from</span> <span class="nn">auto_disc.legacy.utils.callbacks.base_expe_db_callback</span> <span class="kn">import</span> <span class="n">BaseExpeDBCallback</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="kn">from</span> <span class="nn">auto_disc.legacy.utils.callbacks.custom_print_callback</span> <span class="kn">import</span> <span class="n">CustomPrintCallback</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;At certain defined points in the exploration loop, the software executes</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">callbacks which may be user defined. Such callbacks are mostly used for doing</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">environment setup and teardown, for saving output, or for accepting user input.</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a><span class="sd">For details on when each callback is called, look in the source for</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">6</span></a><span class="sd">`auto_disc.ExperimentPipeline`</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">7</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
