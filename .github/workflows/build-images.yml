@@ -1,15 +1,13 @@
 name: build-images
 
 on:
-  workflow_dispatch
-  # push:
-  #   branches:
-  #     - "master"
-  #   tags:
-  #     - "v*"
-  # pull_request:
-  #   branches:
-  #     - "master"
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - "dev"
 
 jobs:
   docker:
@@ -44,12 +42,15 @@ jobs:
           images: |
             registry.gitlab.inria.fr/cromac/automateddiscoverytool/${{ matrix.image }}
           tags: |
-            type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
+            type=semver,event=tag,pattern={{version}},prefix=${{ github.head_ref || github.ref_name }}
       - name: Login to Gitlab registry
         if: github.event_name != 'pull_request'
-        run: docker login -u ${{ secrets.GITLAB_REGISTRY_USERNAME }} -p ${{ secrets.GITLAB_REGISTRY_PASSWORD }} registry.gitlab.inria.fr/cromac/automateddiscoverytool
+        uses: docker/login-action@v2
+        with:
+          registry: registry.gitlab.inria.fr/cromac/automateddiscoverytool
+          username: ${{ secrets.GITLAB_REGISTRY_USERNAME }}
+          password: ${{ secrets.GITLAB_REGISTRY_PASSWORD }}
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
