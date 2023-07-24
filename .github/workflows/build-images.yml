@@ -1,0 +1,59 @@
+name: build-images
+
+on:
+  workflow_dispatch
+  # push:
+  #   branches:
+  #     - "master"
+  #   tags:
+  #     - "v*"
+  # pull_request:
+  #   branches:
+  #     - "master"
+
+jobs:
+  docker:
+    strategy:
+      matrix:
+        # TODO: automate the generation of this list someday
+        image:
+          - "app"
+          - "gateway"
+          - "expe-db-api"
+          - "autodisc-server"
+          - "jupyter"
+        include:
+          - image: "app"
+            context: "./services/base/FrontEndApp"
+          - image: "gateway"
+            context: "./services/base/Gateway"
+          - image: "expe-db-api"
+            context: "./services/base/ExpeDB/API"
+          - image: "autodisc-server"
+            context: "./services/base/AutoDiscServer"
+          - image: "jupyter"
+            context: "./services/base/JupyterLab"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Retrieve relevant metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            registry.gitlab.inria.fr/cromac/automateddiscoverytool/${{ matrix.image }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+      - name: Login to Gitlab registry
+        if: github.event_name != 'pull_request'
+        run: docker login -u ${{ secrets.GITLAB_REGISTRY_USERNAME }} -p ${{ secrets.GITLAB_REGISTRY_PASSWORD }} registry.gitlab.inria.fr/cromac/automateddiscoverytool
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ matrix.context }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
