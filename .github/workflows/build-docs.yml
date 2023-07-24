@@ -1,11 +1,10 @@
 name: build-docs
 on:
-  workflow_dispatch
-  # push:
-  #   branches:
-  #     - prod
+  push:
+    branches:
+      - prod
 jobs:
-  deploy:
+  build-docs:
     runs-on: ubuntu-20.04
     steps:
       - name: Git checkout

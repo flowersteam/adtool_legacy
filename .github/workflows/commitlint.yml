@@ -1,7 +1,7 @@
 name: commitlint
 on: [pull_request]
 jobs:
-  deploy:
+  commitlint:
     runs-on: ubuntu-20.04
     steps:
       - name: Git checkout
