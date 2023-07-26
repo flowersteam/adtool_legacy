@@ -1,6 +1,5 @@
-name: build-docs
+name: Build and deploy documentation
 on:
-  workflow_call:
   push:
     branches:
       - prod

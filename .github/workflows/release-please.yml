@@ -7,15 +7,25 @@ permissions:
   contents: write
   pull-requests: write
 
-name: release-please
+name: Release pipeline based on detection of Conventional Commits
 
 jobs:
-  release-pr:
+  release-please:
     runs-on: ubuntu-latest
     steps:
-      - id: release-please
+      - name: Check for new semver release
+        id: release-pr
         uses: google-github-actions/release-please-action@v3
         with:
-          pull-request-title-pattern: "chore${scope}: release${component} ${version}"
           release-type: simple
           default-branch: dev
+    outputs:
+      releases_created: ${{ steps.release-pr.outputs.releases_created }}
+      sem-ver: ${{ steps.release-pr.outputs.major }}.${{ steps.release-pr.outputs.minor }}.${{ steps.release-pr.outputs.patch }}
+  build-and-deploy:
+    needs: release-please
+    if: jobs.release-please.outputs.releases_created
+    uses: ./.github/workflows/build-images.yml
+    with:
+      push-images: true
+      sem-ver: ${{ jobs.release-please.outputs.sem-ver }}

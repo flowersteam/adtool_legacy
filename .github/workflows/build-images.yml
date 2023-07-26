@@ -1,7 +1,7 @@
-name: build-images
+name: Build container images
 
 on:
-  workflow_dispatch:
+  pull_request:
   workflow_call:
     inputs:
       push-images:
@@ -15,9 +15,6 @@ on:
         required: true
       GITLAB_REGISTRY_PASSWORD:
         required: true
-  push:
-    tags:
-      - "v*"
 
 jobs:
   build:
@@ -43,7 +40,7 @@ jobs:
             context: "./services/base/JupyterLab"
     runs-on: ubuntu-latest
     env:
-      SEMVER: ${{ inputs.is_propagated_pull_request && inputs.sem-ver || ''}}
+      SEMVER: ${{ inputs.push-images && inputs.sem-ver || ''}}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -73,6 +70,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.context }}
-          push: ${{ inputs.push_images }}
+          push: ${{ inputs.push-images }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
