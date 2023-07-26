@@ -1,5 +1,6 @@
-name: commitlint
-on: [pull_request]
+name: Lint commits for compliance with Conventional Commits
+on:
+  pull_request:
 jobs:
   commitlint:
     runs-on: ubuntu-20.04
