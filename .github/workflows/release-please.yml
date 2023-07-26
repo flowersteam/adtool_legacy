@@ -23,4 +23,7 @@ jobs:
   build-images:
     needs: release-pr
     uses: ./.github/workflows/build-images.yml
+    with:
+      is_pull_request: ${{ release-pr.releases_created }}
+      sem_ver: ${{ release-pr.major }}.${{ release-pr.minor }}.${{ release-pr.patch }}
     secrets: inherit
