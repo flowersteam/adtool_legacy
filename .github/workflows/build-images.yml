@@ -2,6 +2,10 @@ name: Build container images
 
 on:
   workflow_dispatch:
+    inputs:
+      push-images:
+        required: true
+        type: boolean
   pull_request:
   workflow_call:
     inputs:
