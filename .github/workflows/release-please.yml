@@ -13,10 +13,14 @@ jobs:
   release-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - id: release-please
+        uses: google-github-actions/release-please-action@v3
         with:
           release-type: simple
           default-branch: dev
+    outputs:
+      releases_created: ${{ steps.release-please.releases_created }}
+      sem_ver: ${{ steps.release-pr.major }}.${{ steps.release-pr.minor }}.${{ steps.release-pr.patch }}
   build-docs:
     needs: release-pr
     uses: ./.github/workflows/build-docs.yml
@@ -24,6 +28,6 @@ jobs:
     needs: release-pr
     uses: ./.github/workflows/build-images.yml
     with:
-      is_pull_request: ${{ release-pr.releases_created }}
-      sem_ver: ${{ release-pr.major }}.${{ release-pr.minor }}.${{ release-pr.patch }}
+      is_pull_request: ${{ needs.release-pr.outputs.releases_created }}
+      sem_ver: ${{ needs.release-pr.outputs.sem_ver }}
     secrets: inherit
