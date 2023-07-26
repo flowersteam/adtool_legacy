@@ -1,5 +1,7 @@
 name: build-docs
 on:
+  workflow_call:
+    secrets: inherit
   push:
     branches:
       - prod
