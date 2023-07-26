@@ -1,8 +1,7 @@
 on:
-  workflow_dispatch:
   push:
     branches:
-      - prod
+      - dev
 
 permissions:
   contents: write
@@ -11,11 +10,16 @@ permissions:
 name: release-please
 
 jobs:
-  release-please:
+  release-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
           release-type: simple
-          default-branch: prod
-          package-name: adtool
+          default-branch: dev
+  build-docs:
+    needs: release-pr
+    uses: ./.github/workflows/build-docs.yml
+  build-images:
+    needs: release-pr
+    uses: ./.github/workflows/build-images.yml
