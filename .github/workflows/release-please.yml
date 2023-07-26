@@ -20,6 +20,8 @@ jobs:
   build-docs:
     needs: release-pr
     uses: ./.github/workflows/build-docs.yml
+    secrets: inherit
   build-images:
     needs: release-pr
     uses: ./.github/workflows/build-images.yml
+    secrets: inherit
