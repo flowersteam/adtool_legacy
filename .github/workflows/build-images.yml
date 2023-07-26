@@ -63,7 +63,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,prefix=sha-
       - name: Login to Gitlab registry
-        if: github.event_name != 'pull_request' && inputs.is_propagated_pull_request = false
+        if: github.event_name != 'pull_request' && inputs.is_propagated_pull_request == false
         uses: docker/login-action@v2
         with:
           registry: registry.gitlab.inria.fr/cromac/automateddiscoverytool
@@ -73,6 +73,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.context }}
-          push: ${{ github.event_name != 'pull_request' && inputs.is_propagated_pull_request = false }}
+          push: ${{ github.event_name != 'pull_request' && inputs.is_propagated_pull_request == false }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
