@@ -29,3 +29,4 @@ jobs:
     with:
       push-images: true
       sem-ver: ${{ needs.release-please.outputs.sem-ver }}
+    secrets: inherit
