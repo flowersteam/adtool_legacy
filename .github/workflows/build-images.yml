@@ -25,6 +25,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         # TODO: automate the generation of this list someday
         image:
