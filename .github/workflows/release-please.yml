@@ -7,7 +7,7 @@ permissions:
   contents: write
   pull-requests: write
 
-name: Release pipeline based on detection of Conventional Commits
+name: Release pipeline
 
 jobs:
   release-please:
@@ -28,4 +28,4 @@ jobs:
     uses: ./.github/workflows/build-images.yml
     with:
       push-images: true
-      sem-ver: ${{ jobs.release-please.outputs.sem-ver }}
+      sem-ver: ${{ needs.release-please.outputs.sem-ver }}

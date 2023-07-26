@@ -1,4 +1,4 @@
-name: Lint commits for compliance with Conventional Commits
+name: Lint commits
 on:
   pull_request:
 jobs:
