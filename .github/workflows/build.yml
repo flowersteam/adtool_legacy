@@ -1,0 +1,36 @@
+# This workflow reacts to pull requests.
+#
+# If a pull request from the
+# release-please workflow is detected, documentation and image building is done
+# in the PR as a CI test.
+#
+# If a pull request from the release-please workflow is merged, the release's
+# semantic version is retrieved and the previous jobs are run, with the images
+# being pushed.
+
+on:
+  pull_request:
+jobs:
+  if-merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve semantic version from PR
+        id: retrieve-semver
+        run: |
+          if [[ ${{ github.event.pull_request.title }} =~ ^chore.*:\ release.*\ ([0-9\.]+)$ ]]; then
+            echo "Got PR: ${{ github.event.pull_request.title }}"
+            echo "semver=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      sem-ver: ${{ steps.retrieve-semver.outputs.semver }}
+  build-docs:
+    if: "${{ contains(github.event.pull_request.labels.*.name, autorelease: pending }}"
+    uses: ./.github/workflows/build-docs.yml
+  build-images:
+    if: "${{ contains(github.event.pull_request.labels.*.name, autorelease: pending }}"
+    uses: ./.github/workflows/build-images.yml
+    secrets: inherit
+    with:
+      push-images: ${{ github.event.pull_request.merged }}
+      sem-ver: ${{ jobs.if-merged.outputs.sem-ver }}

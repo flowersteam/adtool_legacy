@@ -16,18 +16,6 @@ jobs:
       - id: release-please
         uses: google-github-actions/release-please-action@v3
         with:
+          pull-request-title-pattern: "chore${scope}: release${component} ${version}"
           release-type: simple
           default-branch: dev
-    outputs:
-      releases_created: ${{ steps.release-please.releases_created }}
-      sem_ver: ${{ steps.release-pr.major }}.${{ steps.release-pr.minor }}.${{ steps.release-pr.patch }}
-  build-docs:
-    needs: release-pr
-    uses: ./.github/workflows/build-docs.yml
-  build-images:
-    needs: release-pr
-    uses: ./.github/workflows/build-images.yml
-    with:
-      is_pull_request: ${{ needs.release-pr.outputs.releases_created }}
-      sem_ver: ${{ needs.release-pr.outputs.sem_ver }}
-    secrets: inherit

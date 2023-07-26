@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   workflow_call:
     inputs:
-      is_pull_request:
+      push-images:
         required: true
         type: boolean
-      sem_ver:
+      sem-ver:
         required: false
         type: string
     secrets:
@@ -43,7 +43,7 @@ jobs:
             context: "./services/base/JupyterLab"
     runs-on: ubuntu-latest
     env:
-      SEMVER: ${{ inputs.is_propagated_pull_request && inputs.sem_ver || ''}}
+      SEMVER: ${{ inputs.is_propagated_pull_request && inputs.sem-ver || ''}}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -63,7 +63,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,prefix=sha-
       - name: Login to Gitlab registry
-        if: github.event_name != 'pull_request' && inputs.is_propagated_pull_request == false
+        if: inputs.push_images
         uses: docker/login-action@v2
         with:
           registry: registry.gitlab.inria.fr/cromac/automateddiscoverytool
@@ -73,6 +73,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.context }}
-          push: ${{ github.event_name != 'pull_request' && inputs.is_propagated_pull_request == false }}
+          push: ${{ inputs.push_images }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
