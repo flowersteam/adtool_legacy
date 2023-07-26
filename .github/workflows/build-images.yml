@@ -57,8 +57,8 @@ jobs:
           images: |
             registry.gitlab.inria.fr/cromac/automateddiscoverytool/${{ matrix.image }}
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=raw,priority=1000,value=${{ env.SEMVER }}
-            type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
             type=semver,pattern={{version}}
