@@ -104,8 +104,8 @@ def main() -> None:
     parser.add_argument(
         "--mode",
         choices=["base", "dev", "prod"],
-        default="base",
-        help="specify the mode: base, dev, or prod (default: base)",
+        default="prod",
+        help="specify the mode: base, dev, or prod (default: prod)",
     )
     parser.add_argument(
         "--env",
