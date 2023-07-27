@@ -6,13 +6,13 @@ services:
     extends:
       file: ../base/docker-compose.yml
       service: app
-    # image: ${DOCKER_REGISTRY-adtool}/prod-app:${RELEASE_TAG-latest}
+    image: ${DOCKER_REGISTRY-adtool}/app:${RELEASE_TAG-latest}
   ##### GATEWAY #####
   gateway:
     extends:
       file: ../base/docker-compose.yml
       service: gateway
-    # image: ${DOCKER_REGISTRY-adtool}/prod-gateway:${RELEASE_TAG-latest}
+    image: ${DOCKER_REGISTRY-adtool}/gateway:${RELEASE_TAG-latest}
   ##### APP DB #####
   app-db:
     extends:
@@ -31,16 +31,16 @@ services:
     extends:
       file: ../base/docker-compose.yml
       service: expe-db-api
-    # image: ${DOCKER_REGISTRY-adtool}/prod-expe-db-api:${RELEASE_TAG-latest}
+    image: ${DOCKER_REGISTRY-adtool}/expe-db-api:${RELEASE_TAG-latest}
   ##### AUTODISC SERVER #####
   autodisc-server:
     extends:
       file: ../base/docker-compose.yml
       service: autodisc-server
-    # image: ${DOCKER_REGISTRY-adtool}/prod-autodisc-server:${RELEASE_TAG-latest}
+    image: ${DOCKER_REGISTRY-adtool}/autodisc-server:${RELEASE_TAG-latest}
   ##### JUPYTER LAB #####
   jupyter:
     extends:
       file: ../base/docker-compose.yml
       service: jupyter
-    # image: ${DOCKER_REGISTRY-adtool}/prod-jupyter:${RELEASE_TAG-latest}
+    image: ${DOCKER_REGISTRY-adtool}/jupyter:${RELEASE_TAG-latest}
