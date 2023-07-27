@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/flowersteam/adtool/compare/v1.1.5...v1.2.0) (2023-07-27)
+
+
+### Features
+
+* **docker:** enable pulling images from registry ([cdad552](https://github.com/flowersteam/adtool/commit/cdad55259995c859d1d3acd35a5f8be1b3dc720c))
+* switch to prod mode by default ([#55](https://github.com/flowersteam/adtool/issues/55)) ([ff33a35](https://github.com/flowersteam/adtool/commit/ff33a357e9f9ee391de3001e0a991b6eb28fe20d))
+
+
+### Bug Fixes
+
+* **frontend:** fix inject gateway url into static ([63c365e](https://github.com/flowersteam/adtool/commit/63c365e42cb9a1d7e23af7c841b6b6e8e266f071))
+
 ## [1.1.5](https://github.com/flowersteam/adtool/compare/v1.1.4...v1.1.5) (2023-07-26)
 
 
