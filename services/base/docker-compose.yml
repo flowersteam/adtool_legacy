@@ -16,7 +16,7 @@ services:
     volumes:
       - "./FrontEndApp/angular_app/src:/usr/src/angular_app/src"
       - "./JupyterLab/Notebooks:/usr/src/notebooks"
-    links:
+    depends_on:
       - gateway
       - jupyter
   ##### GATEWAY #####
@@ -79,7 +79,7 @@ services:
       MONGODB_PORT: 27017
     volumes:
       - "./ExpeDB/API/flask_app:/usr/src/flask_app"
-    links:
+    depends_on:
       - expe-db
   ##### AUTODISC SERVER #####
   autodisc-server:
@@ -100,7 +100,7 @@ services:
       - "../../configs/:/usr/src/configs"
       - "$SSH_CONFIG_FOLDER:/root/.ssh:ro"
       - "$SSH_SOCK_PATH:/ssh-agent"
-    links:
+    depends_on:
       - expe-db-api
       - app-db-api
   ##### JUPYTER LAB #####
