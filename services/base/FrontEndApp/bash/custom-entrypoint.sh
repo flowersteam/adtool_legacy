@@ -28,7 +28,8 @@ injectenv() {
 
 # note: please be in the right workdir before doing this
 if [ $DEBUG -eq 0 ]; then
-    injectenv "./src/assets/env.js" ${GATEWAY_HOST}
+    injectenv "/usr/share/nginx/www/angular_app/assets/env.js" ${GATEWAY_HOST}
+    echo "custom_entrypoint.sh: Injected GATEWAY_HOST=${GATEWAY_HOST}"
     # serve static web app
     /docker-entrypoint.sh nginx -g "daemon off;"
 else
