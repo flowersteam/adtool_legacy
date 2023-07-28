@@ -8,13 +8,12 @@ from auto_disc.utils.leafutils.leafstructs.registration import (
     get_cls_from_path,
     get_modules,
 )
+from experiments.experiments_handler import ExperimentsHandler
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
-from werkzeug.exceptions import HTTPException
-
-from experiments.experiments_handler import ExperimentsHandler
 from utils import AutoDiscServerConfig, list_profiles
 from utils.DB.expe_db_utils import SavableOutputs
+from werkzeug.exceptions import HTTPException
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../../../libs/auto_disc"))
