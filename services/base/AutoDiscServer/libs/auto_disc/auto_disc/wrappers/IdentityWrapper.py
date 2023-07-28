@@ -1,7 +1,6 @@
 from typing import Dict, List
 
 from auto_disc.auto_disc.wrappers.TransformWrapper import TransformWrapper
-from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 
