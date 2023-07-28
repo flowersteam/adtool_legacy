@@ -15,11 +15,13 @@ def test_map():
     assert output == input
 
 
-# broken for now, see #216
-# def test_save_leaf_load_leaf():
-#     id = IdentityWrapper()
-#     leaf_uid = id.save_leaf()
+def test_save_leaf_load_leaf():
+    id = IdentityWrapper()
+    leaf_uid = id.save_leaf()
 
-#     id2 = id.load_leaf(leaf_uid)
+    id2 = id.load_leaf(leaf_uid)
 
-#     assert id.__dict__ == id2.__dict__
+    assert id.locator.resource_uri == id2.locator.resource_uri
+    del id.locator
+    del id2.locator
+    assert id.__dict__ == id2.__dict__
