@@ -13,6 +13,7 @@ from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
 from utils import AutoDiscServerConfig, list_profiles
 from utils.DB.expe_db_utils import SavableOutputs
+from werkzeug.exceptions import HTTPException
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, "../../../libs/auto_disc"))
@@ -26,6 +27,17 @@ config = AutoDiscServerConfig()
 # Experiments
 experiments_handler = ExperimentsHandler()  # Singleton handling experiments
 experiments_handler.reload_running_remote_experiments()
+
+
+@app.errorhandler(Exception)
+def handle_exception(ex):
+    # pass through HTTP errors
+    if isinstance(ex, HTTPException):
+        return ex
+
+    # handle non-HTTP exceptions only, i.e., backend errors
+    error_message = "Error in autodisc-server : {}".format(ex)
+    return make_response(error_message, 500)
 
 
 @app.route("/experiments", methods=["GET"])
