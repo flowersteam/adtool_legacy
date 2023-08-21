@@ -2,14 +2,15 @@
 
 NOTE: this README is deprecated
 
-We're pleased to introduce Automated Discovery Tool, a software for assisted automated discovery and exploration of complex systems.
+We're pleased to introduce Automated Discovery Tool, a software for assisted
+automated discovery and exploration of complex systems.
 
 ## Installation
 
 ### Docker installation
 
-Our software leverages docker to avoid you installing multiple packages.
-To install docker:
+Our software leverages docker to avoid you installing multiple packages. To
+install docker:
 
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
@@ -23,17 +24,19 @@ Our software consists of two primary parts:
 - a web application allowing you to perform assisted automated discovery
   experiments using a user-friendly interface.
 
-The `auto_disc` library can be used independently of the rest of
-Automated Discovery Tool, for example to implement some bespoke remote computing
+The `auto_disc` library can be used independently of the rest of Automated
+Discovery Tool, for example to implement some bespoke remote computing
 solutions, but its main purpose is to present a standardized interface for
-managing experimental data and configurational metadata which is
-modified and displayed by the GUI.
+managing experimental data and configurational metadata which is modified and
+displayed by the GUI.
 
 ### Launching the software
 
 1. Run the following command: `sudo ./start_app.sh`
 2. Your application should be accessible on `http://localhost:4201`
-3. If you want to modify the port on which the application starts (as well as other configuration parameters for DataBases, network...), you can modify the [.env](services/.env) file in the [services](services) directory.
+3. If you want to modify the port on which the application starts (as well as
+   other configuration parameters for DataBases, network...), you can modify the
+   [.env](services/.env) file in the [services](services) directory.
 
 ### Using the web app
 
@@ -41,16 +44,22 @@ modified and displayed by the GUI.
 
 ### Modifying the lib
 
-Before being able to modify the lib, you must install it. For this, please refer to [this](#autodisc-lib).
-Our lib relies on classes we call `Modules`. Every system or explorer is a `Module`.
-Here is a tutorial on how to add a new module to the lib (and then be able to use it in an experiment launched from the web app):
-[Module adding tutorial](#add-a-new-module-to-the-libs).
+Before being able to modify the lib, you must install it. For this, please refer
+to [this](#autodisc-lib). Our lib relies on classes we call `Modules`. Every
+system or explorer is a `Module`. Here is a tutorial on how to add a new module
+to the lib (and then be able to use it in an experiment launched from the web
+app): [Module adding tutorial](#add-a-new-module-to-the-libs).
 
-We also provide callbacks to experiments (e.g. to save discoveries). If you want to add a new one, you can follow this [tutorial](#add-a-new-callback-to-the-libs).
+We also provide callbacks to experiments (e.g. to save discoveries). If you want
+to add a new one, you can follow this
+[tutorial](#add-a-new-callback-to-the-libs).
 
 ### Launching experiments on a remote server
 
-By default, experiments will be launched locally. However, some large experiments can require large compute. We thus allow users to provide a configuration to reach a remote server: [Adding remote server](#add-a-new-remote-server).
+By default, experiments will be launched locally. However, some large
+experiments can require large compute. We thus allow users to provide a
+configuration to reach a remote server: [Adding remote
+server](#add-a-new-remote-server).
 
 ---
 
@@ -73,15 +82,18 @@ The software is implemented in various microservices
 
 #### `auto_disc` library
 
-1. If you do not already have it, please install [Conda](https://www.anaconda.com/)
-2. Create _autoDiscTool_ conda environment: `conda env create --name autoDiscTool python=3.7 `
+1. If you do not already have it, please install
+   [Conda](https://www.anaconda.com/)
+2. Create _autoDiscTool_ conda environment: `conda env create --name
+autoDiscTool python=3.7 `
 3. Activate _autoDiscTool_ conda environment: `conda activate autoDiscTool`
 4. Go to package: `cd libs/auto_disc`
 5. Install package: `pip install -e .`
 
 #### AutoDiscServer
 
-1. Install flask: `pip install -r services/AutoDiscServer/flask_app/requirements.txt`
+1. Install flask: `pip install -r
+services/AutoDiscServer/flask_app/requirements.txt`
 
 ### FrontEndApp
 
@@ -94,8 +106,10 @@ The software is implemented in various microservices
 1. Install Docker: [`LINK`](https://docs.docker.com/engine/install/)
 2. Install Docker-compose: [`LINK`](https://docs.docker.com/compose/install/)
 3. Go to the service folder: `cd services`.
-4. Generate containers `sudo docker-compose -f services/docker-compose.yml create`
-5. Install the Expe DB REST API requirements: `pip install -r ExpeDB/API/flask_app/requirements.txt`
+4. Generate containers `sudo docker-compose -f services/docker-compose.yml
+create`
+5. Install the Expe DB REST API requirements: `pip install -r
+ExpeDB/API/flask_app/requirements.txt`
 
 #### JupyterLab
 
@@ -108,7 +122,8 @@ The software is implemented in various microservices
 
 ### Commits
 
-Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).
+Please attach every commit to an issue or a merge request. For issues, add #ID
+at the beginning of your commit message (with ID the id of the issue).
 
 ### Starting the project
 
@@ -126,54 +141,59 @@ Launch the flask server: `python -m AutoDiscServer.app`.
 
 ##### App DB
 
-Start services: `sudo docker-compose up app-db-api`
-Add `-d` option for daemon.
+Start services: `sudo docker-compose up app-db-api` Add `-d` option for daemon.
 
 ##### Expe DB
 
-Start service: `sudo docker-compose up expe-db`
-Add `-d` option for daemon.
+Start service: `sudo docker-compose up expe-db` Add `-d` option for daemon.
 Launch flask server for the REST API: `python ExpeDB/app.py`
 
 ##### Front-end app
 
-Enter the front-end app folder: `cd FrontEndApp`.
-Start the angular app: `ng serve`.
+Enter the front-end app folder: `cd FrontEndApp`. Start the angular app: `ng
+serve`.
 
 ##### Jupyter Lab
 
-Enter Jupyter Lab's folder: `cd ../JupyterLab`
-Give the appropriate rights to the notebook folder: `chmod 777 -R Notebooks/`
-Start the jupyter lab on port 8887: `export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py`
+Enter Jupyter Lab's folder: `cd ../JupyterLab` Give the appropriate rights to
+the notebook folder: `chmod 777 -R Notebooks/` Start the jupyter lab on port
+8887: `export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/
+--config Config/jupyter_notebook_config.py`
 
 ### Using monitoring services
 
-We added monitoring applications for the Docker services.
-You can start then by going in `services`: `cd services` and launching the following command:
+We added monitoring applications for the Docker services. You can start then by
+going in `services`: `cd services` and launching the following command:
 
 ```
 sudo docker-compose --profile monitoring up
 ```
 
-_Warning_: This command will start all the docker services or attach the already launched ones otherwise.
+_Warning_: This command will start all the docker services or attach the already
+launched ones otherwise.
 
 #### Portainer
 
-Portainer is a web application allowing to monitor Docker environments.
-You can access it at: [https://localhost:9443](https://localhost:9443).
+Portainer is a web application allowing to monitor Docker environments. You can
+access it at: [https://localhost:9443](https://localhost:9443).
 
-At first startup you'll be asked to create a password for your admin account. Then, you should see your local environment with all the running containers. You can for instance easily see the logs of each container.
+At first startup you'll be asked to create a password for your admin account.
+Then, you should see your local environment with all the running containers. You
+can for instance easily see the logs of each container.
 
 #### PgAdmin
 
-PgAdmin is a lightweight web application allowing to visually interact with a PostgreSQL database. You can use it to monitor and modify our AppDB (which should be connected by default).
-For this, go to [http://localhost:5050](http://localhost:5050).
-To login use:
+PgAdmin is a lightweight web application allowing to visually interact with a
+PostgreSQL database. You can use it to monitor and modify our AppDB (which
+should be connected by default). For this, go to
+[http://localhost:5050](http://localhost:5050). To login use:
 
 - user: `user@autodisc.com`
 - password: `autodisc`
 
-You should see the server list in the panel on the left. To see the data of a table, unfold the `schema/Tables` property of the server. Then, right click on the desired table and click "See data".
+You should see the server list in the panel on the left. To see the data of a
+table, unfold the `schema/Tables` property of the server. Then, right click on
+the desired table and click "See data".
 
 #### MongoExpress
 
