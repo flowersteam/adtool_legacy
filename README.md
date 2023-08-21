@@ -1,7 +1,8 @@
 # adtool: Assisted and Automated Discovery for Complex Systems
 
-We're pleased to introduce adtool (formerly, Automated Discovery Tool), a software for assisted and
-automated discovery of patterns in the exploration of complex systems.
+We're pleased to introduce adtool (formerly, Automated Discovery Tool), a
+software for assisted and automated discovery of patterns in the exploration of
+complex systems.
 
 adtool is a software package developed in the [Inria
 FLOWERS](https://flowers.inria.fr) research team which provides an integrated
