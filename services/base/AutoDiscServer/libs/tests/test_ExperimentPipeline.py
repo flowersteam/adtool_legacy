@@ -154,7 +154,7 @@ def test_run():
         assert match_count == 1
 
 
-# broken for now, see #188
+# TODO: fix loggers, see gh #45
 # def test_logger(capsys):
 #     experiment_id = 1
 #     seed = 1

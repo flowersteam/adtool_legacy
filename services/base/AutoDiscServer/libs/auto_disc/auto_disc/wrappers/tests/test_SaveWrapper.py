@@ -401,7 +401,7 @@ def test_BufferStreamer___next__():
     assert streamer.__next__() == {"a": 1, "b": 2, "step": 9}
 
 
-# broken for now, see #219
+# TODO: enable batching, see gh issue #38
 # def test_BufferStreamer___iter__():
 #     leaf_uid, wrapper = generate_data_alot()
 #     streamer = BufferStreamer(

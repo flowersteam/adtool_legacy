@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """A "build" script to add custom modules to adtool.
 
 After adding your code to the appropriate folders, you can simply run `build.py`
