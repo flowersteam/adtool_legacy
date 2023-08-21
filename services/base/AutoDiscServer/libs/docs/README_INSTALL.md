@@ -32,11 +32,16 @@ displayed by the GUI.
 
 ### Launching the software
 
-1. Run the following command: `sudo ./start_app.sh`
-2. Your application should be accessible on `http://localhost:4201`
-3. If you want to modify the port on which the application starts (as well as
-   other configuration parameters for DataBases, network...), you can modify the
-   [.env](services/.env) file in the [services](services) directory.
+1. Clone the software into a folder on your local computer, using e.g.,
+
+```bash
+git clone https://github.com/flowersteam/adtool.git --branch prod
+```
+
+2. Create a file `services/prod/.env` with the environment variables appropriate
+   for your setup. A sample is provided at `services/prod/sample.env`
+3. Run the following command: `start_app.py --mode prod`
+4. Navigate to `http://localhost:4200` in a browser
 
 ### Using the web app
 
