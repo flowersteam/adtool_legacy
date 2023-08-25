@@ -222,6 +222,10 @@ def get_auto_disc_registered_modules_info(registered_modules):
     infos = []
     for module_name, module_class_path in registered_modules.items():
         module_class = get_cls_from_path(module_class_path)
+        if module_class is None:
+            raise ValueError(
+                f"Could not retrieve class from path: {module_class_path}."
+            )
         info = {}
         info["name"] = module_name
         try:

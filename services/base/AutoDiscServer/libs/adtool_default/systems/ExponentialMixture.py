@@ -19,8 +19,8 @@ matplotlib.use("Agg")
 
 @dataclass
 class SystemParams(Defaults):
-    sequence_max = defaults(100.0, min=1.0, max=1000.0)
-    sequence_density = defaults(100, min=1, max=1000)
+    sequence_max: float = defaults(100.0, min=1.0, max=1000.0)
+    sequence_density: int = defaults(100, min=1, max=1000)
 
 
 @SystemParams.expose_config()
@@ -79,3 +79,11 @@ class ExponentialMixture(System):
         y_tensor = torch.sum(mixture_tensor, dim=0)
 
         return x_tensor, y_tensor
+
+
+def test():
+    assert len(ExponentialMixture.CONFIG_DEFINITION) > 0
+
+
+if __name__ == "__main__":
+    test()

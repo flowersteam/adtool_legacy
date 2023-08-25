@@ -29,7 +29,7 @@ class Map(Leaf, metaclass=ABCMeta):
         self.locator = BlobLocator()
 
     @abstractmethod
-    def map(self, input: Dict) -> Dict:
+    def map(self, input: Dict, override_existing: bool = True) -> Dict:
         """Map input to output.
 
         A `Map` operates on regular Python dicts, but it views them as
@@ -43,9 +43,12 @@ class Map(Leaf, metaclass=ABCMeta):
 
         Args:
             input:
-                generic dict containing input data to the map at `premap_key`
+                Generic dict containing input data to the map at `premap_key`
+            override_existing:
+                Flag which controls whether the value associated to
+                `postmap_key` should be overridden if it exists alrady
         Returns:
-            A  dict containing output data from the map at `postmap_key`
+            A dict containing output data from the map at `postmap_key`
         """
         raise NotImplementedError
 
