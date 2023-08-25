@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/flowersteam/adtool/compare/v1.2.0...v1.2.1) (2023-08-25)
+
+
+### Bug Fixes
+
+* add pexpect deps ([fd539b8](https://github.com/flowersteam/adtool/commit/fd539b8c0d6fcafa6e6a4742cb72b0de933940a1))
+* add watchdog deps ([c843fa0](https://github.com/flowersteam/adtool/commit/c843fa0831f2668b5a3e33b739c6a9c31dd64cf7))
+* **autodisc-server:** raise exceptions to front ([#57](https://github.com/flowersteam/adtool/issues/57)) ([7b9abfc](https://github.com/flowersteam/adtool/commit/7b9abfc4fcaef8df799dd92146aad71cfbea7b05))
+* misc fixes ([fcc7f12](https://github.com/flowersteam/adtool/commit/fcc7f124e934ff2384067cb0920ba4d8c0afbfea))
+
 ## [1.2.0](https://github.com/flowersteam/adtool/compare/v1.1.5...v1.2.0) (2023-07-27)
 
 
