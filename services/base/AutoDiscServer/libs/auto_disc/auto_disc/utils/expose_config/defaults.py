@@ -2,6 +2,7 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, fields, is_dataclass
 from typing import Any, Callable, List, Optional
 
+from addict import Dict
 from auto_disc.auto_disc.utils.expose_config.expose_config import (
     ExposeConfig,
     _handlers,
@@ -40,7 +41,7 @@ class Defaults:
         return _compose(*decoration_chain)
 
     @classmethod
-    def _wrap_config_defns(cls, config_dict, decoration_chain):
+    def _wrap_config_defns(cls, config_dict, decoration_chain) -> List[ExposeConfig]:
         """
         Takes dict of config definitions (i.e., the dict form of
         a _DefaultSetting) and converts it into a list of ExposeConfig objects
@@ -71,7 +72,7 @@ class Defaults:
         return decoration_chain
 
     @classmethod
-    def _dataclass_to_config_dict(cls):
+    def _dataclass_to_config_dict(cls) -> Dict:
         """
         This function takes a (possible recursive) Defaults dataclass and
         converts it to a (flat) dict of config definitions. It's therefore
