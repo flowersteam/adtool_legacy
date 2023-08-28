@@ -64,12 +64,12 @@ class TextToVectorMap(Map):
             self.postmap_key not in data
         ):
             if use_seed_vector:
-                data[self.postmap_key] = torch.cat(
-                    [self.uncond_vector, self.seed_vector]
+                data[self.postmap_key] = (
+                    torch.cat([self.uncond_vector, self.seed_vector]).detach().clone()
                 )
             else:
                 # overrides "text_vector" with new sample
-                data[self.postmap_key] = self.sample()
+                data[self.postmap_key] = self.sample().detach().clone()
         else:
             # passes "genome" through if it exists
             pass
@@ -83,7 +83,9 @@ class TextToVectorMap(Map):
             * torch.norm(self.seed_vector)
             * torch.randn(size=self.seed_vector.size(), device=TORCH_DEVICE)
         )
-        return torch.cat([self.uncond_vector, self.seed_vector + delta])
+        return (
+            torch.cat([self.uncond_vector, self.seed_vector + delta]).detach().clone()
+        )
 
     def mutate(self, parameter_dict: Dict) -> Dict:
         concat_dim = parameter_dict[self.postmap_key].size()[-2]
