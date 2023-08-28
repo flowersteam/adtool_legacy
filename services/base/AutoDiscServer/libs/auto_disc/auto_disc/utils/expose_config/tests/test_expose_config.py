@@ -8,7 +8,6 @@ from auto_disc.auto_disc.utils.expose_config.defaults import (
 )
 from auto_disc.auto_disc.utils.expose_config.expose_config import expose_config
 
-
 class TestPublicExposeConfig:
     def test_key_collision(self):
         with pytest.raises(ValueError):
@@ -360,3 +359,54 @@ class TestInitDecoratedObject:
         assert System(**p_dict).SY == 256
         assert System(**p_dict).version == "fft"
         assert System(**p_dict).scalar == 1.0
+
+
+class TestMultipleClasses:
+    def test_basic(self):
+    @dataclass
+    class SystemParams(Defaults):
+        version: str = defaults("fft", domain=["fft", "conv"])
+
+    @SystemParams.expose_config()
+    class System:
+        def __init__(self, version: str):
+            self.version = version
+
+    @dataclass
+    class OtherParams(Defaults):
+        other_version: str = defaults("fft", domain=["fft", "conv"])
+
+    @OtherParams.expose_config()
+    class OtherSystem:
+        def __init__(self, other_version: str):
+            self.other_version = other_version
+
+    assert OtherSystem.CONFIG_DEFINITION != System.CONFIG_DEFINITION
+    assert OtherSystem.CONFIG_DEFINITION["other_version"] is not None
+    assert System.CONFIG_DEFINITION["version"] is not None
+
+    def test_inheritance(self):
+        class Base:
+            CONFIG_DEFINITION = {}
+
+        @dataclass
+        class SystemParams(Defaults):
+            version: str = defaults("fft", domain=["fft", "conv"])
+
+        @SystemParams.expose_config()
+        class System(Base):
+            def __init__(self, version: str):
+                self.version = version
+
+        @dataclass
+        class OtherParams(Defaults):
+            other_version: str = defaults("fft", domain=["fft", "conv"])
+
+        @OtherParams.expose_config()
+        class OtherSystem(Base):
+            def __init__(self, other_version: str):
+                self.other_version = other_version
+
+        assert OtherSystem.CONFIG_DEFINITION != System.CONFIG_DEFINITION
+        assert OtherSystem.CONFIG_DEFINITION["other_version"] is not None
+        assert System.CONFIG_DEFINITION["version"] is not None
