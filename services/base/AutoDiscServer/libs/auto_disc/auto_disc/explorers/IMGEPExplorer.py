@@ -4,6 +4,8 @@ from functools import partial
 from typing import Any, Dict, List
 
 import torch
+from adtool_custom.maps.IdentityBehaviorMap import IdentityBehaviorMap
+from adtool_custom.maps.TextToVectorMap import TextToVectorMap
 from adtool_default.maps.LeniaParameterMap import LeniaParameterMap
 from adtool_default.maps.LeniaStatistics import LeniaStatistics
 from adtool_default.maps.MeanBehaviorMap import MeanBehaviorMap
@@ -22,11 +24,15 @@ from auto_disc.utils.leaf.locators.locators import BlobLocator
 
 @IntegerConfigParameter("equil_time", default=1, min=1)
 @StringConfigParameter(
-    "behavior_map", possible_values=["Mean", "LeniaStatistics"], default="Mean"
+    "behavior_map",
+    possible_values=["Mean", "LeniaStatistics", "Identity"],
+    default="Mean",
 )
 @DictConfigParameter("behavior_map_config", default={})
 @StringConfigParameter(
-    "parameter_map", possible_values=["Uniform", "LeniaParameterMap"], default="Uniform"
+    "parameter_map",
+    possible_values=["Uniform", "LeniaParameterMap", "TextToVector"],
+    default="Uniform",
 )
 @DictConfigParameter("parameter_map_config", default={})
 @StringConfigParameter(
@@ -68,6 +74,8 @@ class IMGEPFactory:
             behavior_map = MeanBehaviorMap(**kwargs)
         elif self.config["behavior_map"] == "LeniaStatistics":
             behavior_map = LeniaStatistics(**kwargs)
+        elif self.config["behavior_map"] == "Identity":
+            behavior_map = IdentityBehaviorMap(**kwargs)
         else:
             # this branch should be unreachable,
             # because the ConfigParameter decorator checks
@@ -81,6 +89,8 @@ class IMGEPFactory:
             param_map = UniformParameterMap(**kwargs)
         elif self.config["parameter_map"] == "LeniaParameterMap":
             param_map = LeniaParameterMap(**kwargs)
+        elif self.config["parameter_map"] == "TextToVector":
+            param_map = TextToVectorMap(**kwargs)
         else:
             # this branch should be unreachable,
             # because the ConfigParameter decorator checks
