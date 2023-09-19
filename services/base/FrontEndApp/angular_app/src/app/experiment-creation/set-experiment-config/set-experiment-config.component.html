@@ -1,5 +1,5 @@
 <label class="card-title col-12" for="experiment_name"
-  >Enter the exeperiment name:</label
+  >Enter the experiment name:</label
 >
 <input
   type="text"
@@ -39,6 +39,15 @@
   class="form-control"
   id="save_frequency"
   [(ngModel)]="this.currentConfig.config.save_frequency"
+/>
+
+<label class="card-title col-12" for="experiment_name">Save location:</label>
+<input
+  type="text"
+  class="form-control"
+  id="save_location"
+  placeholder="http://127.0.0.1:5001"
+  [(ngModel)]="this.currentConfig.config.save_location"
 />
 
 <label class="card-title col-12">Choose an Host:</label>

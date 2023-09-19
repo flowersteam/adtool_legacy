@@ -96,7 +96,7 @@ class StableDiffusionPropagator(System):
         self.unet.to(TORCH_DEVICE)
 
     def map(self, input: Dict, fix_seed: bool = True) -> Dict:
-        text_embeddings = input[self.premap_key]
+        text_embeddings = input[self.premap_key].to(TORCH_DEVICE)
         # TODO: add support for multiple prompts in the parameter map
         batch_size = 1
 
@@ -163,11 +163,12 @@ class StableDiffusionPropagator(System):
         self.latents_over_t = latents_over_t
 
         # make output dict, saving the graph pytorch node
-        input[self.postmap_key] = latents_over_t[-1].detach().clone()
+        input[self.postmap_key] = latents_over_t[-1].detach().clone().to("cpu")
         return input
 
     def _decode_image(self, latent):
         # some magic scale which controls blurriness of output
+        latent = latent.to(TORCH_DEVICE)
         latent = 1 / 0.18215 * latent
         with torch.no_grad():
             image = self.vae.decode(latent).sample
@@ -183,6 +184,8 @@ class StableDiffusionPropagator(System):
         for i, _ in enumerate(tqdm(self.scheduler.timesteps)):
             img = self._decode_image(self.latents_over_t[i])
             imgs.append(img)
+        final_result = imgs[-1]
+        imgs = imgs + [final_result] * 50
         byte_img = io.BytesIO()
-        imageio.mimwrite(byte_img, imgs, "mp4", fps=30, output_params=["-f", "mp4"])
+        imageio.mimwrite(byte_img, imgs, "mp4", fps=5, output_params=["-f", "mp4"])
         return byte_img.getvalue()

@@ -5,9 +5,7 @@ from adtool_custom.systems.StableDiffusionPropagator import StableDiffusionPropa
 
 
 def test():
-    txt_embedder = TextToVectorMap(
-        seed_prompt="a watercolor painting of Bordeaux, France"
-    )
+    txt_embedder = TextToVectorMap(seed_prompt="a realistic photograph of Bordeaux, FR")
     sd = StableDiffusionPropagator(num_inference_steps=16)
     id = IdentityBehaviorMap()
 
@@ -16,7 +14,7 @@ def test():
     print(f"size: {data['params'].size()}")
     data = sd.map(data)
     data = id.map(data)
-    img = sd._decode_image(data["latent_vector"])
+    img = sd._decode_image(data["output"])
     img.save(f"out_seed.png")
 
     # generate random samples
@@ -28,13 +26,13 @@ def test():
         data = sd.map(data, fix_seed=False)
         # save the video
         byte_vid = sd.render({})
-        with open(f"outvid_{i}.png", "wb") as f:
+        with open(f"outvid_{i}.mp4", "wb") as f:
             f.write(byte_vid)
 
         # does nothing, because there is no IMGEP
         data = id.map(data)
 
-        img = sd._decode_image(data["latent_vector"])
+        img = sd._decode_image(data["output"])
         img.save(f"out_{i}.png")
 
 

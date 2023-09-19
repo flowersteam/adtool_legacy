@@ -133,8 +133,8 @@ export class CreateNewExperimentService {
         nb_seeds: 1,
         save_frequency: 1,
         host: undefined,
-        save_location: 'http://expe-db-api:80',
-        // save_location: "http://127.0.0.1:5001"
+        // save_location: 'http://expe-db-api:80',
+        save_location: 'http://127.0.0.1:5001',
       },
     };
 

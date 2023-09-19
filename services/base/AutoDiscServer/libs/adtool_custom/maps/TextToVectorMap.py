@@ -65,11 +65,14 @@ class TextToVectorMap(Map):
         ):
             if use_seed_vector:
                 data[self.postmap_key] = (
-                    torch.cat([self.uncond_vector, self.seed_vector]).detach().clone()
+                    torch.cat([self.uncond_vector, self.seed_vector])
+                    .detach()
+                    .clone()
+                    .to("cpu")
                 )
             else:
                 # overrides "text_vector" with new sample
-                data[self.postmap_key] = self.sample().detach().clone()
+                data[self.postmap_key] = self.sample().detach().clone().to("cpu")
         else:
             # passes "genome" through if it exists
             pass
@@ -87,23 +90,23 @@ class TextToVectorMap(Map):
             torch.cat([self.uncond_vector, self.seed_vector + delta]).detach().clone()
         )
 
-    def mutate(self, parameter_dict: Dict) -> Dict:
-        concat_dim = parameter_dict[self.postmap_key].size()[-2]
-        text_vector = parameter_dict[self.postmap_key].clone()
+    def mutate(self, parameter_dict: torch.Tensor) -> torch.Tensor:
+        # NOTE: the parameter_dict is actually just a tensor (i.e., the trivial
+        # dictionary with a single element)
+        concat_dim = parameter_dict.size()[-2]
+        text_vector = parameter_dict.clone()
         conditioned_text_vector = text_vector[: (concat_dim // 2)]
 
         delta = (
             self.perturbation_scale
             * torch.norm(conditioned_text_vector)
-            * torch.randn(size=conditioned_text_vector.size(), device=TORCH_DEVICE)
+            * torch.randn(size=conditioned_text_vector.size())
         )
 
         conditioned_text_vector = conditioned_text_vector + delta
         text_vector[: (concat_dim) // 2] = conditioned_text_vector
 
-        parameter_dict[self.postmap_key] = text_vector
-
-        return parameter_dict
+        return text_vector
 
     def _transform_text_to_vector(self, text: str) -> Tuple[torch.Tensor, torch.Tensor]:
         # get vector of the seed_prompt

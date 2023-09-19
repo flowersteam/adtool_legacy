@@ -26,8 +26,7 @@ class IdentityBehaviorMap(Map):
         self.projector = BoxProjector(premap_key=self.postmap_key)
 
     def map(self, input: Dict, override_existing: bool = True) -> Dict:
-        input["raw_output"] = input["output"]
-        return input
+        return self.projector.map(input)
 
     def sample(self) -> torch.Tensor:
         return self.projector.sample()

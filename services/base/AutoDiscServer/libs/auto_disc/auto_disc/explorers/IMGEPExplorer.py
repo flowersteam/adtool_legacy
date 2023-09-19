@@ -280,7 +280,10 @@ class IMGEPExplorer(Leaf):
 
     def _find_closest(self, goal: torch.Tensor, goal_history: torch.Tensor):
         # TODO: simple L2 distance right now
-        return torch.argmin((goal_history - goal).pow(2).sum(-1))
+        with torch.no_grad():
+            return torch.argmin(
+                (goal_history - goal).pow(2).flatten(start_dim=1, end_dim=-1).sum(-1)
+            )
 
     def _vector_search_for_goal(self, goal: torch.Tensor, lookback_length: int) -> Dict:
         history_buffer = self._history_saver.get_history(

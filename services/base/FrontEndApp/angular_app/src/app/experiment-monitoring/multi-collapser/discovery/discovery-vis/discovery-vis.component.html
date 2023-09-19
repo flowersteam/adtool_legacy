@@ -2,11 +2,11 @@
   class="container"
   *ngIf="mediaSrcArrayFiltered$ | async as mediaSrcArrayFiltered"
 >
-  <div
-    class="w-25 overflow-auto mx-auto"
-    *ngFor="let mediaSrc of mediaSrcArrayFiltered"
-  >
-    <div class="card mt-1">
+  <div class="row">
+    <div
+      class="col-xl-4 col-md-6 col-xxl-3"
+      *ngFor="let mediaSrc of mediaSrcArrayFiltered"
+    >
       <video class="card-img-top mx-auto" autoplay loop>
         <source type="video/mp4" [src]="mediaSrc.src | safe" />
       </video>
@@ -19,9 +19,8 @@
       </div>
     </div>
   </div>
-</div>
 
-<!-- <div class="row mt-2 mx-1" *ngIf="this.experiment">
+  <!-- <div class="row mt-2 mx-1" *ngIf="this.experiment">
   <div
     *ngFor="
       let i of this.allSeedSelect['seeds'].length > 0
@@ -51,3 +50,4 @@
     </div>
   </div>
 </div> -->
+</div>

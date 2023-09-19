@@ -233,6 +233,7 @@ export class DiscoveryComponent implements OnInit {
     discoveries$.subscribe({
       next: (media) => {
         this.dynMediaArray$.next(this.dynMediaArray$.value.concat(media));
+        console.log('Got media.');
       },
       error: (err) => {
         this.toasterService.showError(

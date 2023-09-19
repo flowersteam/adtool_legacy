@@ -195,11 +195,12 @@ class ExperimentPipeline(Leaf):
                 # avoids divide by zero
                 run_idx_start_from_one = self.run_idx + 1
 
-                if (
-                    run_idx_start_from_one % self.save_frequency == 0
-                    or run_idx_start_from_one == n_exploration_runs
-                ):
-                    self.save(resource_uri=self.resource_uri)
+                # TODO: add a flag in the frontend to toggle this
+                # if (
+                #     run_idx_start_from_one % self.save_frequency == 0
+                #     or run_idx_start_from_one == n_exploration_runs
+                # ):
+                #     self.save(resource_uri=self.resource_uri)
 
                 self.run_idx += 1
 
