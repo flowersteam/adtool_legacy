@@ -71,14 +71,15 @@ auto_disc    </h1>
 
 <p>NOTE: this README is deprecated</p>
 
-<p>We're pleased to introduce Automated Discovery Tool, a software for assisted automated discovery and exploration of complex systems.</p>
+<p>We're pleased to introduce Automated Discovery Tool, a software for assisted
+automated discovery and exploration of complex systems.</p>
 
 <h2 id="installation">Installation</h2>
 
 <h3 id="docker-installation">Docker installation</h3>
 
-<p>Our software leverages docker to avoid you installing multiple packages.
-To install docker:</p>
+<p>Our software leverages docker to avoid you installing multiple packages. To
+install docker:</p>
 
 <ol>
 <li>Install Docker: <a href="https://docs.docker.com/engine/install/"><code>LINK</code></a></li>
@@ -96,18 +97,28 @@ use/download/implement systems to explore as well as exploration algorithms.</li
 experiments using a user-friendly interface.</li>
 </ul>
 
-<p>The <code><a href="">auto_disc</a></code> library can be used independently of the rest of
-Automated Discovery Tool, for example to implement some bespoke remote computing
+<p>The <code><a href="">auto_disc</a></code> library can be used independently of the rest of Automated
+Discovery Tool, for example to implement some bespoke remote computing
 solutions, but its main purpose is to present a standardized interface for
-managing experimental data and configurational metadata which is
-modified and displayed by the GUI.</p>
+managing experimental data and configurational metadata which is modified and
+displayed by the GUI.</p>
 
 <h3 id="launching-the-software">Launching the software</h3>
 
 <ol>
-<li>Run the following command: <code>sudo ./start_app.sh</code></li>
-<li>Your application should be accessible on <code>http://localhost:4201</code></li>
-<li>If you want to modify the port on which the application starts (as well as other configuration parameters for DataBases, network...), you can modify the <a href="services/.env">.env</a> file in the <a href="services">services</a> directory.</li>
+<li>Clone the software into a folder on your local computer, using e.g.,</li>
+</ol>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/flowersteam/adtool.git<span class="w"> </span>--branch<span class="w"> </span>prod
+</code></pre>
+</div>
+
+<ol start="2">
+<li>Create a file <code>services/prod/.env</code> with the environment variables appropriate
+for your setup. A sample is provided at <code>services/prod/sample.env</code></li>
+<li>Run the following command: <code>start_app.py --mode prod</code></li>
+<li>Navigate to <code>http://localhost:4200</code> in a browser</li>
 </ol>
 
 <h3 id="using-the-web-app">Using the web app</h3>
@@ -116,16 +127,22 @@ modified and displayed by the GUI.</p>
 
 <h3 id="modifying-the-lib">Modifying the lib</h3>
 
-<p>Before being able to modify the lib, you must install it. For this, please refer to <a href="#autodisc-lib">this</a>.
-Our lib relies on classes we call <code>Modules</code>. Every system or explorer is a <code>Module</code>.
-Here is a tutorial on how to add a new module to the lib (and then be able to use it in an experiment launched from the web app):
-<a href="#add-a-new-module-to-the-libs">Module adding tutorial</a>.</p>
+<p>Before being able to modify the lib, you must install it. For this, please refer
+to <a href="#autodisc-lib">this</a>. Our lib relies on classes we call <code>Modules</code>. Every
+system or explorer is a <code>Module</code>. Here is a tutorial on how to add a new module
+to the lib (and then be able to use it in an experiment launched from the web
+app): <a href="#add-a-new-module-to-the-libs">Module adding tutorial</a>.</p>
 
-<p>We also provide callbacks to experiments (e.g. to save discoveries). If you want to add a new one, you can follow this <a href="#add-a-new-callback-to-the-libs">tutorial</a>.</p>
+<p>We also provide callbacks to experiments (e.g. to save discoveries). If you want
+to add a new one, you can follow this
+<a href="#add-a-new-callback-to-the-libs">tutorial</a>.</p>
 
 <h3 id="launching-experiments-on-a-remote-server">Launching experiments on a remote server</h3>
 
-<p>By default, experiments will be launched locally. However, some large experiments can require large compute. We thus allow users to provide a configuration to reach a remote server: <a href="#add-a-new-remote-server">Adding remote server</a>.</p>
+<p>By default, experiments will be launched locally. However, some large
+experiments can require large compute. We thus allow users to provide a
+configuration to reach a remote server: <a href="#add-a-new-remote-server">Adding remote
+server</a>.</p>
 
 <hr />
 
@@ -151,8 +168,10 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 <h4 id="auto_disc-library"><code><a href="">auto_disc</a></code> library</h4>
 
 <ol>
-<li>If you do not already have it, please install <a href="https://www.anaconda.com/">Conda</a></li>
-<li>Create _autoDiscTool_ conda environment: <code>conda env create --name autoDiscTool python=3.7</code></li>
+<li>If you do not already have it, please install
+<a href="https://www.anaconda.com/">Conda</a></li>
+<li>Create _autoDiscTool_ conda environment: <code>conda env create --name
+autoDiscTool python=3.7</code></li>
 <li>Activate _autoDiscTool_ conda environment: <code>conda activate autoDiscTool</code></li>
 <li>Go to package: <code>cd libs/auto_disc</code></li>
 <li>Install package: <code>pip install -e .</code></li>
@@ -161,7 +180,8 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 <h4 id="autodiscserver">AutoDiscServer</h4>
 
 <ol>
-<li>Install flask: <code>pip install -r services/AutoDiscServer/flask_app/requirements.txt</code></li>
+<li>Install flask: <code>pip install -r
+services/AutoDiscServer/flask_app/requirements.txt</code></li>
 </ol>
 
 <h3 id="frontendapp">FrontEndApp</h3>
@@ -178,8 +198,10 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 <li>Install Docker: <a href="https://docs.docker.com/engine/install/"><code>LINK</code></a></li>
 <li>Install Docker-compose: <a href="https://docs.docker.com/compose/install/"><code>LINK</code></a></li>
 <li>Go to the service folder: <code>cd services</code>.</li>
-<li>Generate containers <code>sudo docker-compose -f services/docker-compose.yml create</code></li>
-<li>Install the Expe DB REST API requirements: <code>pip install -r ExpeDB/API/flask_app/requirements.txt</code></li>
+<li>Generate containers <code>sudo docker-compose -f services/docker-compose.yml
+create</code></li>
+<li>Install the Expe DB REST API requirements: <code>pip install -r
+ExpeDB/API/flask_app/requirements.txt</code></li>
 </ol>
 
 <h4 id="jupyterlab">JupyterLab</h4>
@@ -197,7 +219,8 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 
 <h3 id="commits">Commits</h3>
 
-<p>Please attach every commit to an issue or a merge request. For issues, add #ID at the beginning of your commit message (with ID the id of the issue).</p>
+<p>Please attach every commit to an issue or a merge request. For issues, add #ID
+at the beginning of your commit message (with ID the id of the issue).</p>
 
 <h3 id="starting-the-project">Starting the project</h3>
 
@@ -215,55 +238,60 @@ with the FrontEnd) and resulting experimental data, respectively</li>
 
 <h5 id="app-db">App DB</h5>
 
-<p>Start services: <code>sudo docker-compose up app-db-api</code>
-Add <code>-d</code> option for daemon.</p>
+<p>Start services: <code>sudo docker-compose up app-db-api</code> Add <code>-d</code> option for daemon.</p>
 
 <h5 id="expe-db">Expe DB</h5>
 
-<p>Start service: <code>sudo docker-compose up expe-db</code>
-Add <code>-d</code> option for daemon.
+<p>Start service: <code>sudo docker-compose up expe-db</code> Add <code>-d</code> option for daemon.
 Launch flask server for the REST API: <code>python ExpeDB/app.py</code></p>
 
 <h5 id="front-end-app">Front-end app</h5>
 
-<p>Enter the front-end app folder: <code>cd FrontEndApp</code>.
-Start the angular app: <code>ng serve</code>.</p>
+<p>Enter the front-end app folder: <code>cd FrontEndApp</code>. Start the angular app: <code>ng
+serve</code>.</p>
 
 <h5 id="jupyter-lab">Jupyter Lab</h5>
 
-<p>Enter Jupyter Lab's folder: <code>cd ../JupyterLab</code>
-Give the appropriate rights to the notebook folder: <code>chmod 777 -R Notebooks/</code>
-Start the jupyter lab on port 8887: <code>export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/ --config Config/jupyter_notebook_config.py</code></p>
+<p>Enter Jupyter Lab's folder: <code>cd ../JupyterLab</code> Give the appropriate rights to
+the notebook folder: <code>chmod 777 -R Notebooks/</code> Start the jupyter lab on port
+8887: <code>export PYTHONPATH=$(pwd)/../../libs/auto_disc_db; jupyter lab Notebooks/
+--config Config/jupyter_notebook_config.py</code></p>
 
 <h3 id="using-monitoring-services">Using monitoring services</h3>
 
-<p>We added monitoring applications for the Docker services.
-You can start then by going in <code>services</code>: <code>cd services</code> and launching the following command:</p>
+<p>We added monitoring applications for the Docker services. You can start then by
+going in <code>services</code>: <code>cd services</code> and launching the following command:</p>
 
 <pre><code>sudo docker-compose --profile monitoring up
 </code></pre>
 
-<p>_Warning_: This command will start all the docker services or attach the already launched ones otherwise.</p>
+<p>_Warning_: This command will start all the docker services or attach the already
+launched ones otherwise.</p>
 
 <h4 id="portainer">Portainer</h4>
 
-<p>Portainer is a web application allowing to monitor Docker environments.
-You can access it at: <a href="https://localhost:9443">https://localhost:9443</a>.</p>
+<p>Portainer is a web application allowing to monitor Docker environments. You can
+access it at: <a href="https://localhost:9443">https://localhost:9443</a>.</p>
 
-<p>At first startup you'll be asked to create a password for your admin account. Then, you should see your local environment with all the running containers. You can for instance easily see the logs of each container.</p>
+<p>At first startup you'll be asked to create a password for your admin account.
+Then, you should see your local environment with all the running containers. You
+can for instance easily see the logs of each container.</p>
 
 <h4 id="pgadmin">PgAdmin</h4>
 
-<p>PgAdmin is a lightweight web application allowing to visually interact with a PostgreSQL database. You can use it to monitor and modify our AppDB (which should be connected by default).
-For this, go to <a href="http://localhost:5050">http://localhost:5050</a>.
-To login use:</p>
+<p>PgAdmin is a lightweight web application allowing to visually interact with a
+PostgreSQL database. You can use it to monitor and modify our AppDB (which
+should be connected by default). For this, go to
+<a href="http://localhost:5050">http://localhost:5050</a>. To login use:</p>
 
 <ul>
 <li>user: <code>user@autodisc.com</code></li>
 <li>password: <code>autodisc</code></li>
 </ul>
 
-<p>You should see the server list in the panel on the left. To see the data of a table, unfold the <code>schema/Tables</code> property of the server. Then, right click on the desired table and click "See data".</p>
+<p>You should see the server list in the panel on the left. To see the data of a
+table, unfold the <code>schema/Tables</code> property of the server. Then, right click on
+the desired table and click "See data".</p>
 
 <h4 id="mongoexpress">MongoExpress</h4>
 
@@ -274,25 +302,36 @@ Access the app at <a href="http://localhost:8081">http://localhost:8081</a>.</p>
 
 <h2 id="home">Home</h2>
 
-<p>After starting the application and opening it in a browser at <a href="http://localhost:4201/home">http://localhost:4201/home</a> (localhost if you run the application locally), you will access the page presented in the picture below. </p>
+<p>After starting the application and opening it in a browser at
+<a href="http://localhost:4201/home">http://localhost:4201/home</a> (localhost if you run the application locally), you
+will access the page presented in the picture below.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/home/all-note.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/home/all-note.png"
+width="800"/></p>
 
-<p>First you can see a list of experiments and  for each experience some brief information. If you click on an item in the list you will be redirected to the experiment monitoring page
-The numbers below correspond to those in red in the picture.
-1: The experiment name
-2: The experiment id
-3: The date of creation
-4: All modules used in the experiment (the system, explorer, the number of input wrapper, the number of output representation and the host i.e.the server where you run the experiment, <em>local</em> if you run it on your pc)
-5: The current state of the experiment: <em>Done</em> if the experiment ended; <em>Preparing</em> if the experiment is in setup or if its waiting the server; <em>Running</em> if the experiment is in progress; <em>Error</em> if the experiment crashed.
-6: Some tools to manage the experiments' list: <em>Refresh</em> to synchronize the list with the database; <em>Date</em> to order by dates; A text zone to filter by the experiments or modules names.
-7: "New experiment" or the floating button redirect to the experience creation page.</p>
+<p>First you can see a list of experiments and for each experience some brief
+information. If you click on an item in the list you will be redirected to the
+experiment monitoring page The numbers below correspond to those in red in the
+picture. 1: The experiment name 2: The experiment id 3: The date of creation 4:
+All modules used in the experiment (the system, explorer, the number of input
+wrapper, the number of output representation and the host i.e.the server where
+you run the experiment, _local_ if you run it on your pc) 5: The current state
+of the experiment: _Done_ if the experiment ended; _Preparing_ if the experiment
+is in setup or if its waiting the server; _Running_ if the experiment is in
+progress; _Error_ if the experiment crashed. 6: Some tools to manage the
+experiments' list: _Refresh_ to synchronize the list with the database; _Date_
+to order by dates; A text zone to filter by the experiments or modules names.
+7: "New experiment" or the floating button redirect to the experience creation
+page.</p>
 
 <h2 id="experiment-creation">Experiment creation</h2>
 
 <h3 id="general-presentation">General presentation</h3>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/creation/all.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/creation/all.png"
+width="800"/></p>
 
 <p>This page consists of 4 parts:</p>
 
@@ -304,8 +343,9 @@ The numbers below correspond to those in red in the picture.
 
 <p>Now we will see each part of the accordion.</p>
 
-<p>General information:
-<img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/creation/general-information.png" width="800"/></p>
+<p>General information: <img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/creation/general-information.png"
+width="800"/></p>
 
 <pre><code>1: The name of the experiment. Must contain only alpha numeric characters, "-" and "_".
 2: The number of iterations. How many generations of the system will be explored.
@@ -316,29 +356,53 @@ The numbers below correspond to those in red in the picture.
 
 <h2 id="monitoring-experiment">Monitoring experiment</h2>
 
-<p>The monitoring experiment page give you access to the tools to manage the experiment. You can visualize discoveries and logs generated by the experiment. You have acces to some information about the experiment config. More important you have acces to a jupyter lab link to the experiment to manipulate all things generated by the experiment.</p>
+<p>The monitoring experiment page give you access to the tools to manage the
+experiment. You can visualize discoveries and logs generated by the experiment.
+You have acces to some information about the experiment config. More important
+you have acces to a jupyter lab link to the experiment to manipulate all things
+generated by the experiment.</p>
 
-<p>The <em>Details</em> part displays information about the experiment config. You have access to all modules used in the experiment, the current system, the current explorer, the list of input wrappers and output representations and the config for each of them and you can see all items the experiment has saved.</p>
+<p>The _Details_ part displays information about the experiment config. You have
+access to all modules used in the experiment, the current system, the current
+explorer, the list of input wrappers and output representations and the config
+for each of them and you can see all items the experiment has saved.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/details.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/monitoring/details.png"
+width="800"/></p>
 
-<p>The <em>checkpoints</em> part displays every checkpoint id with its status (Done, running, error...) and the experiment iteration number when the checkpoint was created.</p>
+<p>The _checkpoints_ part displays every checkpoint id with its status (Done,
+running, error...) and the experiment iteration number when the checkpoint was
+created.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/checkpoints.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/monitoring/checkpoints.png"
+width="800"/></p>
 
-<p>The <em>jupyter</em> part gives you access to tools to monitor many things. In it you have acces to the database and every results produced by an experiment.
-The "dataset_template" notebook show you how to acces the database and demonstrate a simple way to manipulate data.
-The yellow/blue popover informs weither the jupyter kernel is available and connected to the database or not.</p>
+<p>The _jupyter_ part gives you access to tools to monitor many things. In it you
+have acces to the database and every results produced by an experiment. The
+"dataset_template" notebook show you how to acces the database and demonstrate a
+simple way to manipulate data. The yellow/blue popover informs weither the
+jupyter kernel is available and connected to the database or not.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/jupyter.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/monitoring/jupyter.png"
+width="800"/></p>
 
-<p>The <em>discoveries</em> part displays all discoveries made by the experiment. You can filter them by seed, by iteration range and the number of discoveries per page at will.</p>
+<p>The _discoveries_ part displays all discoveries made by the experiment. You can
+filter them by seed, by iteration range and the number of discoveries per page
+at will.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/discoveries.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/monitoring/discoveries.png"
+width="800"/></p>
 
-<p>Finally you have a <em>logs</em> part where you can read all logs made by the experiment and filter them by checkpoints, seeds or log levels.</p>
+<p>Finally you have a _logs_ part where you can read all logs made by the
+experiment and filter them by checkpoints, seeds or log levels.</p>
 
-<p><img src="https://raw.githubusercontent.com/flowersteam/adtool/prod/docs/user_doc_images/monitoring/logs.png" width="800"/></p>
+<p><img
+src="https://raw.githubusercontent.com/flowersteam/adtool/prod/services/base/AutoDiscServer/libs/docs/user_doc_images/monitoring/logs.png"
+width="800"/></p>
 
 <h1 id="add-a-new-module-to-the-libs">Add a new module to the libs</h1>
 

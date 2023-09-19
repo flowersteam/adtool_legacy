@@ -379,13 +379,15 @@ implementation of the specific <code>Map</code>. We recommend preserving it.</p>
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><strong>input:</strong>  generic dict containing input data to the map at <code>premap_key</code></li>
+<li><strong>input:</strong>  Generic dict containing input data to the map at <code>premap_key</code></li>
+<li><strong>override_existing:</strong>  Flag which controls whether the value associated to
+<code>postmap_key</code> should be overridden if it exists alrady</li>
 </ul>
 
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>A  dict containing output data from the map at <code>postmap_key</code></p>
+  <p>A dict containing output data from the map at <code>postmap_key</code></p>
 </blockquote>
 </div>
 
