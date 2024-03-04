@@ -13,7 +13,7 @@ sbatch <<EOT
 #SBATCH --array=0-$(($1-1))
 
 module purge
-module load python/3.7.3
+module load python/3.11
 conda activate autoDiscTool
 
 srun python auto_disc/auto_disc/run.py --seed \$SLURM_ARRAY_TASK_ID ${@:2}

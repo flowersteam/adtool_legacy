@@ -101,13 +101,13 @@ For development work on the Python libraries, we recommend starting a new conda
 environment with
 
 ```bash
-conda create -n adtool python=3.9 poetry=1.5.1
+conda create -n adtool python=3.11 poetry=1.* -y
 ```
 
 or, if you are running on the new Macbooks with M1 processors
 
 ```bash
-CONDA_SUBDIR=osx-64 conda create -n adtool python=3.9 poetry=1.5.1
+CONDA_SUBDIR=osx-64 conda create -n adtool python=3.11 poetry=1.* -y
 ```
 
 Please see the online documentation at https://developmentalsystems.org/adtool/.

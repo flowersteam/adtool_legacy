@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 nvidia/cuda:12.1.1-base-ubuntu20.04 as library
+FROM --platform=linux/amd64 nvidia/cuda:12.3.2-base-ubuntu22.04 as library
 
 # install pip and virtualenv for the system python environment (python3.8)
 ENV DEBIAN_FRONTEND="noninteractive"
@@ -6,18 +6,18 @@ ENV DEBIAN_FRONTEND="noninteractive"
 ENV TZ="Etc/UTC"
 RUN apt-get update -y && apt-get install -y python3-pip virtualenv python-is-python3
 
-# bootstrap a virtual env in python3.9 for poetry
-RUN apt-get install -y python3.9
+# bootstrap a virtual env in python3.11 for poetry
+RUN apt-get install -y python3.11
 ENV POETRY_HOME=/opt/poetry
 ENV VIRTUAL_ENV=$POETRY_HOME
-RUN virtualenv -p /usr/bin/python3.9 $VIRTUAL_ENV
+RUN virtualenv -p /usr/bin/python3.11 $VIRTUAL_ENV
 # activate virtual environment and install poetry
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install poetry==1.5.1
+RUN pip install poetry==1.*
 
 # create and activate the autodisc-env virtualenv for the server
 ENV VIRTUAL_ENV=/autodisc-env
-RUN virtualenv -p /usr/bin/python3.9 /autodisc-env
+RUN virtualenv -p /usr/bin/python3.11 /autodisc-env
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # at this point, the $PATH prefers /autodisc-env, then /opt/poetry, then system
 

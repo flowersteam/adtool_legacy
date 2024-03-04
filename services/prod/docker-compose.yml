@@ -1,46 +1,53 @@
 # docker-compose.yml
-version: "3"
+version: "3.7"
 services:
   ##### FRONTEND APP #####
   app:
-    extends:
-      file: ../base/docker-compose.yml
-      service: app
+    # extends:
+    #   file: ../base/docker-compose.yml
+    #   service: app
+   # <<: *app
     image: ${DOCKER_REGISTRY-adtool}/app:${RELEASE_TAG-latest}
+
   ##### GATEWAY #####
   gateway:
-    extends:
-      file: ../base/docker-compose.yml
-      service: gateway
+    # extends:
+    #   file: ../base/docker-compose.yml
+    #   service: gateway
     image: ${DOCKER_REGISTRY-adtool}/gateway:${RELEASE_TAG-latest}
-  ##### APP DB #####
-  app-db:
-    extends:
-      file: ../base/docker-compose.yml
-      service: app-db
-  app-db-api:
-    extends:
-      file: ../base/docker-compose.yml
-      service: app-db-api
-  ##### EXPE DB #####
-  expe-db:
-    extends:
-      file: ../base/docker-compose.yml
-      service: expe-db
+
+
+  # ##### APP DB #####
+  # app-db:
+  #   extends:
+  #     file: ../base/docker-compose.yml
+  #     service: app-db
+  # app-db-api:
+  #   extends:
+  #     file: ../base/docker-compose.yml
+  #     service: app-db-api
+  # ##### EXPE DB #####
+  # expe-db:
+  #   extends:
+  #     file: ../base/docker-compose.yml
+  #     service: expe-db
   expe-db-api:
-    extends:
-      file: ../base/docker-compose.yml
-      service: expe-db-api
+    # extends:
+    #   file: ../base/docker-compose.yml
+    #   service: expe-db-api
     image: ${DOCKER_REGISTRY-adtool}/expe-db-api:${RELEASE_TAG-latest}
+
   ##### AUTODISC SERVER #####
   autodisc-server:
-    extends:
-      file: ../base/docker-compose.yml
-      service: autodisc-server
+    # extends:
+    #   file: ../base/docker-compose.yml
+    #   service: autodisc-server
     image: ${DOCKER_REGISTRY-adtool}/autodisc-server:${RELEASE_TAG-latest}
+
   ##### JUPYTER LAB #####
   jupyter:
-    extends:
-      file: ../base/docker-compose.yml
-      service: jupyter
+    # extends:
+    #   file: ../base/docker-compose.yml
+    #   service: jupyter
     image: ${DOCKER_REGISTRY-adtool}/jupyter:${RELEASE_TAG-latest}
+

@@ -1,5 +1,5 @@
 # docker-compose.yml
-version: "3" # TODO
+version: "3.7" # TODO
 services:
   ##### FRONTEND APP #####
   app:
@@ -86,7 +86,7 @@ services:
     hostname: autodisc-server
     platform: linux/amd64
     build:
-      context: ./AutoDiscServer
+      context: ../base/AutoDiscServer
     environment:
       EXPEDB_CALLER_HOST: expe-db-api
       EXPEDB_CALLER_PORT: 80

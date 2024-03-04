@@ -90,7 +90,7 @@ The software is implemented in various microservices
 1. If you do not already have it, please install
    [Conda](https://www.anaconda.com/)
 2. Create _autoDiscTool_ conda environment: `conda env create --name
-autoDiscTool python=3.7 `
+autoDiscTool python=3.11 `
 3. Activate _autoDiscTool_ conda environment: `conda activate autoDiscTool`
 4. Go to package: `cd libs/auto_disc`
 5. Install package: `pip install -e .`
