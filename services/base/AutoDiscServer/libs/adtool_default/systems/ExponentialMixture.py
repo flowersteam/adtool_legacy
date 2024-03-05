@@ -17,11 +17,10 @@ import sys
 
 matplotlib.use("Agg")
 
-
 @dataclass
 class SystemParams(Defaults):
-    sequence_max: float = field(default_factory=lambda: defaults(100.0, min=0.0, max=1000.0))
-    sequence_density: int = field(default_factory=lambda: defaults(100, min=1, max=1000))
+    sequence_max: float = field(default_factory=lambda:defaults(100.0, min=0.0, max=1000.0))
+    sequence_density: int = field(default_factory= lambda:defaults(100, min=1, max=1000))
 
 
 print("SystemParams", SystemParams, file=sys.stderr)

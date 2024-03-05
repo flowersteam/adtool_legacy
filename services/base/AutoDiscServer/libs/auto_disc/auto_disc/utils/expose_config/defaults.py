@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import asdict, dataclass, fields, is_dataclass
+import dataclasses
 from typing import Any, Callable, List, Optional
 
 from addict import Dict
@@ -100,6 +101,11 @@ class Defaults:
                     if k in config_dict:
                         raise ValueError(f"Config option {k} already exists.")
                     else:
+                        # consider default_factory
+                        if v.default_factory is not dataclasses.MISSING:
+                            unwrap_v = v.default_factory()
+                        
+                        
                         print("unwrap_v", unwrap_v, file=sys.stderr)
                         config_dict[k] = asdict(unwrap_v)
 
@@ -111,6 +117,7 @@ class Defaults:
                         config_dict[k]["parent"] = parent
 
         recurse(cls, "")
+        print("config_dict", config_dict, file=sys.stderr  )
         return config_dict
 
 
