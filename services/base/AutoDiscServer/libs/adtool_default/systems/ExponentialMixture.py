@@ -1,6 +1,6 @@
 import io
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Tuple
 
 import matplotlib
@@ -13,19 +13,25 @@ from auto_disc.legacy.utils.config_parameters import (
     IntegerConfigParameter,
 )
 from auto_disc.utils.leaf.locators.locators import BlobLocator
+import sys
 
 matplotlib.use("Agg")
 
 
 @dataclass
 class SystemParams(Defaults):
-    sequence_max: float = defaults(100.0, min=1.0, max=1000.0)
-    sequence_density: int = defaults(100, min=1, max=1000)
+    sequence_max: float = field(default_factory=lambda: defaults(100.0, min=0.0, max=1000.0))
+    sequence_density: int = field(default_factory=lambda: defaults(100, min=1, max=1000))
 
+
+print("SystemParams", SystemParams, file=sys.stderr)
 
 @SystemParams.expose_config()
 class ExponentialMixture(System):
     def __init__(self, sequence_max=100.0, sequence_density=100):
+        print("ExponentialMixture.__init__", 
+              sequence_max, type(sequence_max),
+              file=sys.stderr)
         super().__init__()
         self.sequence_max = sequence_max
         self.sequence_density = sequence_density
@@ -85,5 +91,9 @@ def test():
     assert len(ExponentialMixture.CONFIG_DEFINITION) > 0
 
 
+print("ExponentialMixture", ExponentialMixture, file=sys.stderr)
+
 if __name__ == "__main__":
     test()
+
+print("ExponentialMixture.CONFIG_DEFINITION", ExponentialMixture.CONFIG_DEFINITION, file=sys.stderr)

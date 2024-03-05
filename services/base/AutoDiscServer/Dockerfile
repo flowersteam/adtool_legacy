@@ -1,6 +1,6 @@
 FROM --platform=linux/amd64 nvidia/cuda:12.3.2-base-ubuntu22.04 as library
 
-# install pip and virtualenv for the system python environment (python3.8)
+# install pip and virtualenv for the system python environment (python3.11)
 ENV DEBIAN_FRONTEND="noninteractive"
 # TODO: load tz dynamically, would also fix the issue #210
 ENV TZ="Etc/UTC"

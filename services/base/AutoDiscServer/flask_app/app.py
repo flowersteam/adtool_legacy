@@ -82,6 +82,7 @@ def list_explorers():
 
 @app.route("/systems", methods=["GET"])
 def list_systems():
+    print("list_systems",get_modules("systems"),file=sys.stderr)
     info = get_auto_disc_registered_modules_info(get_modules("systems"))
     return make_response(jsonify(info), 200)
 

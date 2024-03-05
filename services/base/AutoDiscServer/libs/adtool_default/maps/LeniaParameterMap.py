@@ -12,6 +12,7 @@ from auto_disc.auto_disc.wrappers.CPPNWrapper import CPPNWrapper
 from auto_disc.auto_disc.wrappers.mutators import add_gaussian_noise
 from auto_disc.utils.leaf.Leaf import Leaf
 from auto_disc.utils.leaf.locators.locators import BlobLocator
+import sys
 
 
 @dataclass
@@ -112,11 +113,13 @@ class LeniaParameterMap(Leaf):
 
         # convert to parameter objects
         dp = LeniaDynamicalParameters().from_tensor(p_dyn_tensor)
+        print("before asdict(dp):", dp, file=sys.stderr)
         p_dict = {
             "dynamic_params": asdict(dp),
             "genome": genome,
             "neat_config": self.neat.neat_config,
         }
+        print("after asdict(dp):", p_dict, file=sys.stderr)
 
         return p_dict
 

@@ -7,6 +7,7 @@ from auto_disc.auto_disc.utils.expose_config.expose_config import (
     ExposeConfig,
     _handlers,
 )
+import sys
 
 
 def defaults(
@@ -82,7 +83,9 @@ class Defaults:
 
         # inner function to recurse through the dataclass
         def recurse(dc: type, parent: str):
+            print("dc", dc, file=sys.stderr)
             for k, v in dc.__dataclass_fields__.items():
+                print("kv", k, v, file=sys.stderr)
                 # unwrap from the Field object
                 unwrap_v = v.default
 
@@ -97,6 +100,7 @@ class Defaults:
                     if k in config_dict:
                         raise ValueError(f"Config option {k} already exists.")
                     else:
+                        print("unwrap_v", unwrap_v, file=sys.stderr)
                         config_dict[k] = asdict(unwrap_v)
 
                         # remove the leading "." from the parent

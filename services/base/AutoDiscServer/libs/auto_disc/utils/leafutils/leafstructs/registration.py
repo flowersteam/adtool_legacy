@@ -7,6 +7,7 @@ import math
 import pkgutil
 from pydoc import locate as _locate
 from typing import cast
+import sys
 
 from mergedeep import merge
 

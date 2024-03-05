@@ -2,7 +2,7 @@ import dataclasses
 import io
 import math
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import imageio
@@ -137,7 +137,7 @@ class LeniaDynamicalParameters:
 class LeniaParameters:
     """Holds input parameters for Lenia model."""
 
-    dynamic_params: LeniaDynamicalParameters = LeniaDynamicalParameters()
+    dynamic_params: LeniaDynamicalParameters = field(default_factory=LeniaDynamicalParameters)
     init_state: torch.Tensor = torch.rand((10, 10))
 
 
