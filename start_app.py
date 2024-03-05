@@ -136,26 +136,24 @@ def main() -> None:
     # HACK: need to ensure notebook permissions which are sometimes wrong
     set_notebooks_permissions()
 
-    # run docker compose
-    if args.mode == "dev":
-        os.chdir("./services/dev")
-    elif args.mode == "prod":
-        os.chdir("./services/prod")
-    elif args.mode == "base":
-        os.chdir("./services/base")
+
+    os.chdir("./services")
+
+
 
     passed_args = []
     if args.env:
         passed_args.extend(["--env-file", args.env])
-    compose_files: List[str] = ["-f", "docker-compose.yml"]
+    compose_files: List[str] = ["-f", "base/docker-compose.yml"]
+
+    if args.mode != "base":
+            compose_files.extend([ "-f", f"{args.mode}/docker-compose.yml"])
+
     if args.gpu:
-        docker_compose_override_path = "docker-compose-gpu.override.yml"
+        compose_files.extend(["-f", "docker-compose-gpu.override.yml"])
         # except for the base config, in the others we must go up in the
         # directory to find the override
-        if args.mode != "base":
-            docker_compose_override_path = "../base/" + docker_compose_override_path
-
-        compose_files.extend(["-f", docker_compose_override_path])
+        
 
     executable: List[str] = []
     if has_docker_compose == HasDockerCompose.HAS_DOCKER_COMPOSE:
