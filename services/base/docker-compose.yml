@@ -84,7 +84,7 @@ services:
   ##### AUTODISC SERVER #####
   autodisc-server:
     hostname: autodisc-server
-    platform: linux/amd64
+    #platform: linux/amd64
     build:
       context: ../base/AutoDiscServer
     environment:
@@ -106,7 +106,7 @@ services:
   ##### JUPYTER LAB #####
   jupyter:
     hostname: jupyter
-    platform: linux/amd64
+   # platform: linux/amd64
     build:
       context: ./JupyterLab
     environment:

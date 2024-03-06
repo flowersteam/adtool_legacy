@@ -137,7 +137,7 @@ class LeniaDynamicalParameters:
 class LeniaParameters:
     """Holds input parameters for Lenia model."""
 
-    dynamic_params: LeniaDynamicalParameters = field(default_factory=LeniaDynamicalParameters)
+    dynamic_params: LeniaDynamicalParameters = field(default_factory=lambda : LeniaDynamicalParameters())
     init_state: torch.Tensor = torch.rand((10, 10))
 
 

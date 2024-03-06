@@ -72,7 +72,7 @@ def _get_file_from_document(document, filename, _filename: str = ""):
             # if can't find file, try to follow pointer one level
             new_filename = str(document[filename])
             file = fs.get(ObjectId(document[new_filename]))
-    return send_file(file, attachment_filename=_filename)
+    return send_file(file, download_name=_filename)
 
 
 def _add_files_to_document(collection, document, files):

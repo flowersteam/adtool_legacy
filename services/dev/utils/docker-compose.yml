@@ -1,11 +1,11 @@
 services:
-  autodisc-py3.7:
-    platform: linux/amd64
+  autodisc-py3.11:
+    #platform: linux/amd64
     build:
       context: ../../
       dockerfile: ./dev/autodisc/Dockerfile
       tags:
-        - jesselin/autodisc-py3.7:v1
+        - jesselin/autodisc-py3.11:v1
     tty: true
     stdin_open: true
     volumes:
