@@ -72,7 +72,27 @@
               "
             >
               <li>
-                {{ key + " : " + this.experiment.explorers[0].config[key] }}
+                <span
+                  >{{ key }} : 
+
+                <!-- if it's a string or number, display it -->
+                <span *ngIf="this.experiment.explorers[0].config[key].constructor.name != 'Object'">
+                  {{ this.experiment.explorers[0].config[key] }}
+                </span>
+                <!-- if it's an object, display it as a JSON string -->
+                <span *ngIf="this.experiment.explorers[0].config[key].constructor.name == 'Object'">
+                  {{this.experiment.explorers[0].config[key] | json }}
+                 </span>
+
+
+
+
+                
+                </span>
+
+
+                
+
               </li>
             </div>
           </div>
