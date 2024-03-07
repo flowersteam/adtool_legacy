@@ -59,14 +59,21 @@ def test_ExpeDBLocator__retrieve_mongo_id():
 
 
 def test_ExpeDBLocator_store():
-    bin = b"123"
+    bin = b"123 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
     loc = ExpeDBLocator(resource_uri=RESOURCE_URI)
+    print('loc', loc)
     uid = loc.store(bin)
+    print('uid', uid)
 
     # test by making a manual API call
     mongo_id = loc._retrieve_mongo_id(uid)
+    print('mongo_id', mongo_id)
     response_bin = requests.get(RESOURCE_URI + "/" + mongo_id + "/metadata").content
+
     response_bin = codecs.decode(response_bin, encoding="base64")
+
+    print('response_bin', response_bin)
+
     assert response_bin == bin
 
     # TODO: test that duplicate inserts result in update
@@ -78,6 +85,8 @@ def test_ExpeDBLocator_retrieve():
     uid = loc.store(bin)
 
     retrieved_bin = loc.retrieve(uid)
+
+    print("retrieved_bin", retrieved_bin)
 
     assert bin == retrieved_bin
 

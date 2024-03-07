@@ -84,9 +84,7 @@ class Defaults:
 
         # inner function to recurse through the dataclass
         def recurse(dc: type, parent: str):
-            print("dc", dc, file=sys.stderr)
             for k, v in dc.__dataclass_fields__.items():
-                print("kv", k, v, file=sys.stderr)
                 # unwrap from the Field object
                 unwrap_v = v.default
 

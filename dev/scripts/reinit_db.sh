@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 echo "Removing AppDB/saved_data..."
-rm -rf ../../services/AppDB/saved_data;
+rm -rf ../../services/base/AppDB/saved_data;
 echo "Removing ExpeDB/saved_data..."
-rm -rf ../../services/ExpeDB/saved_data;
+rm -rf ../../services/base/ExpeDB/saved_data;
 echo "Removing JupyterLab/Notebooks/Experiments..."
-find ../../services/JupyterLab/Notebooks/Experiments -type d ! -name '.*' -mindepth 1 -exec rm -rf {} +;
+find ../../services/base/JupyterLab/Notebooks/Experiments  -mindepth 1 -type d ! -name '.*'  -exec rm -rf {} +;
 echo "Done!"
 

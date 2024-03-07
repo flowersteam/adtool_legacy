@@ -4,7 +4,6 @@ RUN apt-get update -y && apt-get install -y gcc
 
 # ExpeDB dependency resolution
 # NOTE: can only run in the build context provided in docker-compose.yml
-COPY ./flask_app/app.py /usr/src/services/flask_app/app.py
 COPY ./flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
 RUN pip install -r /usr/src/services/flask_app/requirements.txt
 
@@ -19,10 +18,12 @@ RUN apt-get update -y && apt-get install -y curl procps vim
 
 # placed here to allowed efficient caching of src changes
 # TODO: actually need to put app.py here for efficient caching
-COPY ./flask_app/ /usr/src/services/flask_app/
+#COPY ./flask_app/ /usr/src/services/flask_app/
+#COPY ./flask_app/app.py /usr/src/services/flask_app/app.py
 
 # start daemons
-VOLUME ["/usr/src/services"]
+# VOLUME ["/usr/src/services"]
 WORKDIR /usr/src/services/flask_app
 
-CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
+CMD gunicorn -w 4 -b 0.0.0.0:8000 app:app --access-logfile '-' --log-level 'debug' \
+  --reload & nginx -g "daemon off;"

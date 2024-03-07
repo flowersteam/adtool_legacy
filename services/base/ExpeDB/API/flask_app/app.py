@@ -7,6 +7,9 @@ from gridfs import GridFS
 from pymongo import MongoClient
 from utils import ExpeDBConfig
 
+
+import sys
+
 config = ExpeDBConfig()
 app = Flask(__name__)
 CORS(app)
@@ -67,7 +70,8 @@ def _get_file_from_document(document, filename, _filename: str = ""):
         return make_response(error_msg, 403)
     else:
         try:
-            file = fs.get(ObjectId(document[filename]))
+            print("filename", filename, file=sys.stderr)
+            file = fs.get(document[filename])
         except:
             # if can't find file, try to follow pointer one level
             new_filename = str(document[filename])
@@ -373,9 +377,16 @@ def delete_data_saves():
     else:
         return make_response("You must provide a " "data_id in the request args", 403)
 
-
 # endregion
-
+    
 
 if __name__ == "__main__":
-    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)
+    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT, debug=True, use_reloader=True, extra_files=[
+
+"/usr/src/libs/auto_disc/utils/leafutils/leafintegrations/",
+"/usr/src/libs/auto_disc/utils/leafutils/",
+"/usr/src/libs/auto_disc/utils/",
+"/usr/src/libs/auto_disc/",
+"/usr/src/libs/",
+    ])
+

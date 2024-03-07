@@ -7,7 +7,7 @@ from experiments.remote_experiment import RemoteExperiment
 from utils import AutoDiscServerConfig, CheckpointsStatusEnum, reconstruct_parameters
 from utils.DB import AppDBCaller, AppDBMethods
 from utils.experiment_status_enum import ExperimentStatusEnum
-
+import sys
 
 class ExperimentsHandler:
     def __init__(self):
@@ -27,6 +27,7 @@ class ExperimentsHandler:
             iter(filter(lambda element: element.id == id, self._experiments)), None
         )
         if experiment is None:
+            print("experiments", self._experiments, file=sys.stderr)
             raise Exception("Unknown experiment ID !")
 
         return experiment
@@ -56,6 +57,7 @@ class ExperimentsHandler:
             )
 
         # Add it in the list
+        
         self._experiments.append(experiment)
 
         return experiment
@@ -114,7 +116,6 @@ class ExperimentsHandler:
         try:
             # Add experiment in DB and obtain the id
             exp_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M %Z")
-            print("Before response")
             request = {
                 "name": parameters["experiment"]["name"],
                 "created_on": exp_date,

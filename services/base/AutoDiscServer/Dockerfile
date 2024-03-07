@@ -41,12 +41,12 @@ RUN ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled/flask
 
 # AutoDiscServer dependency resolution
 # TODO: convert to poetry package
-COPY flask_app/app.py /usr/src/services/flask_app/app.py
+#COPY flask_app/app.py /usr/src/services/flask_app/app.py
 COPY flask_app/requirements.txt /usr/src/services/flask_app/requirements.txt
 RUN pip install -r /usr/src/services/flask_app/requirements.txt
 
 # stage app
-COPY flask_app/ /usr/src/services/flask_app/
+#COPY flask_app/ /usr/src/services/flask_app/
 # stage user custom modules in adtool_custom
 COPY libs/adtool_custom /usr/src/libs/adtool_custom
 WORKDIR /usr/src/libs
@@ -55,4 +55,4 @@ RUN poetry lock; poetry install
 
 # start daemons
 WORKDIR /usr/src/services/flask_app
-CMD gunicorn -w 4 -b 0.0.0.0:5201 app:app --access-logfile '-' --log-level 'debug' & nginx -g "daemon off;"
+CMD gunicorn -w 4 -b 0.0.0.0:5201 app:app --access-logfile '-' --log-level 'debug' --reload & nginx -g "daemon off;"

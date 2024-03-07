@@ -46,6 +46,7 @@ def list_experiments():
     return make_response(jsonify({"ID": experiment_ids}), 200)
 
 
+
 @app.route("/experiments", methods=["POST"])
 def create_experiment():
     try:
@@ -69,7 +70,6 @@ def stop_experiment(id):
 
 
 # Explorers
-
 
 @app.route("/explorers", methods=["GET"])
 def list_explorers():
@@ -144,4 +144,5 @@ def list_hosts():
 
 
 if __name__ == "__main__":
-    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT)
+    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT,
+            debug= True, use_reloader=True)

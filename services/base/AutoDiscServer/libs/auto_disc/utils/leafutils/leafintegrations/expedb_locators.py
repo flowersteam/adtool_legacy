@@ -16,14 +16,14 @@ def _initialize_checkpoint(entrypoint: str, dict: Dict = {}) -> str:
     """
     Inserts a Mongo document and retrieves the unique key generated
     """
-    response = json.loads(requests.post(entrypoint, json=dict).content)
+    response = requests.post(entrypoint, json=dict).json()
     return response["ID"]
 
 
 def _query_uid(resource_uri: str, uid: LeafUID) -> List[Dict]:
     uid_filter = {"uid": uid}
     uid_filter = _format_filter_from_dict(uid_filter)
-    response = json.loads(requests.get(resource_uri + "?filter=" + uid_filter).content)
+    response = requests.get(resource_uri + "?filter=" + uid_filter).json()
     return response
 
 
@@ -102,6 +102,7 @@ class ExpeDBLocator(Locator):
 
     def _retrieve_mongo_id(self, uid: LeafUID) -> str:
         response = _query_uid(self.resource_uri, uid)
+        print('_retrieve_mongo_id response', response)
         if len(response) == 0:
             mongo_id = _initialize_checkpoint(self.resource_uri)
         elif len(response) == 1:

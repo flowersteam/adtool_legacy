@@ -90,9 +90,6 @@ def test():
     assert len(ExponentialMixture.CONFIG_DEFINITION) > 0
 
 
-print("ExponentialMixture", ExponentialMixture, file=sys.stderr)
 
 if __name__ == "__main__":
     test()
-
-print("ExponentialMixture.CONFIG_DEFINITION", ExponentialMixture.CONFIG_DEFINITION, file=sys.stderr)
