@@ -59,9 +59,8 @@ def test_ExpeDBLocator__retrieve_mongo_id():
 
 
 def test_ExpeDBLocator_store():
-    bin = b"123 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    bin = b"123"
     loc = ExpeDBLocator(resource_uri=RESOURCE_URI)
-    print('loc', loc)
     uid = loc.store(bin)
     print('uid', uid)
 
@@ -70,9 +69,11 @@ def test_ExpeDBLocator_store():
     print('mongo_id', mongo_id)
     response_bin = requests.get(RESOURCE_URI + "/" + mongo_id + "/metadata").content
 
+    print('response_bin', response_bin)
+
     response_bin = codecs.decode(response_bin, encoding="base64")
 
-    print('response_bin', response_bin)
+    
 
     assert response_bin == bin
 
@@ -126,11 +127,18 @@ def test_ExpeDBLinearLocator_store():
     bin = saver.serialize()
     dbname, _ = FileLinearLocator.parse_bin(bin)
 
+    print("dbname", dbname)
+
     # delete doc if exists
     response_arr = expedb_locators._query_uid(RESOURCE_URI, dbname)
-    mongo_id = response_arr[0]["_id"]
-    entrypoint_url = os.path.join(RESOURCE_URI, mongo_id)
-    requests.delete(entrypoint_url)
+    if len(response_arr)==1:
+        mongo_id = response_arr[0]["_id"]
+        entrypoint_url = os.path.join(RESOURCE_URI, mongo_id)
+        requests.delete(entrypoint_url)
+    elif len(response_arr)>1:
+        raise Exception("Weird, there are multiple documents with the same name")
+
+
 
     # store
     loc = ExpeDBLinearLocator(resource_uri=RESOURCE_URI)

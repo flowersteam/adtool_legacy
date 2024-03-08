@@ -71,7 +71,7 @@ def _get_file_from_document(document, filename, _filename: str = ""):
     else:
         try:
             print("filename", filename, file=sys.stderr)
-            file = fs.get(document[filename])
+            file = fs.get(ObjectId(document[filename]))
         except:
             # if can't find file, try to follow pointer one level
             new_filename = str(document[filename])
