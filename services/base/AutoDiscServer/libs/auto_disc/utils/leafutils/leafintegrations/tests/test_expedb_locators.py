@@ -13,10 +13,13 @@ from auto_disc.utils.leafutils.leafintegrations.expedb_locators import (
     _initialize_checkpoint,
 )
 
+import sys
 
 def setup_function(function):
     global RESOURCE_URI
     RESOURCE_URI = "http://127.0.0.1:5001/checkpoint_saves"
+
+
 
 
 def teardown_function(function):
@@ -104,21 +107,7 @@ def test_ExpeDBLinearLocator__init_cache_dir():
     os.rmdir(filepath)
 
 
-def test_ExpeDBLinearLocator__retrieve_tree_and_store_metadata():
-    def no_response(a, b):
-        return []
 
-    # test initialize path
-    expedb_locators._query_uid = no_response
-    loc = ExpeDBLinearLocator(resource_uri=RESOURCE_URI)
-    cache_dir = loc._init_cache_dir()
-    stepper = Stepper()
-    stepper.buffer = [bytes(1), bytes(2)]
-    data_bin = stepper.serialize()
-
-    loc._retrieve_tree_and_store_metadata(cache_dir, "fake_dbuid", data_bin)
-
-    # todo test regular path
 
 
 def test_ExpeDBLinearLocator_store():
@@ -127,7 +116,7 @@ def test_ExpeDBLinearLocator_store():
     bin = saver.serialize()
     dbname, _ = FileLinearLocator.parse_bin(bin)
 
-    print("dbname", dbname)
+    print("dbname", dbname,file=sys.stderr)
 
     # delete doc if exists
     response_arr = expedb_locators._query_uid(RESOURCE_URI, dbname)
@@ -149,6 +138,25 @@ def test_ExpeDBLinearLocator_store():
     assert uid.split(":")[-1] == "3"
 
 
+def test_ExpeDBLinearLocator__retrieve_tree_and_store_metadata():
+    def no_response(a, b):
+        return []
+
+    # test initialize path
+ #  expedb_locators._query_uid = no_response
+    loc = ExpeDBLinearLocator(resource_uri=RESOURCE_URI)
+    cache_dir = loc._init_cache_dir()
+    stepper = Stepper()
+    stepper.buffer = [bytes(1), bytes(2)]
+    data_bin = stepper.serialize()
+    
+
+    mongo_id=loc._retrieve_tree_and_store_metadata(cache_dir, "lineardb", data_bin)
+
+    print("mongo_id", mongo_id)
+
+
+
 def test_ExpeDBLinearLocator_retrieve():
     saver = SaveWrapper()
     saver.buffer = [bytes(1), bytes(2)]
@@ -158,6 +166,6 @@ def test_ExpeDBLinearLocator_retrieve():
     uid = loc.store(bin, parent_id=-1)
     uid = loc.store(bin, parent_id=1)
 
-    bin = loc.retrieve(uid, length=0)
+    bin = loc.retrieve(uid, length=2)
     stepper = Stepper().deserialize(bin)
     assert stepper.buffer == [bytes(1), bytes(2), bytes(1), bytes(2)]

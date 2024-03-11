@@ -10,7 +10,7 @@ import requests
 from auto_disc.utils.leaf.Leaf import LeafUID
 from auto_disc.utils.leaf.locators.LinearBase import FileLinearLocator
 from auto_disc.utils.leaf.locators.Locator import Locator
-
+import sys
 
 def _initialize_checkpoint(entrypoint: str, dict: Dict = {}) -> str:
     """
@@ -238,10 +238,14 @@ class ExpeDBLinearLocator(Locator):
         return
 
     def _load_tree_into_cache_dir(self, cache_dir: str, mongo_id: str) -> None:
+        print(self.resource_uri + "/" + mongo_id + "/lineardb",file=sys.stderr)
         response_bin = requests.get(
             self.resource_uri + "/" + mongo_id + "/lineardb"
-        ).content
-        bin = codecs.decode(response_bin, encoding="base64")
+        )
+        if response_bin.status_code != 200:
+            raise Exception("Failed to retrieve lineardb from ExpeDB.")
+        
+        bin = codecs.decode(response_bin.content, encoding="base64")
         lineardb_path = os.path.join(cache_dir, "lineardb")
         with open(lineardb_path, "wb") as f:
             f.write(bin)
